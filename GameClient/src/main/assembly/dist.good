@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<assembly
+   xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="
+         http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1
+         http://maven.apache.org/xsd/assembly-1.1.1.xsd">
+  <id>lib</id>
+  <formats>
+    <format>zip</format>
+  </formats>
+
+  <includeBaseDirectory>false</includeBaseDirectory>
+
+  <fileSets>
+    <fileSet>
+        <directory>${basedir}/target/classes</directory>
+        <outputDirectory/>
+    </fileSet>
+  </fileSets>
+
+<!--
+    <fileSet>
+      <directory>src/main/resources</directory>
+      <outputDirectory/>
+    </fileSet>
+  </fileSets>
+-->
+<!--
+  <fileSets>
+    <fileSet>
+      <directory>src/main/java</directory>
+      <outputDirectory/>
+    </fileSet>
+    <fileSet>
+      <directory>src/main/resources</directory>
+      <outputDirectory/>
+    </fileSet>
+  </fileSets>
+    -->
+  <dependencySets>
+    <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
+      <unpack>false</unpack>
+      <scope>runtime</scope>
+      <fileMode>0755</fileMode>
+      <directoryMode>0755</directoryMode>
+
+      <outputDirectory>lib</outputDirectory>
+      <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
+    </dependencySet>
+  </dependencySets>
+
+<!--
+  <dependencySets>
+    <dependencySet>
+      <useProjectArtifact>true</useProjectArtifact>
+      <useTransitiveDependencies>false</useTransitiveDependencies>
+      <unpack>true</unpack>
+    </dependencySet>
+-->
+<!--
+    <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
+      <useTransitiveDependencies>true</useTransitiveDependencies>
+      <unpack>false</unpack>
+      <scope>runtime</scope>
+      <fileMode>0644</fileMode>
+      <directoryMode>0755</directoryMode>
+      <outputDirectory>lib</outputDirectory>
+
+    <includes>
+        <include>com.group.id:project-lib1</include>
+        <include>com.group.id:project-lib2</include>
+        <include>com.group.id:project-lib3</include>
+        <include>com.group.id:project-lib4</include>
+      </includes>
+    </dependencySet>
+
+  </dependencySets>
+-->
+
+
+</assembly>

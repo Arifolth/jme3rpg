@@ -1,0 +1,163 @@
+MaterialDef Phong Lighting (Single Pass) {
+
+    MaterialParameters {
+        // Compute vertex lighting in the shader
+        // For better performance
+        Boolean VertexLighting
+
+        // Use the provided ambient, diffuse, and specular colors
+        Boolean UseMaterialColors
+
+        // Ambient color
+        Color Ambient (MaterialAmbient)
+
+        // Diffuse color
+        Color Diffuse (MaterialDiffuse)
+
+        // Specular color
+        Color Specular (MaterialSpecular)
+
+        // Specular power/shininess
+        Float Shininess (MaterialShininess) : 1
+
+        // Diffuse map
+        Texture2D DiffuseMap
+
+        // Normal map
+        Texture2D NormalMap
+
+        // Parallax/height map
+        Texture2D ParallaxMap
+
+        //Sets the relief height for parallax mapping
+        Float ParallaxHeight : 0.05
+
+        // Fog
+        Boolean Fog
+        Vector3 FogParams
+        Vector3 SunDir
+        Color FogColor
+        Color FogSunColor
+        
+        
+    }
+
+    Technique {
+        LightMode SinglePass
+
+        VertexShader GLSL100:   se/jod/biomonkey/assets/shaders/lightingsp/LightingSP.vert
+        FragmentShader GLSL100: se/jod/biomonkey/assets/shaders/lightingsp/LightingSP.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldViewMatrix
+            WorldMatrix
+            ViewMatrix
+            NormalMatrix
+        }
+
+        Defines {
+            NUM_LIGHTS : NumLights
+
+            VERTEX_LIGHTING : VertexLighting
+            MATERIAL_COLORS : UseMaterialColors
+
+            AMBIENT: Ambient
+            DIFFUSE : Diffuse
+            SPECULAR : Specular
+            DIFFUSEMAP : DiffuseMap
+            NORMALMAP : NormalMap
+            PARALLAXMAP : ParallaxMap
+        }
+    }
+
+    Technique PreShadow {
+
+        VertexShader GLSL100 :   Common/MatDefs/Shadow/PreShadow.vert
+        FragmentShader GLSL100 : Common/MatDefs/Shadow/PreShadow.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldViewMatrix
+        }
+
+        Defines {
+            DIFFUSEMAP_ALPHA : DiffuseMap
+        }
+
+        RenderState {
+            FaceCull Off
+            DepthTest On
+            DepthWrite On
+            PolyOffset 5 0
+            ColorWrite Off
+        }
+
+    }
+
+  Technique PreNormalPass {
+
+        VertexShader GLSL100 :   Common/MatDefs/SSAO/normal.vert
+        FragmentShader GLSL100 : Common/MatDefs/SSAO/normal.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldViewMatrix
+            NormalMatrix
+        }
+
+        Defines {
+            DIFFUSEMAP_ALPHA : DiffuseMap
+        }
+
+        RenderState {
+
+        }
+
+    }
+
+    Technique GBuf {
+
+        VertexShader GLSL100:   Common/MatDefs/Light/GBuf.vert
+        FragmentShader GLSL100: Common/MatDefs/Light/GBuf.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            NormalMatrix
+            WorldViewMatrix
+            WorldMatrix
+        }
+
+        Defines {
+            VERTEX_COLOR : UseVertexColor
+            MATERIAL_COLORS : UseMaterialColors
+            V_TANGENT : VTangent
+            MINNAERT  : Minnaert
+            WARDISO   : WardIso
+
+            DIFFUSEMAP : DiffuseMap
+            NORMALMAP : NormalMap
+            SPECULARMAP : SpecularMap
+            PARALLAXMAP : ParallaxMap
+        }
+    }
+
+    Technique FixedFunc {
+        LightMode FixedPipeline
+    }
+
+    Technique Glow {
+
+        VertexShader GLSL100:   Common/MatDefs/Misc/SimpleTextured.vert
+        FragmentShader GLSL100: Common/MatDefs/Light/Glow.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+        }
+
+        Defines {
+            HAS_GLOWMAP : GlowMap
+            HAS_GLOWCOLOR : GlowColor
+        }
+    }
+}

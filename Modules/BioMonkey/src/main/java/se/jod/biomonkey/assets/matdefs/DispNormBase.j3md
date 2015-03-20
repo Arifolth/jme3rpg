@@ -1,0 +1,25 @@
+MaterialDef My MaterialDef {
+
+    MaterialParameters {
+        Float BSRadius
+        Texture2D DiffuseMap
+        Texture2D NormalMap
+        Float AlphaDiscardThreshold : 0.5
+    }
+
+    Technique {
+        VertexShader GLSL100:   se/jod/biomonkey/assets/shaders/impostors/DispNorm.vert
+        FragmentShader GLSL100: se/jod/biomonkey/assets/shaders/impostors/DispNorm.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldMatrix
+            CameraPosition
+        }
+
+        Defines {
+            NORMALMAP : NormalMap
+        }
+    }
+
+}

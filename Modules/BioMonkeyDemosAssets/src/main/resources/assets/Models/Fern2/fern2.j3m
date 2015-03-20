@@ -1,0 +1,14 @@
+Material My Material : Common/MatDefs/Light/Lighting.j3md {
+     MaterialParameters {
+        DiffuseMap : Repeat Models/Fern2/diffus.png
+        NormalMap : Repeat Models/Fern2/normal.tga
+        UseAlpha : false
+        AlphaDiscardThreshold : 0.5
+        UseMaterialColors : false
+        Shininess : 8.0
+        SpecularMap : Models/Fern2/specular.tga
+     }
+    AdditionalRenderState {
+      Blend Off
+    }
+}

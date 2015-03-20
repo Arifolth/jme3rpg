@@ -1,0 +1,12 @@
+Material stone : Common/MatDefs/Light/Lighting.j3md {
+     MaterialParameters {
+         Shininess: 1.5
+         DiffuseMap: Flip Textures/CobbleStoneGroundDiffuse.png
+         NormalMap: Flip Textures/CobbleStoneGroundNormal.png
+         ParallaxMap: Flip Textures/CobbleStoneGroundParallax.png
+         UseMaterialColors: false
+         Diffuse: 1.0 1.0 1.0 1.0
+         Ambient: 0.2 0.2 0.2 1.0
+         Specular: 1.0 1.0 1.0 1.0
+     }
+}

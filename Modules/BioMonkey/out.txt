@@ -1,0 +1,197 @@
+[INFO] Scanning for projects...
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building BioMonkey JAR 1.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] --- maven-clean-plugin:2.5:clean (default-clean) @ BioMonkey ---
+[INFO] Deleting L:\jMonkey3\jME3RPG\Modules\BioMonkey\target
+[INFO] 
+[INFO] --- maven-resources-plugin:2.4:resources (default-resources) @ BioMonkey ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 58 resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:compile (default-compile) @ BioMonkey ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 87 source files to L:\jMonkey3\jME3RPG\Modules\BioMonkey\target\classes
+[WARNING] /L:/jMonkey3/jME3RPG/Modules/BioMonkey/src/main/java/se/jod/biomonkey/grass/GrassBlock.java: L:\jMonkey3\jME3RPG\Modules\BioMonkey\src\main\java\se\jod\biomonkey\grass\GrassBlock.java uses or overrides a deprecated API.
+[WARNING] /L:/jMonkey3/jME3RPG/Modules/BioMonkey/src/main/java/se/jod/biomonkey/grass/GrassBlock.java: Recompile with -Xlint:deprecation for details.
+[INFO] 
+[INFO] --- maven-resources-plugin:2.4:testResources (default-testResources) @ BioMonkey ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory L:\jMonkey3\jME3RPG\Modules\BioMonkey\src\test\resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:testCompile (default-testCompile) @ BioMonkey ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- maven-surefire-plugin:2.12.4:test (default-test) @ BioMonkey ---
+[INFO] No tests to run.
+[INFO] 
+[INFO] --- maven-jar-plugin:2.4:jar (default-jar) @ BioMonkey ---
+[INFO] Building jar: L:\jMonkey3\jME3RPG\Modules\BioMonkey\target\BioMonkey-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- maven-assembly-plugin:2.2.1:single (make-assembly) @ BioMonkey ---
+[INFO] Reading assembly descriptor: src/main/assembly/dist.xml
+[INFO]  already added, skipping
+[INFO] se already added, skipping
+[INFO] se\jod already added, skipping
+[INFO] se\jod\biomonkey already added, skipping
+[INFO] se\jod\biomonkey\assets already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\grass already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\impostors already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\lib already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\lightingsp already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\sky already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\terrain already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees already added, skipping
+[INFO] se\jod\biomonkey\assets\textures already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\ColorBase.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\DispNormBase.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\FoliageBase.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\GrassBase.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\LightingSP.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\MoonBase.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\SkyBase.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\StarBase.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\TerrainBase.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\TerrainBaseSplat.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\TreeBase.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\TreeImpostorBase.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\grass\Grass.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\grass\Grass.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\grass\GrassPostShadowPSSM.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\grass\GrassPostShadowPSSM.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\grass\GrassPostShadowPSSM15.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\grass\GrassPreShadowPSSM.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\grass\GrassPreShadowPSSM.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\impostors\Color.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\impostors\Color.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\impostors\DispNorm.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\impostors\DispNorm.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\impostors\Impostor.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\impostors\Impostor.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\impostors\ImpostorPreShadowPSSM.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\impostors\ImpostorPreShadowPSSM.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\lib\Fog.glsllib already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\lightingsp\LightingSP.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\lightingsp\LightingSP.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\sky\Moon.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\sky\Moon.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\sky\Sky.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\sky\Sky.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\sky\Stars.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\sky\Stars.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\terrain\TerrainLighting.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\terrain\TerrainLighting.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\terrain\TerrainLightingSplat.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\terrain\TerrainLightingSplat.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees\Foliage.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees\Foliage.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees\FoliagePostShadowPSSM.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees\FoliagePostShadowPSSM.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees\FoliagePostShadowPSSM15.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees\FoliagePreShadowPSSM.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees\FoliagePreShadowPSSM.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees\Foliage_1.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees\Foliage_1.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees\Tree.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees\Tree.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\textures\CloudsTile.png already added, skipping
+[INFO] se\jod\biomonkey\assets\textures\CloudsTile_NORM.png already added, skipping
+[INFO] se\jod\biomonkey\assets\textures\Clouds_L.png already added, skipping
+[INFO] se\jod\biomonkey\assets\textures\Clouds_L_NORM.png already added, skipping
+[INFO] se\jod\biomonkey\assets\textures\noise.png already added, skipping
+[INFO] se\jod\biomonkey\assets\textures\SkyX_Moon.png already added, skipping
+[INFO] se\jod\biomonkey\assets\textures\StarSprite.png already added, skipping
+[INFO] Building jar: L:\jMonkey3\jME3RPG\Modules\BioMonkey\target\BioMonkey-1.0-SNAPSHOT.jar
+[INFO]  already added, skipping
+[INFO] se already added, skipping
+[INFO] se\jod already added, skipping
+[INFO] se\jod\biomonkey already added, skipping
+[INFO] se\jod\biomonkey\assets already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\grass already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\impostors already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\lib already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\lightingsp already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\sky already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\terrain already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees already added, skipping
+[INFO] se\jod\biomonkey\assets\textures already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\ColorBase.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\DispNormBase.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\FoliageBase.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\GrassBase.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\LightingSP.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\MoonBase.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\SkyBase.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\StarBase.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\TerrainBase.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\TerrainBaseSplat.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\TreeBase.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\matdefs\TreeImpostorBase.j3md already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\grass\Grass.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\grass\Grass.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\grass\GrassPostShadowPSSM.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\grass\GrassPostShadowPSSM.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\grass\GrassPostShadowPSSM15.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\grass\GrassPreShadowPSSM.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\grass\GrassPreShadowPSSM.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\impostors\Color.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\impostors\Color.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\impostors\DispNorm.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\impostors\DispNorm.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\impostors\Impostor.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\impostors\Impostor.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\impostors\ImpostorPreShadowPSSM.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\impostors\ImpostorPreShadowPSSM.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\lib\Fog.glsllib already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\lightingsp\LightingSP.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\lightingsp\LightingSP.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\sky\Moon.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\sky\Moon.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\sky\Sky.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\sky\Sky.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\sky\Stars.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\sky\Stars.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\terrain\TerrainLighting.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\terrain\TerrainLighting.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\terrain\TerrainLightingSplat.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\terrain\TerrainLightingSplat.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees\Foliage.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees\Foliage.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees\FoliagePostShadowPSSM.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees\FoliagePostShadowPSSM.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees\FoliagePostShadowPSSM15.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees\FoliagePreShadowPSSM.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees\FoliagePreShadowPSSM.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees\Foliage_1.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees\Foliage_1.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees\Tree.frag already added, skipping
+[INFO] se\jod\biomonkey\assets\shaders\trees\Tree.vert already added, skipping
+[INFO] se\jod\biomonkey\assets\textures\CloudsTile.png already added, skipping
+[INFO] se\jod\biomonkey\assets\textures\CloudsTile_NORM.png already added, skipping
+[INFO] se\jod\biomonkey\assets\textures\Clouds_L.png already added, skipping
+[INFO] se\jod\biomonkey\assets\textures\Clouds_L_NORM.png already added, skipping
+[INFO] se\jod\biomonkey\assets\textures\noise.png already added, skipping
+[INFO] se\jod\biomonkey\assets\textures\SkyX_Moon.png already added, skipping
+[INFO] se\jod\biomonkey\assets\textures\StarSprite.png already added, skipping
+[WARNING] Configuration options: 'appendAssemblyId' is set to false, and 'classifier' is missing.
+Instead of attaching the assembly file: L:\jMonkey3\jME3RPG\Modules\BioMonkey\target\BioMonkey-1.0-SNAPSHOT.jar, it will become the file for main project artifact.
+NOTE: If multiple descriptors or descriptor-formats are provided for this project, the value of this file will be non-deterministic!
+[WARNING] Replacing pre-existing project main-artifact file: L:\jMonkey3\jME3RPG\Modules\BioMonkey\target\BioMonkey-1.0-SNAPSHOT.jar
+with assembly file: L:\jMonkey3\jME3RPG\Modules\BioMonkey\target\BioMonkey-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- maven-install-plugin:2.4:install (default-install) @ BioMonkey ---
+[INFO] Installing L:\jMonkey3\jME3RPG\Modules\BioMonkey\target\BioMonkey-1.0-SNAPSHOT.jar to L:\.m2\repository\se\jod\biomonkey\BioMonkey\1.0-SNAPSHOT\BioMonkey-1.0-SNAPSHOT.jar
+[INFO] Installing L:\jMonkey3\jME3RPG\Modules\BioMonkey\pom.xml to L:\.m2\repository\se\jod\biomonkey\BioMonkey\1.0-SNAPSHOT\BioMonkey-1.0-SNAPSHOT.pom
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 12.719 s
+[INFO] Finished at: 2014-10-23T22:48:44+04:00
+[INFO] Final Memory: 18M/146M
+[INFO] ------------------------------------------------------------------------

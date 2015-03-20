@@ -1,0 +1,251 @@
+MaterialDef FoliageBase {
+
+    MaterialParameters {
+        
+        //Fading parameters (don't set these manually).
+        Float FadeEnd
+        Float FadeRange
+
+        // Compute vertex lighting in the shader
+        // For better performance
+        Boolean VertexLighting
+
+        // Use the provided ambient, diffuse, and specular colors
+        Boolean UseMaterialColors
+
+        // Ambient color
+        Color Ambient (MaterialAmbient)
+
+        // Diffuse color
+        Color Diffuse (MaterialDiffuse)
+
+        // Specular color
+        Color Specular (MaterialSpecular)
+
+        // Specular power/shininess
+        Float Shininess (MaterialShininess) : 1
+
+        // Diffuse map
+        Texture2D DiffuseMap
+
+        // Normal map
+        Texture2D NormalMap
+
+        // Specular map
+        Texture2D SpecularMap
+
+        // Noise map for dissolve effect
+        Texture2D AlphaNoiseMap
+
+        //Used internally.
+        Int NumLights
+
+        Float AlphaDiscardThreshold : 0.3
+
+        // Fog
+        Boolean Fog
+        Vector4 FogParams
+        Vector3 SunDir
+        Color FogColor
+        Color FogSunColor
+
+        //shadows
+        Int FilterMode
+        Boolean HardwareShadows
+
+        Texture2D ShadowMap0
+        Texture2D ShadowMap1
+        Texture2D ShadowMap2
+        Texture2D ShadowMap3
+        
+        Float ShadowIntensity
+        Vector4 Splits
+
+        Matrix4 LightViewProjectionMatrix0
+        Matrix4 LightViewProjectionMatrix1
+        Matrix4 LightViewProjectionMatrix2
+        Matrix4 LightViewProjectionMatrix3
+
+        Float PCFEdge
+        Float ShadowMapSize
+    }
+
+    Technique {
+        LightMode SinglePass
+
+        VertexShader GLSL100:   se/jod/biomonkey/assets/shaders/trees/Foliage.vert
+        FragmentShader GLSL100: se/jod/biomonkey/assets/shaders/trees/Foliage.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldViewMatrix
+            WorldMatrix
+            ViewMatrix
+            NormalMatrix
+            CameraPosition
+        }
+
+        Defines {
+            NUM_LIGHTS : NumLights
+
+            VERTEX_LIGHTING : VertexLighting
+            MATERIAL_COLORS : UseMaterialColors
+
+            AMBIENT: Ambient
+            DIFFUSE : Diffuse
+            SPECULAR : Specular
+            DIFFUSEMAP : DiffuseMap
+            NORMALMAP : NormalMap
+            SPECULARMAP : SpecularMap
+
+            FOG : Fog
+        }
+
+    }
+
+  
+Technique PreShadow {
+
+        VertexShader GLSL100 :   Common/MatDefs/Shadow/PreShadow.vert
+        FragmentShader GLSL100 : Common/MatDefs/Shadow/PreShadow.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldViewMatrix
+        }
+
+        Defines {
+            COLOR_MAP : ColorMap
+            DISCARD_ALPHA : AlphaDiscardThreshold
+        }
+
+        RenderState {
+            FaceCull Off
+            DepthTest On
+            DepthWrite On
+            PolyOffset 5 0
+            ColorWrite Off
+        }
+
+    }
+
+
+    Technique PostShadow15{
+        VertexShader GLSL150:   Common/MatDefs/Shadow/PostShadowPSSM.vert
+        FragmentShader GLSL150: Common/MatDefs/Shadow/PostShadowPSSM15.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldMatrix
+        }
+
+        Defines {
+            HARDWARE_SHADOWS : HardwareShadows
+            FILTER_MODE : FilterMode
+            PCFEDGE : PCFEdge
+            DISCARD_ALPHA : AlphaDiscardThreshold
+            COLOR_MAP : ColorMap
+            SHADOWMAP_SIZE : ShadowMapSize
+        }
+
+        ForcedRenderState {
+            FaceCull Off
+            Blend Modulate
+            DepthWrite Off                 
+            PolyOffset -0.1 0
+        }
+    }
+
+    Technique PostShadow{
+        VertexShader GLSL100:   Common/MatDefs/Shadow/PostShadowPSSM.vert
+        FragmentShader GLSL100: Common/MatDefs/Shadow/PostShadowPSSM.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldMatrix
+        }
+
+        Defines {
+            HARDWARE_SHADOWS : HardwareShadows
+            FILTER_MODE : FilterMode
+            PCFEDGE : PCFEdge
+            DISCARD_ALPHA : AlphaDiscardThreshold
+            COLOR_MAP : ColorMap
+            SHADOWMAP_SIZE : ShadowMapSize
+        }
+
+        ForcedRenderState {
+            FaceCull Off
+            Blend Modulate
+            DepthWrite Off   
+            PolyOffset -0.1 0  
+        }
+    }
+
+    Technique PreNormalPass {
+
+        VertexShader GLSL100 :   Common/MatDefs/SSAO/normal.vert
+        FragmentShader GLSL100 : Common/MatDefs/SSAO/normal.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldViewMatrix
+            NormalMatrix
+        }
+
+        Defines {
+            DIFFUSEMAP_ALPHA : DiffuseMap
+        }
+
+        RenderState {
+
+        }
+
+    }
+
+    Technique GBuf {
+
+        VertexShader GLSL100:   Common/MatDefs/Light/GBuf.vert
+        FragmentShader GLSL100: Common/MatDefs/Light/GBuf.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            NormalMatrix
+            WorldViewMatrix
+            WorldMatrix
+        }
+
+        Defines {
+            VERTEX_COLOR : UseVertexColor
+            MATERIAL_COLORS : UseMaterialColors
+            V_TANGENT : VTangent
+            MINNAERT  : Minnaert
+            WARDISO   : WardIso
+
+            DIFFUSEMAP : DiffuseMap
+            NORMALMAP : NormalMap
+            SPECULARMAP : SpecularMap
+            PARALLAXMAP : ParallaxMap
+        }
+    }
+
+    Technique {
+        LightMode FixedPipeline
+    }
+
+    Technique Glow {
+
+        VertexShader GLSL100:   Common/MatDefs/Misc/Unshaded.vert
+        FragmentShader GLSL100: Common/MatDefs/Light/Glow.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+        }
+
+        Defines {
+            NEED_TEXCOORD1
+            HAS_GLOWMAP : GlowMap
+            HAS_GLOWCOLOR : GlowColor
+        }
+    }
+}

@@ -1,0 +1,24 @@
+MaterialDef Dynamic Sky {
+    MaterialParameters {
+        Vector3 lightPosition
+        Texture2D glow_texture
+        Texture2D color_texture
+    }
+
+    Technique {
+        VertexShader GLSL100:   MatDefs/dynamic_sky.vert
+        FragmentShader GLSL100: MatDefs/dynamic_sky.frag
+
+        RenderState {
+            FaceCull Off
+        }
+
+        WorldParameters {
+            ViewMatrix
+            ProjectionMatrix
+            WorldMatrix
+        }
+    }
+    Technique {
+    }
+}

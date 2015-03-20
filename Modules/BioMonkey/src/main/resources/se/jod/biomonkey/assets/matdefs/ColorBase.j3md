@@ -1,0 +1,18 @@
+MaterialDef My MaterialDef {
+
+    MaterialParameters {
+    //The color map
+    Texture2D DiffuseMap
+    Float AlphaDiscardThreshold : 0.5
+    }
+
+    Technique {
+        VertexShader GLSL100:   se/jod/biomonkey/assets/shaders/impostors/Color.vert
+        FragmentShader GLSL100: se/jod/biomonkey/assets/shaders/impostors/Color.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+        }
+    }
+
+}
