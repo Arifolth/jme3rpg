@@ -13,9 +13,9 @@
 
   <developers>
     <developer>
-      <id>anilov</id>
+      <id>arifolth</id>
       <name>Alexander Nilov</name>
-      <email>arifolth@mail.ru</email>
+      <email>arifolth@gmail.com</email>
     </developer>
   </developers>
 
@@ -63,7 +63,7 @@
                 <javadocDirectory>${basedir}/Scripts/Javadoc/style/jboss/api</javadocDirectory>
                 <docfilessubdirs>true</docfilessubdirs>
                 <!-- Apple's JVM sometimes requires more memory -->
-                <additionalJOption>-J-Xmx1024m</additionalJOption>
+                <additionalJOption>-J-Xmx512m</additionalJOption>
                 <verbose>true</verbose>
             </configuration>
         </plugin>
@@ -72,10 +72,7 @@
 
   <properties>
     <appdapter.version>1.0.3</appdapter.version>
-    <netbeans.version>RELEASE691</netbeans.version>			
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <encoding>UTF-8</encoding>
+    <netbeans.version>RELEASE691</netbeans.version>
 
     <yworks.uml.path>${basedir}/yworks-uml-doclet-3.0_02-jdk1.5</yworks.uml.path>
   </properties>

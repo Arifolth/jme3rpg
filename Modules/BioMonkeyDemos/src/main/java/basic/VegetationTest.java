@@ -143,7 +143,7 @@ public class VegetationTest extends SimpleApplication implements ActionListener 
                 
         // Our world is divided up into tiles of size 128x128 units squared. This
         // The default value is 512.
-        world.getTerrainData().setTileSize(128);
+        world.getTerrainData().setTileSize(64);
         // Units per vert means that the distance between verts is
         // multiplied by four. Our 128x128 tiles will be 512x512 world units
         // in size. Default value is 1. unitsPerVert*tileSize is equal to the
@@ -427,8 +427,8 @@ public class VegetationTest extends SimpleApplication implements ActionListener 
         // assets/biomonkey (that means all objects named terrainData.j3o in the
         // 'Tile_x_y' folders. If failing to do so, the only thing that happens
         // is that an exception is thrown.
-        world.generate(false);  //TODO:  true
-
+        world.generate(false);
+        
         // Setting some values here. We want cast and receive for terrain and
         // models, while grass should only receive.
         //
