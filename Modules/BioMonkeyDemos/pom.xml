@@ -24,6 +24,17 @@
     <!-- <finalName>BioMonkeyDemos</finalName> -->
 
     <plugins>
+<!--
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+-->
+
+
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <version>2.4</version>
@@ -39,6 +50,8 @@
           </archive>
         </configuration>
       </plugin>
+
+
 
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>

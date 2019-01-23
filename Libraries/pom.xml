@@ -20,6 +20,16 @@
 
 
     <dependencies>
+		<!--<dependency>
+			<groupId>com.jme3</groupId>
+			<artifactId>jmonkeyengine3</artifactId>
+		</dependency>
+				
+		<dependency>
+			<groupId>com.jme3</groupId>
+			<artifactId>jme3-testdata</artifactId>
+		</dependency>-->
+
 		<!-- The core library -->
 		<dependency>
 			<groupId>com.jme3</groupId>
@@ -90,7 +100,7 @@
 	<repository>
 		<id>jmonkey engine</id>
 		<name>jmonkey engine</name>
-		<url>http://updates.jmonkeyengine.org/maven/</url>
+		<url>http://dl.bintray.com/jmonkeyengine/com.jme3</url>
 	</repository>
 </repositories>
 

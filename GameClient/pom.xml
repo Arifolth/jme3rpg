@@ -50,6 +50,15 @@
           <descriptors>
             <descriptor>src/main/assembly/dist.xml</descriptor>
           </descriptors>
+                <!--<archive>
+                    <manifest>
+                        <mainClass>ru.arifolth.anjrpg.RolePlayingGame</mainClass>
+                        <addClasspath>true</addClasspath>
+                    </manifest>
+                    <manifestEntries>
+                        <Class-Path>/lib/</Class-Path>
+                    </manifestEntries>
+                </archive>-->
         </configuration>
         <executions>
           <execution>

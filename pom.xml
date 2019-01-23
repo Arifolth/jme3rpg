@@ -37,13 +37,28 @@
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
+          <source>1.7</source>
+          <target>1.7</target>
           <encoding>UTF-8</encoding>
         </configuration>
         <version>3.1</version>
       </plugin>
 
+      <!--
+      <plugin>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      -->
+      
         <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
@@ -63,7 +78,7 @@
                 <javadocDirectory>${basedir}/Scripts/Javadoc/style/jboss/api</javadocDirectory>
                 <docfilessubdirs>true</docfilessubdirs>
                 <!-- Apple's JVM sometimes requires more memory -->
-                <additionalJOption>-J-Xmx512m</additionalJOption>
+                <additionalJOption>-J-Xmx1024m</additionalJOption>
                 <verbose>true</verbose>
             </configuration>
         </plugin>
@@ -71,8 +86,13 @@
   </build>
 
   <properties>
+    <!--<jmonkey.version>3.0.0.20140325-SNAPSHOT</jmonkey.version> -->
+    <!--<jmonkey.version>3.0.10</jmonkey.version>-->
     <appdapter.version>1.0.3</appdapter.version>
-    <netbeans.version>RELEASE691</netbeans.version>
+    <netbeans.version>RELEASE691</netbeans.version>			
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <encoding>UTF-8</encoding>
 
     <yworks.uml.path>${basedir}/yworks-uml-doclet-3.0_02-jdk1.5</yworks.uml.path>
   </properties>
