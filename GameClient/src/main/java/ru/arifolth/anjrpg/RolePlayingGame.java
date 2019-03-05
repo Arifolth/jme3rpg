@@ -43,11 +43,11 @@ public class RolePlayingGame extends SimpleApplication {
         //GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         settings.setResolution(1280,720);
         //settings.setFullscreen(device.isFullScreenSupported());
-        settings.setBitsPerPixel(32);
+        settings.setBitsPerPixel(16);
         settings.setSamples(16);
-        settings.setVSync(true);
+        settings.setVSync(false);
         settings.setRenderer(AppSettings.LWJGL_OPENGL2);
-        settings.setFrameRate(60);
+        settings.setFrameRate(30);
 
         //setDisplayFps(true);
         //setDisplayStatView(false);
