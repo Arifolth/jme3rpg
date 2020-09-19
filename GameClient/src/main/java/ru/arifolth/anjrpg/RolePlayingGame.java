@@ -32,6 +32,8 @@ import com.jme3.terrain.heightmap.ImageBasedHeightMap;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
 
+import java.awt.*;
+
 
 public class RolePlayingGame extends SimpleApplication {
     LightScatteringFilter lsf;
@@ -40,12 +42,12 @@ public class RolePlayingGame extends SimpleApplication {
         showSettings = false;
 
         AppSettings settings = new AppSettings(true);
-        //GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        settings.setResolution(1280,720);
-        //settings.setFullscreen(device.isFullScreenSupported());
-        settings.setBitsPerPixel(16);
-        settings.setSamples(16);
+        GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        settings.setFullscreen(device.isFullScreenSupported());
+        settings.setBitsPerPixel(24); //24
+        settings.setSamples(16); //16
         settings.setVSync(false);
+        settings.setResolution(1366,768);
         settings.setRenderer(AppSettings.LWJGL_OPENGL2);
         settings.setFrameRate(30);
 
@@ -53,6 +55,7 @@ public class RolePlayingGame extends SimpleApplication {
         //setDisplayStatView(false);
 
         this.setSettings(settings);
+        this.setShowSettings(showSettings);
     }
 
     private static Application app;
