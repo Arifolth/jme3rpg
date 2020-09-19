@@ -17,9 +17,6 @@
 
   <modules>
     <module>Sky</module>
-    <module>BioMonkey</module>
-    <module>BioMonkeyDemosAssets</module>
-    <module>BioMonkeyDemos</module>
   </modules>
 
 </project>
