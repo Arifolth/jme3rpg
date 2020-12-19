@@ -45,9 +45,9 @@ public class RolePlayingGame extends SimpleApplication {
         GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         settings.setFullscreen(device.isFullScreenSupported());
         settings.setBitsPerPixel(24); //24
-        settings.setSamples(16); //16
+        settings.setSamples(1); //16
         settings.setVSync(false);
-        settings.setResolution(1366,768);
+        settings.setResolution(3840,2160);
         settings.setRenderer(AppSettings.LWJGL_OPENGL2);
         settings.setFrameRate(30);
 
@@ -145,31 +145,31 @@ public class RolePlayingGame extends SimpleApplication {
     private void addFilters() {
         FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
 
-        FXAAFilter fxaa = new FXAAFilter();
-        fpp.addFilter(fxaa);
+        /*FXAAFilter fxaa = new FXAAFilter();
+        fpp.addFilter(fxaa);*/
 
-        BloomFilter bloom = new BloomFilter(/*BloomFilter.GlowMode.Objects*/);
+        /*BloomFilter bloom = new BloomFilter(*//*BloomFilter.GlowMode.Objects*//*);
         bloom.setDownSamplingFactor(2.0f);
         bloom.setExposurePower(55);
         bloom.setBloomIntensity(1.0f);
-        fpp.addFilter(bloom);
+        fpp.addFilter(bloom);*/
 
         lsf = new LightScatteringFilter(sky.getSunDirection().normalize());
         lsf.setLightDensity(1.0f);
         //LightScatteringUI ui = new LightScatteringUI(inputManager, lsf);
         fpp.addFilter(lsf);
 
-        DepthOfFieldFilter dof=new DepthOfFieldFilter();
+        /*DepthOfFieldFilter dof=new DepthOfFieldFilter();
         dof.setFocusDistance(10000);
         dof.setFocusRange(15000);
         dof.setBlurScale(0.65f);
-        fpp.addFilter(dof);
+        fpp.addFilter(dof);*/
 
         //SSAOFilter ssaoFilter = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.9f);
-        SSAOFilter ssaoFilter = new SSAOFilter(10.0f, 25.0f, 0.35f, 1.0f);
+        /*SSAOFilter ssaoFilter = new SSAOFilter(10.0f, 25.0f, 0.35f, 1.0f);
         fpp.addFilter(ssaoFilter);
 
-        fpp.addFilter(new TranslucentBucketFilter());
+        fpp.addFilter(new TranslucentBucketFilter());*/
 
         /*
         FadeFilter fade = new FadeFilter(3);
