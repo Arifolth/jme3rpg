@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module org.jetbrains.idea.maven.project.MavenProjectsManager.isMavenModule="true" type="JAVA_MODULE" version="4">
-  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_7">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8">
     <output url="file://$MODULE_DIR$/target/classes" />
     <output-test url="file://$MODULE_DIR$/target/test-classes" />
     <content url="file://$MODULE_DIR$">
@@ -8,31 +8,36 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Maven: com.jme3:jme3-core:3.0.10" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3:jme3-lwjgl:3.0.10" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3-lib:lwjgl:2.9.0" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3-lib:jinput:2.0.0-b01" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3-lib:lwjgl-natives:2.9.0" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3:jme3-jbullet:3.0.10" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3-lib:jbullet:3.0.10-jme" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3-lib:stack-alloc:3.0.10-jme" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3-lib:vecmath:1.3.1" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3:jme3-bullet-natives:3.0.10" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3:jme3-bullet:3.0.10" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3:jme3-blender:3.0.10" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3:jme3-desktop:3.0.10" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3:jme3-effects:3.0.10" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3:jme3-networking:3.0.10" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3:jme3-plugins:3.0.10" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3:jme3-terrain:3.0.10" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3:jme3-jogg:3.0.10" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3-lib:oggd:1.0.0" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3-lib:vorbisd:1.0.0" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3:jme3-niftygui:3.0.10" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3-lib:nifty:1.3.3" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3-lib:nifty-default-controls:1.3.3" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3-lib:nifty-style-black:1.3.3" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3-lib:jglfont-core:1.3" level="project" />
-    <orderEntry type="library" name="Maven: com.jme3-lib:xmlpull-xpp3:1.4.4c" level="project" />
+    <orderEntry type="library" name="Maven: org.jmonkeyengine:jme3-core:3.1.0-stable" level="project" />
+    <orderEntry type="library" name="Maven: org.jmonkeyengine:jme3-lwjgl:3.1.0-stable" level="project" />
+    <orderEntry type="library" name="Maven: org.lwjgl.lwjgl:lwjgl:2.9.3" level="project" />
+    <orderEntry type="library" name="Maven: org.lwjgl.lwjgl:lwjgl-platform:natives-windows:2.9.3" level="project" />
+    <orderEntry type="library" name="Maven: org.lwjgl.lwjgl:lwjgl-platform:natives-linux:2.9.3" level="project" />
+    <orderEntry type="library" name="Maven: org.lwjgl.lwjgl:lwjgl-platform:natives-osx:2.9.3" level="project" />
+    <orderEntry type="library" name="Maven: net.java.jinput:jinput:2.0.5" level="project" />
+    <orderEntry type="library" name="Maven: net.java.jutils:jutils:1.0.0" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="Maven: net.java.jinput:jinput-platform:natives-linux:2.0.5" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="Maven: net.java.jinput:jinput-platform:natives-windows:2.0.5" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="Maven: net.java.jinput:jinput-platform:natives-osx:2.0.5" level="project" />
+    <orderEntry type="library" name="Maven: org.jmonkeyengine:jme3-bullet-native:3.1.0-stable" level="project" />
+    <orderEntry type="library" name="Maven: org.jmonkeyengine:jme3-bullet:3.1.0-stable" level="project" />
+    <orderEntry type="library" name="Maven: org.jmonkeyengine:jme3-blender:3.1.0-stable" level="project" />
+    <orderEntry type="library" name="Maven: org.ejml:dense64:0.27" level="project" />
+    <orderEntry type="library" name="Maven: org.ejml:simple:0.27" level="project" />
+    <orderEntry type="library" name="Maven: org.ejml:denseC64:0.27" level="project" />
+    <orderEntry type="library" name="Maven: org.ejml:core:0.27" level="project" />
+    <orderEntry type="library" name="Maven: org.jmonkeyengine:jme3-desktop:3.1.0-stable" level="project" />
+    <orderEntry type="library" name="Maven: org.jmonkeyengine:jme3-effects:3.1.0-stable" level="project" />
+    <orderEntry type="library" name="Maven: org.jmonkeyengine:jme3-networking:3.1.0-stable" level="project" />
+    <orderEntry type="library" name="Maven: org.jmonkeyengine:jme3-plugins:3.1.0-stable" level="project" />
+    <orderEntry type="library" name="Maven: org.jmonkeyengine:jme3-terrain:3.1.0-stable" level="project" />
+    <orderEntry type="library" name="Maven: org.jmonkeyengine:jme3-jogg:3.1.0-stable" level="project" />
+    <orderEntry type="library" name="Maven: de.jarnbjo:j-ogg-all:1.0.0" level="project" />
+    <orderEntry type="library" name="Maven: org.jmonkeyengine:jme3-niftygui:3.1.0-stable" level="project" />
+    <orderEntry type="library" name="Maven: com.github.nifty-gui:nifty-style-black:1.4.2" level="project" />
+    <orderEntry type="library" name="Maven: com.github.nifty-gui:nifty-default-controls:1.4.2" level="project" />
+    <orderEntry type="library" name="Maven: com.github.nifty-gui:nifty:1.4.2" level="project" />
+    <orderEntry type="library" name="Maven: xpp3:xpp3:1.1.4c" level="project" />
+    <orderEntry type="library" name="Maven: com.google.code.findbugs:jsr305:2.0.2" level="project" />
   </component>
 </module>

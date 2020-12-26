@@ -16,7 +16,9 @@ import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.*;
@@ -29,11 +31,18 @@ import com.jme3.terrain.geomipmap.TerrainLodControl;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.terrain.heightmap.AbstractHeightMap;
 import com.jme3.terrain.heightmap.ImageBasedHeightMap;
+import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
+import com.jme3.texture.Texture2D;
+import com.jme3.texture.Texture3D;
+import ru.arifolth.anjrpg.grass.LayeredMaterial;
 
 import java.awt.*;
-
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 public class RolePlayingGame extends SimpleApplication {
     LightScatteringFilter lsf;
@@ -60,6 +69,7 @@ public class RolePlayingGame extends SimpleApplication {
 
     private static Application app;
     private TerrainQuad terrain;
+    private LayeredMaterial lm;
     private Material matTerrain;
     private RigidBodyControl landscape;
     private DynamicSky sky;
@@ -111,6 +121,9 @@ public class RolePlayingGame extends SimpleApplication {
     @Override
     public void simpleUpdate(float tpf) {
         gameLogicCore.update(tpf);
+
+        /* Update something related to grass */
+        //lm.updateTime(timer.getTimeInSeconds());
 
         //skydome
         sky.updateTime();
@@ -204,6 +217,18 @@ public class RolePlayingGame extends SimpleApplication {
     }
 
     private void setupTerrain() {
+        /*lm = new LayeredMaterial(assetManager, 60);
+        lm.setTexture("GrassTexture", generateGrassTex());
+        lm.setFloat("GrassTexScale", 512f);
+        lm.setLayerMasks(generateMasks(60, lm));
+        lm.setFloat("Length", 0.5f);
+        lm.setFloat("WaveSpeed", 4.0f);
+        lm.setFloat("WaveSize", 0.99f);
+        lm.setBoolean("Wave", true);
+        //lm.setTexture("AlphaMap", assetManager.loadTexture("Textures/GrassAlpha.png"));
+        lm.setGrassDistance(40);
+        lm.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+*/
         /** 1. Create terrain material and load four textures into it. */
         /*matTerrain = new Material(assetManager, "Common/MatDefs/Terrain/TerrainLighting.j3md");
         matTerrain.setBoolean("useTriPlanarMapping", false);
@@ -291,16 +316,17 @@ public class RolePlayingGame extends SimpleApplication {
         /** 5. The LOD (level of detail) depends on were the camera is: */
         TerrainLodControl control = new TerrainLodControl(terrain, getCamera());
         terrain.addControl(control);
-        // We load the scene from the zip file and adjust its size.
-        //assetManager.registerLocator("town.zip", ZipLocator.class);
-        //sceneModel = assetManager.loadModel("main.scene");
-        //sceneModel.setLocalScale(2f);
 
         // We set up collision detection for the scene by creating a
         // compound collision shape and a static RigidBodyControl with mass zero.
         CollisionShape sceneShape = CollisionShapeFactory.createMeshShape((Node) terrain);
         landscape = new RigidBodyControl(sceneShape, 0);
         terrain.addControl(landscape);
+
+        /************************************************************************************/
+        //lm.setBaseMaterial(matTerrain);
+        //lm.setFloat("MaskScale", 256f);
+        /************************************************************************************/
 
         //debug terrain
         //Material debugMat = assetManager.loadMaterial("Common/Materials/VertexColor.j3m");
@@ -317,4 +343,90 @@ public class RolePlayingGame extends SimpleApplication {
         this.stateManager.attach(screenShotState);
     }
 
+    public Texture generateGrassTex() {
+        //We need a seed to initialize each layer from.
+        //this way, although each layer has LESS points,
+        //the remaining points are still in the same position.
+        long seed = FastMath.rand.nextLong();
+        Random rand = new Random(seed);
+
+        //Generate a texture for the grass
+        //Alpha values will be taken from the mask
+        //***COMMENT THIS SECTION OUT IF YOU HAVE YOUR OWN GRASS TEX***
+        com.jme3.texture.Image grassTexImg = new com.jme3.texture.Image();
+        grassTexImg.setFormat(com.jme3.texture.Image.Format.BGR8); //Don't need alpha value
+        grassTexImg.setHeight(200);
+        grassTexImg.setWidth(200);
+        ByteBuffer data2 = ByteBuffer.allocateDirect(200 * 200 * 3);
+        for (int i = 0; i < 200 * 200 * 3;) {
+            data2.put(i, (byte) (rand.nextInt(20) + 15));  //Blue value
+            data2.put(i + 1, (byte) (rand.nextInt(70) + 45)); //Green value
+            data2.put(i + 2, (byte) (rand.nextInt(20) + 20));  //Red value
+            i += 3;
+        }
+        grassTexImg.setData(data2);
+
+        //REPLACE WITH YOUR OWN GRASS TEXTURE IF YOU HAVE ONE
+        //But remember, alpha values come from the layer masks, not from this texture.
+        Texture grassTex = new Texture2D(grassTexImg);
+
+        grassTex.setWrap(Texture.WrapMode.Repeat);
+        return grassTex;
+    }
+
+    public java.util.List<Texture> generateMasks(int numMasks, LayeredMaterial lm) {
+        ByteBuffer texBuf3D = ByteBuffer.allocateDirect(200 * 200 * numMasks); //3D Texture data for geo shader
+        List<Texture> masks = new ArrayList<Texture>();
+        //We need a seed to initialize each layer from.
+        //this way, although each layer has LESS points,
+        //the remaining points are still in the same position.
+        long seed = FastMath.rand.nextLong();
+        Random rand = new Random(seed);
+
+        //Load NUM_DIFFERENT_LAYERS alpha maps into the material.
+        //Each one has the same pixel pattern, but a few less total pixels.
+        //This way, the grass gradually thins as it gets to the top.
+        for (int i = 0; i < numMasks; i++) {
+            //reinitialize the random generator
+            rand.setSeed(seed);
+
+            //Set up the image
+            com.jme3.texture.Image grassMask = new com.jme3.texture.Image();
+            grassMask.setFormat(com.jme3.texture.Image.Format.Alpha8);
+            grassMask.setHeight(200);
+            grassMask.setWidth(200);
+
+            //jME image objects store their pixel data in a ByteBuffer.
+            //The ByteBuffer is simply four bytes per pixel (for the ABGR image format),
+            //In the order specified above (Alpha (transparency),
+            //then Blue, then Green, then Red), one byte each.
+            //Since this is just Alpha, we only need one byte per pixel.
+            ByteBuffer data = ByteBuffer.allocateDirect(200 * 200);
+
+            //Thin the density as it approaches the top layer
+            //The bottom layer will have 1000, the top layer 100.
+            float density = i / (float) 60;
+            int numGrass = (int) (4000 - ((3500 * density) + 500));
+
+            //Generate the points
+            for (int j = 0; j < numGrass; j++) {
+                int curPoint = rand.nextInt(40000);
+                byte pixelVal = (byte) (1 - (density * 255));
+                data.put(curPoint, pixelVal); //Alpha value, for transparency.
+                texBuf3D.put((i * 40000) + curPoint, pixelVal);
+            }
+
+            grassMask.setData(data);
+            Texture2D texToAdd = new Texture2D(grassMask);
+            texToAdd.setWrap(Texture.WrapMode.Repeat);
+            masks.add(texToAdd);
+        }
+        ArrayList<ByteBuffer> bb3d = new ArrayList<ByteBuffer>();
+        bb3d.add(texBuf3D);
+        com.jme3.texture.Image tex3DImg = new Image(Image.Format.Alpha8, 200, 200, 60, bb3d);
+        Texture3D t3 = new Texture3D(tex3DImg);
+        t3.setWrap(WrapMode.Repeat);
+        lm.setTexture("ThreeDTex", t3);
+        return masks;
+    }
 }

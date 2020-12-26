@@ -23,8 +23,8 @@ MaterialDef Layered {
 
         LightMode MultiPass
 
-        VertexShader GLSL100:   MatDefs/Layered.vert
-        FragmentShader GLSL100: MatDefs/Layered.frag
+        VertexShader GLSL130:   MatDefs/Layered.vert
+        FragmentShader GLSL130: MatDefs/Layered.frag
 
         WorldParameters {
             WorldViewProjectionMatrix
