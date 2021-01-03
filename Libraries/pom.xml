@@ -47,10 +47,10 @@
 		</dependency>-->
 
         <!-- Feature libs -->
-		<dependency>
+		<!--<dependency>
 			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-blender</artifactId>
-		</dependency>		
+		</dependency>-->
 		<dependency>
 			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-desktop</artifactId>
@@ -139,11 +139,11 @@
 		</dependency>-->
 
 		<!-- Feature libs -->
-		<dependency>
+		<!--<dependency>
 			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-blender</artifactId>
 			<version>${jmonkey.version}</version>
-		</dependency>		
+		</dependency>	-->
 		<dependency>
 			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-desktop</artifactId>

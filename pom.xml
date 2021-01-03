@@ -67,8 +67,8 @@
 
     <encoding>UTF-8</encoding>
 
-    <!--<jmonkey.version>3.2.1-stable</jmonkey.version>-->
     <jmonkey.version>3.1.0-stable</jmonkey.version>
+    <!--<jmonkey.version>3.4.0-SNAPSHOT</jmonkey.version>-->
     <jme3.groupId>org.jmonkeyengine</jme3.groupId>
   </properties>
 
