@@ -15,8 +15,8 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
-import com.jme3.post.filters.FogFilter;
-import com.jme3.post.filters.LightScatteringFilter;
+import com.jme3.post.filters.*;
+import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.system.AppSettings;
@@ -134,37 +134,35 @@ public class RolePlayingGame extends SimpleApplication {
     private void addFilters() {
         FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
 
-        /*FXAAFilter fxaa = new FXAAFilter();
-        fpp.addFilter(fxaa);*/
+        FXAAFilter fxaa = new FXAAFilter();
+        fpp.addFilter(fxaa);
 
-        /*BloomFilter bloom = new BloomFilter(*//*BloomFilter.GlowMode.Objects*//*);
+        BloomFilter bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
         bloom.setDownSamplingFactor(2.0f);
         bloom.setExposurePower(55);
         bloom.setBloomIntensity(1.0f);
-        fpp.addFilter(bloom);*/
+        fpp.addFilter(bloom);
 
         lsf = new LightScatteringFilter(sky.getSunDirection().normalize());
         lsf.setLightDensity(1.0f);
         //LightScatteringUI ui = new LightScatteringUI(inputManager, lsf);
         fpp.addFilter(lsf);
 
-        /*DepthOfFieldFilter dof=new DepthOfFieldFilter();
+        DepthOfFieldFilter dof=new DepthOfFieldFilter();
         dof.setFocusDistance(10000);
         dof.setFocusRange(15000);
         dof.setBlurScale(0.65f);
-        fpp.addFilter(dof);*/
+        fpp.addFilter(dof);
 
         //SSAOFilter ssaoFilter = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.9f);
-        /*SSAOFilter ssaoFilter = new SSAOFilter(10.0f, 25.0f, 0.35f, 1.0f);
-        fpp.addFilter(ssaoFilter);
+        /*SSAOFilter ssaoFilter = new SSAOFilter(2.9299974f,25f,5.8100376f,0.091000035f);
+        fpp.addFilter(ssaoFilter);*/
 
-        fpp.addFilter(new TranslucentBucketFilter());*/
+        fpp.addFilter(new TranslucentBucketFilter());
 
-        /*
         FadeFilter fade = new FadeFilter(3);
         fpp.addFilter(fade);
         fade.fadeIn();
-        */
 
         /*
         CartoonEdgeFilter toon=new CartoonEdgeFilter();
