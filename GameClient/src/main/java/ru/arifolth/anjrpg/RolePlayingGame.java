@@ -34,7 +34,7 @@ public class RolePlayingGame extends SimpleApplication {
         GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         settings.setFullscreen(device.isFullScreenSupported());
         settings.setBitsPerPixel(24); //24
-        settings.setSamples(1); //16
+        settings.setSamples(16); //16
         settings.setVSync(false);
         settings.setResolution(3840,2160);
         settings.setRenderer(AppSettings.LWJGL_OPENGL2);
@@ -155,8 +155,8 @@ public class RolePlayingGame extends SimpleApplication {
         fpp.addFilter(dof);
 
         //SSAOFilter ssaoFilter = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.9f);
-        /*SSAOFilter ssaoFilter = new SSAOFilter(2.9299974f,25f,5.8100376f,0.091000035f);
-        fpp.addFilter(ssaoFilter);*/
+        SSAOFilter ssaoFilter = new SSAOFilter(2.9299974f,25f,5.8100376f,0.091000035f);
+        fpp.addFilter(ssaoFilter);
 
         fpp.addFilter(new TranslucentBucketFilter());
 

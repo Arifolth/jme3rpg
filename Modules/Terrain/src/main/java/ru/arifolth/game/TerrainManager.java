@@ -137,8 +137,8 @@ public class TerrainManager {
 
         this.terrain.setMaterial(this.matTerrain);
 
-        terrain.setLocalTranslation(0, -1450, 0);
-        terrain.setLocalScale(20f, 10f, 20f);
+        terrain.setLocalTranslation(0, -200, 0);
+        terrain.setLocalScale(2f, 1f, 2f);
         setUpLODControl();
 
         setUpCollision();
