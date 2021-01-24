@@ -118,11 +118,11 @@ public class TerrainManager {
         FilteredBasis ground = new FilteredBasis(this.base);
 
         this.perturb = new PerturbFilter();
-        this.perturb.setMagnitude(0.119f);
+        this.perturb.setMagnitude(0.419f);
 
         this.therm = new OptimizedErode();
         this.therm.setRadius(5);
-        this.therm.setTalus(0.011f);
+        this.therm.setTalus(0.711f);
 
         this.smooth = new SmoothFilter();
         this.smooth.setRadius(1);
@@ -136,7 +136,7 @@ public class TerrainManager {
 
         ground.addPreFilter(this.iterate);
 
-        this.terrain = new TerrainGrid("terrain", 65, 129, new FractalTileLoader(ground, 256f));
+        this.terrain = new TerrainGrid("terrain", 65, 513, new FractalTileLoader(ground, 256f));
 
         this.terrain.setMaterial(this.matTerrain);
 
