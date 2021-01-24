@@ -121,7 +121,7 @@ public class TerrainManager {
         this.perturb.setMagnitude(0.419f);
 
         this.therm = new OptimizedErode();
-        this.therm.setRadius(5);
+        this.therm.setRadius(1);
         this.therm.setTalus(0.711f);
 
         this.smooth = new SmoothFilter();
