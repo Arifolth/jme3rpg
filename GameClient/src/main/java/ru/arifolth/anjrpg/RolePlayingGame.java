@@ -107,9 +107,9 @@ public class RolePlayingGame extends SimpleApplication {
         sky.updateTime();
 
         //update filters on observer pattern base
-        lsf.setLightPosition(sky.getSunDirection().normalize().mult(500));
-        pssmRenderer.setDirection(sky.getSunDirection().normalize().mult(-500));
-        waterFilter.setLightDirection(sky.getSunDirection().normalize().mult(500));
+        lsf.setLightPosition(sky.getSunDirection().normalize());
+        pssmRenderer.setDirection(sky.getSunDirection().normalize());
+        waterFilter.setLightDirection(sky.getSunDirection().normalize());
     }
 
     private void addFog() {
@@ -164,7 +164,7 @@ public class RolePlayingGame extends SimpleApplication {
         fpp.addFilter(fade);
 
         // add an ocean.
-        waterFilter = new WaterFilter(rootNode, sky.getSunDirection().normalize().mult(500));
+        waterFilter = new WaterFilter(rootNode, sky.getSunDirection().normalize());
         waterFilter.setWaterHeight(-70);
         fpp.addFilter(waterFilter);
         viewPort.addProcessor(fpp);

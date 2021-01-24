@@ -12,6 +12,7 @@ import ru.arifolth.anjrpg.character.Character;
 import ru.arifolth.anjrpg.character.PlayerCharacter;
 import ru.arifolth.anjrpg.character.factory.CharacterFactory;
 import ru.arifolth.anjrpg.weather.Emitter;
+import ru.arifolth.anjrpg.weather.RainEmitter;
 import ru.arifolth.anjrpg.weather.SnowEmitter;
 
 import java.util.LinkedHashSet;
@@ -57,7 +58,7 @@ public class GameLogicCore {
     }
 
     private void setupWeatherEffects() {
-        Emitter snowEmitter = new SnowEmitter(rootNode, assetManager);
+        Emitter snowEmitter = new RainEmitter(rootNode, assetManager);
         snowEmitter.setSpatial(playerCharacter.getNode());
         weatherEffectsSet.add(snowEmitter);
     }
