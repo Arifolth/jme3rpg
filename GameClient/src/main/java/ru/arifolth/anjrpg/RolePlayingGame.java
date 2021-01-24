@@ -145,6 +145,10 @@ public class RolePlayingGame extends SimpleApplication {
         FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
 
         FXAAFilter fxaa = new FXAAFilter();
+        fxaa.setSubPixelShift(5.0f);
+        fxaa.setReduceMul(5.0f);
+        fxaa.setVxOffset(5.0f);
+        fxaa.setEnabled(true);
         fpp.addFilter(fxaa);
 
         BloomFilter bloom = new BloomFilter(BloomFilter.GlowMode.SceneAndObjects);
