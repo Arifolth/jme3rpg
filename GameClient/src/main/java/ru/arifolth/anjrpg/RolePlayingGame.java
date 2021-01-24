@@ -163,10 +163,10 @@ public class RolePlayingGame extends SimpleApplication {
         fpp.addFilter(fade);
 
         // add an ocean.
-        /*WaterFilter waterFilter = new WaterFilter(rootNode, sky.getSunDirection().normalize());
-        waterFilter.setWaterHeight(2);
+        WaterFilter waterFilter = new WaterFilter(rootNode, sky.getSunDirection().normalize().mult(500));
+        waterFilter.setWaterHeight(-70);
         fpp.addFilter(waterFilter);
-        viewPort.addProcessor(fpp);*/
+        viewPort.addProcessor(fpp);
 
         /*
         CartoonEdgeFilter toon=new CartoonEdgeFilter();

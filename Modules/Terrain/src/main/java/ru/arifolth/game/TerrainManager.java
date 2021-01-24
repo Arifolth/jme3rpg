@@ -136,10 +136,11 @@ public class TerrainManager {
 
         ground.addPreFilter(this.iterate);
 
-        this.terrain = new TerrainGrid("terrain", 33, 129, new FractalTileLoader(ground, 256f));
+        this.terrain = new TerrainGrid("terrain", 65, 129, new FractalTileLoader(ground, 256f));
 
         this.terrain.setMaterial(this.matTerrain);
 
+        //terrain postion
         terrain.setLocalTranslation(0, -200, 0);
         terrain.setLocalScale(2f, 1f, 2f);
         setUpLODControl();
@@ -150,7 +151,7 @@ public class TerrainManager {
     private void setUpLODControl() {
         /** 5. The LOD (level of detail) depends on were the camera is: */
         TerrainLodControl control = new TerrainGridLodControl(this.terrain, app.getCamera());
-        control.setLodCalculator(new DistanceLodCalculator(33, 2.7f)); // patch size, and a multiplier
+        control.setLodCalculator(new DistanceLodCalculator(65, 2.7f)); // patch size, and a multiplier
         this.terrain.addControl(control);
     }
 
