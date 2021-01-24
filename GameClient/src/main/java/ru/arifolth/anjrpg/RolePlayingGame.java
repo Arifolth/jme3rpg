@@ -24,6 +24,7 @@ import com.jme3.water.WaterFilter;
 import ru.arifolth.game.TerrainManager;
 
 import java.awt.*;
+import java.util.logging.Level;
 
 public class RolePlayingGame extends SimpleApplication {
     LightScatteringFilter lsf;
@@ -37,7 +38,7 @@ public class RolePlayingGame extends SimpleApplication {
         settings.setFullscreen(device.isFullScreenSupported());
         settings.setBitsPerPixel(24); //24
         settings.setSamples(16); //16
-        settings.setVSync(false);
+        settings.setVSync(true);
         settings.setResolution(3840,2160);
         settings.setRenderer(AppSettings.LWJGL_OPENGL2);
         settings.setFrameRate(30);
@@ -47,6 +48,15 @@ public class RolePlayingGame extends SimpleApplication {
 
         this.setSettings(settings);
         this.setShowSettings(showSettings);
+
+        //do not output excessive info on console
+        java.util.logging.Logger.getLogger("").setLevel(Level.SEVERE);
+
+        // hide FPS HUD
+        setDisplayFps(false);
+
+        //hide statistics HUD
+        setDisplayStatView(false);
     }
 
     private static Application app;
@@ -169,11 +179,11 @@ public class RolePlayingGame extends SimpleApplication {
         fpp.addFilter(waterFilter);
         viewPort.addProcessor(fpp);
 
-        /*
         CartoonEdgeFilter toon=new CartoonEdgeFilter();
-        toon.setEdgeColor(ColorRGBA.Yellow);
+        toon.setEdgeWidth(0.5f);
+        toon.setEdgeIntensity(0.09f);
+        toon.setNormalThreshold(0.8f);
         fpp.addFilter(toon);
-        */
 
         viewPort.addProcessor(fpp);
     }
