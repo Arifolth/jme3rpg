@@ -27,6 +27,7 @@ import java.awt.*;
 
 public class RolePlayingGame extends SimpleApplication {
     LightScatteringFilter lsf;
+    private WaterFilter waterFilter;
 
     private void initializeApplicationSettings() {
         showSettings = false;
@@ -107,8 +108,8 @@ public class RolePlayingGame extends SimpleApplication {
 
         //update filters on observer pattern base
         lsf.setLightPosition(sky.getSunDirection().normalize().mult(500));
-
         pssmRenderer.setDirection(sky.getSunDirection().normalize().mult(-500));
+        waterFilter.setLightDirection(sky.getSunDirection().normalize().mult(500));
     }
 
     private void addFog() {
@@ -163,7 +164,7 @@ public class RolePlayingGame extends SimpleApplication {
         fpp.addFilter(fade);
 
         // add an ocean.
-        WaterFilter waterFilter = new WaterFilter(rootNode, sky.getSunDirection().normalize().mult(500));
+        waterFilter = new WaterFilter(rootNode, sky.getSunDirection().normalize().mult(500));
         waterFilter.setWaterHeight(-70);
         fpp.addFilter(waterFilter);
         viewPort.addProcessor(fpp);
