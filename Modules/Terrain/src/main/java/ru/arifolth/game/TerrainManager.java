@@ -11,6 +11,7 @@ import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.material.Material;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.terrain.geomipmap.*;
 import com.jme3.terrain.geomipmap.grid.FractalTileLoader;
 import com.jme3.terrain.geomipmap.lodcalc.DistanceLodCalculator;
@@ -55,6 +56,8 @@ public class TerrainManager {
         this.app = app;
 
         initialize();
+
+        getTerrain().setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
     }
 
     private void initialize() {

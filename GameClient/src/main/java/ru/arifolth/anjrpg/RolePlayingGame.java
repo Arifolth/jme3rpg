@@ -18,8 +18,9 @@ import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.*;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
-import com.jme3.shadow.PssmShadowRenderer;
+import com.jme3.shadow.*;
 import com.jme3.system.AppSettings;
+import com.jme3.water.WaterFilter;
 import ru.arifolth.game.TerrainManager;
 
 import java.awt.*;
@@ -122,12 +123,10 @@ public class RolePlayingGame extends SimpleApplication {
     }
 
     private void setupShadowRenderer() {
-        pssmRenderer = new PssmShadowRenderer(assetManager, 4096, 32);
-        //pssmRenderer.setDirection(lightDir);
+        pssmRenderer = new PssmShadowRenderer(assetManager, 2048, 16);
         pssmRenderer.setShadowIntensity(0.55f);
         pssmRenderer.setFilterMode(PssmShadowRenderer.FilterMode.PCF8);
         pssmRenderer.setCompareMode(PssmShadowRenderer.CompareMode.Hardware);
-        terrainManager.getTerrain().setShadowMode(ShadowMode.CastAndReceive);
         viewPort.addProcessor(pssmRenderer);
     }
 
@@ -137,15 +136,14 @@ public class RolePlayingGame extends SimpleApplication {
         FXAAFilter fxaa = new FXAAFilter();
         fpp.addFilter(fxaa);
 
-        BloomFilter bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
+        BloomFilter bloom = new BloomFilter(BloomFilter.GlowMode.SceneAndObjects);
         bloom.setDownSamplingFactor(2.0f);
         bloom.setExposurePower(55);
         bloom.setBloomIntensity(1.0f);
         fpp.addFilter(bloom);
 
-        lsf = new LightScatteringFilter(sky.getSunDirection().normalize());
+        lsf = new LightScatteringFilter(sky.getSunDirection().normalize().mult(500));
         lsf.setLightDensity(1.0f);
-        //LightScatteringUI ui = new LightScatteringUI(inputManager, lsf);
         fpp.addFilter(lsf);
 
         DepthOfFieldFilter dof=new DepthOfFieldFilter();
@@ -154,15 +152,21 @@ public class RolePlayingGame extends SimpleApplication {
         dof.setBlurScale(0.65f);
         fpp.addFilter(dof);
 
-        //SSAOFilter ssaoFilter = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.9f);
-        SSAOFilter ssaoFilter = new SSAOFilter(2.9299974f,25f,5.8100376f,0.091000035f);
+        SSAOFilter ssaoFilter = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.9f);
+        //SSAOFilter ssaoFilter = new SSAOFilter(2.9299974f,25f,5.8100376f,0.091000035f);
         fpp.addFilter(ssaoFilter);
 
         fpp.addFilter(new TranslucentBucketFilter());
 
         FadeFilter fade = new FadeFilter(3);
-        fpp.addFilter(fade);
         fade.fadeIn();
+        fpp.addFilter(fade);
+
+        // add an ocean.
+        /*WaterFilter waterFilter = new WaterFilter(rootNode, sky.getSunDirection().normalize());
+        waterFilter.setWaterHeight(2);
+        fpp.addFilter(waterFilter);
+        viewPort.addProcessor(fpp);*/
 
         /*
         CartoonEdgeFilter toon=new CartoonEdgeFilter();
