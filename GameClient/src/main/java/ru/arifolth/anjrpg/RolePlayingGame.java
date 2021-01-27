@@ -7,13 +7,13 @@ package ru.arifolth.anjrpg; /**
  */
 
 import com.idflood.sky.DynamicSky;
+import com.jayfella.minimap.MiniMapState;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.ScreenshotAppState;
 import com.jme3.asset.plugins.ClasspathLocator;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.*;
 import com.jme3.post.ssao.SSAOFilter;
@@ -66,7 +66,6 @@ public class RolePlayingGame extends SimpleApplication {
     private BulletAppState bulletAppState;
     private PssmShadowRenderer pssmRenderer;
     private GameLogicCore gameLogicCore;
-    private Vector3f lightDir;
 
     public RolePlayingGame() {
         initializeApplicationSettings();
@@ -89,6 +88,20 @@ public class RolePlayingGame extends SimpleApplication {
         //addFog();
         setupSky();
         addFilters();
+
+        createMinimap();
+    }
+
+    private void createMinimap() {
+        // create the minimap
+
+        // The height of the minimap camera. Usually slightly higher than your world height.
+        // the higher up, the more "zoomed out" it will be (and thus display more).
+        float height = 128;
+        int size = 600; // the size of the minimap in pixels.
+
+        MiniMapState miniMapState = new MiniMapState(rootNode, height, size);
+        stateManager.attach(miniMapState);
     }
 
     private void setupGameLogic() {
