@@ -1,4 +1,4 @@
-package ru.arifolth.anjrpg.character;
+package ru.arifolth.game.models;
 
 import com.jme3.scene.Node;
 

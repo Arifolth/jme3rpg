@@ -1,4 +1,4 @@
-package ru.arifolth.anjrpg.character;
+package ru.arifolth.game.models;
 
 import com.jme3.animation.AnimChannel;
 import com.jme3.animation.AnimControl;

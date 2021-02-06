@@ -1,6 +1,6 @@
-package ru.arifolth.anjrpg.character.factory;
+package ru.arifolth.game.models.factory;
 
-import ru.arifolth.anjrpg.character.Character;
+import ru.arifolth.game.models.Character;
 
 /**
  * Created by IntelliJ IDEA.

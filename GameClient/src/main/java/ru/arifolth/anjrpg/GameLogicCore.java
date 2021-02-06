@@ -8,12 +8,11 @@ import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
-import ru.arifolth.anjrpg.character.Character;
-import ru.arifolth.anjrpg.character.PlayerCharacter;
-import ru.arifolth.anjrpg.character.factory.CharacterFactory;
+import ru.arifolth.game.models.Character;
+import ru.arifolth.game.models.PlayerCharacter;
+import ru.arifolth.game.models.factory.CharacterFactory;
 import ru.arifolth.anjrpg.weather.Emitter;
 import ru.arifolth.anjrpg.weather.RainEmitter;
-import ru.arifolth.anjrpg.weather.SnowEmitter;
 
 import java.util.LinkedHashSet;
 import java.util.Set;

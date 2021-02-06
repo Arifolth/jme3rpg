@@ -17,6 +17,7 @@
   <modules>
     <module>Sky</module>
     <module>Terrain</module>
+    <module>Models</module>
   </modules>
 
 </project>
