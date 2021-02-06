@@ -29,7 +29,7 @@ import java.util.logging.Level;
 public class RolePlayingGame extends SimpleApplication {
     public static final SSAOFilter SSAO_FILTER_BASIC = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.9f);
     public static final SSAOFilter SSAO_FILTER_STRONG = new SSAOFilter(2.9299974f, 25f, 5.8100376f, 0.091000035f);
-    LightScatteringFilter lsf;
+    private LightScatteringFilter lsf;
     private WaterFilter waterFilter;
     private FadeFilter fadeFilter;
 
@@ -37,6 +37,7 @@ public class RolePlayingGame extends SimpleApplication {
         showSettings = false;
 
         AppSettings settings = new AppSettings(true);
+        settings.setTitle("Alexander's Nilov Java RPG");
         GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         settings.setFullscreen(device.isFullScreenSupported());
         settings.setBitsPerPixel(24); //24
