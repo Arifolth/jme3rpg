@@ -25,9 +25,7 @@ public class CharacterFactory<T extends Character> implements ICharacterFactory<
         try {
             result = clazz.newInstance();
             result.initialize(bulletAppState, assetManager);
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
+        } catch (InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
         }
         return result;

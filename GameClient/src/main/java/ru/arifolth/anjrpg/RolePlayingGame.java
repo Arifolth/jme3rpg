@@ -27,8 +27,11 @@ import java.awt.*;
 import java.util.logging.Level;
 
 public class RolePlayingGame extends SimpleApplication {
+    public static final SSAOFilter SSAO_FILTER_BASIC = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.9f);
+    public static final SSAOFilter SSAO_FILTER_STRONG = new SSAOFilter(2.9299974f, 25f, 5.8100376f, 0.091000035f);
     LightScatteringFilter lsf;
     private WaterFilter waterFilter;
+    private FadeFilter fadeFilter;
 
     private void initializeApplicationSettings() {
         showSettings = false;
@@ -90,6 +93,8 @@ public class RolePlayingGame extends SimpleApplication {
         addFilters();
 
         createMinimap();
+
+        fadeFilter.fadeIn();
     }
 
     private void createMinimap() {
@@ -180,15 +185,13 @@ public class RolePlayingGame extends SimpleApplication {
         dof.setBlurScale(0.65f);
         fpp.addFilter(dof);
 
-        SSAOFilter ssaoFilter = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.9f);
-        //SSAOFilter ssaoFilter = new SSAOFilter(2.9299974f,25f,5.8100376f,0.091000035f);
+        SSAOFilter ssaoFilter = SSAO_FILTER_BASIC;
         fpp.addFilter(ssaoFilter);
 
         fpp.addFilter(new TranslucentBucketFilter());
 
-        FadeFilter fade = new FadeFilter(3);
-        fade.fadeIn();
-        fpp.addFilter(fade);
+        fadeFilter = new FadeFilter(3);
+        fpp.addFilter(fadeFilter);
 
         // add an ocean.
         waterFilter = new WaterFilter(rootNode, sky.getSunDirection().normalize());

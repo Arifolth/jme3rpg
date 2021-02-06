@@ -13,8 +13,8 @@ import com.jme3.scene.Spatial;
  * To change this template use File | Settings | File Templates.
  */
 public interface Character {
-    public void simpleUpdate(float tpf);
-    public void initialize(BulletAppState bulletAppState, AssetManager assetManager);
-    public Spatial getCharacterModel();
-    public Node getNode();
+    void simpleUpdate(float tpf);
+    void initialize(BulletAppState bulletAppState, AssetManager assetManager);
+    Spatial getCharacterModel();
+    Node getNode();
 }
