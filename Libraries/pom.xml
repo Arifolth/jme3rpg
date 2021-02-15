@@ -18,80 +18,69 @@
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-
     <dependencies>
-		<!--<dependency>
-			<groupId>com.jme3</groupId>
-			<artifactId>jmonkeyengine3</artifactId>
-		</dependency>
-				
-		<dependency>
-			<groupId>com.jme3</groupId>
-			<artifactId>jme3-testdata</artifactId>
-		</dependency>-->
-
 		<!-- The core library -->
 		<dependency>
-			<groupId>com.jme3</groupId>
+			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-core</artifactId>
 		</dependency>		
 		
 		<!-- LWJGL stuff -->
 		<dependency>
-			<groupId>com.jme3</groupId>
+			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-lwjgl</artifactId>
 		</dependency>
 		
 		<!-- Bullet stuff -->
 		<dependency>
-			<groupId>com.jme3</groupId>
-			<artifactId>jme3-jbullet</artifactId>
-		</dependency>		
-		<dependency>
-			<groupId>com.jme3</groupId>
-			<artifactId>jme3-bullet-natives</artifactId>
+			<groupId>${jme3.groupId}</groupId>
+			<artifactId>jme3-bullet-native</artifactId>
 		</dependency>
-        <dependency>
-            <groupId>com.jme3</groupId>
-            <artifactId>jme3-bullet</artifactId>
-        </dependency>
-
+		<dependency>
+			<groupId>${jme3.groupId}</groupId>
+			<artifactId>jme3-bullet</artifactId>
+		</dependency>
+		<!--<dependency>
+			<groupId>com.github.stephengold</groupId>
+			<artifactId>Minie</artifactId>
+			<version>3.0.0</version>
+		</dependency>-->
 
         <!-- Feature libs -->
-		<dependency>
-			<groupId>com.jme3</groupId>
+		<!--<dependency>
+			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-blender</artifactId>
-		</dependency>		
+		</dependency>-->
 		<dependency>
-			<groupId>com.jme3</groupId>
+			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-desktop</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.jme3</groupId>
+			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-effects</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.jme3</groupId>
+			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-networking</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.jme3</groupId>
+			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-plugins</artifactId>
 		</dependency>		
 		<dependency>
-			<groupId>com.jme3</groupId>
+			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-terrain</artifactId>
 		</dependency>	
 		
 		<!-- Ogg audio stuff -->
 		<dependency>
-			<groupId>com.jme3</groupId>
+			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-jogg</artifactId>
 		</dependency>
 
 		<!-- Nifty GUI -->
 		<dependency>
-			<groupId>com.jme3</groupId>
+			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-niftygui</artifactId>
 		</dependency>
     </dependencies>
@@ -100,17 +89,13 @@
 	<repository>
 		<id>jmonkey engine</id>
 		<name>jmonkey engine</name>
-		<url>http://dl.bintray.com/jmonkeyengine/com.jme3</url>
+		<url>http://dl.bintray.com/jmonkeyengine/${jme3.groupId}</url>
+	</repository>
+	<repository>
+		<id>jcenter</id>
+		<url>https://jcenter.bintray.com/</url>
 	</repository>
 </repositories>
-
-
-  <properties>
-    <game.home>L:\jMonkey3\jme3RPG</game.home>
-    <jmonkey.build>online</jmonkey.build>
-    <jmonkey.version>3.0.10</jmonkey.version>
-  </properties>
-
 
   <profiles>
     <profile>
@@ -118,11 +103,6 @@
 
       <activation>
         <activeByDefault>true</activeByDefault>
-
-        <property>
-          <name>jmonkey.build</name>
-          <value>online</value>
-        </property>
       </activation>
 
   <!-- online dependencies -->
@@ -130,82 +110,105 @@
     <dependencies>
 		<!-- The core library -->
 		<dependency>
-			<groupId>com.jme3</groupId>
+			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-core</artifactId>
 			<version>${jmonkey.version}</version>
 		</dependency>		
 		
 		<!-- LWJGL stuff -->
 		<dependency>
-			<groupId>com.jme3</groupId>
+			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-lwjgl</artifactId>
 			<version>${jmonkey.version}</version>
 		</dependency>
 		
 		<!-- Bullet stuff -->
-		<dependency>
-			<groupId>com.jme3</groupId>
-			<artifactId>jme3-jbullet</artifactId>
-			<version>${jmonkey.version}</version>
-		</dependency>
         <dependency>
-            <groupId>com.jme3</groupId>
-            <artifactId>jme3-bullet-natives</artifactId>
+            <groupId>${jme3.groupId}</groupId>
+            <artifactId>jme3-bullet-native</artifactId>
             <version>${jmonkey.version}</version>
         </dependency>
 		<dependency>
-			<groupId>com.jme3</groupId>
+			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-bullet</artifactId>
 			<version>${jmonkey.version}</version>
-		</dependency>		
+		</dependency>
+		<!--<dependency>
+			<groupId>com.github.stephengold</groupId>
+			<artifactId>Minie</artifactId>
+		</dependency>-->
 
-		
 		<!-- Feature libs -->
-		<dependency>
-			<groupId>com.jme3</groupId>
+		<!--<dependency>
+			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-blender</artifactId>
 			<version>${jmonkey.version}</version>
-		</dependency>		
+		</dependency>	-->
 		<dependency>
-			<groupId>com.jme3</groupId>
+			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-desktop</artifactId>
 			<version>${jmonkey.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.jme3</groupId>
+			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-effects</artifactId>
 			<version>${jmonkey.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.jme3</groupId>
+			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-networking</artifactId>
 			<version>${jmonkey.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.jme3</groupId>
+			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-plugins</artifactId>
 			<version>${jmonkey.version}</version>
 		</dependency>		
 		<dependency>
-			<groupId>com.jme3</groupId>
+			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-terrain</artifactId>
 			<version>${jmonkey.version}</version>
 		</dependency>	
 		
 		<!-- Ogg audio stuff -->
 		<dependency>
-			<groupId>com.jme3</groupId>
+			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-jogg</artifactId>
 			<version>${jmonkey.version}</version>
 		</dependency>
 
 		<!-- Nifty GUI -->
 		<dependency>
-			<groupId>com.jme3</groupId>
+			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-niftygui</artifactId>
 			<version>${jmonkey.version}</version>
 		</dependency>
-
+		<!--**********************************-->
+		<!--<dependency>
+			<groupId>com.simsilica</groupId>
+			<artifactId>lemur</artifactId>
+			<version>1.15.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.simsilica</groupId>
+			<artifactId>sim-fx</artifactId>
+			<version>1.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.simsilica</groupId>
+			<artifactId>lemur-props</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.simsilica</groupId>
+			<artifactId>iso</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.groovy</groupId>
+			<artifactId>groovy-all</artifactId>
+			<version>2.1.9</version>
+		</dependency>-->
     </dependencies>
   </dependencyManagement>
     </profile>

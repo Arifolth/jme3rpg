@@ -58,7 +58,7 @@ public class DynamicSun extends Node {
         return sunSystem;
     }
     
-    protected DirectionalLight getSunLight(){
+    public DirectionalLight getSunLight(){
         DirectionalLight dl = new DirectionalLight();
         dl.setDirection(lightDir);
         dl.setColor(ColorRGBA.White);

@@ -8,11 +8,11 @@ import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
-import ru.arifolth.anjrpg.character.Character;
-import ru.arifolth.anjrpg.character.PlayerCharacter;
-import ru.arifolth.anjrpg.character.factory.CharacterFactory;
+import ru.arifolth.game.models.Character;
+import ru.arifolth.game.models.PlayerCharacter;
+import ru.arifolth.game.models.factory.CharacterFactory;
 import ru.arifolth.anjrpg.weather.Emitter;
-import ru.arifolth.anjrpg.weather.SnowEmitter;
+import ru.arifolth.anjrpg.weather.RainEmitter;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -53,12 +53,11 @@ public class GameLogicCore {
         setupCamera();
 
         setUpKeys();
-        setupWeatherEffects();
-
+        //setupWeatherEffects();
     }
 
     private void setupWeatherEffects() {
-        Emitter snowEmitter = new SnowEmitter(rootNode, assetManager);
+        Emitter snowEmitter = new RainEmitter(rootNode, assetManager);
         snowEmitter.setSpatial(playerCharacter.getNode());
         weatherEffectsSet.add(snowEmitter);
     }
@@ -94,7 +93,7 @@ public class GameLogicCore {
         //chaseCam.setInvertHorizontalAxis(true);
 
         //Comment this to disable smooth camera motion
-        //chaseCam.setSmoothMotion(true);
+        chaseCam.setSmoothMotion(true);
 
         //Uncomment this to disable trailing of the camera
         //WARNING, trailing only works with smooth motion enabled. It is true by default.
@@ -107,10 +106,6 @@ public class GameLogicCore {
 
         //Uncomment this to enable rotation when the middle mouse button is pressed (like Blender)
         //WARNING : setting this trigger disable the rotation on right and left mouse button click
-        chaseCam.setToggleRotationTrigger(new MouseButtonTrigger(MouseInput.BUTTON_MIDDLE));
-
-        //Uncomment this to set mutiple triggers to enable rotation of the cam
-        //Here spade bar and middle mouse button
         //chaseCam.setToggleRotationTrigger(new MouseButtonTrigger(MouseInput.BUTTON_MIDDLE));
 
         //chaseCam.setDefaultDistance(40);

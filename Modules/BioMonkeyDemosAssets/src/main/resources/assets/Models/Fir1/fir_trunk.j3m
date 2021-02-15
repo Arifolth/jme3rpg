@@ -1,9 +1,0 @@
-Material My Material : Common/MatDefs/Light/Lighting.j3md {
-     MaterialParameters {
-        DiffuseMap : Repeat Models/Fir1/fir_bark.png
-        NormalMap : Repeat Models/Fir1/fir_bark_NORM.png
-        //ParallaxMap : Repeat Models/Fir1/fir_bark_NORM.png
-     }
-    AdditionalRenderState {
-    }
-}

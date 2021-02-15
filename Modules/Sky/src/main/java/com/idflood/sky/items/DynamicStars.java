@@ -13,12 +13,13 @@ import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Node;
 
 public class DynamicStars extends Node{
+    public static final int START_COUNT = 0;
     private ViewPort viewPort = null;
     private AssetManager assetManager = null;
     
     private SkyBillboardItem[] stars;
     
-    private int stars_count = 500;
+    private int stars_count = START_COUNT;
     private Material mat;
     
     public DynamicStars(AssetManager assetManager, ViewPort viewPort, Float scaling){
@@ -37,7 +38,7 @@ public class DynamicStars extends Node{
             stars[i] = item;
             
             item.setMaterial(mat);
-            item.setLocalTranslation(getPointOnSphere().mult(15000));  //distance to stars
+            item.setLocalTranslation(getPointOnSphere().mult(9000));  //distance to stars
             item.removeBillboardController();
             item.lookAt(getRandomVector().mult(10), Vector3f.UNIT_Y);
             item.rotate(new Quaternion().fromAngles((float) Math.random() - 0.5f, (float) Math.random() - 0.5f, (float) Math.random() - 0.5f));

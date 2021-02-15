@@ -1,8 +1,0 @@
-Material My Material : Common/MatDefs/Light/Lighting.j3md {
-     MaterialParameters {
-        DiffuseMap : Flip Repeat Models/Rock1/diffuse.tga
-        NormalMap : Flip Repeat Models/Rock1/normal.tga
-     }
-    AdditionalRenderState {
-    }
-}

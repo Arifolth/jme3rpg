@@ -1,6 +1,0 @@
-Material Leak Through : Common/MatDefs/Misc/Unshaded.j3md {
-     MaterialParameters {
-         Color : 1 0 1 1
-         ColorMap : Flip Textures/ColoredTex/Monkey.png
-     }
-}

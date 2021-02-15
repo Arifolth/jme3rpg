@@ -22,13 +22,7 @@
   <modules>
     <module>Assets</module>
     <module>Libraries</module>
-    <module>Common</module>
-    <module>Domain</module>
-    <module>Core</module>
-    <module>API</module>
-
     <module>Modules</module>
-
     <module>GameClient</module>
   </modules>
 
@@ -37,8 +31,8 @@
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
+          <source>1.8</source>
+          <target>1.8</target>
           <encoding>UTF-8</encoding>
         </configuration>
         <version>3.1</version>
@@ -58,43 +52,18 @@
         </executions>
       </plugin>
       -->
-      
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <version>2.8</version>
-            <configuration>
-                <!-- Doclet -->
-                <doclet>ydoc.doclets.YStandard</doclet>
-                <docletPath>${yworks.uml.path}/lib/ydoc.jar:${yworks.uml.path}/lib/class2svg.jar:${yworks.uml.path}/resources</docletPath>
-                <additionalparam>-umlautogen</additionalparam>
-                <!-- bootclasspath required by Sun's JVM -->
-                <bootclasspath>${sun.boot.class.path}</bootclasspath>
-                <!-- General Javadoc settings -->
-                <doctitle>${project.name} (${project.version})</doctitle>
-                <show>private</show>
-                <!-- Styling -->
-                <stylesheetfile>${basedir}/Scripts/Javadoc/style/jboss/api/stylesheet.css</stylesheetfile>
-                <javadocDirectory>${basedir}/Scripts/Javadoc/style/jboss/api</javadocDirectory>
-                <docfilessubdirs>true</docfilessubdirs>
-                <!-- Apple's JVM sometimes requires more memory -->
-                <additionalJOption>-J-Xmx1024m</additionalJOption>
-                <verbose>true</verbose>
-            </configuration>
-        </plugin>
     </plugins>
   </build>
 
   <properties>
-    <!--<jmonkey.version>3.0.0.20140325-SNAPSHOT</jmonkey.version> -->
-    <!--<jmonkey.version>3.0.10</jmonkey.version>-->
-    <appdapter.version>1.0.3</appdapter.version>
-    <netbeans.version>RELEASE691</netbeans.version>			
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
+
     <encoding>UTF-8</encoding>
 
-    <yworks.uml.path>${basedir}/yworks-uml-doclet-3.0_02-jdk1.5</yworks.uml.path>
+    <jmonkey.version>3.1.0-stable</jmonkey.version>
+    <!--<jmonkey.version>3.4.0-SNAPSHOT</jmonkey.version>-->
+    <jme3.groupId>org.jmonkeyengine</jme3.groupId>
   </properties>
 
 </project>

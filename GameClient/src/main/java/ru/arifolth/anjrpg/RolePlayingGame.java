@@ -7,45 +7,43 @@ package ru.arifolth.anjrpg; /**
  */
 
 import com.idflood.sky.DynamicSky;
+import com.jayfella.minimap.MiniMapState;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.ScreenshotAppState;
 import com.jme3.asset.plugins.ClasspathLocator;
 import com.jme3.bullet.BulletAppState;
-import com.jme3.bullet.collision.shapes.CollisionShape;
-import com.jme3.bullet.control.RigidBodyControl;
-import com.jme3.bullet.util.CollisionShapeFactory;
-import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.*;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
-import com.jme3.scene.Node;
-import com.jme3.shadow.PssmShadowRenderer;
+import com.jme3.shadow.*;
 import com.jme3.system.AppSettings;
-import com.jme3.terrain.geomipmap.TerrainLodControl;
-import com.jme3.terrain.geomipmap.TerrainQuad;
-import com.jme3.terrain.heightmap.AbstractHeightMap;
-import com.jme3.terrain.heightmap.ImageBasedHeightMap;
-import com.jme3.texture.Texture;
-import com.jme3.texture.Texture.WrapMode;
+import com.jme3.water.WaterFilter;
+import ru.arifolth.game.TerrainManager;
 
+import java.awt.*;
+import java.util.logging.Level;
 
 public class RolePlayingGame extends SimpleApplication {
-    LightScatteringFilter lsf;
+    public static final SSAOFilter SSAO_FILTER_BASIC = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.9f);
+    public static final SSAOFilter SSAO_FILTER_STRONG = new SSAOFilter(2.9299974f, 25f, 5.8100376f, 0.091000035f);
+    private LightScatteringFilter lsf;
+    private WaterFilter waterFilter;
+    private FadeFilter fadeFilter;
 
     private void initializeApplicationSettings() {
         showSettings = false;
 
         AppSettings settings = new AppSettings(true);
-        //GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        settings.setResolution(1280,720);
-        //settings.setFullscreen(device.isFullScreenSupported());
-        settings.setBitsPerPixel(16);
-        settings.setSamples(16);
-        settings.setVSync(false);
+        settings.setTitle("Alexander's Nilov Java RPG");
+        GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        settings.setFullscreen(device.isFullScreenSupported());
+        settings.setBitsPerPixel(24); //24
+        settings.setSamples(16); //16
+        settings.setVSync(true);
+        settings.setResolution(3840,2160);
         settings.setRenderer(AppSettings.LWJGL_OPENGL2);
         settings.setFrameRate(30);
 
@@ -53,17 +51,25 @@ public class RolePlayingGame extends SimpleApplication {
         //setDisplayStatView(false);
 
         this.setSettings(settings);
+        this.setShowSettings(showSettings);
+
+        //do not output excessive info on console
+        java.util.logging.Logger.getLogger("").setLevel(Level.SEVERE);
+
+        // hide FPS HUD
+        setDisplayFps(false);
+
+        //hide statistics HUD
+        setDisplayStatView(false);
     }
 
     private static Application app;
-    private TerrainQuad terrain;
-    private Material matTerrain;
-    private RigidBodyControl landscape;
+
     private DynamicSky sky;
+    private TerrainManager terrainManager;
     private BulletAppState bulletAppState;
     private PssmShadowRenderer pssmRenderer;
     private GameLogicCore gameLogicCore;
-    private Vector3f lightDir;
 
     public RolePlayingGame() {
         initializeApplicationSettings();
@@ -79,7 +85,6 @@ public class RolePlayingGame extends SimpleApplication {
         setupAssetManager();
         setupPhysix();
         setupGameLogic();
-
         setupTerrain();
 
         setupShadowRenderer();
@@ -87,6 +92,22 @@ public class RolePlayingGame extends SimpleApplication {
         //addFog();
         setupSky();
         addFilters();
+
+        createMinimap();
+
+        fadeFilter.fadeIn();
+    }
+
+    private void createMinimap() {
+        // create the minimap
+
+        // The height of the minimap camera. Usually slightly higher than your world height.
+        // the higher up, the more "zoomed out" it will be (and thus display more).
+        float height = 128;
+        int size = 600; // the size of the minimap in pixels.
+
+        MiniMapState miniMapState = new MiniMapState(rootNode, height, size);
+        stateManager.attach(miniMapState);
     }
 
     private void setupGameLogic() {
@@ -109,13 +130,15 @@ public class RolePlayingGame extends SimpleApplication {
     public void simpleUpdate(float tpf) {
         gameLogicCore.update(tpf);
 
+        terrainManager.update(tpf);
+
         //skydome
         sky.updateTime();
 
         //update filters on observer pattern base
-        lsf.setLightPosition(sky.getSunDirection().normalize().mult(500));
-
-        pssmRenderer.setDirection(sky.getSunDirection().normalize().mult(-500));
+        lsf.setLightPosition(sky.getSunDirection().normalize());
+        pssmRenderer.setDirection(sky.getSunDirection().normalize());
+        waterFilter.setLightDirection(sky.getSunDirection().normalize());
     }
 
     private void addFog() {
@@ -130,12 +153,10 @@ public class RolePlayingGame extends SimpleApplication {
     }
 
     private void setupShadowRenderer() {
-        pssmRenderer = new PssmShadowRenderer(assetManager, 4096, 32);
-        //pssmRenderer.setDirection(lightDir);
+        pssmRenderer = new PssmShadowRenderer(assetManager, 2048, 16);
         pssmRenderer.setShadowIntensity(0.55f);
         pssmRenderer.setFilterMode(PssmShadowRenderer.FilterMode.PCF8);
         pssmRenderer.setCompareMode(PssmShadowRenderer.CompareMode.Hardware);
-        terrain.setShadowMode(ShadowMode.CastAndReceive);
         viewPort.addProcessor(pssmRenderer);
     }
 
@@ -143,17 +164,20 @@ public class RolePlayingGame extends SimpleApplication {
         FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
 
         FXAAFilter fxaa = new FXAAFilter();
+        fxaa.setSubPixelShift(5.0f);
+        fxaa.setReduceMul(5.0f);
+        fxaa.setVxOffset(5.0f);
+        fxaa.setEnabled(true);
         fpp.addFilter(fxaa);
 
-        BloomFilter bloom = new BloomFilter(/*BloomFilter.GlowMode.Objects*/);
+        BloomFilter bloom = new BloomFilter(BloomFilter.GlowMode.SceneAndObjects);
         bloom.setDownSamplingFactor(2.0f);
         bloom.setExposurePower(55);
         bloom.setBloomIntensity(1.0f);
         fpp.addFilter(bloom);
 
-        lsf = new LightScatteringFilter(sky.getSunDirection().normalize());
+        lsf = new LightScatteringFilter(sky.getSunDirection().normalize().mult(500));
         lsf.setLightDensity(1.0f);
-        //LightScatteringUI ui = new LightScatteringUI(inputManager, lsf);
         fpp.addFilter(lsf);
 
         DepthOfFieldFilter dof=new DepthOfFieldFilter();
@@ -162,23 +186,25 @@ public class RolePlayingGame extends SimpleApplication {
         dof.setBlurScale(0.65f);
         fpp.addFilter(dof);
 
-        //SSAOFilter ssaoFilter = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.9f);
-        SSAOFilter ssaoFilter = new SSAOFilter(10.0f, 25.0f, 0.35f, 1.0f);
+        SSAOFilter ssaoFilter = SSAO_FILTER_BASIC;
         fpp.addFilter(ssaoFilter);
 
         fpp.addFilter(new TranslucentBucketFilter());
 
-        /*
-        FadeFilter fade = new FadeFilter(3);
-        fpp.addFilter(fade);
-        fade.fadeIn();
-        */
+        fadeFilter = new FadeFilter(3);
+        fpp.addFilter(fadeFilter);
 
-        /*
+        // add an ocean.
+        waterFilter = new WaterFilter(rootNode, sky.getSunDirection().normalize());
+        waterFilter.setWaterHeight(-70);
+        fpp.addFilter(waterFilter);
+        viewPort.addProcessor(fpp);
+
         CartoonEdgeFilter toon=new CartoonEdgeFilter();
-        toon.setEdgeColor(ColorRGBA.Yellow);
+        toon.setEdgeWidth(0.5f);
+        toon.setEdgeIntensity(0.09f);
+        toon.setNormalThreshold(0.8f);
         fpp.addFilter(toon);
-        */
 
         viewPort.addProcessor(fpp);
     }
@@ -201,117 +227,13 @@ public class RolePlayingGame extends SimpleApplication {
     }
 
     private void setupTerrain() {
-        /** 1. Create terrain material and load four textures into it. */
-        /*matTerrain = new Material(assetManager, "Common/MatDefs/Terrain/TerrainLighting.j3md");
-        matTerrain.setBoolean("useTriPlanarMapping", false);
-        matTerrain.setFloat("Shininess", 0.0f);*/
-        matTerrain = new Material(assetManager, "Common/MatDefs/Terrain/Terrain.j3md");
+        terrainManager = new TerrainManager(assetManager, bulletAppState, this);
 
-        /** 1.1) Add ALPHA map (for red-blue-green coded splat textures) */
-        matTerrain.setTexture("Alpha", assetManager.loadTexture(
-                "Textures/Terrain/splat/alphamap.png"));
-
-        //matTerrain.setTexture("GrassAlphaMap", assetManager.loadTexture(
-                //"Textures/Terrain/grass-map512.png"));
-
-        /** 1.2) Add GRASS texture into the red layer (Tex1). */
-        Texture grass = assetManager.loadTexture(
-                "Textures/Terrain/splat/grass.jpg");
-        grass.setWrap(WrapMode.Repeat);
-        matTerrain.setTexture("Tex1", grass);
-        matTerrain.setFloat("Tex1Scale", 256f);
-
-        /** 1.3) Add DIRT texture into the green layer (Tex2) */
-        Texture dirt = assetManager.loadTexture(
-                "Textures/Terrain/splat/dirt.jpg");
-        dirt.setWrap(WrapMode.Repeat);
-        matTerrain.setTexture("Tex2", dirt);
-        matTerrain.setFloat("Tex2Scale", 128f);
-
-        /** 1.4) Add ROAD texture into the blue layer (Tex3) */
-        Texture rock = assetManager.loadTexture(
-                "Textures/Terrain/splat/road.jpg");
-        rock.setWrap(WrapMode.Repeat);
-        matTerrain.setTexture("Tex3", rock);
-        matTerrain.setFloat("Tex3Scale", 512f);
-
-
-        /** 2. Create the height map */
-
-        AbstractHeightMap heightmap = null;
-        Texture heightMapImage = assetManager.loadTexture(
-                "Textures/Terrain/splat/mountains512.png");
-        heightmap = new ImageBasedHeightMap(heightMapImage.getImage());
-        heightmap.load();
-        /*
-        HillHeightMap heightmap = null;
-        HillHeightMap.NORMALIZE_RANGE = 100; // optional
-        try {                                       //50/75
-            heightmap = new HillHeightMap(513, 1000, 50, 350, (byte) 0); // byte 3 is a random seed
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        */
-
-        /** 3. We have prepared material and heightmap.
-         * Now we createCharacter the actual terrain:
-         * 3.1) Create a TerrainQuad and name it "my terrain".
-         * 3.2) A good value for terrain tiles is 64x64 -- so we supply 64+1=65.
-         * 3.3) We prepared a heightmap of size 512x512 -- so we supply 512+1=513.
-         * 3.4) As LOD step scale we supply Vector3f(1,1,1).
-         * 3.5) We supply the prepared heightmap itself.
-         */
-
-        /*
-         int patchSize = 97;
-            terrain = new TerrainQuad(
-                "my terrain",
-                patchSize,
-                1025,
-                heightmap.getHeightMap());
-         */
-        int patchSize = 65;
-        terrain = new TerrainQuad(
-                "my terrain",
-                patchSize,
-                513,
-                heightmap.getHeightMap());
-
-        /** 4. We give the terrain its material, position & scale it, and attach it. */
-        terrain.setMaterial(matTerrain);
-        //terrain.setLocalTranslation(0, -1000, 0);
-        //terrain.setLocalScale(2f, 1f, 2f);
-        terrain.setLocalTranslation(0, -1150, 0);
-        terrain.setLocalScale(20f, 10f, 20f);
-        rootNode.attachChild(terrain);
-
-        /** 5. The LOD (level of detail) depends on were the camera is: */
-        TerrainLodControl control = new TerrainLodControl(terrain, getCamera());
-        terrain.addControl(control);
-        // We load the scene from the zip file and adjust its size.
-        //assetManager.registerLocator("town.zip", ZipLocator.class);
-        //sceneModel = assetManager.loadModel("main.scene");
-        //sceneModel.setLocalScale(2f);
-
-        // We set up collision detection for the scene by creating a
-        // compound collision shape and a static RigidBodyControl with mass zero.
-        CollisionShape sceneShape = CollisionShapeFactory.createMeshShape((Node) terrain);
-        landscape = new RigidBodyControl(sceneShape, 0);
-        terrain.addControl(landscape);
-
-        //debug terrain
-        //Material debugMat = assetManager.loadMaterial("Common/Materials/VertexColor.j3m");
-        //terrain.generateDebugTangents(debugMat);
-        //terrain.addControl(new SimpleGrassControl(assetManager,"Textures/Terrain/grass/weedy_grass_clover_9091077.JPG"));
-
-        // We attach the scene and the playerControl to the rootNode and the physics space,
-        // to make them appear in the game world.
-        bulletAppState.getPhysicsSpace().add(landscape);
+        rootNode.attachChild(terrainManager.getTerrain());
     }
 
     private void setupScreenCapture() {
         ScreenshotAppState screenShotState = new ScreenshotAppState();
         this.stateManager.attach(screenShotState);
     }
-
 }
