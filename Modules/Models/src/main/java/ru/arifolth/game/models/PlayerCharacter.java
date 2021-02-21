@@ -92,7 +92,7 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
         animationControl = characterModel.getControl(AnimControl.class);
         animationControl.addListener(this);
         animationChannel = animationControl.createChannel();
-        animationChannel.setAnim("Idle2");
+        animationChannel.setAnim("Idle3");
         attackChannel = animationControl.createChannel();
 
         /*attackChannel.addBone(animationControl.getSkeleton().getBone("Joint5"));
@@ -148,14 +148,14 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
     }
 
     private void attack() {
-        attackChannel.setAnim("Attack2", 0.1f);
+        attackChannel.setAnim("Attack3", 0.1f);
         attackChannel.setLoopMode(LoopMode.DontLoop);
     }
 
     public void onAnimCycleDone(AnimControl ctrl, AnimChannel ch, String name) {
-        if(name.equals("Attack2") && attacking && !attack_pressed) {
-            if (!ch.getAnimationName().equals("Idle2")) {
-                ch.setAnim("Idle2", 0f);
+        if(name.equals("Attack3") && attacking && !attack_pressed) {
+            if (!ch.getAnimationName().equals("Idle3")) {
+                ch.setAnim("Idle3", 0f);
                 ch.setLoopMode(LoopMode.Loop);
                 ch.setSpeed(1f);
                 attacking = false;
@@ -226,8 +226,8 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
             }
         } else if(attacking) {
             lock_movement = true;
-            if (!animationChannel.getAnimationName().equals("Attack2")) {
-                animationChannel.setAnim("Attack2");
+            if (!animationChannel.getAnimationName().equals("Attack3")) {
+                animationChannel.setAnim("Attack3");
                 animationChannel.setSpeed(1f);
                 animationChannel.setLoopMode(LoopMode.Loop);
             }
@@ -235,8 +235,8 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
             // If we're not walking, set standing animation if not jumping
             if (walkDirection.length() == 0) {
                 animationChannel.setLoopMode(LoopMode.Loop);
-                if (!animationChannel.getAnimationName().equals("Idle2")) {
-                    animationChannel.setAnim("Idle2", 0f);
+                if (!animationChannel.getAnimationName().equals("Idle3")) {
+                    animationChannel.setAnim("Idle3", 0f);
                     animationChannel.setSpeed(1f);
                 }
             } else {
