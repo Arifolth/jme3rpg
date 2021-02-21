@@ -103,7 +103,7 @@ public class TerrainManager {
         this.base = new FractalSum();
         this.base.setRoughness(0.82f);
         this.base.setFrequency(1.2f);
-        this.base.setAmplitude(1.0f);
+        this.base.setAmplitude(1.1f);
         this.base.setLacunarity(2.12f);
         this.base.setOctaves(8);
         this.base.setScale(0.02125f);
