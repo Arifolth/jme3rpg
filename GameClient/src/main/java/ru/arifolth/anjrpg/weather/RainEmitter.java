@@ -1,3 +1,20 @@
+/**
+ *     Copyright (C) 2021  Alexander Nilov
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package ru.arifolth.anjrpg.weather;
 
 import com.jme3.asset.AssetManager;
@@ -11,13 +28,6 @@ import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Administrator
- * Date: 28.12.12
- * Time: 2:14
- * To change this template use File | Settings | File Templates.
- */
 public class RainEmitter implements Emitter {
     ParticleEmitter rain;
     private Spatial spatial;
