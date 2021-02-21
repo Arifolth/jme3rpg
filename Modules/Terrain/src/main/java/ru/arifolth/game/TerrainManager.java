@@ -101,8 +101,8 @@ public class TerrainManager {
         this.matTerrain.setFloat("terrainSize", 513);
 
         this.base = new FractalSum();
-        this.base.setRoughness(0.7f);
-        this.base.setFrequency(1.0f);
+        this.base.setRoughness(0.82f);
+        this.base.setFrequency(1.2f);
         this.base.setAmplitude(1.0f);
         this.base.setLacunarity(2.12f);
         this.base.setOctaves(8);
