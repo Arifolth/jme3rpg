@@ -35,7 +35,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>ru.arifolth.anjrpg.RolePlayingGame</mainClass>
+              <mainClass>${java.main.class}</mainClass>
               <addClasspath>true</addClasspath>
             </manifest>
           </archive>
@@ -71,6 +71,15 @@
         </executions>
       </plugin>
 
+        <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>1.2.1</version>
+            <configuration>
+                <includePluginDependencies>true</includePluginDependencies>
+                <mainClass>${java.main.class}</mainClass>
+            </configuration>
+        </plugin>
     </plugins>
   </build>
 
@@ -104,5 +113,7 @@
         </dependency>
     </dependencies>
 
-
+    <properties>
+        <java.main.class>ru.arifolth.anjrpg.RolePlayingGame</java.main.class>
+    </properties>
 </project>
