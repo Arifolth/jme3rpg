@@ -24,7 +24,6 @@ import com.jme3.animation.LoopMode;
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
-import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.material.Material;
@@ -60,7 +59,7 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
 
     private Vector3f walkDirection = new Vector3f();
     private boolean left = false, right = false, up = false, down = false,
-        attacking = false, capture_mouse = true, running = false,
+        attacking = false, capture_mouse = true, running = false, blocking = false, block_pressed = false,
         jumping = false, jump_pressed = false, attack_pressed = false,
         lock_movement = false;
     private float airTime = 0;
@@ -183,10 +182,19 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
         else if (binding.equals("Run")) {
             running = pressed;
         }
+        else if (binding.equals("Block")) {
+            if(capture_mouse && !jumping) {
+                block_pressed = pressed;
+                if(block_pressed && !blocking) {
+                    blocking = true;
+                    block();
+                }
+            }
+        }
         else if (binding.equals("Attack")) {
             if(capture_mouse && !jumping) {
                 attack_pressed = pressed;
-                if(pressed && !attacking) {
+                if(attack_pressed && !attacking) {
                     attacking = true;
                     attack();
                 }
@@ -194,8 +202,16 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
         }
     }
 
+    private void block() {
+        //TODO: Show Blocking animation only in case attack is coming, do nothing otherwise
+        attackChannel.setAnim("Block", 0.1f);
+        //TODO: ADD Blocking event
+        attackChannel.setLoopMode(LoopMode.DontLoop);
+    }
+
     private void attack() {
         attackChannel.setAnim("Attack3", 0.1f);
+        //TODO: ADD Attacking event
         attackChannel.setLoopMode(LoopMode.DontLoop);
     }
 
@@ -208,8 +224,15 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
                 attacking = false;
                 lock_movement = false;
             }
-        }
-        else if(name.equals("JumpNoHeight")) {
+        } else if(name.equals("Block") && blocking && !block_pressed) {
+            if (!ch.getAnimationName().equals("Idle3")) {
+                ch.setAnim("Idle3", 0f);
+                ch.setLoopMode(LoopMode.Loop);
+                ch.setSpeed(1f);
+                blocking = false;
+                lock_movement = false;
+            }
+        } else if(name.equals("JumpNoHeight")) {
             jump_pressed = false;
         }
 
@@ -280,6 +303,13 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
             if(animationChannel.getTime() >= 0.32f) { // Delay jump to make the animation look decent
                 characterControl.jump();
                 lock_movement = false;
+            }
+        } else if(blocking) {
+            lock_movement = true;
+            if (!animationChannel.getAnimationName().equals("Block")) {
+                animationChannel.setAnim("Block");
+                animationChannel.setSpeed(1f);
+                animationChannel.setLoopMode(LoopMode.Loop);
             }
         } else if(attacking) {
             lock_movement = true;

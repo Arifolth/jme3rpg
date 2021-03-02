@@ -116,7 +116,7 @@ public class GameLogicCore {
 
         //Uncomment this to enable rotation when the middle mouse button is pressed (like Blender)
         //WARNING : setting this trigger disable the rotation on right and left mouse button click
-        //chaseCam.setToggleRotationTrigger(new MouseButtonTrigger(MouseInput.BUTTON_MIDDLE));
+        chaseCam.setToggleRotationTrigger(new MouseButtonTrigger(MouseInput.BUTTON_MIDDLE));
 
         //chaseCam.setDefaultDistance(40);
         //chaseCam.setDefaultHorizontalRotation(90f);
@@ -131,17 +131,17 @@ public class GameLogicCore {
         inputManager.addMapping("Up",    new KeyTrigger(KeyInput.KEY_W));
         inputManager.addMapping("Down",  new KeyTrigger(KeyInput.KEY_S));
         inputManager.addMapping("Jump",  new KeyTrigger(KeyInput.KEY_SPACE));
-        inputManager.addMapping("CatchM", new KeyTrigger(KeyInput.KEY_Q));
         inputManager.addMapping("Run",    new KeyTrigger(KeyInput.KEY_LSHIFT));
         inputManager.addMapping("Attack", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
+        inputManager.addMapping("Block", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
         inputManager.addListener(playerCharacter, "Left");
         inputManager.addListener(playerCharacter, "Right");
         inputManager.addListener(playerCharacter, "Up");
         inputManager.addListener(playerCharacter, "Down");
         inputManager.addListener(playerCharacter, "Jump");
-        inputManager.addListener(playerCharacter, "CatchM");
         inputManager.addListener(playerCharacter, "Run");
         inputManager.addListener(playerCharacter, "Attack");
+        inputManager.addListener(playerCharacter, "Block");
     }
 
     public void update(float tpf) {
