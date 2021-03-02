@@ -24,14 +24,33 @@ import com.jme3.animation.LoopMode;
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
+import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.input.controls.ActionListener;
+import com.jme3.material.Material;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import com.jme3.scene.control.BillboardControl;
+import com.jme3.scene.shape.Quad;
 
+/*
+*
+*  ninja.mesh
+
+    Found in: Samples/Media/models
+    Number of faces: 904
+    Number of vertices: 781
+    Author: Psionic, from the CharacterFX site.
+    Animations: Attack1 Attack2 Attack3 Backflip Block Climb Crouch Death1 Death2 HighJump Idle1 Idle2 Idle3 Jump JumpNoHeight Kick SideKick Spin Stealth Walk
+    Number of bones: 28
+    Initial facing vector: Vector3::NEGATIVE_UNIT_Z
+*/
 public class PlayerCharacter extends GameCharacter implements ActionListener, AnimEventListener {
+    public static final float MAXIMUM_HEALTH = 75f;
     private Node characterNode = new Node("Player");
 
     private Camera cam;
@@ -96,6 +115,24 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
         //characterModel.setLocalTranslation(new Vector3f(0f, 40.0f, 0f));
         //characterControl.setPhysicsLocation(characterModel.getLocalTranslation());
         //characterModel.getLocalTranslation().subtractLocal(0f, 50.0f,0f); // model offset fix
+
+        initializeHealthBar(assetManager);
+    }
+
+    private void initializeHealthBar(AssetManager assetManager) {
+        characterNode.setUserData("health", MAXIMUM_HEALTH);
+
+        // add healthbar
+        BillboardControl billboard = new BillboardControl();
+        //new Quad(HEALTHBAR_LENGTH, HELTHBAR_HEIGHT))
+        Geometry healthbar = new Geometry("healthbar", new Quad((float) characterNode.getUserData("health") / 25f, 0.2f));
+        Material mathb = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        mathb.setColor("Color", ColorRGBA.Red);
+        healthbar.setMaterial(mathb);
+        healthbar.setLocalTranslation(0.3f, 6.0f, 0f);
+        healthbar.addControl(billboard);
+
+        characterNode.attachChild(healthbar);
     }
 
     private void initializeAnimation() {
@@ -151,7 +188,7 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
                 attack_pressed = pressed;
                 if(pressed && !attacking) {
                     attacking = true;
-                    //attack();
+                    attack();
                 }
             }
         }
@@ -192,6 +229,16 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
      * We also make sure here that the camera moves with playerControl.
      */
     public void simpleUpdate(float k) {
+        healthBarUpdate();
+
+        movementUpdate(k);
+    }
+
+    private void healthBarUpdate() {
+        ((Quad)((Geometry)characterNode.getChild("healthbar")).getMesh()).updateGeometry((float) characterNode.getUserData("health") / 25f, 0.2f);
+    }
+
+    private void movementUpdate(float k) {
         float movement_amount = 0.3f;
         if(running) {
             movement_amount *= 1.75;
@@ -270,7 +317,7 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
 
         // Rotate model to point camera direction if attacking
         //if(attacking)
-            //characterControl.setViewDirection(direction.negate());
+        //characterControl.setViewDirection(direction.negate());
     }
 
 
