@@ -32,14 +32,19 @@ import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.shadow.*;
 import com.jme3.system.AppSettings;
 import com.jme3.water.WaterFilter;
+import de.lessvoid.nifty.elements.Element;
+import de.lessvoid.nifty.elements.render.TextRenderer;
+import de.lessvoid.nifty.tools.SizeValue;
 import ru.arifolth.game.TerrainManager;
 
 import java.awt.*;
 import java.util.logging.Level;
 
-public class RolePlayingGame extends SimpleApplication {
+public abstract class RolePlayingGame extends SimpleApplication {
     public static final SSAOFilter SSAO_FILTER_BASIC = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.9f);
     public static final SSAOFilter SSAO_FILTER_STRONG = new SSAOFilter(2.9299974f, 25f, 5.8100376f, 0.091000035f);
+    protected Element progressBarElement;
+    protected TextRenderer textRenderer;
     private LightScatteringFilter lsf;
     private WaterFilter waterFilter;
     private FadeFilter fadeFilter;
@@ -74,7 +79,7 @@ public class RolePlayingGame extends SimpleApplication {
         setDisplayStatView(false);
     }
 
-    private static Application app;
+    protected static Application app;
 
     private DynamicSky sky;
     private TerrainManager terrainManager;
@@ -86,25 +91,42 @@ public class RolePlayingGame extends SimpleApplication {
         initializeApplicationSettings();
     }
 
-    public static void main(String[] args) {
-        app = new RolePlayingGame();
-        app.start();
-    }
-
+    @Override
     public void simpleInitApp() {
         //chain of responsibility
         setupAssetManager();
+    }
+
+    protected void loadResources() {
         setupPhysix();
+        setProgress(0.1f, "setupPhysix");
+
         setupGameLogic();
+        setProgress(0.2f, "setupGameLogic");
+
         setupTerrain();
+        setProgress(0.3f, "setupTerrain");
 
         setupShadowRenderer();
+        setProgress(0.4f, "setupShadowRenderer");
+
         setupScreenCapture();
+        setProgress(0.5f, "setupScreenCapture");
+
         //addFog();
+        //setProgress(0.7f, "addFog");
+
         setupSky();
+        setProgress(0.6f, "setupSky");
+
         addFilters();
+        setProgress(0.7f, "addFilters");
 
         createMinimap();
+        setProgress(0.8f, "createMinimap");
+
+        attachObjects();
+        setProgress(0.9f, "attachObjects");
 
         fadeFilter.fadeIn();
     }
@@ -223,8 +245,13 @@ public class RolePlayingGame extends SimpleApplication {
     private void setupSky() {
         // load sky
         sky = new DynamicSky(assetManager, viewPort, rootNode);
-        rootNode.attachChild(sky);
         rootNode.setShadowMode(ShadowMode.Off);
+    }
+
+    protected void attachObjects() {
+        rootNode.attachChild(gameLogicCore.getPlayerCharacter().getNode());
+        rootNode.attachChild(terrainManager.getTerrain());
+        rootNode.attachChild(sky);
     }
 
     private void setupPhysix() {
@@ -239,12 +266,28 @@ public class RolePlayingGame extends SimpleApplication {
 
     private void setupTerrain() {
         terrainManager = new TerrainManager(assetManager, bulletAppState, this);
-
-        rootNode.attachChild(terrainManager.getTerrain());
+        setProgress(0.2f, "Loading Terrain");
     }
 
     private void setupScreenCapture() {
         ScreenshotAppState screenShotState = new ScreenshotAppState();
-        this.stateManager.attach(screenShotState);
+        stateManager.attach(screenShotState);
+    }
+
+    public void setProgress(final float progress, final String loadingText) {
+        //Since this method is called from another thread, we enqueue the
+        //changes to the progressbar to the update loop thread.
+        enqueue(() -> {
+            final int MIN_WIDTH = 32;
+            int pixelWidth = (int) (MIN_WIDTH + (progressBarElement.getParent().
+                    getWidth() - MIN_WIDTH) * progress);
+            progressBarElement.setConstraintWidth(new SizeValue(pixelWidth
+                    + "px"));
+            progressBarElement.getParent().layoutElements();
+
+            textRenderer.setText(loadingText);
+            return null;
+        });
+
     }
 }
