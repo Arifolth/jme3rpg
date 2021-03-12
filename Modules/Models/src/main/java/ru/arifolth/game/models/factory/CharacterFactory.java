@@ -21,6 +21,8 @@ import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
 import ru.arifolth.game.models.Character;
 
+import java.lang.reflect.InvocationTargetException;
+
 public class CharacterFactory<T extends Character> implements ICharacterFactory<T>{
     private BulletAppState bulletAppState;
     private AssetManager assetManager;
@@ -33,9 +35,9 @@ public class CharacterFactory<T extends Character> implements ICharacterFactory<
     public T createCharacter(Class<T> clazz) {
         T result = null;
         try {
-            result = clazz.newInstance();
+            result = clazz.getDeclaredConstructor().newInstance();
             result.initialize(bulletAppState, assetManager);
-        } catch (InstantiationException | IllegalAccessException e) {
+        } catch (IllegalAccessException | NoSuchMethodException | InstantiationException | InvocationTargetException e) {
             e.printStackTrace();
         }
         return result;

@@ -1,5 +1,23 @@
+/**
+ *     Copyright (C) 2021  Alexander Nilov
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package ru.arifolth.anjrpg;
 
+import com.jme3.math.Vector3f;
 import com.jme3.niftygui.NiftyJmeDisplay;
 import de.lessvoid.nifty.Nifty;
 import de.lessvoid.nifty.controls.Controller;
@@ -72,8 +90,6 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
                 nifty.exit();
                 guiViewPort.removeProcessor(niftyDisplay);
 
-                //attachObjects();
-
                 load = null;
             }
         }
@@ -84,18 +100,18 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
     //Since the assetmananger is threadsafe, it can be used to load data from
     //any thread.
     //We do *not* attach the objects to the rootNode here!
+    final RolePlayingGame rolePlayingGame = this;
     Callable<Void> loadingCallable = new Callable<Void>() {
 
         @Override
-        public Void call() {
-
+        public Void call() throws InterruptedException {
             Element element = nifty.getScreen("loadlevel").findElementById("loadingtext");
             textRenderer = element.getRenderer(TextRenderer.class);
 
             loadResources();
 
-            setProgress(1f, "Loading complete");
-
+            setProgress("Loading complete");
+            getGameLogicCore().getPlayerCharacter().getCharacterControl().setPhysicsLocation(new Vector3f(0, 4.5f, 0));
             return null;
         }
     };

@@ -47,7 +47,7 @@ public abstract class RolePlayingGame extends SimpleApplication {
     protected TextRenderer textRenderer;
     private LightScatteringFilter lsf;
     private WaterFilter waterFilter;
-    private FadeFilter fadeFilter;
+    private volatile float progress;
 
     private void initializeApplicationSettings() {
         showSettings = false;
@@ -91,44 +91,37 @@ public abstract class RolePlayingGame extends SimpleApplication {
         initializeApplicationSettings();
     }
 
+    public GameLogicCore getGameLogicCore() {
+        return gameLogicCore;
+    }
+
     @Override
     public void simpleInitApp() {
-        //chain of responsibility
         setupAssetManager();
     }
 
-    protected void loadResources() {
+    protected void loadResources() throws InterruptedException {
         setupPhysix();
-        setProgress(0.1f, "setupPhysix");
 
         setupGameLogic();
-        setProgress(0.2f, "setupGameLogic");
+        attachPlayer();
 
         setupTerrain();
-        setProgress(0.3f, "setupTerrain");
+        attachTerrain();
 
         setupShadowRenderer();
-        setProgress(0.4f, "setupShadowRenderer");
 
         setupScreenCapture();
-        setProgress(0.5f, "setupScreenCapture");
 
         //addFog();
         //setProgress(0.7f, "addFog");
 
         setupSky();
-        setProgress(0.6f, "setupSky");
+        attachSky();
 
         addFilters();
-        setProgress(0.7f, "addFilters");
 
         createMinimap();
-        setProgress(0.8f, "createMinimap");
-
-        attachObjects();
-        setProgress(0.9f, "attachObjects");
-
-        fadeFilter.fadeIn();
     }
 
     private void createMinimap() {
@@ -141,11 +134,13 @@ public abstract class RolePlayingGame extends SimpleApplication {
 
         MiniMapState miniMapState = new MiniMapState(rootNode, height, size);
         stateManager.attach(miniMapState);
+        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
     private void setupGameLogic() {
         gameLogicCore = new GameLogicCore(cam, flyCam, inputManager, bulletAppState, assetManager, rootNode);
         gameLogicCore.initialize();
+        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
     private void setupAssetManager() {
@@ -191,6 +186,8 @@ public abstract class RolePlayingGame extends SimpleApplication {
         pssmRenderer.setFilterMode(PssmShadowRenderer.FilterMode.PCF8);
         pssmRenderer.setCompareMode(PssmShadowRenderer.CompareMode.Hardware);
         viewPort.addProcessor(pssmRenderer);
+
+        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
     private void addFilters() {
@@ -224,9 +221,6 @@ public abstract class RolePlayingGame extends SimpleApplication {
 
         fpp.addFilter(new TranslucentBucketFilter());
 
-        fadeFilter = new FadeFilter(3);
-        fpp.addFilter(fadeFilter);
-
         // add an ocean.
         waterFilter = new WaterFilter(rootNode, sky.getSunDirection().normalize());
         waterFilter.setWaterHeight(-70);
@@ -240,18 +234,30 @@ public abstract class RolePlayingGame extends SimpleApplication {
         fpp.addFilter(toon);
 
         viewPort.addProcessor(fpp);
+
+        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
     private void setupSky() {
         // load sky
         sky = new DynamicSky(assetManager, viewPort, rootNode);
         rootNode.setShadowMode(ShadowMode.Off);
+        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
-    protected void attachObjects() {
-        rootNode.attachChild(gameLogicCore.getPlayerCharacter().getNode());
+    protected void attachTerrain() throws InterruptedException {
         rootNode.attachChild(terrainManager.getTerrain());
+        Thread.sleep(1000);
+    }
+
+    protected void attachSky() throws InterruptedException {
         rootNode.attachChild(sky);
+        Thread.sleep(1000);
+    }
+
+    protected void attachPlayer() throws InterruptedException {
+        rootNode.attachChild(gameLogicCore.getPlayerCharacter().getNode());
+        Thread.sleep(1000);
     }
 
     private void setupPhysix() {
@@ -262,30 +268,37 @@ public abstract class RolePlayingGame extends SimpleApplication {
         bulletAppState.setEnabled(true);
         //collision capsule shape is visible in debug mode
         //bulletAppState.getPhysicsSpace().enableDebug(assetManager);
+        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
     private void setupTerrain() {
         terrainManager = new TerrainManager(assetManager, bulletAppState, this);
-        setProgress(0.2f, "Loading Terrain");
+        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
     private void setupScreenCapture() {
         ScreenshotAppState screenShotState = new ScreenshotAppState();
         stateManager.attach(screenShotState);
+        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
-    public void setProgress(final float progress, final String loadingText) {
+    public void setProgress(final String loadingText) {
+        if(loadingText.equals("Loading complete"))
+            progress = 1f;
+        else
+            progress += 0.1;
+
         //Since this method is called from another thread, we enqueue the
         //changes to the progressbar to the update loop thread.
         enqueue(() -> {
             final int MIN_WIDTH = 32;
-            int pixelWidth = (int) (MIN_WIDTH + (progressBarElement.getParent().
-                    getWidth() - MIN_WIDTH) * progress);
-            progressBarElement.setConstraintWidth(new SizeValue(pixelWidth
-                    + "px"));
+            int pixelWidth = (int) (MIN_WIDTH + (progressBarElement.getParent().getWidth() - MIN_WIDTH) * progress);
+            progressBarElement.setConstraintWidth(new SizeValue(pixelWidth + "px"));
             progressBarElement.getParent().layoutElements();
 
             textRenderer.setText(loadingText);
+            if(progress == 1f)
+                Thread.sleep(1000);
             return null;
         });
 
