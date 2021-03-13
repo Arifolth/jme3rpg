@@ -100,7 +100,6 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
     //Since the assetmananger is threadsafe, it can be used to load data from
     //any thread.
     //We do *not* attach the objects to the rootNode here!
-    final RolePlayingGame rolePlayingGame = this;
     Callable<Void> loadingCallable = new Callable<Void>() {
 
         @Override
@@ -135,8 +134,7 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
 
     @Override
     public void bind(Nifty nifty, Screen screen) {
-        progressBarElement = nifty.getScreen("loadlevel").findElementById(
-                "progressbar");
+        progressBarElement = nifty.getScreen("loadlevel").findElementById("progressbar");
     }
 
     // methods for Controller
