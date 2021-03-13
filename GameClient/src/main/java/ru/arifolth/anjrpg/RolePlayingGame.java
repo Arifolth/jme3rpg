@@ -247,17 +247,17 @@ public abstract class RolePlayingGame extends SimpleApplication {
 
     protected void attachTerrain() throws InterruptedException {
         rootNode.attachChild(terrainManager.getTerrain());
-        Thread.sleep(1000);
+        Thread.sleep(500);
     }
 
     protected void attachSky() throws InterruptedException {
         rootNode.attachChild(sky);
-        Thread.sleep(1000);
+        Thread.sleep(500);
     }
 
     protected void attachPlayer() throws InterruptedException {
         rootNode.attachChild(gameLogicCore.getPlayerCharacter().getNode());
-        Thread.sleep(1000);
+        Thread.sleep(500);
     }
 
     private void setupPhysix() {
@@ -298,7 +298,7 @@ public abstract class RolePlayingGame extends SimpleApplication {
 
             textRenderer.setText(loadingText);
             if(progress == 1f)
-                Thread.sleep(1000);
+                Thread.sleep(500);
             return null;
         });
 

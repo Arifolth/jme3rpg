@@ -109,9 +109,13 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
             textRenderer = element.getRenderer(TextRenderer.class);
 
             loadResources();
+            runQueuedTasks();
 
             setProgress("Loading complete");
-            getGameLogicCore().getPlayerCharacter().getCharacterControl().setPhysicsLocation(new Vector3f(0, 4.5f, 0));
+
+            //put player at the beginning location
+            getGameLogicCore().getPlayerCharacter().getCharacterControl().setPhysicsLocation(new Vector3f(0, -15, 0));
+
             return null;
         }
     };
