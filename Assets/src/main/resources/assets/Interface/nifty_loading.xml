@@ -14,7 +14,6 @@
     <screen id="loadlevel" controller = "ru.arifolth.anjrpg.ANJRpg">
         <layer id="loadinglayer" childLayout="center" backgroundImage="Interface/loading_screen.jpg">
             <panel id = "loadingpanel" childLayout="vertical" align="center" valign="center" height="52px" width="70%">
-                <control id="title" name="label" align="center" text="ANJRpg" width="100%" height="100%"/>
                 <control name="loadingbar" align="center" valign="center" width="100%" height="100%" />
                 <control id="loadingtext" name="label" align="center"
                          text="                                                  "/>

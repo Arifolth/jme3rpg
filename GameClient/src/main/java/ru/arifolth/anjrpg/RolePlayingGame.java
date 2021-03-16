@@ -292,7 +292,9 @@ public abstract class RolePlayingGame extends SimpleApplication {
         //changes to the progressbar to the update loop thread.
         enqueue(() -> {
             final int MIN_WIDTH = 32;
-            int pixelWidth = (int) (MIN_WIDTH + (progressBarElement.getParent().getWidth() - MIN_WIDTH) * progress);
+            int pixelWidth = (int) (MIN_WIDTH + (progressBarElement.getParent().getWidth() - MIN_WIDTH) * progress) * 2;
+            if(pixelWidth > progressBarElement.getParent().getWidth())
+                pixelWidth = progressBarElement.getParent().getWidth();
             progressBarElement.setConstraintWidth(new SizeValue(pixelWidth + "px"));
             progressBarElement.getParent().layoutElements();
 
