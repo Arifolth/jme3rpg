@@ -190,8 +190,7 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
                     block();
                 }
             }
-        }
-        else if (binding.equals("Attack")) {
+        } else if (binding.equals("Attack")) {
             if(capture_mouse && !jumping) {
                 attack_pressed = pressed;
                 if(attack_pressed && !attacking) {
@@ -207,6 +206,8 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
         attackChannel.setAnim("Block", 0.1f);
         //TODO: ADD Blocking event
         attackChannel.setLoopMode(LoopMode.DontLoop);
+        attackChannel.setSpeed(1f);
+        attackChannel.setTime(attackChannel.getAnimMaxTime()/2);
     }
 
     private void attack() {
@@ -236,9 +237,9 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
             jump_pressed = false;
         }
 
-        if (ch == attackChannel) {
+        /*if (ch == attackChannel) {
             ch.setAnim("Walk");
-        }
+        }*/
     }
 
     public void onAnimChange(AnimControl ctrl, AnimChannel ch, String name) {
@@ -309,7 +310,13 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
             if (!animationChannel.getAnimationName().equals("Block")) {
                 animationChannel.setAnim("Block");
                 animationChannel.setSpeed(1f);
-                animationChannel.setLoopMode(LoopMode.Loop);
+                animationChannel.setLoopMode(LoopMode.DontLoop);
+            }
+            if(!block_pressed) {
+                animationChannel.setAnim("Idle3", 0f);
+                animationChannel.setSpeed(1f);
+                blocking = false;
+                lock_movement = false;
             }
         } else if(attacking) {
             lock_movement = true;
