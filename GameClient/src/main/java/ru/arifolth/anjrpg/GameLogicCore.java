@@ -112,7 +112,7 @@ public class GameLogicCore {
         //Uncomment this to look 3 world units above the target
         //chaseCam.setLookAtOffset(Vector3f.UNIT_Y.mult(3));
         //chaseCam.setLookAtOffset(new Vector3f(0, 1, -1).mult(3));
-        chaseCam.setLookAtOffset(new Vector3f(0, 3.5f, -1.5f).mult(3));
+        chaseCam.setLookAtOffset(new Vector3f(0, 3.5f, 1.5f).mult(3));
 
         //Uncomment this to enable rotation when the middle mouse button is pressed (like Blender)
         //WARNING : setting this trigger disable the rotation on right and left mouse button click

@@ -26,15 +26,10 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.input.controls.ActionListener;
-import com.jme3.material.Material;
-import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.queue.RenderQueue;
-import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
-import com.jme3.scene.control.BillboardControl;
-import com.jme3.scene.shape.Quad;
 
 /*
 *
@@ -63,6 +58,7 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
         jumping = false, jump_pressed = false, attack_pressed = false,
         lock_movement = false;
     private float airTime = 0;
+    private HealthBar healthBar;
 
     public PlayerCharacter() {
 
@@ -119,19 +115,8 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
     }
 
     private void initializeHealthBar(AssetManager assetManager) {
-        characterNode.setUserData("health", MAXIMUM_HEALTH);
-
-        // add healthbar
-        BillboardControl billboard = new BillboardControl();
-        //new Quad(HEALTHBAR_LENGTH, HELTHBAR_HEIGHT))
-        Geometry healthbar = new Geometry("healthbar", new Quad((float) characterNode.getUserData("health") / 25f, 0.2f));
-        Material mathb = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mathb.setColor("Color", ColorRGBA.Red);
-        healthbar.setMaterial(mathb);
-        healthbar.setLocalTranslation(0.3f, 6.0f, 0f);
-        healthbar.addControl(billboard);
-
-        characterNode.attachChild(healthbar);
+        healthBar = new HealthBar(assetManager, characterNode);
+        healthBar.create();
     }
 
     private void initializeAnimation() {
@@ -157,6 +142,7 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
         this.cam = cam;
     }
 
+    @Override
     public Node getNode() {
         return characterNode;
     }
@@ -216,6 +202,7 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
         attackChannel.setLoopMode(LoopMode.DontLoop);
     }
 
+    @Override
     public void onAnimCycleDone(AnimControl ctrl, AnimChannel ch, String name) {
         if(name.equals("Attack3") && attacking && !attack_pressed) {
             if (!ch.getAnimationName().equals("Idle3")) {
@@ -242,6 +229,7 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
         }
     }
 
+    @Override
     public void onAnimChange(AnimControl ctrl, AnimChannel ch, String name) {
         //TODO:
     }
@@ -252,6 +240,7 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
      * The setWalkDirection() command is what lets a physics-controlled playerControl walk.
      * We also make sure here that the camera moves with playerControl.
      */
+    @Override
     public void simpleUpdate(float k) {
         healthBarUpdate();
 
@@ -259,7 +248,7 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
     }
 
     private void healthBarUpdate() {
-        ((Quad)((Geometry)characterNode.getChild("healthbar")).getMesh()).updateGeometry((float) characterNode.getUserData("health") / 25f, 0.2f);
+        healthBar.update();
     }
 
     private void movementUpdate(float k) {
@@ -361,5 +350,13 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
         //characterControl.setViewDirection(direction.negate());
     }
 
+    @Override
+    public boolean isAttacking() {
+        return attacking;
+    }
 
+    @Override
+    public boolean isBlocking() {
+        return blocking;
+    }
 }

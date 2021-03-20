@@ -19,7 +19,7 @@ package ru.arifolth.game.models;
 
 import com.jme3.scene.Node;
 
-public class NonPlayerCharacter extends GameCharacter {
+public class NonPlayerCharacter extends PlayerCharacter {
 
     public NonPlayerCharacter() {
     }
