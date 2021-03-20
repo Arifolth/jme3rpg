@@ -237,9 +237,9 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
             jump_pressed = false;
         }
 
-        /*if (ch == attackChannel) {
+        if (ch == attackChannel) {
             ch.setAnim("Walk");
-        }*/
+        }
     }
 
     public void onAnimChange(AnimControl ctrl, AnimChannel ch, String name) {
@@ -351,6 +351,10 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
         if(walkDirection.length() != 0)
             characterControl.setViewDirection(walkDirection.negate());
         // negating cause the model is flipped
+
+        //walk backwards
+        if((walkDirection.length() != 0) && down)
+            characterControl.setViewDirection(walkDirection);
 
         // Rotate model to point camera direction if attacking
         //if(attacking)
