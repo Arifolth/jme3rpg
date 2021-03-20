@@ -13,11 +13,13 @@
 
     <screen id="loadlevel" controller = "ru.arifolth.anjrpg.ANJRpg">
         <layer id="loadinglayer" childLayout="center" backgroundImage="Interface/loading_screen.jpg">
-            <panel id = "loadingpanel" childLayout="vertical" align="center" valign="center" height="52px" width="70%">
-                <control name="loadingbar" align="center" valign="center" width="100%" height="100%" />
+            <panel id = "loadingpanel" childLayout="vertical" align="center" valign="center" height="100%" width="70%">
+                <image filename="Interface/title.png" align="center" width="100%" height="75%"/>
+                <control name="loadingbar" align="center" valign="center" width="100%" height="52px" />
                 <control id="loadingtext" name="label" align="center"
                          text="                                                  "/>
             </panel>
+
         </layer>
     </screen>
 
