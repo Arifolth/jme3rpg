@@ -17,10 +17,7 @@
 
 package ru.arifolth.game.models;
 
-import com.jme3.animation.AnimChannel;
-import com.jme3.animation.AnimControl;
-import com.jme3.animation.AnimEventListener;
-import com.jme3.animation.LoopMode;
+import com.jme3.animation.*;
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
@@ -45,7 +42,7 @@ import com.jme3.scene.Node;
 */
 public class PlayerCharacter extends GameCharacter implements ActionListener, AnimEventListener {
     public static final float MAXIMUM_HEALTH = 75f;
-    private Node characterNode = new Node("Player");
+    private final Node characterNode = new Node("Player");
 
     private Camera cam;
     private AnimChannel animationChannel;
@@ -110,6 +107,8 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
         //characterModel.setLocalTranslation(new Vector3f(0f, 40.0f, 0f));
         //characterControl.setPhysicsLocation(characterModel.getLocalTranslation());
         //characterModel.getLocalTranslation().subtractLocal(0f, 50.0f,0f); // model offset fix
+
+        characterModel.getControl(SkeletonControl.class).setHardwareSkinningPreferred(true);
 
         initializeHealthBar(assetManager);
     }
