@@ -57,6 +57,7 @@ public class RolePlayingGame extends SimpleApplication {
         settings.setResolution(3840,2160);
         settings.setRenderer(AppSettings.LWJGL_OPENGL2);
         settings.setFrameRate(30);
+        settings.setGammaCorrection(false);
 
         //setDisplayFps(true);
         //setDisplayStatView(false);
@@ -192,9 +193,9 @@ public class RolePlayingGame extends SimpleApplication {
         fpp.addFilter(lsf);
 
         DepthOfFieldFilter dof=new DepthOfFieldFilter();
-        dof.setFocusDistance(10000);
-        dof.setFocusRange(15000);
-        dof.setBlurScale(0.65f);
+        dof.setFocusDistance(0);
+        dof.setFocusRange(50);
+        dof.setBlurScale(1.4f);
         fpp.addFilter(dof);
 
         SSAOFilter ssaoFilter = SSAO_FILTER_BASIC;
