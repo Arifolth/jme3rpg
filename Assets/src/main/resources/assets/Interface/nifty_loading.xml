@@ -14,15 +14,20 @@
     <screen id="loadlevel" controller = "ru.arifolth.anjrpg.ANJRpg">
         <layer id="loadinglayer" childLayout="center" backgroundImage="Interface/loading_screen.jpg">
             <panel id = "loadingpanel" childLayout="vertical" align="center" valign="center" height="100%" width="70%">
-                <image filename="Interface/title.png" align="center" width="100%" height="65%"/>
-                <control name="loadingbar" align="center" valign="center" width="100%" height="3%" />
-                <control id="loadingtext" name="label" align="center"
-                         text="                                                  "/>
-                <image filename="Interface/loading.png" align="center" width="100%" height="10%"/>
-                <panel id = "footer" childLayout="horizontal" align="center" height="10%" width="50%">
-                    <image filename="Interface/jMonkey.jpg" align="center" width="300px" height="300px"/>
-                    <image filename="Interface/copyright.png" align="center" width="70%" height="40%"/>
-                    <image filename="Interface/java.jpg" align="center" width="161px" height="300px"/>
+                <panel id = "footer" childLayout="vertical" align="center" height="60%" width="100%">
+                    <image filename="Interface/blood.png" align="right" height="525px" width="549px"/>
+                    <image filename="Interface/title.png" align="center" width="50%" height="50%"/>
+                </panel>
+                <panel id = "loadmain" childLayout="vertical" align="center" height="40%" width="70%">
+                    <control name="loadingbar" align="center" valign="center" width="100%" height="5%" />
+                    <control id="loadingtext" name="label" align="center"
+                             text="                                                  "/>
+                    <image filename="Interface/loading.png" align="center" width="50%" height="25%"/>
+                    <image filename="Interface/br.png" align="center" width="150%" height="10%"/>
+                    <panel id = "footer" childLayout="horizontal" align="center" height="60%" width="70%">
+                        <image filename="Interface/copyright.png" align="left" width="50%" height="15%"/>
+                        <image filename="Interface/jMonkey.jpg" align="right" width="150px" height="150px"/>
+                    </panel>
                 </panel>
             </panel>
         </layer>
