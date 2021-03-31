@@ -72,12 +72,14 @@ public class GameLogicCore {
         weatherEffectsSet.add(snowEmitter);
     }
 
+    public PlayerCharacter getPlayerCharacter() {
+        return playerCharacter;
+    }
+
     private void setupPlayer() {
         //create player
         playerCharacter = (PlayerCharacter)characterFactory.createCharacter(PlayerCharacter.class);
         playerCharacter.setCam(cam);
-        rootNode.attachChild(playerCharacter.getNode());
-
         characterSet.add(playerCharacter);
     }
 

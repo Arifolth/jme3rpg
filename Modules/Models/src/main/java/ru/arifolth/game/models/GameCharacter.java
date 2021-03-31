@@ -41,6 +41,9 @@ public abstract class GameCharacter implements Character {
         return characterModel;
     }
 
+    public CharacterControl getCharacterControl() {
+        return characterControl;
+    }
     public abstract boolean isAttacking();
 
     public abstract boolean isBlocking();
