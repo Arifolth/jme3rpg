@@ -29,7 +29,8 @@ import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.*;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
-import com.jme3.shadow.*;
+import com.jme3.scene.Node;
+import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.system.AppSettings;
 import com.jme3.water.WaterFilter;
 import de.lessvoid.nifty.elements.Element;
@@ -38,7 +39,9 @@ import de.lessvoid.nifty.tools.SizeValue;
 import ru.arifolth.game.TerrainManager;
 
 import java.awt.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public abstract class RolePlayingGame extends SimpleApplication {
     public static final SSAOFilter SSAO_FILTER_BASIC = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.9f);
@@ -48,6 +51,20 @@ public abstract class RolePlayingGame extends SimpleApplication {
     private LightScatteringFilter lsf;
     private WaterFilter waterFilter;
     private volatile float progress;
+    protected CountDownLatch countDownLatch = new CountDownLatch(7);
+    final private static Logger LOGGER = Logger.getLogger(RolePlayingGame.class.getName());
+
+    protected static Application app;
+
+    private DynamicSky sky;
+    private TerrainManager terrainManager;
+    protected BulletAppState bulletAppState;
+    private PssmShadowRenderer pssmRenderer;
+    private GameLogicCore gameLogicCore;
+
+    public RolePlayingGame() {
+        initializeApplicationSettings();
+    }
 
     private void initializeApplicationSettings() {
         showSettings = false;
@@ -79,18 +96,6 @@ public abstract class RolePlayingGame extends SimpleApplication {
         setDisplayStatView(false);
     }
 
-    protected static Application app;
-
-    private DynamicSky sky;
-    private TerrainManager terrainManager;
-    private BulletAppState bulletAppState;
-    private PssmShadowRenderer pssmRenderer;
-    private GameLogicCore gameLogicCore;
-
-    public RolePlayingGame() {
-        initializeApplicationSettings();
-    }
-
     public GameLogicCore getGameLogicCore() {
         return gameLogicCore;
     }
@@ -104,10 +109,8 @@ public abstract class RolePlayingGame extends SimpleApplication {
         setupPhysix();
 
         setupGameLogic();
-        attachPlayer();
 
         setupTerrain();
-        attachTerrain();
 
         setupShadowRenderer();
 
@@ -117,14 +120,11 @@ public abstract class RolePlayingGame extends SimpleApplication {
         //setProgress(0.7f, "addFog");
 
         setupSky();
-        attachSky();
 
         addFilters();
-
-        createMinimap();
     }
 
-    private void createMinimap() {
+    protected void createMinimap() {
         // create the minimap
 
         // The height of the minimap camera. Usually slightly higher than your world height.
@@ -132,13 +132,12 @@ public abstract class RolePlayingGame extends SimpleApplication {
         float height = 128;
         int size = 600; // the size of the minimap in pixels.
 
-        MiniMapState miniMapState = new MiniMapState(rootNode, height, size);
+        MiniMapState miniMapState = new MiniMapState(getRootNode(), height, size);
         stateManager.attach(miniMapState);
-        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
     private void setupGameLogic() {
-        gameLogicCore = new GameLogicCore(cam, flyCam, inputManager, bulletAppState, assetManager, rootNode);
+        gameLogicCore = new GameLogicCore(cam, flyCam, inputManager, bulletAppState, assetManager, getRootNode());
         gameLogicCore.initialize();
         setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
@@ -222,7 +221,7 @@ public abstract class RolePlayingGame extends SimpleApplication {
         fpp.addFilter(new TranslucentBucketFilter());
 
         // add an ocean.
-        waterFilter = new WaterFilter(rootNode, sky.getSunDirection().normalize());
+        waterFilter = new WaterFilter(getRootNode(), sky.getSunDirection().normalize());
         waterFilter.setWaterHeight(-70);
         fpp.addFilter(waterFilter);
         viewPort.addProcessor(fpp);
@@ -240,24 +239,26 @@ public abstract class RolePlayingGame extends SimpleApplication {
 
     private void setupSky() {
         // load sky
-        sky = new DynamicSky(assetManager, viewPort, rootNode);
-        rootNode.setShadowMode(ShadowMode.Off);
+        sky = new DynamicSky(assetManager, viewPort, getRootNode());
+        getRootNode().setShadowMode(ShadowMode.Off);
         setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
-    protected void attachTerrain() throws InterruptedException {
-        rootNode.attachChild(terrainManager.getTerrain());
-        Thread.sleep(500);
+    protected void attachTerrain() {
+        getRootNode().attachChild(terrainManager.getTerrain());
     }
 
-    protected void attachSky() throws InterruptedException {
-        rootNode.attachChild(sky);
-        Thread.sleep(500);
+    protected void attachSky() {
+        getRootNode().attachChild(sky);
     }
 
-    protected void attachPlayer() throws InterruptedException {
-        rootNode.attachChild(gameLogicCore.getPlayerCharacter().getNode());
-        Thread.sleep(500);
+    protected void attachPlayer() {
+        getRootNode().attachChild(gameLogicCore.getPlayerCharacter().getNode());
+    }
+
+    @Override
+    public synchronized Node getRootNode() {
+        return this.rootNode;
     }
 
     private void setupPhysix() {
@@ -267,8 +268,8 @@ public abstract class RolePlayingGame extends SimpleApplication {
         stateManager.attach(bulletAppState);
         bulletAppState.setEnabled(true);
         //collision capsule shape is visible in debug mode
-        //bulletAppState.getPhysicsSpace().enableDebug(assetManager);
-        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
+        //bulletAppState.setDebugEnabled(true);
+        setProgress(new Object() {}.getClass().getEnclosingMethod().getName());
     }
 
     private void setupTerrain() {
@@ -283,26 +284,28 @@ public abstract class RolePlayingGame extends SimpleApplication {
     }
 
     public void setProgress(final String loadingText) {
-        if(loadingText.equals("Loading complete"))
-            progress = 1f;
-        else
-            progress += 0.1;
+        try {
+            if(loadingText.equals("Loading complete"))
+                progress = 1f;
+            else
+                progress += 0.1;
 
-        //Since this method is called from another thread, we enqueue the
-        //changes to the progressbar to the update loop thread.
-        enqueue(() -> {
-            final int MIN_WIDTH = 32;
-            int pixelWidth = (int) (MIN_WIDTH + (progressBarElement.getParent().getWidth() - MIN_WIDTH) * progress) * 2;
-            if(pixelWidth > progressBarElement.getParent().getWidth())
-                pixelWidth = progressBarElement.getParent().getWidth();
-            progressBarElement.setConstraintWidth(new SizeValue(pixelWidth + "px"));
-            progressBarElement.getParent().layoutElements();
+            //Since this method is called from another thread, we enqueue the
+            //changes to the progressbar to the update loop thread.
+            enqueue(() -> {
+                final int MIN_WIDTH = 32;
+                int pixelWidth = (int) (MIN_WIDTH + (progressBarElement.getParent().getWidth() - MIN_WIDTH) * progress) * 2;
+                if(pixelWidth > progressBarElement.getParent().getWidth())
+                    pixelWidth = progressBarElement.getParent().getWidth();
+                progressBarElement.setConstraintWidth(new SizeValue(pixelWidth + "px"));
+                progressBarElement.getParent().layoutElements();
 
-            textRenderer.setText(loadingText);
-            if(progress == 1f)
-                Thread.sleep(500);
-            return null;
-        });
+                textRenderer.setText(loadingText);
 
+                return null;
+            });
+        } finally {
+            countDownLatch.countDown();
+        }
     }
 }

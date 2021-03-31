@@ -44,7 +44,7 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
     private Boolean load = false;
     private ScheduledExecutorService exec = Executors.newScheduledThreadPool(2);
     private Future loadFuture = null;
-    private static final Logger LOG = Logger.getLogger(ANJRpg.class.getName());
+    final private static Logger LOGGER = Logger.getLogger(ANJRpg.class.getName());
 
     public static void main(String[] args) {
         app = new ANJRpg();
@@ -82,15 +82,32 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
             }
             //check if the execution on the other thread is done
             if (loadFuture.isDone()) {
-                //these calls have to be done on the update loop thread,
-                //especially attaching the terrain to the rootNode
-                //after it is attached, it's managed by the update loop thread
-                // and may not be modified from any other thread anymore!
-                nifty.gotoScreen("end");
-                nifty.exit();
-                guiViewPort.removeProcessor(niftyDisplay);
+                try {
+                    countDownLatch.await(3L, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    LOGGER.log(Level.SEVERE, "Resources did not loaded properly: ", e.getStackTrace());
+                } finally {
+                    attachPlayer();
+                    attachTerrain();
+                    attachSky();
+                }
 
-                load = null;
+                //wait until land appears in Physics Space
+                if(bulletAppState.getPhysicsSpace().getRigidBodyList().size() == 4) {
+                    //put player at the beginning location
+                    getGameLogicCore().getPlayerCharacter().getCharacterControl().setPhysicsLocation(new Vector3f(0, -15, 0));
+
+                    //these calls have to be done on the update loop thread,
+                    //especially attaching the terrain to the rootNode
+                    //after it is attached, it's managed by the update loop thread
+                    // and may not be modified from any other thread anymore!
+                    nifty.gotoScreen("end");
+                    nifty.exit();
+                    guiViewPort.removeProcessor(niftyDisplay);
+                    load = null;
+
+                    createMinimap();
+                }
             }
         }
     }
@@ -108,12 +125,8 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
             textRenderer = element.getRenderer(TextRenderer.class);
 
             loadResources();
-            runQueuedTasks();
 
             setProgress("Loading complete");
-
-            //put player at the beginning location
-            getGameLogicCore().getPlayerCharacter().getCharacterControl().setPhysicsLocation(new Vector3f(0, -15, 0));
 
             return null;
         }
@@ -162,7 +175,7 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
                 pool.shutdownNow(); // Cancel currently executing tasks
                 // Wait a while for tasks to respond to being cancelled
                 if (!pool.awaitTermination(6, TimeUnit.SECONDS)) {
-                    LOG.log(Level.SEVERE, "Pool did not terminate {0}", pool);
+                    LOGGER.log(Level.SEVERE, "Pool did not terminate {0}", pool);
                 }
             }
         } catch (InterruptedException ie) {
