@@ -311,7 +311,13 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
             if (!animationChannel.getAnimationName().equals("Attack3")) {
                 animationChannel.setAnim("Attack3");
                 animationChannel.setSpeed(1f);
-                animationChannel.setLoopMode(LoopMode.Loop);
+                animationChannel.setLoopMode(LoopMode.DontLoop);
+            }
+            if(!attack_pressed) {
+                animationChannel.setAnim("Idle3", 0f);
+                animationChannel.setSpeed(1f);
+                attacking = false;
+                lock_movement = false;
             }
         } else {
             // If we're not walking, set standing animation if not jumping
