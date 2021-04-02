@@ -23,10 +23,13 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.input.controls.ActionListener;
+import com.jme3.material.Material;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
+import com.jme3.scene.debug.SkeletonDebugger;
 
 /*
 *
@@ -52,8 +55,7 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
     private Vector3f walkDirection = new Vector3f();
     private boolean left = false, right = false, up = false, down = false,
         attacking = false, capture_mouse = true, running = false, blocking = false, block_pressed = false,
-        jumping = false, jump_pressed = false, attack_pressed = false,
-        lock_movement = false;
+        jumping = false, jump_pressed = false, attack_pressed = false;
     private float airTime = 0;
     private HealthBar healthBar;
 
@@ -124,17 +126,29 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
         animationChannel = animationControl.createChannel();
         animationChannel.setAnim("Idle3");
         attackChannel = animationControl.createChannel();
+        attackChannel.setAnim("Idle3");
 
-        /*attackChannel.addBone(animationControl.getSkeleton().getBone("Joint5"));
-        attackChannel.addBone(animationControl.getSkeleton().getBone("Joint6"));
-        attackChannel.addBone(animationControl.getSkeleton().getBone("Joint7"));
-        attackChannel.addBone(animationControl.getSkeleton().getBone("Joint8"));
-        attackChannel.addBone(animationControl.getSkeleton().getBone("Joint9"));
-        attackChannel.addBone(animationControl.getSkeleton().getBone("Joint10"));
-        attackChannel.addBone(animationControl.getSkeleton().getBone("Joint11"));
-        attackChannel.addBone(animationControl.getSkeleton().getBone("Joint12"));
-        attackChannel.addBone(animationControl.getSkeleton().getBone("Joint13"));
-        attackChannel.addBone(animationControl.getSkeleton().getBone("Joint29"));*/
+        setupDebugSkeleton();
+
+        //add appropriate bones to an attack channels, so character could walk and attack simultaneously
+        //top layer - body, spine, shoulders, arms
+        attackChannel.addFromRootBone("Joint3");
+
+        //bottom layer - spine end, legs
+        animationChannel.addBone("Joint2");
+        animationChannel.addFromRootBone("Joint18");
+        animationChannel.addFromRootBone("Joint23");
+    }
+
+    private void setupDebugSkeleton() {
+        //debug skeleton
+        SkeletonDebugger skeletonDebug = new SkeletonDebugger("skeleton", animationControl.getSkeleton());
+        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.getAdditionalRenderState().setWireframe(true);
+        mat.setColor("Color", ColorRGBA.Blue);
+        mat.getAdditionalRenderState().setDepthTest(false);
+        skeletonDebug.setMaterial(mat);
+        ((Node)characterModel).attachChild(skeletonDebug);
     }
 
     public void setCam(Camera cam) {
@@ -170,7 +184,7 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
         else if (binding.equals("Block")) {
             if(capture_mouse && !jumping) {
                 block_pressed = pressed;
-                if(block_pressed && !blocking) {
+                if(block_pressed) {
                     blocking = true;
                     block();
                 }
@@ -178,7 +192,7 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
         } else if (binding.equals("Attack")) {
             if(capture_mouse && !jumping) {
                 attack_pressed = pressed;
-                if(attack_pressed && !attacking) {
+                if(attack_pressed) {
                     attacking = true;
                     attack();
                 }
@@ -209,7 +223,6 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
                 ch.setLoopMode(LoopMode.Loop);
                 ch.setSpeed(1f);
                 attacking = false;
-                lock_movement = false;
             }
         } else if(name.equals("Block") && blocking && !block_pressed) {
             if (!ch.getAnimationName().equals("Idle3")) {
@@ -217,15 +230,14 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
                 ch.setLoopMode(LoopMode.Loop);
                 ch.setSpeed(1f);
                 blocking = false;
-                lock_movement = false;
             }
         } else if(name.equals("JumpNoHeight")) {
             jump_pressed = false;
         }
 
-        if (ch == attackChannel) {
+        /*if (ch == attackChannel) {
             ch.setAnim("Walk");
-        }
+        }*/
     }
 
     @Override
@@ -279,67 +291,63 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
             jumping = false;
         }
 
-        if ((airTime > 0.1f || jump_pressed) && !attacking) {
+
+        if (airTime > 0.1f || jump_pressed) {
             jumping = true;
             // Stop movement if jumping while walking
             if(jump_pressed && animationChannel.getAnimationName().equals("Walk"))
-                lock_movement = true;
-            if (!animationChannel.getAnimationName().equals("JumpNoHeight")) {
-                animationChannel.setAnim("JumpNoHeight");
-                animationChannel.setSpeed(1f);
-                animationChannel.setLoopMode(LoopMode.DontLoop);
-            }
+                if (!animationChannel.getAnimationName().equals("JumpNoHeight")) {
+                    animationChannel.setAnim("JumpNoHeight");
+                    animationChannel.setSpeed(1f);
+                    animationChannel.setLoopMode(LoopMode.DontLoop);
+                }
             if(animationChannel.getTime() >= 0.32f) { // Delay jump to make the animation look decent
                 characterControl.jump();
-                lock_movement = false;
             }
-        } else if(blocking) {
-            lock_movement = true;
-            if (!animationChannel.getAnimationName().equals("Block")) {
-                animationChannel.setAnim("Block");
-                animationChannel.setSpeed(1f);
-                animationChannel.setLoopMode(LoopMode.DontLoop);
-            }
-            if(!block_pressed) {
-                animationChannel.setAnim("Idle3", 0f);
-                animationChannel.setSpeed(1f);
-                blocking = false;
-                lock_movement = false;
-            }
-        } else if(attacking) {
-            lock_movement = true;
-            if (!animationChannel.getAnimationName().equals("Attack3")) {
-                animationChannel.setAnim("Attack3");
-                animationChannel.setSpeed(1f);
-                animationChannel.setLoopMode(LoopMode.DontLoop);
-            }
-            if(!attack_pressed) {
-                animationChannel.setAnim("Idle3", 0f);
-                animationChannel.setSpeed(1f);
-                attacking = false;
-                lock_movement = false;
-            }
-        } else {
-            // If we're not walking, set standing animation if not jumping
-            if (walkDirection.length() == 0) {
+        }
+
+        if(!jumping) {
+            if ((up || down)) {
+                //set the walking animation
+                animationChannel.setLoopMode(LoopMode.Loop);
+                if (!animationChannel.getAnimationName().equals("Walk"))
+                    animationChannel.setAnim("Walk", 0.5f);
+                if (running) animationChannel.setSpeed(1.75f);
+                else animationChannel.setSpeed(1f);
+            } else if (walkDirection.length() == 0) {
                 animationChannel.setLoopMode(LoopMode.Loop);
                 if (!animationChannel.getAnimationName().equals("Idle3")) {
                     animationChannel.setAnim("Idle3", 0f);
                     animationChannel.setSpeed(1f);
                 }
-            } else {
-                // ... otherwise, set the walking animation
-                animationChannel.setLoopMode(LoopMode.Loop);
-                if(!animationChannel.getAnimationName().equals("Walk"))
-                    animationChannel.setAnim("Walk", 0.5f);
-                if(running) animationChannel.setSpeed(1.75f);
-                else animationChannel.setSpeed(1f);
             }
         }
-        if(!lock_movement)
-            characterControl.setWalkDirection(walkDirection);
-        else
-            characterControl.setWalkDirection(Vector3f.ZERO);
+
+        if(blocking) {
+            if (!attackChannel.getAnimationName().equals("Block")) {
+                attackChannel.setAnim("Block");
+                attackChannel.setSpeed(1f);
+                attackChannel.setLoopMode(LoopMode.DontLoop);
+            }
+            if(!block_pressed) {
+                attackChannel.setAnim("Idle3", 0f);
+                attackChannel.setSpeed(1f);
+                blocking = false;
+            }
+        } else if(attacking) {
+            if (!attackChannel.getAnimationName().equals("Attack3")) {
+                attackChannel.setAnim("Attack3");
+                attackChannel.setSpeed(1f);
+                attackChannel.setLoopMode(LoopMode.DontLoop);
+            }
+            if(!attack_pressed) {
+                attackChannel.setAnim("Idle3", 0f);
+                attackChannel.setSpeed(1f);
+                attacking = false;
+            }
+        }
+
+        characterControl.setWalkDirection(walkDirection);
 
         // Rotate model to point walk direction if moving
         if(walkDirection.length() != 0)
@@ -349,10 +357,6 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
         //walk backwards
         if((walkDirection.length() != 0) && down)
             characterControl.setViewDirection(walkDirection);
-
-        // Rotate model to point camera direction if attacking
-        //if(attacking)
-        //characterControl.setViewDirection(direction.negate());
     }
 
     @Override
