@@ -106,7 +106,7 @@ public abstract class RolePlayingGame extends SimpleApplication {
         setupAssetManager();
     }
 
-    protected void loadResources() throws InterruptedException {
+    protected void loadResources() {
         setupPhysix();
 
         setupGameLogic();
