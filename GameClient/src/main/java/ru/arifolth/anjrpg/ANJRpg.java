@@ -28,8 +28,6 @@ import de.lessvoid.nifty.input.NiftyInputEvent;
 import de.lessvoid.nifty.screen.Screen;
 import de.lessvoid.nifty.screen.ScreenController;
 
-import java.util.concurrent.*;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.jme3.niftygui.NiftyJmeDisplay.newNiftyJmeDisplay;
@@ -41,7 +39,7 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
 
     private NiftyJmeDisplay niftyDisplay;
     private Nifty nifty;
-    private Boolean load = true;
+    private Boolean initialization = true;
     final private static Logger LOGGER = Logger.getLogger(ANJRpg.class.getName());
 
     public static void main(String[] args) {
@@ -68,33 +66,23 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
 
     @Override
     public void simpleUpdate(float tpf) {
-        if(null == load) {
+        if(null == initialization) {
             super.simpleUpdate(tpf);
             return;
         }
 
         //initialization
-        if (load) {
+        if (initialization) {
             Element element = nifty.getScreen("loadlevel").findElementById("loadingtext");
             textRenderer = element.getRenderer(TextRenderer.class);
 
             loadResources();
 
-            try {
-                countDownLatch.await(3L, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                LOGGER.log(Level.SEVERE, "Resources did not loaded properly: ", e.getStackTrace());
-            } finally {
-                attachPlayer();
-                attachTerrain();
-                attachSky();
-
-                setProgress("Loading complete");
-                load = false;
-            }
+            setProgress("Loading complete");
+            initialization = false;
         }
 
-        if(load == false) {
+        if(initialization == false) {
             //wait until land appears in Physics Space
             if(bulletAppState.getPhysicsSpace().getRigidBodyList().size() == 4) {
                 //put player at the beginning location
@@ -107,7 +95,7 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
                 nifty.gotoScreen("end");
                 nifty.exit();
                 guiViewPort.removeProcessor(niftyDisplay);
-                load = null;
+                initialization = null;
 
                 createMinimap();
             }
@@ -116,7 +104,7 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
 
     public void showLoadingMenu() {
         nifty.gotoScreen("loadlevel");
-        load = true;
+        initialization = true;
     }
 
     @Override
@@ -145,26 +133,6 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
     @Override
     public void destroy() {
         super.destroy();
-    }
-
-    //standard shutdown process for executor
-    private void shutdownAndAwaitTermination(ExecutorService pool) {
-        pool.shutdown(); // Disable new tasks from being submitted
-        try {
-            // Wait a while for existing tasks to terminate
-            if (!pool.awaitTermination(6, TimeUnit.SECONDS)) {
-                pool.shutdownNow(); // Cancel currently executing tasks
-                // Wait a while for tasks to respond to being cancelled
-                if (!pool.awaitTermination(6, TimeUnit.SECONDS)) {
-                    LOGGER.log(Level.SEVERE, "Pool did not terminate {0}", pool);
-                }
-            }
-        } catch (InterruptedException ie) {
-            // (Re-)Cancel if current thread also interrupted
-            pool.shutdownNow();
-            // Preserve interrupt status
-            Thread.currentThread().interrupt();
-        }
     }
 
     @Override
