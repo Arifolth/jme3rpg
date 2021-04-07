@@ -28,8 +28,6 @@ import de.lessvoid.nifty.input.NiftyInputEvent;
 import de.lessvoid.nifty.screen.Screen;
 import de.lessvoid.nifty.screen.ScreenController;
 
-import java.util.concurrent.*;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.jme3.niftygui.NiftyJmeDisplay.newNiftyJmeDisplay;
@@ -41,9 +39,7 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
 
     private NiftyJmeDisplay niftyDisplay;
     private Nifty nifty;
-    private Boolean load = false;
-    private ScheduledExecutorService exec = Executors.newScheduledThreadPool(2);
-    private Future loadFuture = null;
+    private Boolean initialization = true;
     final private static Logger LOGGER = Logger.getLogger(ANJRpg.class.getName());
 
     public static void main(String[] args) {
@@ -70,71 +66,45 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
 
     @Override
     public void simpleUpdate(float tpf) {
-        if(null == load) {
+        if(null == initialization) {
             super.simpleUpdate(tpf);
             return;
         }
 
-        if (load) {
-            if (loadFuture == null) {
-                //if we have not started loading, submit Callable to executor
-                loadFuture = exec.submit(loadingCallable);
-            }
-            //check if the execution on the other thread is done
-            if (loadFuture.isDone()) {
-                try {
-                    countDownLatch.await(3L, TimeUnit.SECONDS);
-                } catch (InterruptedException e) {
-                    LOGGER.log(Level.SEVERE, "Resources did not loaded properly: ", e.getStackTrace());
-                } finally {
-                    attachPlayer();
-                    attachTerrain();
-                    attachSky();
-                }
-
-                //wait until land appears in Physics Space
-                if(bulletAppState.getPhysicsSpace().getRigidBodyList().size() == 4) {
-                    //put player at the beginning location
-                    getGameLogicCore().getPlayerCharacter().getCharacterControl().setPhysicsLocation(new Vector3f(0, -15, 0));
-
-                    //these calls have to be done on the update loop thread,
-                    //especially attaching the terrain to the rootNode
-                    //after it is attached, it's managed by the update loop thread
-                    // and may not be modified from any other thread anymore!
-                    nifty.gotoScreen("end");
-                    nifty.exit();
-                    guiViewPort.removeProcessor(niftyDisplay);
-                    load = null;
-
-                    createMinimap();
-                }
-            }
-        }
-    }
-
-    //This is the callable that contains the code that is run on the other
-    //thread.
-    //Since the assetmananger is threadsafe, it can be used to load data from
-    //any thread.
-    //We do *not* attach the objects to the rootNode here!
-    Callable<Void> loadingCallable = new Callable<Void>() {
-
-        @Override
-        public Void call() throws InterruptedException {
+        //initialization
+        if (initialization) {
             Element element = nifty.getScreen("loadlevel").findElementById("loadingtext");
             textRenderer = element.getRenderer(TextRenderer.class);
 
             loadResources();
 
             setProgress("Loading complete");
-
-            return null;
+            initialization = false;
         }
-    };
+
+        if(initialization == false) {
+            //wait until land appears in Physics Space
+            if(bulletAppState.getPhysicsSpace().getRigidBodyList().size() == 4) {
+                //put player at the beginning location
+                getGameLogicCore().getPlayerCharacter().getCharacterControl().setPhysicsLocation(new Vector3f(0, -15, 0));
+
+                //these calls have to be done on the update loop thread,
+                //especially attaching the terrain to the rootNode
+                //after it is attached, it's managed by the update loop thread
+                // and may not be modified from any other thread anymore!
+                nifty.gotoScreen("end");
+                nifty.exit();
+                guiViewPort.removeProcessor(niftyDisplay);
+                initialization = null;
+
+                createMinimap();
+            }
+        }
+    }
 
     public void showLoadingMenu() {
         nifty.gotoScreen("loadlevel");
-        load = true;
+        initialization = true;
     }
 
     @Override
@@ -163,27 +133,6 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
     @Override
     public void destroy() {
         super.destroy();
-        shutdownAndAwaitTermination(exec);
-    }
-
-    //standard shutdown process for executor
-    private void shutdownAndAwaitTermination(ExecutorService pool) {
-        pool.shutdown(); // Disable new tasks from being submitted
-        try {
-            // Wait a while for existing tasks to terminate
-            if (!pool.awaitTermination(6, TimeUnit.SECONDS)) {
-                pool.shutdownNow(); // Cancel currently executing tasks
-                // Wait a while for tasks to respond to being cancelled
-                if (!pool.awaitTermination(6, TimeUnit.SECONDS)) {
-                    LOGGER.log(Level.SEVERE, "Pool did not terminate {0}", pool);
-                }
-            }
-        } catch (InterruptedException ie) {
-            // (Re-)Cancel if current thread also interrupted
-            pool.shutdownNow();
-            // Preserve interrupt status
-            Thread.currentThread().interrupt();
-        }
     }
 
     @Override

@@ -51,7 +51,6 @@ public abstract class RolePlayingGame extends SimpleApplication {
     private LightScatteringFilter lsf;
     private WaterFilter waterFilter;
     private volatile float progress;
-    protected CountDownLatch countDownLatch = new CountDownLatch(7);
     final private static Logger LOGGER = Logger.getLogger(RolePlayingGame.class.getName());
 
     protected static Application app;
@@ -106,7 +105,7 @@ public abstract class RolePlayingGame extends SimpleApplication {
         setupAssetManager();
     }
 
-    protected void loadResources() throws InterruptedException {
+    protected void loadResources() {
         setupPhysix();
 
         setupGameLogic();
@@ -123,6 +122,10 @@ public abstract class RolePlayingGame extends SimpleApplication {
         setupSky();
 
         addFilters();
+
+        attachPlayer();
+        attachTerrain();
+        attachSky();
     }
 
     protected void createMinimap() {
@@ -285,28 +288,24 @@ public abstract class RolePlayingGame extends SimpleApplication {
     }
 
     public void setProgress(final String loadingText) {
-        try {
-            if(loadingText.equals("Loading complete"))
-                progress = 1f;
-            else
-                progress += 0.1;
+        if(loadingText.equals("Loading complete"))
+            progress = 1f;
+        else
+            progress += 0.1;
 
-            //Since this method is called from another thread, we enqueue the
-            //changes to the progressbar to the update loop thread.
-            enqueue(() -> {
-                final int MIN_WIDTH = 32;
-                int pixelWidth = (int) (MIN_WIDTH + (progressBarElement.getParent().getWidth() - MIN_WIDTH) * progress) * 2;
-                if(pixelWidth > progressBarElement.getParent().getWidth())
-                    pixelWidth = progressBarElement.getParent().getWidth();
-                progressBarElement.setConstraintWidth(new SizeValue(pixelWidth + "px"));
-                progressBarElement.getParent().layoutElements();
+        //Since this method is called from another thread, we enqueue the
+        //changes to the progressbar to the update loop thread.
+        enqueue(() -> {
+            final int MIN_WIDTH = 32;
+            int pixelWidth = (int) (MIN_WIDTH + (progressBarElement.getParent().getWidth() - MIN_WIDTH) * progress) * 2;
+            if(pixelWidth > progressBarElement.getParent().getWidth())
+                pixelWidth = progressBarElement.getParent().getWidth();
+            progressBarElement.setConstraintWidth(new SizeValue(pixelWidth + "px"));
+            progressBarElement.getParent().layoutElements();
 
-                textRenderer.setText(loadingText);
+            textRenderer.setText(loadingText);
 
-                return null;
-            });
-        } finally {
-            countDownLatch.countDown();
-        }
+            return null;
+        });
     }
 }
