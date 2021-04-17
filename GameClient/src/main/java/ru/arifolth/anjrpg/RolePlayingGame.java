@@ -37,10 +37,10 @@ import com.jme3.water.WaterFilter;
 import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.tools.SizeValue;
+import ru.arifolth.game.SoundManager;
 import ru.arifolth.game.TerrainManager;
 
 import java.awt.*;
-import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -58,6 +58,7 @@ public abstract class RolePlayingGame extends SimpleApplication {
 
     private DynamicSky sky;
     private TerrainManager terrainManager;
+    private SoundManager soundManager;
     protected BulletAppState bulletAppState;
     private PssmShadowRenderer pssmRenderer;
     private GameLogicCore gameLogicCore;
@@ -279,6 +280,11 @@ public abstract class RolePlayingGame extends SimpleApplication {
 
     private void setupTerrain() {
         terrainManager = new TerrainManager(assetManager, bulletAppState, this);
+        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
+    }
+
+    private void setupSound() {
+        soundManager = new SoundManager(assetManager, this);
         setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 

@@ -235,16 +235,10 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
         } else if(name.equals("JumpNoHeight")) {
             jump_pressed = false;
         }
-
-        /*if (ch == attackChannel) {
-            ch.setAnim("Walk");
-        }*/
     }
 
     @Override
-    public void onAnimChange(AnimControl ctrl, AnimChannel ch, String name) {
-        //TODO:
-    }
+    public void onAnimChange(AnimControl ctrl, AnimChannel ch, String name) {}
     /**
      * This is the main event loop--walking happens here.
      * We check in which direction the playerControl is walking by interpreting
