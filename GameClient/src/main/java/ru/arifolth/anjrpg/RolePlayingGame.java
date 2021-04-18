@@ -110,6 +110,8 @@ public abstract class RolePlayingGame extends SimpleApplication {
     protected void loadResources() {
         setupPhysix();
 
+        setupSound();
+
         setupGameLogic();
 
         setupTerrain();
@@ -143,7 +145,7 @@ public abstract class RolePlayingGame extends SimpleApplication {
     }
 
     private void setupGameLogic() {
-        gameLogicCore = new GameLogicCore(cam, flyCam, inputManager, bulletAppState, assetManager, getRootNode());
+        gameLogicCore = new GameLogicCore(cam, flyCam, inputManager, bulletAppState, assetManager, soundManager, getRootNode());
         gameLogicCore.initialize();
         setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }

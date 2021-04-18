@@ -31,6 +31,7 @@ import com.jme3.renderer.Camera;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.scene.debug.SkeletonDebugger;
+import ru.arifolth.game.SoundManager;
 
 /*
 *
@@ -64,15 +65,14 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
 
     }
 
-    public void initialize(BulletAppState bulletAppState, AssetManager assetManager) {
-        super.initialize(bulletAppState, assetManager);
+    public void initialize(BulletAppState bulletAppState, AssetManager assetManager, SoundManager soundManager) {
+        super.initialize(bulletAppState, assetManager, soundManager);
 
         initializePhysixControl(bulletAppState);
 
         initializeCharacterModel(assetManager);
 
         initializeAnimation();
-
     }
 
     private void initializePhysixControl(BulletAppState bulletAppState) {
@@ -101,6 +101,8 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
 
         characterNode.addControl(characterControl);
         characterNode.attachChild(characterModel);
+
+        characterNode.attachChild(soundManager.getPlayerStepsNode(false));
 
         //ninja collision sphere offset fix
         //characterModel.move(0, -5f, 0); //sinbad
@@ -309,12 +311,14 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
                     animationChannel.setAnim("Walk", 0.5f);
                 if (running) animationChannel.setSpeed(1.75f);
                 else animationChannel.setSpeed(1f);
+                soundManager.getPlayerStepsNode(running).play();
             } else if (walkDirection.length() == 0) {
                 animationChannel.setLoopMode(LoopMode.Loop);
                 if (!animationChannel.getAnimationName().equals("Idle3")) {
                     animationChannel.setAnim("Idle3", 0f);
                     animationChannel.setSpeed(1f);
                 }
+                soundManager.getPlayerStepsNode(false).pause();
             }
         }
 

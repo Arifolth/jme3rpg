@@ -26,6 +26,7 @@ import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
+import ru.arifolth.game.SoundManager;
 import ru.arifolth.game.models.Character;
 import ru.arifolth.game.models.PlayerCharacter;
 import ru.arifolth.game.models.factory.CharacterFactory;
@@ -43,22 +44,24 @@ public class GameLogicCore {
     private AssetManager assetManager;
     private Node rootNode;
     private CharacterFactory characterFactory;
+    private SoundManager soundManager;
 
     private PlayerCharacter playerCharacter = null;
     private Set<Character> characterSet = new LinkedHashSet<Character>();
     private Set<Emitter> weatherEffectsSet = new LinkedHashSet<Emitter>();
     
-    public GameLogicCore(Camera cam, FlyByCamera flyCam, InputManager inputManager, BulletAppState bulletAppState, AssetManager assetManager, Node rootNode) {
+    public GameLogicCore(Camera cam, FlyByCamera flyCam, InputManager inputManager, BulletAppState bulletAppState, AssetManager assetManager, SoundManager soundManager, Node rootNode) {
         this.cam = cam;
         this.flyCam = flyCam;
         this.inputManager = inputManager;
         this.bulletAppState = bulletAppState;
         this.assetManager = assetManager;
+        this.soundManager = soundManager;
         this.rootNode = rootNode;
     }
 
     public void initialize() {
-        characterFactory = new CharacterFactory(bulletAppState, assetManager);
+        characterFactory = new CharacterFactory(bulletAppState, assetManager, soundManager);
 
         setupPlayer();
         setupCamera();

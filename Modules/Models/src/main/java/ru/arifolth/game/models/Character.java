@@ -22,10 +22,11 @@ import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import ru.arifolth.game.SoundManager;
 
 public interface Character {
     void simpleUpdate(float tpf);
-    void initialize(BulletAppState bulletAppState, AssetManager assetManager);
+    void initialize(BulletAppState bulletAppState, AssetManager assetManager, SoundManager soundManager);
     Spatial getCharacterModel();
     Node getNode();
 }

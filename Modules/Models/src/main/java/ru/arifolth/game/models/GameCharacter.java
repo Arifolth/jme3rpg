@@ -22,6 +22,7 @@ import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.scene.Spatial;
+import ru.arifolth.game.SoundManager;
 
 public abstract class GameCharacter implements Character {
     protected BulletAppState bulletAppState;
@@ -29,13 +30,15 @@ public abstract class GameCharacter implements Character {
 
     protected CharacterControl characterControl;
     protected Spatial characterModel;
+    protected SoundManager soundManager;
 
     public GameCharacter() {
     }
 
-    public void initialize(BulletAppState bulletAppState, AssetManager assetManager) {
+    public void initialize(BulletAppState bulletAppState, AssetManager assetManager, SoundManager soundManager) {
         this.bulletAppState = bulletAppState;
         this.assetManager = assetManager;
+        this.soundManager = soundManager;
     }
 
     public Spatial getCharacterModel() {
@@ -46,6 +49,5 @@ public abstract class GameCharacter implements Character {
         return characterControl;
     }
     public abstract boolean isAttacking();
-
     public abstract boolean isBlocking();
 }
