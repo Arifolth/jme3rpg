@@ -320,6 +320,8 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
                 }
                 soundManager.getPlayerStepsNode(false).pause();
             }
+        } else {
+            soundManager.getPlayerStepsNode(false).pause();
         }
 
         if(blocking) {
