@@ -20,7 +20,9 @@ package ru.arifolth.game.models;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
+import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
+import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import ru.arifolth.game.SoundManager;
 
@@ -31,23 +33,75 @@ public abstract class GameCharacter implements Character {
     protected CharacterControl characterControl;
     protected Spatial characterModel;
     protected SoundManager soundManager;
+    protected Node characterNode;
 
     public GameCharacter() {
     }
+
+    @Override
+    public Spatial getCharacterModel() {
+        return characterModel;
+    }
+
+    @Override
+    public CharacterControl getCharacterControl() {
+        return characterControl;
+    }
+
+    @Override
+    public Node getNode() {
+        return characterNode;
+    }
+
+    protected void initializeCharacterNode() {
+        characterNode = new Node("Player");
+        characterNode.addControl(characterControl);
+        characterNode.attachChild(characterModel);
+    }
+
+    protected abstract void initializeCharacterModel();
+
+    protected void initializePhysixControl() {
+        // We set up collision detection for the characterControl by creating
+        // a capsule collision shape and a CharacterControl.
+        // The CharacterControl offers extra settings for
+        // size, stepheight, jumping, falling, and gravity.
+        // We also put the characterControl in its starting position.
+        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.5f, 6f, 1);
+        characterControl = new CharacterControl(capsuleShape, 0.8f);
+        characterControl.setJumpSpeed(20);
+        characterControl.setFallSpeed(300);
+        characterControl.setGravity(30);
+        bulletAppState.getPhysicsSpace().add(characterControl);
+    }
+
+    protected abstract void initializeHealthBar();
 
     public void initialize(BulletAppState bulletAppState, AssetManager assetManager, SoundManager soundManager) {
         this.bulletAppState = bulletAppState;
         this.assetManager = assetManager;
         this.soundManager = soundManager;
+
+        initializePhysixControl();
+
+        initializeCharacterModel();
+
+        initializeCharacterNode();
+
+        initializeHealthBar();
+
+        initializeSounds();
+
+        initializeAnimation();
+
+        initializeSkeletonDebug();
     }
 
-    public Spatial getCharacterModel() {
-        return characterModel;
-    }
+    protected abstract void initializeSounds();
+    protected abstract void initializeAnimation();
+    protected abstract void initializeSkeletonDebug();
 
-    public CharacterControl getCharacterControl() {
-        return characterControl;
-    }
     public abstract boolean isAttacking();
     public abstract boolean isBlocking();
+
 }

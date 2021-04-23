@@ -18,7 +18,6 @@
 
 package ru.arifolth.game;
 
-import com.jme3.app.LegacyApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.audio.AudioData;
 import com.jme3.audio.AudioNode;
@@ -28,32 +27,26 @@ import java.util.logging.Logger;
 public class SoundManager {
     final private static Logger LOGGER = Logger.getLogger(SoundManager.class.getName());
     private AssetManager assetManager;
-    private AudioNode playerStepsNode;
+    private AudioNode footStepsNode;
 
-    public SoundManager(AssetManager assetManager, LegacyApplication app) {
+    public SoundManager(AssetManager assetManager) {
         this.assetManager = assetManager;
         initialize();
     }
 
-    private void initialize() {
-        InitPlayerStepsNode();
+    public void initialize() {
+        initFootsteps();
     }
 
-    private void InitPlayerStepsNode() {
-        playerStepsNode = new AudioNode(assetManager, "Sounds/running.wav", AudioData.DataType.Buffer);
-        playerStepsNode.setName("playerFootsteps");
-        playerStepsNode.setLooping(true);
-        playerStepsNode.setVolume(2);
-        playerStepsNode.setPitch(0.65f);
+    private void initFootsteps() {
+        footStepsNode = new AudioNode(assetManager, "Sounds/running.wav", AudioData.DataType.Buffer);
+        footStepsNode.setLooping(true);
+        footStepsNode.setVolume(2);
+        footStepsNode.setPitch(0.65f);
     }
 
-    public AudioNode getPlayerStepsNode(boolean running) {
-        if (!running) {
-            playerStepsNode.setPitch(0.65f);
-        } else {
-            playerStepsNode.setPitch(1.25f);
-        }
-        return playerStepsNode;
+    public AudioNode getFootStepsNode() {
+        return footStepsNode.clone();
     }
 
     public void update(float tpf) {

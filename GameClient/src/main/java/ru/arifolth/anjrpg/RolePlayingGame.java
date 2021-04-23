@@ -286,7 +286,7 @@ public abstract class RolePlayingGame extends SimpleApplication {
     }
 
     private void setupSound() {
-        soundManager = new SoundManager(assetManager, this);
+        soundManager = new SoundManager(assetManager);
         setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 

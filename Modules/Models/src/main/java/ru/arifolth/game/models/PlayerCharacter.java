@@ -18,43 +18,19 @@
 
 package ru.arifolth.game.models;
 
-import com.jme3.animation.*;
-import com.jme3.asset.AssetManager;
-import com.jme3.bullet.BulletAppState;
-import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
-import com.jme3.bullet.control.CharacterControl;
+import com.jme3.animation.AnimChannel;
+import com.jme3.animation.AnimControl;
+import com.jme3.animation.LoopMode;
+import com.jme3.audio.AudioNode;
 import com.jme3.input.controls.ActionListener;
-import com.jme3.material.Material;
-import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
-import com.jme3.renderer.queue.RenderQueue;
-import com.jme3.scene.Node;
-import com.jme3.scene.debug.SkeletonDebugger;
-import ru.arifolth.game.SoundManager;
 
-/*
-*
-*  ninja.mesh
-
-    Found in: Samples/Media/models
-    Number of faces: 904
-    Number of vertices: 781
-    Author: Psionic, from the CharacterFX site.
-    Animations: Attack1 Attack2 Attack3 Backflip Block Climb Crouch Death1 Death2 HighJump Idle1 Idle2 Idle3 Jump JumpNoHeight Kick SideKick Spin Stealth Walk
-    Number of bones: 28
-    Initial facing vector: Vector3::NEGATIVE_UNIT_Z
-*/
-public class PlayerCharacter extends GameCharacter implements ActionListener, AnimEventListener {
+public class PlayerCharacter extends NinjaCharacter implements ActionListener {
     public static final float MAXIMUM_HEALTH = 75f;
-    private final Node characterNode = new Node("Player");
 
     private Camera cam;
-    private AnimChannel animationChannel;
-    private AnimChannel attackChannel;
-    private AnimControl animationControl;
-
-    private Vector3f walkDirection = new Vector3f();
+    private final Vector3f walkDirection = new Vector3f();
     private boolean left = false, right = false, up = false, down = false,
         attacking = false, capture_mouse = true, running = false, blocking = false, block_pressed = false,
         jumping = false, jump_pressed = false, attack_pressed = false;
@@ -62,105 +38,23 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
     private HealthBar healthBar;
 
     public PlayerCharacter() {
-
     }
 
-    public void initialize(BulletAppState bulletAppState, AssetManager assetManager, SoundManager soundManager) {
-        super.initialize(bulletAppState, assetManager, soundManager);
-
-        initializePhysixControl(bulletAppState);
-
-        initializeCharacterModel(assetManager);
-
-        initializeAnimation();
+    @Override
+    protected void initializeSounds() {
+        AudioNode footstepsNode = soundManager.getFootStepsNode();
+        footstepsNode.setName("playerFootsteps");
+        characterNode.attachChild(footstepsNode);
     }
 
-    private void initializePhysixControl(BulletAppState bulletAppState) {
-        // We set up collision detection for the characterControl by creating
-        // a capsule collision shape and a CharacterControl.
-        // The CharacterControl offers extra settings for
-        // size, stepheight, jumping, falling, and gravity.
-        // We also put the characterControl in its starting position.
-        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.5f, 6f, 1);
-        characterControl = new CharacterControl(capsuleShape, 0.8f);
-        characterControl.setJumpSpeed(20);
-        characterControl.setFallSpeed(300);
-        characterControl.setGravity(30);
-        bulletAppState.getPhysicsSpace().add(characterControl);
-    }
-
-    private void initializeCharacterModel(AssetManager assetManager) {
-        //characterModel = assetManager.loadModel("Models/Sinbad/Sinbad.mesh.xml");
-        characterModel = assetManager.loadModel("Models/Ninja/Ninja.mesh.xml");
-        //Material playerMaterial = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
-        //characterModel.setMaterial(playerMaterial);
-        characterModel.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
-        //characterModel.setLocalScale(1f);
-        characterModel.setLocalScale(0.055f);
-        characterModel.setQueueBucket(RenderQueue.Bucket.Transparent);
-
-        characterNode.addControl(characterControl);
-        characterNode.attachChild(characterModel);
-
-        characterNode.attachChild(soundManager.getPlayerStepsNode(false));
-
-        //ninja collision sphere offset fix
-        //characterModel.move(0, -5f, 0); //sinbad
-        characterModel.move(0, -4.6f, 0);
-
-        //http://jmonkeyengine.org/forum/topic/my-ninja-character-is-floating-after-i-replaced-oto-with-him/
-        //characterModel.setLocalTranslation(new Vector3f(0f, 40.0f, 0f));
-        //characterControl.setPhysicsLocation(characterModel.getLocalTranslation());
-        //characterModel.getLocalTranslation().subtractLocal(0f, 50.0f,0f); // model offset fix
-
-        characterModel.getControl(SkeletonControl.class).setHardwareSkinningPreferred(true);
-
-        initializeHealthBar(assetManager);
-    }
-
-    private void initializeHealthBar(AssetManager assetManager) {
+    @Override
+    protected void initializeHealthBar() {
         healthBar = new HealthBar(assetManager, characterNode);
         healthBar.create();
     }
 
-    private void initializeAnimation() {
-        animationControl = characterModel.getControl(AnimControl.class);
-        animationControl.addListener(this);
-        animationChannel = animationControl.createChannel();
-        animationChannel.setAnim("Idle3");
-        attackChannel = animationControl.createChannel();
-        attackChannel.setAnim("Idle3");
-
-        setupDebugSkeleton();
-
-        //add appropriate bones to an attack channels, so character could walk and attack simultaneously
-        //top layer - body, spine, shoulders, arms
-        attackChannel.addFromRootBone("Joint3");
-
-        //bottom layer - spine end, legs
-        animationChannel.addBone("Joint2");
-        animationChannel.addFromRootBone("Joint18");
-        animationChannel.addFromRootBone("Joint23");
-    }
-
-    private void setupDebugSkeleton() {
-        //debug skeleton
-        SkeletonDebugger skeletonDebug = new SkeletonDebugger("skeleton", animationControl.getSkeleton());
-        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.getAdditionalRenderState().setWireframe(true);
-        mat.setColor("Color", ColorRGBA.Blue);
-        mat.getAdditionalRenderState().setDepthTest(false);
-        skeletonDebug.setMaterial(mat);
-        ((Node)characterModel).attachChild(skeletonDebug);
-    }
-
     public void setCam(Camera cam) {
         this.cam = cam;
-    }
-
-    @Override
-    public Node getNode() {
-        return characterNode;
     }
 
     /** These are our custom actions triggered by key presses.
@@ -239,8 +133,6 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
         }
     }
 
-    @Override
-    public void onAnimChange(AnimControl ctrl, AnimChannel ch, String name) {}
     /**
      * This is the main event loop--walking happens here.
      * We check in which direction the playerControl is walking by interpreting
@@ -257,6 +149,16 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
 
     private void healthBarUpdate() {
         healthBar.update();
+    }
+
+    private AudioNode getPlayerStepsNode(boolean running) {
+        AudioNode playerStepsNode = (AudioNode) (getNode().getChild("playerFootsteps"));
+        if (!running) {
+            playerStepsNode.setPitch(0.65f);
+        } else {
+            playerStepsNode.setPitch(1.05f);
+        }
+        return playerStepsNode;
     }
 
     private void movementUpdate(float k) {
@@ -311,17 +213,17 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
                     animationChannel.setAnim("Walk", 0.5f);
                 if (running) animationChannel.setSpeed(1.75f);
                 else animationChannel.setSpeed(1f);
-                soundManager.getPlayerStepsNode(running).play();
+                getPlayerStepsNode(running).play();
             } else if (walkDirection.length() == 0) {
                 animationChannel.setLoopMode(LoopMode.Loop);
                 if (!animationChannel.getAnimationName().equals("Idle3")) {
                     animationChannel.setAnim("Idle3", 0f);
                     animationChannel.setSpeed(1f);
                 }
-                soundManager.getPlayerStepsNode(false).pause();
+                getPlayerStepsNode(false).pause();
             }
         } else {
-            soundManager.getPlayerStepsNode(false).pause();
+            getPlayerStepsNode(false).pause();
         }
 
         if(blocking) {
