@@ -42,14 +42,16 @@ public class PlayerCharacter extends NinjaCharacter implements ActionListener {
 
     @Override
     protected void initializeSounds() {
-        AudioNode footstepsNode = soundManager.getFootStepsNode();
-        footstepsNode.setName("playerFootsteps");
-        characterNode.attachChild(footstepsNode);
+        AudioNode audioNode = soundManager.getFootStepsNode();
+        audioNode.setName("playerFootsteps");
+        getNode().attachChild(audioNode);
+
+        soundManager.getWindNode().play();
     }
 
     @Override
     protected void initializeHealthBar() {
-        healthBar = new HealthBar(assetManager, characterNode);
+        healthBar = new HealthBar(assetManager, getNode());
         healthBar.create();
     }
 
@@ -104,12 +106,18 @@ public class PlayerCharacter extends NinjaCharacter implements ActionListener {
         attackChannel.setLoopMode(LoopMode.DontLoop);
         attackChannel.setSpeed(1f);
         attackChannel.setTime(attackChannel.getAnimMaxTime()/2);
+
+        getSwordBlockNode().play();
+        getNode().detachChildNamed("swordBlock");
     }
 
     private void attack() {
         attackChannel.setAnim("Attack3", 0.1f);
         //TODO: ADD Attacking event
         attackChannel.setLoopMode(LoopMode.DontLoop);
+
+        getSwordSwingNode().play();
+        getNode().detachChildNamed("swordSwing");
     }
 
     @Override
@@ -149,6 +157,22 @@ public class PlayerCharacter extends NinjaCharacter implements ActionListener {
 
     private void healthBarUpdate() {
         healthBar.update();
+    }
+
+    private AudioNode getSwordBlockNode() {
+        getNode().detachChildNamed("swordBlock");
+
+        AudioNode audioNode = soundManager.getSwordBlockNode();
+        audioNode.setName("swordBlock");
+        getNode().attachChild(audioNode);
+        return audioNode;
+    }
+
+    private AudioNode getSwordSwingNode() {
+        AudioNode audioNode = soundManager.getSwordSwingNode();
+        audioNode.setName("swordSwing");
+        getNode().attachChild(audioNode);
+        return audioNode;
     }
 
     private AudioNode getPlayerStepsNode(boolean running) {

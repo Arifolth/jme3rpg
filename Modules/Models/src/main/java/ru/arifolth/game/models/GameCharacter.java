@@ -33,7 +33,7 @@ public abstract class GameCharacter implements Character {
     protected CharacterControl characterControl;
     protected Spatial characterModel;
     protected SoundManager soundManager;
-    protected Node characterNode;
+    private Node characterNode;
 
     public GameCharacter() {
     }
