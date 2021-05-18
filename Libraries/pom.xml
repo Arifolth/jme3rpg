@@ -32,13 +32,13 @@
 		</dependency>
 		
 		<!-- Bullet stuff -->
+<!--		<dependency>-->
+<!--			<groupId>${jme3.groupId}</groupId>-->
+<!--			<artifactId>jme3-bullet-native</artifactId>-->
+<!--		</dependency>-->
 		<dependency>
 			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-bullet-native</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-bullet</artifactId>
+			<artifactId>jme3-jbullet</artifactId>
 		</dependency>
 		<!--<dependency>
 			<groupId>com.github.stephengold</groupId>
@@ -123,14 +123,14 @@
 		</dependency>
 		
 		<!-- Bullet stuff -->
-        <dependency>
-            <groupId>${jme3.groupId}</groupId>
-            <artifactId>jme3-bullet-native</artifactId>
-            <version>${jmonkey.version}</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>${jme3.groupId}</groupId>-->
+<!--            <artifactId>jme3-bullet-natives</artifactId>-->
+<!--            <version>${jmonkey.version}</version>-->
+<!--        </dependency>-->
 		<dependency>
 			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-bullet</artifactId>
+			<artifactId>jme3-jbullet</artifactId>
 			<version>${jmonkey.version}</version>
 		</dependency>
 		<!--<dependency>

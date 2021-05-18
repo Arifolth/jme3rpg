@@ -46,18 +46,27 @@ public abstract class NinjaCharacter extends GameCharacter implements AnimEventL
     private AnimControl animationControl;
 
     protected void initializeCharacterModel() {
-        //characterModel = assetManager.loadModel("Models/Sinbad/Sinbad.mesh.xml");
-        characterModel = assetManager.loadModel("Models/Ninja/Ninja.mesh.xml");
+        /*
+        //export old mesh.xml model in 3.1 so AnimControl is preserved in 3.4
+        BinaryExporter exporter = new BinaryExporter();
+        //exporter.getCapsule(characterModel);
+        try {
+            exporter.save(characterModel, new File("C:\\tmp\\ANJRPG\\Models\\ninja\\ninja.j3o"));
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        */
+        characterModel = assetManager.loadModel("Models/Ninja/Ninja.j3o");
         //Material playerMaterial = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
         //characterModel.setMaterial(playerMaterial);
         characterModel.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
         //characterModel.setLocalScale(1f);
-        characterModel.setLocalScale(0.055f);
+        //characterModel.setLocalScale(0.055f);
         characterModel.setQueueBucket(RenderQueue.Bucket.Transparent);
 
         //ninja collision sphere offset fix
         //characterModel.move(0, -5f, 0); //sinbad
-        characterModel.move(0, -4.6f, 0);
+        //characterModel.move(0, -4.6f, 0);
 
         //http://jmonkeyengine.org/forum/topic/my-ninja-character-is-floating-after-i-replaced-oto-with-him/
         //characterModel.setLocalTranslation(new Vector3f(0f, 40.0f, 0f));
