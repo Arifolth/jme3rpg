@@ -202,14 +202,29 @@ public class PlayerCharacter extends NinjaCharacter implements ActionListener {
 
         walkDirection.set(0, 0, 0); // The walk direction is initially null
 
-        if(left) { walkDirection.addLocal(camLeft); }
-        if(right) { walkDirection.addLocal(camLeft.negate()); }
-        if(up) { walkDirection.addLocal(camDir);
-        }
-        if(down) { walkDirection.addLocal(camDir.negate()); }
+        if(up) {
+            walkDirection.addLocal(camDir);
 
-        if(!characterControl.onGround()) airTime += k;
-        else {
+            if(left) {
+                walkDirection.addLocal(camLeft);
+            } else if(right) {
+                walkDirection.addLocal(camLeft.negate());
+            }
+        } else if(down) {
+            walkDirection.addLocal(camDir.negate());
+
+            if(left) {
+                walkDirection.addLocal(camLeft);
+            } else if(right) {
+                walkDirection.addLocal(camLeft.negate());
+            }
+        }
+
+
+
+        if(!characterControl.onGround()) {
+            airTime += k;
+        } else {
             airTime = 0;
             jumping = false;
         }
