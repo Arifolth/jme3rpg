@@ -34,6 +34,7 @@ public class PlayerCharacter extends NinjaCharacter implements ActionListener {
     private boolean left = false, right = false, up = false, down = false,
         attacking = false, capture_mouse = true, running = false, blocking = false, block_pressed = false,
         jumping = false, jump_pressed = false, attack_pressed = false;
+    private float airTime = 0;
     private float actionTime = 0;
     private HealthBar healthBar;
 
@@ -98,25 +99,24 @@ public class PlayerCharacter extends NinjaCharacter implements ActionListener {
     }
 
     private void block() {
-        if(actionTime > 0 && actionTime < attackChannel.getAnimMaxTime()) {
-            //TODO: Show Blocking animation only in case attack is coming, do nothing otherwise
-            attackChannel.setAnim("Block", 0.1f);
-            //TODO: ADD Blocking event
-            attackChannel.setLoopMode(LoopMode.DontLoop);
-            attackChannel.setSpeed(1f);
-            attackChannel.setTime(attackChannel.getAnimMaxTime() / 2);
+        //TODO: Show Blocking animation only in case attack is coming, do nothing otherwise
+        attackChannel.setAnim("Block", 0.1f);
+        //TODO: ADD Blocking event
+        attackChannel.setLoopMode(LoopMode.DontLoop);
+        attackChannel.setSpeed(1f);
+        attackChannel.setTime(attackChannel.getAnimMaxTime() / 2);
+        actionTime = attackChannel.getAnimMaxTime() / 2;
 
-            playSwordSound(getSwordBlockNode(), "swordBlock");
-        }
+        playSwordSound(getSwordBlockNode(), "swordBlock");
     }
 
     private void attack() {
-        if(actionTime > 0 && actionTime < attackChannel.getAnimMaxTime()) {
-            attackChannel.setAnim("Attack3", 0.1f);
-            attackChannel.setLoopMode(LoopMode.DontLoop);
-            attackChannel.setSpeed(1f);
-            playSwordSound(getSwordSwingNode(), "swordSwing");
-        }
+        attackChannel.setAnim("Attack3", 0.1f);
+        attackChannel.setLoopMode(LoopMode.DontLoop);
+        attackChannel.setSpeed(1f);
+        actionTime = attackChannel.getAnimMaxTime();
+
+        playSwordSound(getSwordSwingNode(), "swordSwing");
     }
 
     private void playSwordSound(AudioNode swordSwingNode, String swordSwing) {
@@ -224,14 +224,13 @@ public class PlayerCharacter extends NinjaCharacter implements ActionListener {
 
 
         if(!characterControl.onGround()) {
-            actionTime += k;
+            airTime += k;
         } else {
-            actionTime = 0;
+            airTime = 0;
             jumping = false;
         }
 
-
-        if (actionTime > 0.1f || jump_pressed) {
+        if (airTime > 0.1f || jump_pressed) {
             jumping = true;
             // Stop movement if jumping while walking
             if(jump_pressed && animationChannel.getAnimationName().equals("Walk"))
@@ -266,28 +265,26 @@ public class PlayerCharacter extends NinjaCharacter implements ActionListener {
             getPlayerStepsNode(false).pause();
         }
 
+        if(actionTime > 0) {
+            actionTime -= k;
+        }
+
         if(blocking) {
-            if (!attackChannel.getAnimationName().equals("Block")) {
-                actionTime += k;
+            if (actionTime <= 0 && !attackChannel.getAnimationName().equals("Block")) {
                 block();
             }
-            if(!block_pressed) {
+            if(!block_pressed && actionTime <= 0) {
                 attackChannel.setAnim("Idle3", 0f);
                 attackChannel.setSpeed(1f);
-                if(actionTime > 0.1f)
-                    actionTime = 0;
                 blocking = false;
             }
         } else if(attacking) {
-            if (!attackChannel.getAnimationName().equals("Attack3")) {
-                actionTime += k;
+            if (actionTime <= 0 && !attackChannel.getAnimationName().equals("Attack3")) {
                 attack();
             }
-            if(!attack_pressed) {
+            if(!attack_pressed && actionTime <= 0) {
                 attackChannel.setAnim("Idle3", 0f);
                 attackChannel.setSpeed(1f);
-                if(actionTime > 0.1f)
-                    actionTime = 0;
                 attacking = false;
             }
         }
