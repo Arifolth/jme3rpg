@@ -219,7 +219,12 @@ public class PlayerCharacter extends NinjaCharacter implements ActionListener {
             } else if(right) {
                 walkDirection.addLocal(camLeft.negate());
             }
+        } else if(left) {
+            walkDirection.addLocal(camLeft);
+        } else if(right) {
+            walkDirection.addLocal(camLeft.negate());
         }
+
 
 
 
@@ -245,13 +250,18 @@ public class PlayerCharacter extends NinjaCharacter implements ActionListener {
         }
 
         if(!jumping) {
-            if ((up || down)) {
+            if ((up || down || left || right)) {
                 //set the walking animation
                 animationChannel.setLoopMode(LoopMode.Loop);
-                if (!animationChannel.getAnimationName().equals("Walk"))
+                if (!animationChannel.getAnimationName().equals("Walk")) {
                     animationChannel.setAnim("Walk", 0.5f);
-                if (running) animationChannel.setSpeed(1.75f);
-                else animationChannel.setSpeed(1f);
+                }
+                if (running) {
+                    animationChannel.setSpeed(1.75f);
+                }
+                else {
+                    animationChannel.setSpeed(1f);
+                }
                 getPlayerStepsNode(running).play();
             } else if (walkDirection.length() == 0) {
                 animationChannel.setLoopMode(LoopMode.Loop);
@@ -292,7 +302,7 @@ public class PlayerCharacter extends NinjaCharacter implements ActionListener {
         characterControl.setWalkDirection(walkDirection);
 
         // Rotate model to point walk direction if moving
-        if(walkDirection.length() != 0)
+        if((walkDirection.length() != 0) && (up || right || left))
             characterControl.setViewDirection(walkDirection.negate());
         // negating cause the model is flipped
 
