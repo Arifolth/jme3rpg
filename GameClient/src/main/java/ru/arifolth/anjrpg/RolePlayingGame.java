@@ -120,8 +120,7 @@ public abstract class RolePlayingGame extends SimpleApplication {
 
         setupScreenCapture();
 
-        //addFog();
-        //setProgress(0.7f, "addFog");
+//        addFog();
 
         setupSky();
 
@@ -181,8 +180,8 @@ public abstract class RolePlayingGame extends SimpleApplication {
         FilterPostProcessor fpp=new FilterPostProcessor(assetManager);
         FogFilter fog=new FogFilter();
         fog.setFogColor(new ColorRGBA(0.9f, 0.9f, 0.9f, 1.0f));
-        fog.setFogDistance(800);
-        fog.setFogDensity(1.0f);
+        fog.setFogDistance(1000);
+        fog.setFogDensity(0.255f);
         fpp.addFilter(fog);
         viewPort.addProcessor(fpp);
     }
