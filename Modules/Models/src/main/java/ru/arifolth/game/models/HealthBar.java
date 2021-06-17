@@ -26,9 +26,8 @@ import com.jme3.scene.Node;
 import com.jme3.scene.control.BillboardControl;
 import com.jme3.scene.shape.Quad;
 
-import static ru.arifolth.game.models.PlayerCharacter.MAXIMUM_HEALTH;
-
 public class HealthBar {
+    public static final float MAXIMUM_HEALTH = 75f;
     private AssetManager assetManager;
     private Node characterNode;
 

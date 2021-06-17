@@ -21,33 +21,22 @@ package ru.arifolth.game.models;
 import com.jme3.animation.AnimChannel;
 import com.jme3.animation.AnimControl;
 import com.jme3.animation.LoopMode;
-import com.jme3.audio.AudioNode;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 
 public class PlayerCharacter extends NinjaCharacter implements ActionListener {
-    public static final float MAXIMUM_HEALTH = 75f;
-
-    private Camera cam;
-    private final Vector3f walkDirection = new Vector3f();
+    private MovementController movementController = new MovementController(this);
     private boolean left = false, right = false, up = false, down = false,
         attacking = false, capture_mouse = true, running = false, blocking = false, block_pressed = false,
         jumping = false, jump_pressed = false, attack_pressed = false;
+    private final Vector3f walkDirection = new Vector3f();
     private float airTime = 0;
     private float actionTime = 0;
     private HealthBar healthBar;
+    private Camera cam;
 
     public PlayerCharacter() {
-    }
-
-    @Override
-    protected void initializeSounds() {
-        AudioNode audioNode = soundManager.getFootStepsNode();
-        audioNode.setName("playerFootsteps");
-        getNode().attachChild(audioNode);
-
-        soundManager.getWindNode().play();
     }
 
     @Override
@@ -63,86 +52,48 @@ public class PlayerCharacter extends NinjaCharacter implements ActionListener {
     /** These are our custom actions triggered by key presses.
      * We do not walk yet, we just keep track of the direction the user pressed. */
     public void onAction(String binding, boolean pressed, float tpf) {
-        if (binding.equals("Left")) {
-            left = pressed;
-        }
-        else if (binding.equals("Right")) {
-            right = pressed;
-        }
-        else if (binding.equals("Up")) {
-            up = pressed;
-        }
-        else if (binding.equals("Down")) {
-            down = pressed;
-        }
-        else if (binding.equals("Jump")) {
-            jump_pressed = true;
-        }
-        else if (binding.equals("Run")) {
-            running = pressed;
-        }
-        else if (binding.equals("Block")) {
-            if(capture_mouse && !jumping) {
-                block_pressed = pressed;
-                if(block_pressed) {
-                    blocking = true;
-                }
-            }
-        } else if (binding.equals("Attack")) {
-            if(capture_mouse && !jumping) {
-                attack_pressed = pressed;
-                if(attack_pressed) {
-                    attacking = true;
-                }
-            }
-        }
+        movementController.keyPressed(binding, pressed);
     }
 
-    private void block() {
+    public void block() {
         //TODO: Show Blocking animation only in case attack is coming, do nothing otherwise
-        attackChannel.setAnim("Block", 0.1f);
+        getAttackChannel().setAnim(AnimConstants.ANIM_BLOCK, 0.1f);
         //TODO: ADD Blocking event
-        attackChannel.setLoopMode(LoopMode.DontLoop);
-        attackChannel.setSpeed(1f);
-        attackChannel.setTime(attackChannel.getAnimMaxTime() / 2);
-        actionTime = attackChannel.getAnimMaxTime() / 2;
+        getAttackChannel().setLoopMode(LoopMode.DontLoop);
+        getAttackChannel().setSpeed(1f);
+        getAttackChannel().setTime(getAttackChannel().getAnimMaxTime() / 2);
+        setActionTime(getAttackChannel().getAnimMaxTime() / 2);
 
-        playSwordSound(getSwordBlockNode(), "swordBlock");
+        playSwordSound(getSwordBlockNode(), SWORD_BLOCK);
     }
 
-    private void attack() {
-        attackChannel.setAnim("Attack3", 0.1f);
-        attackChannel.setLoopMode(LoopMode.DontLoop);
-        attackChannel.setSpeed(1f);
-        actionTime = attackChannel.getAnimMaxTime();
+    public void attack() {
+        getAttackChannel().setAnim(AnimConstants.ANIM_ATTACK, 0.1f);
+        getAttackChannel().setLoopMode(LoopMode.DontLoop);
+        getAttackChannel().setSpeed(1f);
+        setActionTime(getAttackChannel().getAnimMaxTime());
 
-        playSwordSound(getSwordSwingNode(), "swordSwing");
-    }
-
-    private void playSwordSound(AudioNode swordSwingNode, String swordSwing) {
-        getNode().attachChild(swordSwingNode);
-        swordSwingNode.play();
-        getNode().detachChildNamed(swordSwing);
+        playSwordSound(getSwordSwingNode(), SWORD_SWING);
     }
 
     @Override
     public void onAnimCycleDone(AnimControl ctrl, AnimChannel ch, String name) {
-        if(name.equals("Attack3") && attacking && !attack_pressed) {
-            if (!ch.getAnimationName().equals("Idle3")) {
-                ch.setAnim("Idle3", 0f);
+        if(name.equals(AnimConstants.ANIM_ATTACK) && attacking && !attack_pressed) {
+            if (!ch.getAnimationName().equals(AnimConstants.ANIM_IDLE)) {
+                ch.setAnim(AnimConstants.ANIM_IDLE, 0f);
                 ch.setLoopMode(LoopMode.Loop);
                 ch.setSpeed(1f);
-                attacking = false;
+                setAttacking(false);
             }
-        } else if(name.equals("Block") && blocking && !block_pressed) {
-            if (!ch.getAnimationName().equals("Idle3")) {
-                ch.setAnim("Idle3", 0f);
+        } else if(name.equals(AnimConstants.ANIM_BLOCK) && blocking && !block_pressed) {
+            if (!ch.getAnimationName().equals(AnimConstants.ANIM_IDLE)) {
+                ch.setAnim(AnimConstants.ANIM_IDLE, 0f);
                 ch.setLoopMode(LoopMode.Loop);
                 ch.setSpeed(1f);
-                blocking = false;
+                setBlocking(false);
             }
-        } else if(name.equals("JumpNoHeight")) {
-            jump_pressed = false;
+        } else if(name.equals(AnimConstants.ANIM_JUMP)) {
+            setJump_pressed(false);
         }
     }
 
@@ -157,158 +108,11 @@ public class PlayerCharacter extends NinjaCharacter implements ActionListener {
     public void simpleUpdate(float k) {
         healthBarUpdate();
 
-        movementUpdate(k);
+        movementController.movementUpdate(k);
     }
 
     private void healthBarUpdate() {
         healthBar.update();
-    }
-
-    private AudioNode getSwordBlockNode() {
-        AudioNode audioNode = soundManager.getSwordBlockNode();
-        audioNode.setName("swordBlock");
-        return audioNode;
-    }
-
-    private AudioNode getSwordSwingNode() {
-        AudioNode audioNode = soundManager.getSwordSwingNode();
-        audioNode.setName("swordSwing");
-        return audioNode;
-    }
-
-    private AudioNode getPlayerStepsNode(boolean running) {
-        AudioNode playerStepsNode = (AudioNode) (getNode().getChild("playerFootsteps"));
-        if (!running) {
-            playerStepsNode.setPitch(0.65f);
-        } else {
-            playerStepsNode.setPitch(1.05f);
-        }
-        return playerStepsNode;
-    }
-
-    private void movementUpdate(float k) {
-        float movement_amount = 0.3f;
-        if(running) {
-            movement_amount *= 1.75;
-        }
-
-        // Gets forward direction and moves it forward
-        Vector3f camDir = cam.getDirection().clone().multLocal(movement_amount);
-        // Gets left direction and moves it to the left
-        Vector3f camLeft = cam.getLeft().clone().multLocal(movement_amount * 0.75f);
-
-        // We don't want to fly or go underground
-        camDir.y = 0;
-        camLeft.y = 0;
-
-        walkDirection.set(0, 0, 0); // The walk direction is initially null
-
-        if(up) {
-            walkDirection.addLocal(camDir);
-
-            if(left) {
-                walkDirection.addLocal(camLeft);
-            } else if(right) {
-                walkDirection.addLocal(camLeft.negate());
-            }
-        } else if(down) {
-            walkDirection.addLocal(camDir.negate());
-
-            if(left) {
-                walkDirection.addLocal(camLeft);
-            } else if(right) {
-                walkDirection.addLocal(camLeft.negate());
-            }
-        } else if(left) {
-            walkDirection.addLocal(camLeft);
-        } else if(right) {
-            walkDirection.addLocal(camLeft.negate());
-        }
-
-
-
-
-        if(!characterControl.onGround()) {
-            airTime += k;
-        } else {
-            airTime = 0;
-            jumping = false;
-        }
-
-        if (airTime > 0.1f || jump_pressed) {
-            jumping = true;
-            // Stop movement if jumping while walking
-            if(jump_pressed && animationChannel.getAnimationName().equals("Walk"))
-                if (!animationChannel.getAnimationName().equals("JumpNoHeight")) {
-                    animationChannel.setAnim("JumpNoHeight");
-                    animationChannel.setSpeed(1f);
-                    animationChannel.setLoopMode(LoopMode.DontLoop);
-                }
-            if(animationChannel.getTime() >= 0.32f) { // Delay jump to make the animation look decent
-                characterControl.jump();
-            }
-        }
-
-        if(!jumping) {
-            if ((up || down || left || right)) {
-                //set the walking animation
-                animationChannel.setLoopMode(LoopMode.Loop);
-                if (!animationChannel.getAnimationName().equals("Walk")) {
-                    animationChannel.setAnim("Walk", 0.5f);
-                }
-                if (running) {
-                    animationChannel.setSpeed(1.75f);
-                }
-                else {
-                    animationChannel.setSpeed(1f);
-                }
-                getPlayerStepsNode(running).play();
-            } else if (walkDirection.length() == 0) {
-                animationChannel.setLoopMode(LoopMode.Loop);
-                if (!animationChannel.getAnimationName().equals("Idle3")) {
-                    animationChannel.setAnim("Idle3", 0f);
-                    animationChannel.setSpeed(1f);
-                }
-                getPlayerStepsNode(false).pause();
-            }
-        } else {
-            getPlayerStepsNode(false).pause();
-        }
-
-        if(actionTime > 0) {
-            actionTime -= k;
-        }
-
-        if(blocking) {
-            if (actionTime <= 0 && !attackChannel.getAnimationName().equals("Block")) {
-                block();
-            }
-            if(!block_pressed && actionTime <= 0) {
-                attackChannel.setAnim("Idle3", 0f);
-                attackChannel.setSpeed(1f);
-                blocking = false;
-            }
-        } else if(attacking) {
-            if (actionTime <= 0 && !attackChannel.getAnimationName().equals("Attack3")) {
-                attack();
-            }
-            if(!attack_pressed && actionTime <= 0) {
-                attackChannel.setAnim("Idle3", 0f);
-                attackChannel.setSpeed(1f);
-                attacking = false;
-            }
-        }
-
-        characterControl.setWalkDirection(walkDirection);
-
-        // Rotate model to point walk direction if moving
-        if((walkDirection.length() != 0) && (up || right || left))
-            characterControl.setViewDirection(walkDirection.negate());
-        // negating cause the model is flipped
-
-        //walk backwards
-        if((walkDirection.length() != 0) && down)
-            characterControl.setViewDirection(walkDirection);
     }
 
     @Override
@@ -319,5 +123,113 @@ public class PlayerCharacter extends NinjaCharacter implements ActionListener {
     @Override
     public boolean isBlocking() {
         return blocking;
+    }
+
+    public Vector3f getWalkDirection() {
+        return walkDirection;
+    }
+
+    public boolean isLeft() {
+        return left;
+    }
+
+    public boolean isRight() {
+        return right;
+    }
+
+    public boolean isUp() {
+        return up;
+    }
+
+    public boolean isDown() {
+        return down;
+    }
+
+    public boolean isCapture_mouse() {
+        return capture_mouse;
+    }
+
+    public boolean isRunning() {
+        return running;
+    }
+
+    public boolean isBlock_pressed() {
+        return block_pressed;
+    }
+
+    public boolean isJumping() {
+        return jumping;
+    }
+
+    public boolean isJump_pressed() {
+        return jump_pressed;
+    }
+
+    public boolean isAttack_pressed() {
+        return attack_pressed;
+    }
+
+    public float getAirTime() {
+        return airTime;
+    }
+
+    public float getActionTime() {
+        return actionTime;
+    }
+
+    public Camera getCam() {
+        return cam;
+    }
+
+    public void setAttacking(boolean attacking) {
+        this.attacking = attacking;
+    }
+
+    public void setBlocking(boolean blocking) {
+        this.blocking = blocking;
+    }
+
+    public void setAttack_pressed(boolean attack_pressed) {
+        this.attack_pressed = attack_pressed;
+    }
+
+    public void setLeft(boolean left) {
+        this.left = left;
+    }
+
+    public void setRight(boolean right) {
+        this.right = right;
+    }
+
+    public void setUp(boolean up) {
+        this.up = up;
+    }
+
+    public void setDown(boolean down) {
+        this.down = down;
+    }
+
+    public void setJumping(boolean jumping) {
+        this.jumping = jumping;
+    }
+
+    public void setBlock_pressed(boolean block_pressed) {
+        this.block_pressed = block_pressed;
+    }
+
+    public void setJump_pressed(boolean jump_pressed) {
+        this.jump_pressed = jump_pressed;
+    }
+
+    public void setRunning(boolean running) {
+        this.running = running;
+    }
+
+    public void setActionTime(float actionTime) {
+        this.actionTime = actionTime;
+    }
+
+    public void setAirTime(float airTime) {
+        this.airTime = airTime;
     }
 }

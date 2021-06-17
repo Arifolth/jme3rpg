@@ -22,6 +22,7 @@ import com.jme3.animation.AnimChannel;
 import com.jme3.animation.AnimControl;
 import com.jme3.animation.AnimEventListener;
 import com.jme3.animation.SkeletonControl;
+import com.jme3.audio.AudioNode;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.queue.RenderQueue;
@@ -41,8 +42,12 @@ import com.jme3.scene.debug.SkeletonDebugger;
     Initial facing vector: Vector3::NEGATIVE_UNIT_Z
 */
 public abstract class NinjaCharacter extends GameCharacter implements AnimEventListener {
-    protected AnimChannel animationChannel;
-    protected AnimChannel attackChannel;
+    public static final String SWORD_BLOCK = "swordBlock";
+    public static final String SWORD_SWING = "swordSwing";
+    public static final String PLAYER_FOOTSTEPS = "playerFootsteps";
+    public static final String NINJA_MODEL = "Models/Ninja/Ninja.j3o";
+    private AnimChannel animationChannel;
+    private AnimChannel attackChannel;
     private AnimControl animationControl;
 
     protected void initializeCharacterModel() {
@@ -56,7 +61,7 @@ public abstract class NinjaCharacter extends GameCharacter implements AnimEventL
             ex.printStackTrace();
         }
         */
-        characterModel = assetManager.loadModel("Models/Ninja/Ninja.j3o");
+        characterModel = assetManager.loadModel(NINJA_MODEL);
         //Material playerMaterial = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
         //characterModel.setMaterial(playerMaterial);
         characterModel.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
@@ -109,4 +114,49 @@ public abstract class NinjaCharacter extends GameCharacter implements AnimEventL
 
     @Override
     public void onAnimChange(AnimControl ctrl, AnimChannel ch, String name) {}
+
+    @Override
+    protected void initializeSounds() {
+        AudioNode audioNode = soundManager.getFootStepsNode();
+        audioNode.setName(PLAYER_FOOTSTEPS);
+        getNode().attachChild(audioNode);
+
+        soundManager.getWindNode().play();
+    }
+
+    protected void playSwordSound(AudioNode swordSwingNode, String swordSwing) {
+        getNode().attachChild(swordSwingNode);
+        swordSwingNode.play();
+        getNode().detachChildNamed(swordSwing);
+    }
+
+    protected AudioNode getSwordBlockNode() {
+        AudioNode audioNode = soundManager.getSwordBlockNode();
+        audioNode.setName(SWORD_BLOCK);
+        return audioNode;
+    }
+
+    protected AudioNode getSwordSwingNode() {
+        AudioNode audioNode = soundManager.getSwordSwingNode();
+        audioNode.setName(SWORD_SWING);
+        return audioNode;
+    }
+
+    protected AudioNode getPlayerStepsNode(boolean running) {
+        AudioNode playerStepsNode = (AudioNode) (getNode().getChild(PLAYER_FOOTSTEPS));
+        if (!running) {
+            playerStepsNode.setPitch(0.65f);
+        } else {
+            playerStepsNode.setPitch(1.05f);
+        }
+        return playerStepsNode;
+    }
+
+    public AnimChannel getAnimationChannel() {
+        return animationChannel;
+    }
+
+    public AnimChannel getAttackChannel() {
+        return attackChannel;
+    }
 }
