@@ -57,7 +57,7 @@ public class PlayerCharacter extends NinjaCharacter implements ActionListener {
 
     public void block() {
         //TODO: Show Blocking animation only in case attack is coming, do nothing otherwise
-        getAttackChannel().setAnim(AnimConstants.ANIM_BLOCK, 0.1f);
+        getAttackChannel().setAnim(AnimConstants.BLOCK, 0.1f);
         //TODO: ADD Blocking event
         getAttackChannel().setLoopMode(LoopMode.DontLoop);
         getAttackChannel().setSpeed(1f);
@@ -68,7 +68,7 @@ public class PlayerCharacter extends NinjaCharacter implements ActionListener {
     }
 
     public void attack() {
-        getAttackChannel().setAnim(AnimConstants.ANIM_ATTACK, 0.1f);
+        getAttackChannel().setAnim(AnimConstants.ATTACK, 0.1f);
         getAttackChannel().setLoopMode(LoopMode.DontLoop);
         getAttackChannel().setSpeed(1f);
         setActionTime(getAttackChannel().getAnimMaxTime());
@@ -78,21 +78,21 @@ public class PlayerCharacter extends NinjaCharacter implements ActionListener {
 
     @Override
     public void onAnimCycleDone(AnimControl ctrl, AnimChannel ch, String name) {
-        if(name.equals(AnimConstants.ANIM_ATTACK) && attacking && !attack_pressed) {
-            if (!ch.getAnimationName().equals(AnimConstants.ANIM_IDLE)) {
-                ch.setAnim(AnimConstants.ANIM_IDLE, 0f);
+        if(name.equals(AnimConstants.ATTACK) && attacking && !attack_pressed) {
+            if (!ch.getAnimationName().equals(AnimConstants.IDLE)) {
+                ch.setAnim(AnimConstants.IDLE, 0f);
                 ch.setLoopMode(LoopMode.Loop);
                 ch.setSpeed(1f);
                 setAttacking(false);
             }
-        } else if(name.equals(AnimConstants.ANIM_BLOCK) && blocking && !block_pressed) {
-            if (!ch.getAnimationName().equals(AnimConstants.ANIM_IDLE)) {
-                ch.setAnim(AnimConstants.ANIM_IDLE, 0f);
+        } else if(name.equals(AnimConstants.BLOCK) && blocking && !block_pressed) {
+            if (!ch.getAnimationName().equals(AnimConstants.IDLE)) {
+                ch.setAnim(AnimConstants.IDLE, 0f);
                 ch.setLoopMode(LoopMode.Loop);
                 ch.setSpeed(1f);
                 setBlocking(false);
             }
-        } else if(name.equals(AnimConstants.ANIM_JUMP)) {
+        } else if(name.equals(AnimConstants.JUMP)) {
             setJump_pressed(false);
         }
     }

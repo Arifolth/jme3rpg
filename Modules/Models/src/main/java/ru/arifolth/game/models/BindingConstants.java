@@ -18,13 +18,16 @@
 
 package ru.arifolth.game.models;
 
-public class AnimConstants {
-    public static final String ATTACK = "Attack3";
+public class BindingConstants {
+    public static final String LEFT = "Left";
+    public static final String RIGHT = "Right";
+    public static final String UP = "Up";
+    public static final String DOWN = "Down";
+    public static final String JUMP = "Jump";
+    public static final String RUN = "Run";
     public static final String BLOCK = "Block";
-    public static final String IDLE = "Idle3";
-    public static final String WALK = "Walk";
-    public static final String JUMP = "JumpNoHeight";
+    public static final String ATTACK = "Attack";
 
-    private AnimConstants() {
+    private BindingConstants() {
     }
 }
