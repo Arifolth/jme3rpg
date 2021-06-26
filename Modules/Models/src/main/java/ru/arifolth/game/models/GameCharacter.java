@@ -69,10 +69,14 @@ public abstract class GameCharacter implements Character {
         // We also put the characterControl in its starting position.
         CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.5f, 6f, 1);
         characterControl = new CharacterControl(capsuleShape, 0.8f);
-        characterControl.setJumpSpeed(20);
-        characterControl.setFallSpeed(300);
-        characterControl.setGravity(30);
+        setUpDefaultPhysics();
         bulletAppState.getPhysicsSpace().add(characterControl);
+    }
+
+    private void setUpDefaultPhysics() {
+        characterControl.setJumpSpeed(0);
+        characterControl.setFallSpeed(0);
+        characterControl.setGravity(0);
     }
 
     protected abstract void initializeHealthBar();

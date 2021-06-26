@@ -11,8 +11,12 @@
   <packaging>pom</packaging>
 
   <name>Game Libraries</name>
+	<properties>
+		<groovy.version>3.0.8</groovy.version>
+		<sio2.version>1.6.0</sio2.version>
+	</properties>
 
-  <parent>
+	<parent>
     <groupId>ru.arifolth.game</groupId>
     <artifactId>Game</artifactId>
     <version>1.0-SNAPSHOT</version>
@@ -32,25 +36,10 @@
 		</dependency>
 		
 		<!-- Bullet stuff -->
-<!--		<dependency>-->
-<!--			<groupId>${jme3.groupId}</groupId>-->
-<!--			<artifactId>jme3-bullet-native</artifactId>-->
-<!--		</dependency>-->
 		<dependency>
 			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-jbullet</artifactId>
 		</dependency>
-		<!--<dependency>
-			<groupId>com.github.stephengold</groupId>
-			<artifactId>Minie</artifactId>
-			<version>3.0.0</version>
-		</dependency>-->
-
-        <!-- Feature libs -->
-		<!--<dependency>
-			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-blender</artifactId>
-		</dependency>-->
 		<dependency>
 			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-desktop</artifactId>
@@ -82,6 +71,25 @@
 		<dependency>
 			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-niftygui</artifactId>
+		</dependency>
+
+		<!-- Lemur -->
+		<dependency>
+			<groupId>com.simsilica</groupId>
+			<artifactId>lemur</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.simsilica</groupId>
+			<artifactId>lemur-proto</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.groovy</groupId>
+			<artifactId>groovy-jsr223</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.simsilica</groupId>
+			<artifactId>sio2</artifactId>
 		</dependency>
     </dependencies>
 
@@ -123,27 +131,11 @@
 		</dependency>
 		
 		<!-- Bullet stuff -->
-<!--        <dependency>-->
-<!--            <groupId>${jme3.groupId}</groupId>-->
-<!--            <artifactId>jme3-bullet-natives</artifactId>-->
-<!--            <version>${jmonkey.version}</version>-->
-<!--        </dependency>-->
 		<dependency>
 			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-jbullet</artifactId>
 			<version>${jmonkey.version}</version>
 		</dependency>
-		<!--<dependency>
-			<groupId>com.github.stephengold</groupId>
-			<artifactId>Minie</artifactId>
-		</dependency>-->
-
-		<!-- Feature libs -->
-		<!--<dependency>
-			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-blender</artifactId>
-			<version>${jmonkey.version}</version>
-		</dependency>	-->
 		<dependency>
 			<groupId>${jme3.groupId}</groupId>
 			<artifactId>jme3-desktop</artifactId>
@@ -183,32 +175,29 @@
 			<artifactId>jme3-niftygui</artifactId>
 			<version>${jmonkey.version}</version>
 		</dependency>
-		<!--**********************************-->
-		<!--<dependency>
+
+		<!-- Lemur -->
+		<dependency>
 			<groupId>com.simsilica</groupId>
 			<artifactId>lemur</artifactId>
-			<version>1.15.0-SNAPSHOT</version>
+			<version>${lemur.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.simsilica</groupId>
-			<artifactId>sim-fx</artifactId>
-			<version>1.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.simsilica</groupId>
-			<artifactId>lemur-props</artifactId>
-			<version>1.1.1</version>
-		</dependency>
-		<dependency>
-			<groupId>com.simsilica</groupId>
-			<artifactId>iso</artifactId>
-			<version>1.0-SNAPSHOT</version>
+			<artifactId>lemur-proto</artifactId>
+			<version>${lemur-proto.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.groovy</groupId>
-			<artifactId>groovy-all</artifactId>
-			<version>2.1.9</version>
-		</dependency>-->
+			<artifactId>groovy-jsr223</artifactId>
+			<version>${groovy.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.simsilica</groupId>
+			<artifactId>sio2</artifactId>
+			<version>${sio2.version}</version>
+		</dependency>
     </dependencies>
   </dependencyManagement>
     </profile>

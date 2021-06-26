@@ -63,6 +63,9 @@
 
     <jmonkey.version>3.4.0-stable</jmonkey.version>
     <jme3.groupId>org.jmonkeyengine</jme3.groupId>
+
+    <lemur.version>1.15.0</lemur.version>
+    <lemur-proto.version>1.12.0</lemur-proto.version>
   </properties>
 
 </project>

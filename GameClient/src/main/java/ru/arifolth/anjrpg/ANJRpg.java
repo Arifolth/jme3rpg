@@ -18,8 +18,12 @@
 
 package ru.arifolth.anjrpg;
 
+import com.jme3.app.Application;
 import com.jme3.math.Vector3f;
 import com.jme3.niftygui.NiftyJmeDisplay;
+import com.jme3.system.AppSettings;
+import com.simsilica.lemur.GuiGlobals;
+import com.simsilica.lemur.style.BaseStyles;
 import de.lessvoid.nifty.Nifty;
 import de.lessvoid.nifty.controls.Controller;
 import de.lessvoid.nifty.controls.Parameters;
@@ -29,6 +33,8 @@ import de.lessvoid.nifty.input.NiftyInputEvent;
 import de.lessvoid.nifty.screen.Screen;
 import de.lessvoid.nifty.screen.ScreenController;
 
+import java.awt.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.jme3.niftygui.NiftyJmeDisplay.newNiftyJmeDisplay;
@@ -42,38 +48,42 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
     private Nifty nifty;
     private Boolean initialization = true;
     final private static Logger LOGGER = Logger.getLogger(ANJRpg.class.getName());
+    private boolean ready = false;
 
     public static void main(String[] args) {
         app = new ANJRpg();
         app.start();
     }
 
+    public ANJRpg() {
+        initializeApplicationSettings();
+    }
+
     @Override
     public void simpleInitApp()  {
         super.simpleInitApp();
 
-        niftyDisplay = newNiftyJmeDisplay(assetManager,
-                inputManager,
-                audioRenderer,
-                guiViewPort);
-        nifty = niftyDisplay.getNifty();
+        /* Lemur stuff */
+        GuiGlobals.initialize(this);
+        GuiGlobals globals = GuiGlobals.getInstance();
+        BaseStyles.loadGlassStyle();
+        globals.getStyles().setDefaultStyle("glass");
 
-        nifty.fromXml("Interface/nifty_loading.xml", "start", this);
-
-        guiViewPort.addProcessor(niftyDisplay);
-
-        showLoadingMenu();
+        setupPhysix();
+        setupSound();
+        setupGameLogic();
+        setupTerrain();
     }
 
     @Override
     public void simpleUpdate(float tpf) {
-        if(null == initialization) {
-            super.simpleUpdate(tpf);
+        if(!ready) {
             return;
         }
 
-        //initialization
-        if (initialization) {
+        if(null == initialization) {
+            super.simpleUpdate(tpf);
+        } else if (initialization) {
             Element element = nifty.getScreen("loadlevel").findElementById("loadingtext");
             textRenderer = element.getRenderer(TextRenderer.class);
 
@@ -81,9 +91,7 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
 
             setProgress("Loading complete");
             initialization = false;
-        }
-
-        if(initialization == false) {
+        } else if (initialization == false) {
             //wait until land appears in Physics Space
             if(bulletAppState.getPhysicsSpace().getRigidBodyList().size() == 4) {
                 //put player at the beginning location
@@ -146,4 +154,54 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
     public void init(Parameters prmtrs) {
     }
 
+    public void setUpGUI() {
+        /* Game stuff */
+        niftyDisplay = newNiftyJmeDisplay(assetManager,
+                inputManager,
+                audioRenderer,
+                guiViewPort);
+        nifty = niftyDisplay.getNifty();
+        nifty.registerScreenController(this);
+        nifty.fromXml("Interface/nifty_loading.xml", "start", this);
+
+        guiViewPort.addProcessor(niftyDisplay);
+
+        showLoadingMenu();
+        ready = true;
+    }
+
+    private void initializeApplicationSettings() {
+        showSettings = false;
+
+        AppSettings settings = new AppSettings(true);
+        settings.setTitle("Alexander's Nilov Java RPG");
+        GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        settings.setFullscreen(device.isFullScreenSupported());
+        settings.setBitsPerPixel(24); //24
+        settings.setSamples(16); //16
+        settings.setVSync(true);
+        settings.setResolution(3840,2160);
+        settings.setRenderer(AppSettings.LWJGL_OPENGL2);
+        settings.setFrameRate(30);
+        settings.setGammaCorrection(false);
+
+        //setDisplayFps(true);
+        //setDisplayStatView(false);
+
+        this.setSettings(settings);
+        this.setShowSettings(showSettings);
+
+        //do not output excessive info on console
+        Logger.getLogger("").setLevel(Level.SEVERE);
+
+        // hide FPS HUD
+        setDisplayFps(false);
+
+        //hide statistics HUD
+        setDisplayStatView(false);
+    }
+
+    public AppSettings getSettings(){
+        return this.settings;
+    }
 }

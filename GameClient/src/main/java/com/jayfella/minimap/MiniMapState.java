@@ -49,11 +49,13 @@ import com.jme3.texture.FrameBuffer;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture2D;
+import ru.arifolth.anjrpg.ANJRpg;
 
 public class MiniMapState extends BaseAppState {
 
-    private final int minimapSize;
-    private final float height;
+    // The height of the minimap camera. Usually slightly higher than your world height.
+    // the higher up, the more "zoomed out" it will be (and thus display more).
+    private final float height = 128;
 
     private Camera mapCam;
     private ViewPort mapViewport;
@@ -65,13 +67,9 @@ public class MiniMapState extends BaseAppState {
     /**
      * Creates a new MiniMap and displays the scene specified.
      * @param mapRoot   The scene to display in the minimap, for example the rootNode of your game.
-     * @param height    The height the minimap will display from. Generally slightly higher than your maximum world
-     *                  height.
      */
-    public MiniMapState(Node mapRoot, float height, int size) {
+    public MiniMapState(Node mapRoot) {
         this.mapRoot = mapRoot;
-        this.height = height;
-        this.minimapSize = size;
     }
 
     public Node getMapRoot() {
@@ -84,14 +82,15 @@ public class MiniMapState extends BaseAppState {
 
     @Override
     protected void initialize(Application app) {
+        int miniMapSize = getMapSize((ANJRpg) app);
 
-        mapCam = new Camera(minimapSize, minimapSize);
+        mapCam = new Camera(miniMapSize, miniMapSize);
 
         mapViewport = app.getRenderManager().createMainView("Offscreen View", mapCam);
         mapViewport.setClearFlags(true, true, true);
         mapViewport.setBackgroundColor(ColorRGBA.DarkGray);
 
-        FrameBuffer offBuffer = new FrameBuffer(minimapSize, minimapSize, 1);
+        FrameBuffer offBuffer = new FrameBuffer(miniMapSize, miniMapSize, 1);
 
         mapCam.setFrustumPerspective(45, 1f, 1f, 300);
         mapCam.setParallelProjection(true);
@@ -99,7 +98,7 @@ public class MiniMapState extends BaseAppState {
         mapCam.setLocation(new Vector3f(0, height, 0));
         mapCam.lookAt(new Vector3f(0, -1, 0), Vector3f.UNIT_Y);
 
-        Texture2D offTex = new Texture2D(minimapSize, minimapSize, Image.Format.RGBA8);
+        Texture2D offTex = new Texture2D(miniMapSize, miniMapSize, Image.Format.RGBA8);
         offTex.setMinFilter(Texture.MinFilter.Trilinear);
         offTex.setMagFilter(Texture.MagFilter.Bilinear);
 
@@ -110,7 +109,7 @@ public class MiniMapState extends BaseAppState {
 
         mapViewport.attachScene(mapRoot);
 
-        minimap = new Geometry("MiniMap", new Quad(minimapSize, minimapSize));
+        minimap = new Geometry("MiniMap", new Quad(miniMapSize, miniMapSize));
 
         minimap.setMaterial(new Material(app.getAssetManager(), "MatDefs/MiniMap/MiniMap.j3md"));
         minimap.getMaterial().setTexture("ColorMap", offTex);
@@ -118,13 +117,17 @@ public class MiniMapState extends BaseAppState {
         minimap.getMaterial().setTexture("Overlay", app.getAssetManager().loadTexture("Textures/MiniMap/circle-overlay.png"));
 
         minimap.setLocalTranslation(
-                app.getCamera().getWidth() - minimapSize - 20,
-                app.getCamera().getHeight() - minimapSize - 20,
+                app.getCamera().getWidth() - miniMapSize - 20,
+                app.getCamera().getHeight() - miniMapSize - 20,
                 1
         );
 
         guiNode = ((SimpleApplication)app).getGuiNode();
         guiNode.attachChild(minimap);
+    }
+
+    private static int getMapSize(ANJRpg app) {
+        return (int) ((float)app.getSettings().getHeight() / 3.6f);
     }
 
 
