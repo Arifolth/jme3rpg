@@ -16,12 +16,9 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.anjrpg;
+package ru.arifolth.anjrpg.menu;
 
 import com.jme3.app.Application;
-import com.jme3.app.state.AppState;
-import com.jme3.app.state.BaseAppState;
-import com.jme3.scene.Node;
 import com.jme3.system.AppSettings;
 import com.simsilica.lemur.*;
 import com.simsilica.lemur.component.BorderLayout;
@@ -29,6 +26,7 @@ import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.state.CompositeAppState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.arifolth.anjrpg.ANJRpg;
 
 import java.util.Arrays;
 import java.util.List;
@@ -36,21 +34,24 @@ import java.util.List;
 import static com.simsilica.lemur.component.BorderLayout.Position.East;
 import static com.simsilica.lemur.component.BorderLayout.Position.West;
 
-public class OptionsMenuState extends CompositeAppState {
+public class VideoMenuState extends CompositeAppState {
+    static Logger log = LoggerFactory.getLogger(VideoMenuState.class);
     public static final int WIDTH = 0;
     public static final int HEIGHT = 1;
-    static Logger log = LoggerFactory.getLogger(OptionsMenuState.class);
     private Dropdown<String> dropdown = new Dropdown<>();
-    private MainMenuState parent;
-    private Container optionsWindow;
+    private OptionsMenuState parent;
+    private Container videoOptionsWindow;
 
-    public OptionsMenuState(MainMenuState parent) {
+    public VideoMenuState(OptionsMenuState parent) {
         this.parent = parent;
     }
 
     private void apply() {
         AppSettings settings = ((ANJRpg)getApplication()).getSettings();
-        String selection = dropdown.getModel().get(dropdown.getSelectionModel().getSelection());
+        Integer selectionItem = dropdown.getSelectionModel().getSelection();
+        if(null == selectionItem)
+            selectionItem = dropdown.getDefaultSelection();
+        String selection = dropdown.getModel().get(selectionItem);
         List<String> resolution = Arrays.asList(selection.split("x"));
         resolution.replaceAll(String::trim);
         settings.setResolution(Integer.parseInt(resolution.get(WIDTH)), Integer.parseInt(resolution.get(HEIGHT)));
@@ -59,10 +60,11 @@ public class OptionsMenuState extends CompositeAppState {
 
         setEnabled(false);
         parent.setEnabled(false);
+        parent.getParent().setEnabled(false);
 
         getApplication().restart();
 
-        parent.setEnabled(true);
+        parent.getParent().setEnabled(true);
     }
 
     @Override
@@ -76,11 +78,11 @@ public class OptionsMenuState extends CompositeAppState {
 
     @Override
     protected void onEnable() {
-        optionsWindow = new Container();
+        videoOptionsWindow = new Container();
 
-        Container menuContainer = optionsWindow.addChild(new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even)));
-        Label title = menuContainer.addChild(new Label("Options"));
-        title.setFontSize(32);
+        Container menuContainer = videoOptionsWindow.addChild(new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even)));
+        Label title = menuContainer.addChild(new Label("Video"));
+        title.setFontSize(24);
         title.setInsets(new Insets3f(10, 10, 0, 10));
 
         Container props;
@@ -92,17 +94,15 @@ public class OptionsMenuState extends CompositeAppState {
         props.addChild(new Label("Resolution:"), West);
         props.addChild(dropdown, East);
 
-
         ActionButton options = menuContainer.addChild(new ActionButton(new CallMethodAction("Apply", this, "apply")));
         options.setInsets(new Insets3f(10, 10, 10, 10));
 
-
-        parent.getMainWindow().addChild(optionsWindow, East);
-        GuiGlobals.getInstance().requestFocus(optionsWindow);
+        parent.getMainWindow().addChild(videoOptionsWindow, East);
+        GuiGlobals.getInstance().requestFocus(videoOptionsWindow);
     }
 
     @Override
     protected void onDisable() {
-        optionsWindow.removeFromParent();
+        videoOptionsWindow.removeFromParent();
     }
 }

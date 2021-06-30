@@ -16,7 +16,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.anjrpg;
+package ru.arifolth.anjrpg.menu;
 
 import com.jme3.math.Vector3f;
 import com.simsilica.lemur.Button;
@@ -57,10 +57,15 @@ public class Dropdown<T> extends Panel {
 
     // Array of supported display modes
     private DisplayMode[] modes = null;
+    private boolean opened;
 
     public Dropdown() {
         this(null);
 
+        initialize();
+    }
+
+    private void initialize() {
         GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 
         modes = device.getDisplayModes();
@@ -68,10 +73,17 @@ public class Dropdown<T> extends Panel {
         listBox.getModel().addAll((Collection<? extends T>) getResolutions(modes, WIDTH_LIMIT, HEIGHT_LIMIT));
 
         if(listBox.getModel().size() > 0) {
-            this.selectionRef = listBox.getSelectionModel().createReference();
-            chosenElement.setText(listBox.getModel().get(listBox.getModel().size() - 1).toString());
-            listBox.getSelectionModel().setSelection(listBox.getModel().size() - 1);
+            //set default text
+            setDefaultText();
         }
+    }
+
+    private void setDefaultText() {
+        chosenElement.setText(listBox.getModel().get(getDefaultSelection()).toString());
+    }
+
+    public int getDefaultSelection() {
+        return listBox.getModel().size() - 1;
     }
 
     public Dropdown(String style) {

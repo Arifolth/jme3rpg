@@ -16,7 +16,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.anjrpg;
+package ru.arifolth.anjrpg.menu;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
@@ -29,6 +29,7 @@ import com.simsilica.lemur.component.IconComponent;
 import com.simsilica.lemur.component.SpringGridLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.arifolth.anjrpg.ANJRpg;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.West;
 

@@ -39,6 +39,7 @@ import com.simsilica.lemur.OptionPanelState;
 import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.tools.SizeValue;
+import ru.arifolth.anjrpg.menu.MainMenuState;
 import ru.arifolth.game.SoundManager;
 import ru.arifolth.game.TerrainManager;
 import ru.arifolth.game.models.PlayerCharacter;
