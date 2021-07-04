@@ -19,15 +19,15 @@
 
 package ru.arifolth.anjrpg.menu;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-public class FrameRateDropDown extends Dropdown {
-    public static final int REFRESH_RATES_SIZE = 2;
+public class BitsPerPixelDropDown extends Dropdown<String> {
+    private static final int BITS_PER_PIXEL_SIZE = 2;
 
-    @Override
     protected void initialize() {
-        listBox.getModel().addAll(getRefreshRates());
+        listBox.getModel().addAll(getDepthBits());
 
         if(listBox.getModel().size() > 0) {
             //set default text
@@ -35,12 +35,13 @@ public class FrameRateDropDown extends Dropdown {
         }
     }
 
-    private java.util.List<String> getRefreshRates() {
-        List<String> refreshRates = new ArrayList<>(REFRESH_RATES_SIZE);
+    private Collection<String> getDepthBits() {
+        List<String> bitsPerPixel = new ArrayList<>(BITS_PER_PIXEL_SIZE);
 
-        refreshRates.add(Integer.toString(30));
-        refreshRates.add(Integer.toString(60));
+        bitsPerPixel.add(Integer.toString(16));
+        bitsPerPixel.add(Integer.toString(24));
+        bitsPerPixel.add(Integer.toString(32));
 
-        return refreshRates;
+        return bitsPerPixel;
     }
 }

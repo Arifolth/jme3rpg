@@ -177,7 +177,7 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
         settings.setTitle("Alexander's Nilov Java RPG");
         GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         settings.setFullscreen(device.isFullScreenSupported());
-        settings.setBitsPerPixel(24); //24
+        settings.setBitsPerPixel(32); //24
         settings.setSamples(16); //16
         settings.setVSync(true);
         settings.setResolution(3840,2160);

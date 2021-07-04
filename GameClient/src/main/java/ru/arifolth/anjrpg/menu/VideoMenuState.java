@@ -39,10 +39,12 @@ public class VideoMenuState extends CompositeAppState {
     public static final int WIDTH = 0;
     public static final int HEIGHT = 1;
     private Dropdown<String> resolutionsDropDown = new ResolutionsDropDown();
-    private Dropdown<String> framerateDropDown = new FrameRateDropDown();
+    private Dropdown<String> frameRateDropDown = new FrameRateDropDown();
+    private Dropdown<String> bitsPerPixelDropDown = new BitsPerPixelDropDown();
     private OptionsMenuState parent;
     private Container videoOptionsWindow;
     private Checkbox fullscreen = new Checkbox("Fullscreen");
+    private Checkbox vsync = new Checkbox("VSync");
 
     public VideoMenuState(OptionsMenuState parent) {
         this.parent = parent;
@@ -52,7 +54,9 @@ public class VideoMenuState extends CompositeAppState {
         AppSettings settings = ((ANJRpg)getApplication()).getSettings();
         applyResolution(settings);
         applyFrameRate(settings);
+        applyDepthBitsScreen(settings);
         applyFullScreen(settings);
+        applyVSync(settings);
         getApplication().setSettings(settings);
 
 
@@ -65,15 +69,27 @@ public class VideoMenuState extends CompositeAppState {
         parent.getParent().setEnabled(true);
     }
 
+    private void applyVSync(AppSettings settings) {
+        settings.setVSync(vsync.isChecked());
+    }
+
+    private void applyDepthBitsScreen(AppSettings settings) {
+        Integer selectionItem = bitsPerPixelDropDown.getSelectionModel().getSelection();
+        if(null == selectionItem)
+            selectionItem = bitsPerPixelDropDown.getDefaultSelection();
+        String bitsPerPixel = bitsPerPixelDropDown.getModel().get(selectionItem);
+        settings.setBitsPerPixel(Integer.valueOf(bitsPerPixel));
+    }
+
     private void applyFullScreen(AppSettings settings) {
         settings.setFullscreen(fullscreen.isChecked());
     }
 
     private void applyFrameRate(AppSettings settings) {
-        Integer selectionItem = framerateDropDown.getSelectionModel().getSelection();
+        Integer selectionItem = frameRateDropDown.getSelectionModel().getSelection();
         if(null == selectionItem)
-            selectionItem = framerateDropDown.getDefaultSelection();
-        String framerate = framerateDropDown.getModel().get(selectionItem);
+            selectionItem = frameRateDropDown.getDefaultSelection();
+        String framerate = frameRateDropDown.getModel().get(selectionItem);
         settings.setFrameRate(Integer.valueOf(framerate));
     }
 
@@ -116,10 +132,18 @@ public class VideoMenuState extends CompositeAppState {
 
         props = joinPanel.addChild(new Container(new BorderLayout()));
         props.setBackground(null);
-        props.addChild(new Label("FrameRate:"), West);
-        props.addChild(framerateDropDown, East);
+        props.addChild(new Label("Frame Rate:"), West);
+        props.addChild(frameRateDropDown, East);
+
+        props = joinPanel.addChild(new Container(new BorderLayout()));
+        props.setBackground(null);
+        props.addChild(new Label("Bits Per Pixel:"), West);
+        props.addChild(bitsPerPixelDropDown, East);
 
         Checkbox temp = joinPanel.addChild(fullscreen);
+        temp.setChecked(true);
+
+        temp = joinPanel.addChild(vsync);
         temp.setChecked(true);
 
         ActionButton options = menuContainer.addChild(new ActionButton(new CallMethodAction("Apply", this, "apply")));
