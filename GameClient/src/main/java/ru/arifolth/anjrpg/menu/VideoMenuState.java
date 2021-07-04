@@ -39,8 +39,10 @@ public class VideoMenuState extends CompositeAppState {
     public static final int WIDTH = 0;
     public static final int HEIGHT = 1;
     private Dropdown<String> resolutionsDropDown = new ResolutionsDropDown();
+    private Dropdown<String> framerateDropDown = new FrameRateDropDown();
     private OptionsMenuState parent;
     private Container videoOptionsWindow;
+    private Checkbox fullscreen = new Checkbox("Fullscreen");
 
     public VideoMenuState(OptionsMenuState parent) {
         this.parent = parent;
@@ -49,7 +51,8 @@ public class VideoMenuState extends CompositeAppState {
     private void apply() {
         AppSettings settings = ((ANJRpg)getApplication()).getSettings();
         applyResolution(settings);
-
+        applyFrameRate(settings);
+        applyFullScreen(settings);
         getApplication().setSettings(settings);
 
 
@@ -60,6 +63,18 @@ public class VideoMenuState extends CompositeAppState {
         getApplication().restart();
 
         parent.getParent().setEnabled(true);
+    }
+
+    private void applyFullScreen(AppSettings settings) {
+        settings.setFullscreen(fullscreen.isChecked());
+    }
+
+    private void applyFrameRate(AppSettings settings) {
+        Integer selectionItem = framerateDropDown.getSelectionModel().getSelection();
+        if(null == selectionItem)
+            selectionItem = framerateDropDown.getDefaultSelection();
+        String framerate = framerateDropDown.getModel().get(selectionItem);
+        settings.setFrameRate(Integer.valueOf(framerate));
     }
 
     private void applyResolution(AppSettings settings) {
@@ -93,11 +108,19 @@ public class VideoMenuState extends CompositeAppState {
         Container props;
         Container joinPanel = menuContainer.addChild(new Container());
         joinPanel.setInsets(new Insets3f(10, 10, 10, 10));
+
         props = joinPanel.addChild(new Container(new BorderLayout()));
         props.setBackground(null);
-
         props.addChild(new Label("Resolution:"), West);
         props.addChild(resolutionsDropDown, East);
+
+        props = joinPanel.addChild(new Container(new BorderLayout()));
+        props.setBackground(null);
+        props.addChild(new Label("FrameRate:"), West);
+        props.addChild(framerateDropDown, East);
+
+        Checkbox temp = joinPanel.addChild(fullscreen);
+        temp.setChecked(true);
 
         ActionButton options = menuContainer.addChild(new ActionButton(new CallMethodAction("Apply", this, "apply")));
         options.setInsets(new Insets3f(10, 10, 10, 10));
