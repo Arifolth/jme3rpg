@@ -38,7 +38,7 @@ public class VideoMenuState extends CompositeAppState {
     static Logger log = LoggerFactory.getLogger(VideoMenuState.class);
     public static final int WIDTH = 0;
     public static final int HEIGHT = 1;
-    private Dropdown<String> dropdown = new ResolutionsDropDown();
+    private Dropdown<String> resolutionsDropDown = new ResolutionsDropDown();
     private OptionsMenuState parent;
     private Container videoOptionsWindow;
 
@@ -48,13 +48,8 @@ public class VideoMenuState extends CompositeAppState {
 
     private void apply() {
         AppSettings settings = ((ANJRpg)getApplication()).getSettings();
-        Integer selectionItem = dropdown.getSelectionModel().getSelection();
-        if(null == selectionItem)
-            selectionItem = dropdown.getDefaultSelection();
-        String selection = dropdown.getModel().get(selectionItem);
-        List<String> resolution = Arrays.asList(selection.split("x"));
-        resolution.replaceAll(String::trim);
-        settings.setResolution(Integer.parseInt(resolution.get(WIDTH)), Integer.parseInt(resolution.get(HEIGHT)));
+        applyResolution(settings);
+
         getApplication().setSettings(settings);
 
 
@@ -65,6 +60,16 @@ public class VideoMenuState extends CompositeAppState {
         getApplication().restart();
 
         parent.getParent().setEnabled(true);
+    }
+
+    private void applyResolution(AppSettings settings) {
+        Integer selectionItem = resolutionsDropDown.getSelectionModel().getSelection();
+        if(null == selectionItem)
+            selectionItem = resolutionsDropDown.getDefaultSelection();
+        String selection = resolutionsDropDown.getModel().get(selectionItem);
+        List<String> resolution = Arrays.asList(selection.split("x"));
+        resolution.replaceAll(String::trim);
+        settings.setResolution(Integer.parseInt(resolution.get(WIDTH)), Integer.parseInt(resolution.get(HEIGHT)));
     }
 
     @Override
@@ -92,7 +97,7 @@ public class VideoMenuState extends CompositeAppState {
         props.setBackground(null);
 
         props.addChild(new Label("Resolution:"), West);
-        props.addChild(dropdown, East);
+        props.addChild(resolutionsDropDown, East);
 
         ActionButton options = menuContainer.addChild(new ActionButton(new CallMethodAction("Apply", this, "apply")));
         options.setInsets(new Insets3f(10, 10, 10, 10));
