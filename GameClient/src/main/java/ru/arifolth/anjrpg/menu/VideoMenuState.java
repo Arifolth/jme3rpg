@@ -38,7 +38,7 @@ public class VideoMenuState extends CompositeAppState {
     static Logger log = LoggerFactory.getLogger(VideoMenuState.class);
     public static final int WIDTH = 0;
     public static final int HEIGHT = 1;
-    private Dropdown<String> dropdown = new Dropdown<>();
+    private Dropdown<String> dropdown = new ResolutionsDropDown();
     private OptionsMenuState parent;
     private Container videoOptionsWindow;
 

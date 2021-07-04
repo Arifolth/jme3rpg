@@ -42,21 +42,14 @@ import java.util.*;
 *
 * */
 
-public class Dropdown<T> extends Panel {
+public abstract class Dropdown<T> extends Panel {
     public static final String ELEMENT_ID = "dropdown";
-    public static final int WIDTH_LIMIT = 3840;
-    public static final int HEIGHT_LIMIT = 2160;
     private boolean popupShown;
-    private final Label chosenElement;
     private final Button collapseButton;
-    private final ListBox<T> listBox;
+    protected final Label chosenElement;
+    protected final ListBox<T> listBox;
     private VersionedReference<Set<Integer>> selectionRef;
 
-    private int minWidth = 1280;
-    private int minHeight = 1024;
-
-    // Array of supported display modes
-    private DisplayMode[] modes = null;
     private boolean opened;
 
     public Dropdown() {
@@ -65,22 +58,7 @@ public class Dropdown<T> extends Panel {
         initialize();
     }
 
-    private void initialize() {
-        GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-
-        modes = device.getDisplayModes();
-        Arrays.sort(modes, new DisplayModeSorter());
-        listBox.getModel().addAll((Collection<? extends T>) getResolutions(modes, WIDTH_LIMIT, HEIGHT_LIMIT));
-
-        if(listBox.getModel().size() > 0) {
-            //set default text
-            setDefaultText();
-        }
-    }
-
-    private void setDefaultText() {
-        chosenElement.setText(listBox.getModel().get(getDefaultSelection()).toString());
-    }
+    protected abstract void initialize();
 
     public int getDefaultSelection() {
         return listBox.getModel().size() - 1;
@@ -92,32 +70,6 @@ public class Dropdown<T> extends Panel {
 
     public Dropdown(ElementId elementId, String style) {
         this(true, elementId, style);
-    }
-
-    /**
-     * Returns every unique resolution from an array of <code>DisplayMode</code>s
-     * where the resolution is greater than the configured minimums.
-     */
-    private List<String> getResolutions(DisplayMode[] modes, int widthLimit, int heightLimit) {
-        List<String> resolutions = new ArrayList<String>(modes.length);
-        for (DisplayMode mode : modes) {
-            int height = mode.getHeight();
-            int width = mode.getWidth();
-            if (width >= minWidth && height >= minHeight) {
-                if (height >= heightLimit) {
-                    height = heightLimit;
-                }
-                if (width >= widthLimit) {
-                    width = widthLimit;
-                }
-
-                String res = width + " x " + height;
-                if (!resolutions.contains(res)) {
-                    resolutions.add(res);
-                }
-            }
-        }
-        return resolutions;
     }
 
     @Override
@@ -185,34 +137,7 @@ public class Dropdown<T> extends Panel {
         return listBox.getSelectionModel();
     }
 
-    /**
-     * Utility class for sorting <code>DisplayMode</code>s. Sorts by
-     * resolution, then bit depth, and then finally refresh rate.
-     */
-    private class DisplayModeSorter implements Comparator<DisplayMode> {
-
-        /**
-         * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
-         */
-        public int compare(DisplayMode a, DisplayMode b) {
-            // Width
-            if (a.getWidth() != b.getWidth()) {
-                return (a.getWidth() > b.getWidth()) ? 1 : -1;
-            }
-            // Height
-            if (a.getHeight() != b.getHeight()) {
-                return (a.getHeight() > b.getHeight()) ? 1 : -1;
-            }
-            // Bit depth
-            if (a.getBitDepth() != b.getBitDepth()) {
-                return (a.getBitDepth() > b.getBitDepth()) ? 1 : -1;
-            }
-            // Refresh rate
-            if (a.getRefreshRate() != b.getRefreshRate()) {
-                return (a.getRefreshRate() > b.getRefreshRate()) ? 1 : -1;
-            }
-            // All fields are equal
-            return 0;
-        }
+    protected void setDefaultText() {
+        chosenElement.setText(listBox.getModel().get(getDefaultSelection()).toString());
     }
 }

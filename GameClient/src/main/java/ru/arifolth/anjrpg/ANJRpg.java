@@ -181,7 +181,7 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
         settings.setSamples(16); //16
         settings.setVSync(true);
         settings.setResolution(3840,2160);
-        settings.setRenderer(AppSettings.LWJGL_OPENGL2);
+        settings.setRenderer(AppSettings.LWJGL_OPENGL45);
         settings.setFrameRate(30);
         settings.setGammaCorrection(false);
 
