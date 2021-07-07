@@ -18,7 +18,6 @@
 
 package ru.arifolth.anjrpg;
 
-import com.jme3.app.Application;
 import com.jme3.math.Vector3f;
 import com.jme3.niftygui.NiftyJmeDisplay;
 import com.jme3.system.AppSettings;
@@ -36,6 +35,7 @@ import de.lessvoid.nifty.screen.ScreenController;
 import java.awt.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.BackingStoreException;
 
 import static com.jme3.niftygui.NiftyJmeDisplay.newNiftyJmeDisplay;
 
@@ -162,7 +162,7 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
                 guiViewPort);
         nifty = niftyDisplay.getNifty();
         nifty.registerScreenController(this);
-        nifty.fromXml("Interface/nifty_loading.xml", "start", this);
+        nifty.fromXml("Interface/nifty_loading.xml", "loadlevel", this);
 
         guiViewPort.addProcessor(niftyDisplay);
 
@@ -171,19 +171,24 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
     }
 
     private void initializeApplicationSettings() {
+        if(ready) {
+            return;
+        }
+
         showSettings = false;
 
-        AppSettings settings = new AppSettings(true);
-        settings.setTitle("Alexander's Nilov Java RPG");
-        GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        settings.setFullscreen(device.isFullScreenSupported());
-        settings.setBitsPerPixel(32); //24
-        settings.setSamples(16); //16
-        settings.setVSync(true);
-        settings.setResolution(3840,2160);
-        settings.setRenderer(AppSettings.LWJGL_OPENGL45);
-        settings.setFrameRate(30);
-        settings.setGammaCorrection(false);
+        AppSettings settings = new AppSettings(false);
+        try {
+            AppSettings oldSettings = new AppSettings(false);
+            oldSettings.load("ru.arifolth.anjrpg");
+            if(oldSettings.size() == 0) {
+                oldSettings.copyFrom(new AppSettings(true));
+                applyDefaultSettings(settings);
+            }
+            settings.mergeFrom(oldSettings);
+        } catch (BackingStoreException e) {
+            e.printStackTrace();
+        }
 
         //setDisplayFps(true);
         //setDisplayStatView(false);
@@ -199,6 +204,19 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
 
         //hide statistics HUD
         setDisplayStatView(false);
+    }
+
+    private void applyDefaultSettings(AppSettings settings) {
+        settings.setTitle("Alexander's Nilov Java RPG");
+        GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        settings.setFullscreen(device.isFullScreenSupported());
+        settings.setBitsPerPixel(32); //24
+        settings.setSamples(1); //16
+        settings.setVSync(true);
+        settings.setResolution(3840,2160);
+        settings.setRenderer(AppSettings.LWJGL_OPENGL45);
+        settings.setFrameRate(60);
+        settings.setGammaCorrection(false);
     }
 
     public AppSettings getSettings(){

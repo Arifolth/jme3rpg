@@ -18,6 +18,9 @@
 
 package ru.arifolth.anjrpg.menu;
 
+import com.jme3.app.Application;
+import com.jme3.system.AppSettings;
+
 import java.awt.*;
 import java.util.*;
 import java.util.List;
@@ -30,17 +33,31 @@ public class ResolutionsDropDown extends Dropdown {
     // Array of supported display modes
     private DisplayMode[] modes = null;
 
-    protected void initialize() {
+    protected void initialize(AppSettings settings) {
+        this.settings = settings;
         GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 
         modes = device.getDisplayModes();
         Arrays.sort(modes, new DisplayModeSorter());
-        listBox.getModel().addAll((Collection) getResolutions(modes, WIDTH_LIMIT, HEIGHT_LIMIT));
+        listBox.getModel().addAll(getResolutions(modes, WIDTH_LIMIT, HEIGHT_LIMIT));
 
-        if(listBox.getModel().size() > 0) {
-            //set default text
-            setDefaultText();
-        }
+        setCurrentValue();
+    }
+
+    @Override
+    public String getSelectedValue() {
+        Integer selectionItem = getSelectionModel().getSelection();
+        if (null == selectionItem)
+            selectionItem = getDefaultSelection(chosenElement.getText());
+        return getModel().get(selectionItem);
+    }
+
+    protected void setCurrentValue() {
+        int currentWidth = settings.getWidth();
+        int currentHeight = settings.getHeight();
+        String res = currentWidth + " x " + currentHeight;
+
+        chosenElement.setText(res);
     }
 
     /**

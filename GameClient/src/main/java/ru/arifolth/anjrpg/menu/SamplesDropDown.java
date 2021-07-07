@@ -16,7 +16,6 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 package ru.arifolth.anjrpg.menu;
 
 import com.jme3.system.AppSettings;
@@ -25,29 +24,31 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class BitsPerPixelDropDown extends Dropdown {
-    private static final int BITS_PER_PIXEL_SIZE = 2;
+public class SamplesDropDown extends Dropdown {
 
     protected void initialize(AppSettings settings) {
         this.settings = settings;
-        listBox.getModel().addAll(getDepthBits());
+        listBox.getModel().addAll(getSamles());
 
         setCurrentValue();
     }
 
     protected void setCurrentValue() {
-        int bitsPerPixel = settings.getBitsPerPixel();
+        int samples = settings.getSamples();
 
-        chosenElement.setText(Integer.toString(bitsPerPixel));
+        chosenElement.setText(Integer.toString(samples));
     }
 
-    private Collection<String> getDepthBits() {
-        List<String> bitsPerPixel = new ArrayList<>(BITS_PER_PIXEL_SIZE);
+    private Collection<String> getSamles() {
+        List<String> samples = new ArrayList<>();
 
-        bitsPerPixel.add(Integer.toString(16));
-        bitsPerPixel.add(Integer.toString(24));
-        bitsPerPixel.add(Integer.toString(32));
+        samples.add(Integer.toString(0));
+        samples.add(Integer.toString(1));
+        samples.add(Integer.toString(2));
+        samples.add(Integer.toString(4));
+        samples.add(Integer.toString(8));
+        samples.add(Integer.toString(16));
 
-        return bitsPerPixel;
+        return samples;
     }
 }

@@ -19,6 +19,8 @@
 
 package ru.arifolth.anjrpg.menu;
 
+import com.jme3.system.AppSettings;
+
 import java.util.*;
 import java.util.List;
 
@@ -26,13 +28,17 @@ public class FrameRateDropDown extends Dropdown {
     public static final int REFRESH_RATES_SIZE = 2;
 
     @Override
-    protected void initialize() {
+    protected void initialize(AppSettings settings) {
+        this.settings = settings;
         listBox.getModel().addAll(getRefreshRates());
 
-        if(listBox.getModel().size() > 0) {
-            //set default text
-            setDefaultText();
-        }
+        setCurrentValue();
+    }
+
+    protected void setCurrentValue() {
+        int frameRate = settings.getFrameRate();
+
+        chosenElement.setText(Integer.toString(frameRate));
     }
 
     private java.util.List<String> getRefreshRates() {

@@ -30,6 +30,7 @@ import ru.arifolth.anjrpg.ANJRpg;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.prefs.BackingStoreException;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.East;
 import static com.simsilica.lemur.component.BorderLayout.Position.West;
@@ -38,47 +39,77 @@ public class VideoMenuState extends CompositeAppState {
     static Logger log = LoggerFactory.getLogger(VideoMenuState.class);
     public static final int WIDTH = 0;
     public static final int HEIGHT = 1;
-    private Dropdown<String> resolutionsDropDown = new ResolutionsDropDown();
-    private Dropdown<String> frameRateDropDown = new FrameRateDropDown();
-    private Dropdown<String> bitsPerPixelDropDown = new BitsPerPixelDropDown();
+    private Dropdown rendererDropDown = new RendererDropDown();
+    private Dropdown resolutionsDropDown = new ResolutionsDropDown();
+    private Dropdown frameRateDropDown = new FrameRateDropDown();
+    private Dropdown bitsPerPixelDropDown = new BitsPerPixelDropDown();
+    private Dropdown samplesDropDown = new SamplesDropDown();
     private OptionsMenuState parent;
     private Container videoOptionsWindow;
     private Checkbox fullscreen = new Checkbox("Fullscreen");
     private Checkbox vsync = new Checkbox("VSync");
+    private Checkbox gammaCorrection = new Checkbox("Gamma Correction");
 
     public VideoMenuState(OptionsMenuState parent) {
         this.parent = parent;
+
+        AppSettings settings = this.parent.getApplication().getContext().getSettings();
+        resolutionsDropDown.initialize(settings);
+        rendererDropDown.initialize(settings);
+        frameRateDropDown.initialize(settings);
+        bitsPerPixelDropDown.initialize(settings);
+        samplesDropDown.initialize(settings);
     }
 
     private void apply() {
         AppSettings settings = ((ANJRpg)getApplication()).getSettings();
+        applyRenderer(settings);
         applyResolution(settings);
         applyFrameRate(settings);
-        applyDepthBitsScreen(settings);
+        applyBitsPerPixel(settings);
+        applySamples(settings);
         applyFullScreen(settings);
         applyVSync(settings);
+        applyGammaCorrection(settings);
         getApplication().setSettings(settings);
-
 
         setEnabled(false);
         parent.setEnabled(false);
         parent.getParent().setEnabled(false);
 
         getApplication().restart();
+        saveSettings(settings);
 
         parent.getParent().setEnabled(true);
+    }
+
+    private void saveSettings(AppSettings settings) {
+        //HKEY_CURRENT_USER\Software\JavaSoft\Prefs\ru\arifolth\anjrpg
+        try {
+            settings.save("ru.arifolth.anjrpg");
+        } catch (BackingStoreException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void applySamples(AppSettings settings) {
+        settings.setSamples(Integer.parseInt(samplesDropDown.getSelectedValue()));
+    }
+
+    private void applyRenderer(AppSettings settings) {
+        settings.setRenderer(rendererDropDown.getSelectedValue());
+    }
+
+    private void applyGammaCorrection(AppSettings settings) {
+        settings.setGammaCorrection(gammaCorrection.isChecked());
     }
 
     private void applyVSync(AppSettings settings) {
         settings.setVSync(vsync.isChecked());
     }
 
-    private void applyDepthBitsScreen(AppSettings settings) {
-        Integer selectionItem = bitsPerPixelDropDown.getSelectionModel().getSelection();
-        if(null == selectionItem)
-            selectionItem = bitsPerPixelDropDown.getDefaultSelection();
-        String bitsPerPixel = bitsPerPixelDropDown.getModel().get(selectionItem);
-        settings.setBitsPerPixel(Integer.valueOf(bitsPerPixel));
+    private void applyBitsPerPixel(AppSettings settings) {
+        settings.setBitsPerPixel(Integer.parseInt(bitsPerPixelDropDown.getSelectedValue()));
     }
 
     private void applyFullScreen(AppSettings settings) {
@@ -86,18 +117,11 @@ public class VideoMenuState extends CompositeAppState {
     }
 
     private void applyFrameRate(AppSettings settings) {
-        Integer selectionItem = frameRateDropDown.getSelectionModel().getSelection();
-        if(null == selectionItem)
-            selectionItem = frameRateDropDown.getDefaultSelection();
-        String framerate = frameRateDropDown.getModel().get(selectionItem);
-        settings.setFrameRate(Integer.valueOf(framerate));
+        settings.setFrameRate(Integer.parseInt(frameRateDropDown.getSelectedValue()));
     }
 
     private void applyResolution(AppSettings settings) {
-        Integer selectionItem = resolutionsDropDown.getSelectionModel().getSelection();
-        if(null == selectionItem)
-            selectionItem = resolutionsDropDown.getDefaultSelection();
-        String selection = resolutionsDropDown.getModel().get(selectionItem);
+        String selection = resolutionsDropDown.getSelectedValue();
         List<String> resolution = Arrays.asList(selection.split("x"));
         resolution.replaceAll(String::trim);
         settings.setResolution(Integer.parseInt(resolution.get(WIDTH)), Integer.parseInt(resolution.get(HEIGHT)));
@@ -127,6 +151,11 @@ public class VideoMenuState extends CompositeAppState {
 
         props = joinPanel.addChild(new Container(new BorderLayout()));
         props.setBackground(null);
+        props.addChild(new Label("Renderer:"), West);
+        props.addChild(rendererDropDown, East);
+
+        props = joinPanel.addChild(new Container(new BorderLayout()));
+        props.setBackground(null);
         props.addChild(new Label("Resolution:"), West);
         props.addChild(resolutionsDropDown, East);
 
@@ -140,8 +169,16 @@ public class VideoMenuState extends CompositeAppState {
         props.addChild(new Label("Bits Per Pixel:"), West);
         props.addChild(bitsPerPixelDropDown, East);
 
+        props = joinPanel.addChild(new Container(new BorderLayout()));
+        props.setBackground(null);
+        props.addChild(new Label("Anti Aliasing:"), West);
+        props.addChild(samplesDropDown, East);
+
         Checkbox temp = joinPanel.addChild(fullscreen);
         temp.setChecked(true);
+
+        temp = joinPanel.addChild(gammaCorrection);
+        temp.setChecked(false);
 
         temp = joinPanel.addChild(vsync);
         temp.setChecked(true);

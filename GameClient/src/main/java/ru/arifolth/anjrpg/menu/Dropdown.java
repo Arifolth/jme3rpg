@@ -19,6 +19,7 @@
 package ru.arifolth.anjrpg.menu;
 
 import com.jme3.math.Vector3f;
+import com.jme3.system.AppSettings;
 import com.simsilica.lemur.Button;
 import com.simsilica.lemur.Label;
 import com.simsilica.lemur.Panel;
@@ -31,8 +32,6 @@ import com.simsilica.lemur.event.PopupState;
 import com.simsilica.lemur.list.SelectionModel;
 import com.simsilica.lemur.style.ElementId;
 
-import java.awt.*;
-import java.util.List;
 import java.util.*;
 
 
@@ -42,26 +41,45 @@ import java.util.*;
 *
 * */
 
-public abstract class Dropdown<T> extends Panel {
+public abstract class Dropdown extends Panel {
     public static final String ELEMENT_ID = "dropdown";
     private boolean popupShown;
     private final Button collapseButton;
     protected final Label chosenElement;
-    protected final ListBox<T> listBox;
+    protected final ListBox<String> listBox;
     private VersionedReference<Set<Integer>> selectionRef;
-
-    private boolean opened;
+    protected AppSettings settings;
 
     public Dropdown() {
         this(null);
-
-        initialize();
     }
 
-    protected abstract void initialize();
+    protected abstract void initialize(AppSettings settings);
+    protected abstract void setCurrentValue();
 
-    public int getDefaultSelection() {
-        return listBox.getModel().size() - 1;
+    public int getDefaultSelection(Object value) {
+        int i = 0;
+        if(value instanceof Integer) {
+            while (i < listBox.getModel().size()) {
+                if((Integer) value == Integer.parseInt(listBox.getModel().get(i))) {
+                    getSelectionModel().setSelection(i);
+                    break;
+                }
+
+                i++;
+            }
+        } else if (value instanceof String) {
+            while (i < listBox.getModel().size()) {
+                if(value.equals(listBox.getModel().get(i))) {
+                    getSelectionModel().setSelection(i);
+                    break;
+                }
+
+                i++;
+            }
+        }
+
+        return i;
     }
 
     public Dropdown(String style) {
@@ -129,15 +147,18 @@ public abstract class Dropdown<T> extends Panel {
         }
     }
 
-    public VersionedList<T> getModel() {
+    public String getSelectedValue() {
+        Integer selectionItem = getSelectionModel().getSelection();
+        if (null == selectionItem)
+            selectionItem = getDefaultSelection(Integer.valueOf(chosenElement.getText()));
+        return getModel().get(selectionItem);
+    }
+
+    public VersionedList<String> getModel() {
         return listBox.getModel();
     }
 
     public SelectionModel getSelectionModel() {
         return listBox.getSelectionModel();
-    }
-
-    protected void setDefaultText() {
-        chosenElement.setText(listBox.getModel().get(getDefaultSelection()).toString());
     }
 }
