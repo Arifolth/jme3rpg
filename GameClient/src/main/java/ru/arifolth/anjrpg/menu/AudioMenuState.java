@@ -19,16 +19,17 @@
 package ru.arifolth.anjrpg.menu;
 
 import com.jme3.app.Application;
+import com.jme3.math.Vector3f;
 import com.jme3.system.AppSettings;
 import com.simsilica.lemur.*;
-import com.simsilica.lemur.component.BorderLayout;
-import com.simsilica.lemur.component.SpringGridLayout;
+import com.simsilica.lemur.component.*;
+import com.simsilica.lemur.core.VersionedReference;
 import com.simsilica.state.CompositeAppState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.arifolth.anjrpg.ANJRpg;
 
-import static com.simsilica.lemur.component.BorderLayout.Position.East;
+import static com.simsilica.lemur.component.BorderLayout.Position.*;
 
 public class AudioMenuState extends CompositeAppState {
     static Logger log = LoggerFactory.getLogger(AudioMenuState.class);
@@ -36,6 +37,7 @@ public class AudioMenuState extends CompositeAppState {
     public static final int HEIGHT = 1;
     private OptionsMenuState parent;
     private Container audioOptionsWindow;
+    private VersionedReference<Double> alpha;
 
     public AudioMenuState(OptionsMenuState parent) {
         this.parent = parent;
@@ -81,7 +83,13 @@ public class AudioMenuState extends CompositeAppState {
         props.setBackground(null);
 
         //Options go here
+        props.addChild(new Label("Audio Volume:"), West);
+        Slider slider = props.addChild(new Slider(new DefaultRangedValueModel(1, 10, 5)), East);
+        alpha = slider.getModel().createReference();
 
+        slider.setInsetsComponent(new DynamicInsetsComponent(0.5f, 0.5f, 0.5f, 0.5f));
+
+        //
         ActionButton options = menuContainer.addChild(new ActionButton(new CallMethodAction("Apply", this, "apply")));
         options.setInsets(new Insets3f(10, 10, 10, 10));
 
