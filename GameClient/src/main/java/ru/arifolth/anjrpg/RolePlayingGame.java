@@ -288,4 +288,12 @@ public abstract class RolePlayingGame extends SimpleApplication {
             return null;
         });
     }
+
+    public SoundManager getSoundManager() {
+        return soundManager;
+    }
+
+    public TerrainManager getTerrainManager() {
+        return terrainManager;
+    }
 }

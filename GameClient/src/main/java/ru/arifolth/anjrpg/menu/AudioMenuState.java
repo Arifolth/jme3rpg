@@ -19,15 +19,15 @@
 package ru.arifolth.anjrpg.menu;
 
 import com.jme3.app.Application;
-import com.jme3.math.Vector3f;
 import com.jme3.system.AppSettings;
 import com.simsilica.lemur.*;
 import com.simsilica.lemur.component.*;
-import com.simsilica.lemur.core.VersionedReference;
 import com.simsilica.state.CompositeAppState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.arifolth.anjrpg.ANJRpg;
+import ru.arifolth.anjrpg.RolePlayingGame;
+import ru.arifolth.game.SoundManager;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.*;
 
@@ -35,12 +35,14 @@ public class AudioMenuState extends CompositeAppState {
     static Logger log = LoggerFactory.getLogger(AudioMenuState.class);
     public static final int WIDTH = 0;
     public static final int HEIGHT = 1;
+    private final SoundManager soundManager;
     private OptionsMenuState parent;
     private Container audioOptionsWindow;
-    private VersionedReference<Double> alpha;
+    private RangedValueModel volumeModel = new DefaultRangedValueModel(0, 6, 3);
 
     public AudioMenuState(OptionsMenuState parent) {
         this.parent = parent;
+        this.soundManager = ((RolePlayingGame) this.parent.getApplication()).getSoundManager();
     }
 
     private void apply() {
@@ -48,6 +50,9 @@ public class AudioMenuState extends CompositeAppState {
 
         getApplication().setSettings(settings);
 
+        soundManager.setVolume((float) volumeModel.getValue());
+        soundManager.reInitialize();
+        ((RolePlayingGame) getApplication()).getGameLogicCore().reInitialize();
 
         setEnabled(false);
         parent.setEnabled(false);
@@ -84,9 +89,8 @@ public class AudioMenuState extends CompositeAppState {
 
         //Options go here
         props.addChild(new Label("Audio Volume:"), West);
-        Slider slider = props.addChild(new Slider(new DefaultRangedValueModel(1, 10, 5)), East);
-        alpha = slider.getModel().createReference();
-
+        Slider slider = props.addChild(new Slider(volumeModel), East);
+        slider.getDecrementButton().addClickCommands();
         slider.setInsetsComponent(new DynamicInsetsComponent(0.5f, 0.5f, 0.5f, 0.5f));
 
         //

@@ -21,7 +21,6 @@ package ru.arifolth.anjrpg.menu;
 import com.jme3.app.Application;
 import com.jme3.system.AppSettings;
 import com.simsilica.lemur.*;
-import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.state.CompositeAppState;
 import org.slf4j.Logger;
@@ -36,6 +35,13 @@ public class ControlsMenuState extends CompositeAppState {
     public static final int HEIGHT = 1;
     private OptionsMenuState parent;
     private Container audioOptionsWindow;
+    private TextField forwardBinding;
+    private TextField backwardBinding;
+    private TextField leftBinding;
+    private TextField rightBinding;
+    private TextField jumpBinding;
+    private TextField actionBinding;
+    private TextField runBinding;
 
     public ControlsMenuState(OptionsMenuState parent) {
         this.parent = parent;
@@ -46,6 +52,8 @@ public class ControlsMenuState extends CompositeAppState {
 
         getApplication().setSettings(settings);
 
+        //Apply options here
+        forwardBinding.getText();
 
         setEnabled(false);
         parent.setEnabled(false);
@@ -77,11 +85,31 @@ public class ControlsMenuState extends CompositeAppState {
         Container props;
         Container joinPanel = menuContainer.addChild(new Container());
         joinPanel.setInsets(new Insets3f(10, 10, 10, 10));
-        props = joinPanel.addChild(new Container(new BorderLayout()));
+        props = joinPanel.addChild(new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Last)));
         props.setBackground(null);
 
         //Options go here
+        props.addChild(new Label("Move forward:"));
+        forwardBinding = props.addChild(new TextField("W"), 1);
 
+        props.addChild(new Label("Move backwards:"));
+        backwardBinding = props.addChild(new TextField("S"), 1);
+
+        props.addChild(new Label("Move left:"));
+        leftBinding = props.addChild(new TextField("A"), 1);
+
+        props.addChild(new Label("Move right:"));
+        rightBinding = props.addChild(new TextField("D"), 1);
+
+        props.addChild(new Label("Jump:"));
+        jumpBinding = props.addChild(new TextField("Space"), 1);
+
+        props.addChild(new Label("Run:"));
+        runBinding = props.addChild(new TextField("Shift"), 1);
+
+        props.addChild(new Label("Action:"));
+        actionBinding = props.addChild(new TextField("E"), 1);
+        /**/
         ActionButton options = menuContainer.addChild(new ActionButton(new CallMethodAction("Apply", this, "apply")));
         options.setInsets(new Insets3f(10, 10, 10, 10));
 

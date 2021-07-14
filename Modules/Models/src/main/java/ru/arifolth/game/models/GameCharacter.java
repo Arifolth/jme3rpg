@@ -101,7 +101,7 @@ public abstract class GameCharacter implements Character {
         initializeSkeletonDebug();
     }
 
-    protected abstract void initializeSounds();
+    public abstract void initializeSounds();
     protected abstract void initializeAnimation();
     protected abstract void initializeSkeletonDebug();
 

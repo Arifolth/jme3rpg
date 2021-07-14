@@ -27,6 +27,8 @@ import com.jme3.audio.AudioNode;
 import java.util.logging.Logger;
 
 public class SoundManager {
+    final private static Logger LOGGER = Logger.getLogger(SoundManager.class.getName());
+
     private enum SoundType {
         WIND,
         WEATHER,
@@ -34,12 +36,16 @@ public class SoundManager {
         SWORD_SWING,
         SWORD_BLOCK
     }
-    final private static Logger LOGGER = Logger.getLogger(SoundManager.class.getName());
+
     private Multimap<SoundType, AudioNode> soundMap = ArrayListMultimap.create();
     private AssetManager assetManager;
 
+    private float volume = 3f;
+    private float pitch = 0.5f;
+
     public SoundManager(AssetManager assetManager) {
         this.assetManager = assetManager;
+
         initialize();
     }
 
@@ -66,44 +72,44 @@ public class SoundManager {
     private void initSwordSwing() {
         {
             AudioNode audioNode = new AudioNode(assetManager, "Sounds/swing/209121__lukesharples__sword-swipe11.wav", AudioData.DataType.Buffer);
-            audioNode.setVolume(3);
-            audioNode.setPitch(0.5f);
+            audioNode.setVolume(volume);
+            audioNode.setPitch(pitch);
             soundMap.put(SoundType.SWORD_SWING, audioNode);
         }
         {
             AudioNode audioNode = new AudioNode(assetManager, "Sounds/swing/209122__lukesharples__sword-swipe2.wav", AudioData.DataType.Buffer);
-            audioNode.setVolume(3);
-            audioNode.setPitch(0.5f);
+            audioNode.setVolume(volume);
+            audioNode.setPitch(pitch);
             soundMap.put(SoundType.SWORD_SWING, audioNode);
         }
         {
             AudioNode audioNode = new AudioNode(assetManager, "Sounds/swing/209123__lukesharples__sword-swipe13.wav", AudioData.DataType.Buffer);
-            audioNode.setVolume(3);
-            audioNode.setPitch(0.5f);
+            audioNode.setVolume(volume);
+            audioNode.setPitch(pitch);
             soundMap.put(SoundType.SWORD_SWING, audioNode);
         }
         {
             AudioNode audioNode = new AudioNode(assetManager, "Sounds/swing/209124__lukesharples__sword-swipe4.wav", AudioData.DataType.Buffer);
-            audioNode.setVolume(3);
-            audioNode.setPitch(0.5f);
+            audioNode.setVolume(volume);
+            audioNode.setPitch(pitch);
             soundMap.put(SoundType.SWORD_SWING, audioNode);
         }
         {
             AudioNode audioNode = new AudioNode(assetManager, "Sounds/swing/209125__lukesharples__sword-swipe3.wav", AudioData.DataType.Buffer);
-            audioNode.setVolume(3);
-            audioNode.setPitch(0.5f);
+            audioNode.setVolume(volume);
+            audioNode.setPitch(pitch);
             soundMap.put(SoundType.SWORD_SWING, audioNode);
         }
         {
             AudioNode audioNode = new AudioNode(assetManager, "Sounds/swing/209126__lukesharples__sword-swipe6.wav", AudioData.DataType.Buffer);
-            audioNode.setVolume(3);
-            audioNode.setPitch(0.5f);
+            audioNode.setVolume(volume);
+            audioNode.setPitch(pitch);
             soundMap.put(SoundType.SWORD_SWING, audioNode);
         }
         {
             AudioNode audioNode = new AudioNode(assetManager, "Sounds/swing/209127__lukesharples__sword-swipe5.wav", AudioData.DataType.Buffer);
-            audioNode.setVolume(3);
-            audioNode.setPitch(0.5f);
+            audioNode.setVolume(volume);
+            audioNode.setPitch(pitch);
             soundMap.put(SoundType.SWORD_SWING, audioNode);
         }
     }
@@ -116,20 +122,20 @@ public class SoundManager {
     private void initSwordBlock() {
         {
             AudioNode audioNode = new AudioNode(assetManager, "Sounds/block/213696__taira-komori__sword1.ogg", AudioData.DataType.Buffer);
-            audioNode.setVolume(2);
-            audioNode.setPitch(0.5f);
+            audioNode.setVolume(volume);
+            audioNode.setPitch(pitch);
             soundMap.put(SoundType.SWORD_BLOCK, audioNode);
         }
         {
             AudioNode audioNode = new AudioNode(assetManager, "Sounds/block/213695__taira-komori__sword2.ogg", AudioData.DataType.Buffer);
-            audioNode.setVolume(2);
-            audioNode.setPitch(0.5f);
+            audioNode.setVolume(volume);
+            audioNode.setPitch(pitch);
             soundMap.put(SoundType.SWORD_BLOCK, audioNode);
         }
         {
             AudioNode audioNode = new AudioNode(assetManager, "Sounds/block/213694__taira-komori__sword3.ogg", AudioData.DataType.Buffer);
-            audioNode.setVolume(2);
-            audioNode.setPitch(0.5f);
+            audioNode.setVolume(volume);
+            audioNode.setPitch(pitch);
             soundMap.put(SoundType.SWORD_BLOCK, audioNode);
         }
     }
@@ -141,7 +147,7 @@ public class SoundManager {
     private void initFootsteps() {
         AudioNode audioNode = new AudioNode(assetManager, "Sounds/running.wav", AudioData.DataType.Buffer);
         audioNode.setLooping(true);
-        audioNode.setVolume(1);
+        audioNode.setVolume(volume);
         audioNode.setPitch(0.65f);
 
         soundMap.put(SoundType.FOOTSTEPS, audioNode);
@@ -153,5 +159,17 @@ public class SoundManager {
 
     public void update(float tpf) {
         //TODO: play area/situation specific music here
+    }
+
+    public void setVolume(float volume) {
+        this.volume = volume;
+    }
+
+    public void reInitialize() {
+        soundMap.values().forEach(audioNode -> audioNode.setVolume(volume));
+    }
+
+    public float getVolume() {
+        return volume;
     }
 }

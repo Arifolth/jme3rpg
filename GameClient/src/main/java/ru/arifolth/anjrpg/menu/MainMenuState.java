@@ -45,6 +45,14 @@ public class MainMenuState extends BaseAppState {
         return getApplication().getCamera().getHeight() / (getApplication().getCamera().getHeight() / 2f);
     }
 
+    private void exitGame() {
+        getState(OptionPanelState.class).show("Confirmation", "Exit game?",
+                new CallMethodAction("Yes",
+                        getApplication(),
+                        "stop"),
+                new EmptyAction("No"));
+    }
+
     private void startNewGame() {
         ((ANJRpg)getApplication()).setUpGUI();
         setEnabled(false);
@@ -92,7 +100,7 @@ public class MainMenuState extends BaseAppState {
         options.setInsets(new Insets3f(10, 10, 10, 10));
 
 
-        ActionButton exit = menuContainer.addChild(new ActionButton(new CallMethodAction("Exit Game", application, "stop")));
+        ActionButton exit = menuContainer.addChild(new ActionButton(new CallMethodAction("Exit Game", this, "exitGame")));
         exit.setInsets(new Insets3f(10, 10, 10, 10));
 
 

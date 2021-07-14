@@ -116,9 +116,12 @@ public abstract class NinjaCharacter extends GameCharacter implements AnimEventL
     public void onAnimChange(AnimControl ctrl, AnimChannel ch, String name) {}
 
     @Override
-    protected void initializeSounds() {
+    public void initializeSounds() {
+        getNode().detachChildNamed(PLAYER_FOOTSTEPS);
+
         AudioNode audioNode = soundManager.getFootStepsNode();
         audioNode.setName(PLAYER_FOOTSTEPS);
+
         getNode().attachChild(audioNode);
 
         soundManager.getWindNode().play();

@@ -70,6 +70,11 @@ public class GameLogicCore {
         //setupWeatherEffects();
     }
 
+
+    public void reInitialize() {
+        getPlayerCharacter().initializeSounds();
+    }
+
     private void setupWeatherEffects() {
         Emitter snowEmitter = new RainEmitter(rootNode, assetManager);
         snowEmitter.setSpatial(playerCharacter.getNode());
