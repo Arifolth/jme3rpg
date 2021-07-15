@@ -18,6 +18,8 @@
 
 package ru.arifolth.anjrpg;
 
+import com.jme3.app.Application;
+import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.input.*;
@@ -37,6 +39,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class GameLogicCore {
+    private MovementController movementController;
+    private Application app;
     private Camera cam;
     private FlyByCamera flyCam;
     private InputManager inputManager;
@@ -50,7 +54,8 @@ public class GameLogicCore {
     private Set<Character> characterSet = new LinkedHashSet<Character>();
     private Set<Emitter> weatherEffectsSet = new LinkedHashSet<Emitter>();
     
-    public GameLogicCore(Camera cam, FlyByCamera flyCam, InputManager inputManager, BulletAppState bulletAppState, AssetManager assetManager, SoundManager soundManager, Node rootNode) {
+    public GameLogicCore(Application app, Camera cam, FlyByCamera flyCam, InputManager inputManager, BulletAppState bulletAppState, AssetManager assetManager, SoundManager soundManager, Node rootNode) {
+        this.movementController = new MovementController(app, inputManager);
         this.cam = cam;
         this.flyCam = flyCam;
         this.inputManager = inputManager;
@@ -64,12 +69,12 @@ public class GameLogicCore {
         characterFactory = new CharacterFactory(bulletAppState, assetManager, soundManager);
 
         setupPlayer();
+
         setupCamera();
 
-        setUpKeys();
+        movementController.setUpKeys();
         //setupWeatherEffects();
     }
-
 
     public void reInitialize() {
         getPlayerCharacter().initializeSounds();
@@ -90,6 +95,7 @@ public class GameLogicCore {
         playerCharacter = (PlayerCharacter)characterFactory.createCharacter(PlayerCharacter.class);
         playerCharacter.setCam(cam);
         characterSet.add(playerCharacter);
+        movementController.setPlayerCharacter(playerCharacter);
     }
 
     public void setupCamera() {
@@ -134,27 +140,6 @@ public class GameLogicCore {
         //chaseCam.setDefaultVerticalRotation(90f);
     }
 
-    /** We over-write some navigational key mappings here, so we can
-     * add physics-controlled walking and jumping: */
-    public void setUpKeys() {
-        inputManager.addMapping("Left",  new KeyTrigger(KeyInput.KEY_A));
-        inputManager.addMapping("Right", new KeyTrigger(KeyInput.KEY_D));
-        inputManager.addMapping("Up",    new KeyTrigger(KeyInput.KEY_W));
-        inputManager.addMapping("Down",  new KeyTrigger(KeyInput.KEY_S));
-        inputManager.addMapping("Jump",  new KeyTrigger(KeyInput.KEY_SPACE));
-        inputManager.addMapping("Run",    new KeyTrigger(KeyInput.KEY_LSHIFT));
-        inputManager.addMapping("Attack", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
-        inputManager.addMapping("Block", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
-        inputManager.addListener(playerCharacter, "Left");
-        inputManager.addListener(playerCharacter, "Right");
-        inputManager.addListener(playerCharacter, "Up");
-        inputManager.addListener(playerCharacter, "Down");
-        inputManager.addListener(playerCharacter, "Jump");
-        inputManager.addListener(playerCharacter, "Run");
-        inputManager.addListener(playerCharacter, "Attack");
-        inputManager.addListener(playerCharacter, "Block");
-    }
-
     public void update(float tpf) {
         for(Character character : characterSet) {
             character.simpleUpdate(tpf);
@@ -165,5 +150,7 @@ public class GameLogicCore {
         }
     }
 
-
+    public MovementController getMovementController() {
+        return movementController;
+    }
 }

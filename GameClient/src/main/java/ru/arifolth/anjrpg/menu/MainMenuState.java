@@ -53,6 +53,10 @@ public class MainMenuState extends BaseAppState {
                 new EmptyAction("No"));
     }
 
+    private void resumeGame() {
+        setEnabled(false);
+    }
+
     private void startNewGame() {
         ((ANJRpg)getApplication()).setUpGUI();
         setEnabled(false);
@@ -83,18 +87,29 @@ public class MainMenuState extends BaseAppState {
 
         mainWindow = new Container(new BorderLayout());
 
-        IconComponent background = new IconComponent("Interface/loading_screen.jpg", 0.32f, 0, 0f, 0f, false);
-        background.setOverlay(true);
-        background.setIconSize(new Vector2f(width, height));
-        mainWindow.setBackground(background);
-
         Container menuContainer = mainWindow.addChild(new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even)), West);
         Label title = menuContainer.addChild(new Label("ANJRpg"));
         title.setFontSize(32);
         title.setInsets(new Insets3f(10, 10, 0, 10));
 
-        ActionButton start = menuContainer.addChild(new ActionButton(new CallMethodAction("Start Game", this, "startNewGame")));
-        start.setInsets(new Insets3f(10, 10, 10, 10));
+        switch(((ANJRpg)getApplication()).getInitStatus()) {
+            case RUNNING: {
+                mainWindow.setBackground(null);
+                ActionButton resume = menuContainer.addChild(new ActionButton(new CallMethodAction("Resume Game", this, "resumeGame")));
+                resume.setInsets(new Insets3f(10, 10, 10, 10));
+                break;
+            }
+            default: {
+                IconComponent background = new IconComponent("Interface/loading_screen.jpg", 0.32f, 0, 0f, 0f, false);
+                background.setOverlay(true);
+                background.setIconSize(new Vector2f(width, height));
+                mainWindow.setBackground(background);
+
+                ActionButton start = menuContainer.addChild(new ActionButton(new CallMethodAction("Start Game", this, "startNewGame")));
+                start.setInsets(new Insets3f(10, 10, 10, 10));
+            }
+
+        }
 
         ActionButton options = menuContainer.addChild(new ActionButton(new CallMethodAction("Options", this, "options")));
         options.setInsets(new Insets3f(10, 10, 10, 10));
@@ -110,7 +125,7 @@ public class MainMenuState extends BaseAppState {
         pref.multLocal(1.5f * standardScale);
 
         // With a slight bias toward the top
-        float y = height * 0.6f + pref.y * 0.5f;
+        float y = height * 0.5f + pref.y * 0.45f;
 
         mainWindow.setLocalTranslation(100 * standardScale, y, 0);
         mainWindow.setLocalScale(1.5f * standardScale);

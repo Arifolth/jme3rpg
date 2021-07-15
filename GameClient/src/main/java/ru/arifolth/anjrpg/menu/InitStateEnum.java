@@ -16,18 +16,10 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.game.models;
+package ru.arifolth.anjrpg.menu;
 
-public class BindingConstants {
-    public static final String LEFT = "Left";
-    public static final String RIGHT = "Right";
-    public static final String UP = "Up";
-    public static final String DOWN = "Down";
-    public static final String JUMP = "Jump";
-    public static final String RUN = "Run";
-    public static final String BLOCK = "Block";
-    public static final String ATTACK = "Attack";
-
-    private BindingConstants() {
-    }
+public enum InitStateEnum {
+    PENDING,
+    INITIALIZED,
+    RUNNING;
 }

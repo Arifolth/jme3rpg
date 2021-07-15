@@ -31,6 +31,7 @@ import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.input.NiftyInputEvent;
 import de.lessvoid.nifty.screen.Screen;
 import de.lessvoid.nifty.screen.ScreenController;
+import ru.arifolth.anjrpg.menu.InitStateEnum;
 
 import java.awt.*;
 import java.util.logging.Level;
@@ -43,12 +44,12 @@ import static com.jme3.niftygui.NiftyJmeDisplay.newNiftyJmeDisplay;
 * https://ev1lbl0w.github.io/jme-wiki-pt-pt/jme3/advanced/loading_screen.html
 * */
 public class ANJRpg extends RolePlayingGame implements ScreenController, Controller {
-
+    public static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, -15, 0);
     private NiftyJmeDisplay niftyDisplay;
     private Nifty nifty;
-    private Boolean initialization = true;
+    private InitStateEnum initialization = InitStateEnum.PENDING;
     final private static Logger LOGGER = Logger.getLogger(ANJRpg.class.getName());
-    private boolean ready = false;
+    private boolean loadingCompleted = false;
 
     public static void main(String[] args) {
         app = new ANJRpg();
@@ -77,43 +78,49 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
 
     @Override
     public void simpleUpdate(float tpf) {
-        if(!ready) {
-            return;
-        }
+        switch (initialization) {
+            case PENDING: {
+                if(!loadingCompleted) {
+                    return;
+                }
 
-        if(null == initialization) {
-            super.simpleUpdate(tpf);
-        } else if (initialization) {
-            Element element = nifty.getScreen("loadlevel").findElementById("loadingtext");
-            textRenderer = element.getRenderer(TextRenderer.class);
+                Element element = nifty.getScreen("loadlevel").findElementById("loadingtext");
+                textRenderer = element.getRenderer(TextRenderer.class);
 
-            loadResources();
+                loadResources();
 
-            setProgress("Loading complete");
-            initialization = false;
-        } else if (initialization == false) {
-            //wait until land appears in Physics Space
-            if(bulletAppState.getPhysicsSpace().getRigidBodyList().size() == 4) {
-                //put player at the beginning location
-                getGameLogicCore().getPlayerCharacter().getCharacterControl().setPhysicsLocation(new Vector3f(0, -15, 0));
+                setProgress("Loading complete");
+                initialization = InitStateEnum.INITIALIZED;
+                break;
+            }
+            case INITIALIZED: {
+                //wait until land appears in Physics Space
+                if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == 4) {
+                    //put player at the beginning location
+                    getGameLogicCore().getPlayerCharacter().getCharacterControl().setPhysicsLocation(PLAYER_START_LOCATION);
 
-                //these calls have to be done on the update loop thread,
-                //especially attaching the terrain to the rootNode
-                //after it is attached, it's managed by the update loop thread
-                // and may not be modified from any other thread anymore!
-                nifty.gotoScreen("end");
-                nifty.exit();
-                guiViewPort.removeProcessor(niftyDisplay);
-                initialization = null;
+                    //these calls have to be done on the update loop thread,
+                    //especially attaching the terrain to the rootNode
+                    //after it is attached, it's managed by the update loop thread
+                    // and may not be modified from any other thread anymore!
+                    nifty.gotoScreen("end");
+                    nifty.exit();
+                    guiViewPort.removeProcessor(niftyDisplay);
+                    initialization = InitStateEnum.RUNNING;
 
-                createMinimap();
+                    createMinimap();
+                }
+                break;
+            }
+            case RUNNING: {
+                //run game
+                super.simpleUpdate(tpf);
             }
         }
     }
 
     public void showLoadingMenu() {
         nifty.gotoScreen("loadlevel");
-        initialization = true;
     }
 
     @Override
@@ -167,11 +174,11 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
         guiViewPort.addProcessor(niftyDisplay);
 
         showLoadingMenu();
-        ready = true;
+        loadingCompleted = true;
     }
 
     private void initializeApplicationSettings() {
-        if(ready) {
+        if(loadingCompleted) {
             return;
         }
 
@@ -217,6 +224,10 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
         settings.setRenderer(AppSettings.LWJGL_OPENGL45);
         settings.setFrameRate(60);
         settings.setGammaCorrection(false);
+    }
+
+    public InitStateEnum getInitStatus() {
+        return initialization;
     }
 
     public AppSettings getSettings(){

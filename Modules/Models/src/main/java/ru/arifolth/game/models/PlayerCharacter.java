@@ -25,8 +25,7 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 
-public class PlayerCharacter extends NinjaCharacter implements ActionListener {
-    private MovementController movementController = new MovementController(this);
+public class PlayerCharacter extends NinjaCharacter {
     private boolean left = false, right = false, up = false, down = false,
         attacking = false, capture_mouse = true, running = false, blocking = false, block_pressed = false,
         jumping = false, jump_pressed = false, attack_pressed = false;
@@ -47,12 +46,6 @@ public class PlayerCharacter extends NinjaCharacter implements ActionListener {
 
     public void setCam(Camera cam) {
         this.cam = cam;
-    }
-
-    /** These are our custom actions triggered by key presses.
-     * We do not walk yet, we just keep track of the direction the user pressed. */
-    public void onAction(String binding, boolean pressed, float tpf) {
-        movementController.keyPressed(binding, pressed);
     }
 
     public void block() {
@@ -108,7 +101,130 @@ public class PlayerCharacter extends NinjaCharacter implements ActionListener {
     public void simpleUpdate(float k) {
         healthBarUpdate();
 
-        movementController.movementUpdate(k);
+        movementUpdate(k);
+    }
+
+
+    public void movementUpdate(float k) {
+        float movement_amount = 0.3f;
+        if(this.isRunning()) {
+            movement_amount *= 1.75;
+        }
+
+        // Gets forward direction and moves it forward
+        Vector3f camDir = this.getCam().getDirection().clone().multLocal(movement_amount);
+        // Gets left direction and moves it to the left
+        Vector3f camLeft = this.getCam().getLeft().clone().multLocal(movement_amount * 0.75f);
+
+        // We don't want to fly or go underground
+        camDir.y = 0;
+        camLeft.y = 0;
+
+        this.getWalkDirection().set(0, 0, 0); // The walk direction is initially null
+
+        if(this.isUp()) {
+            this.getWalkDirection().addLocal(camDir);
+
+            if(this.isLeft()) {
+                this.getWalkDirection().addLocal(camLeft);
+            } else if(this.isRight()) {
+                this.getWalkDirection().addLocal(camLeft.negate());
+            }
+        } else if(this.isDown()) {
+            this.getWalkDirection().addLocal(camDir.negate());
+
+            if(this.isLeft()) {
+                this.getWalkDirection().addLocal(camLeft);
+            } else if(this.isRight()) {
+                this.getWalkDirection().addLocal(camLeft.negate());
+            }
+        } else if(this.isLeft()) {
+            this.getWalkDirection().addLocal(camLeft);
+        } else if(this.isRight()) {
+            this.getWalkDirection().addLocal(camLeft.negate());
+        }
+
+        if(!this.getCharacterControl().onGround()) {
+            this.setAirTime(this.getAirTime() + k);
+        } else {
+            this.setAirTime(0);
+            this.setJumping(false);
+        }
+
+        if (this.getAirTime() > 0.1f || this.isJump_pressed()) {
+            this.setJumping(true);
+            // Stop movement if jumping while walking
+            if(this.isJump_pressed() && this.getAnimationChannel().getAnimationName().equals(AnimConstants.WALK))
+                if (!this.getAnimationChannel().getAnimationName().equals(AnimConstants.JUMP)) {
+                    this.getAnimationChannel().setAnim(AnimConstants.JUMP);
+                    this.getAnimationChannel().setSpeed(1f);
+                    this.getAnimationChannel().setLoopMode(LoopMode.DontLoop);
+                }
+            if(this.getAnimationChannel().getTime() >= 0.32f) { // Delay jump to make the animation look decent
+                this.getCharacterControl().jump();
+            }
+        }
+
+        if(!this.isJumping()) {
+            if ((this.isUp() || this.isDown() || this.isLeft() || this.isRight())) {
+                //set the walking animation
+                this.getAnimationChannel().setLoopMode(LoopMode.Loop);
+                if (!this.getAnimationChannel().getAnimationName().equals(AnimConstants.WALK)) {
+                    this.getAnimationChannel().setAnim(AnimConstants.WALK, 0.5f);
+                }
+                if (this.isRunning()) {
+                    this.getAnimationChannel().setSpeed(1.75f);
+                }
+                else {
+                    this.getAnimationChannel().setSpeed(1f);
+                }
+                this.getPlayerStepsNode(this.isRunning()).play();
+            } else if (this.getWalkDirection().length() == 0) {
+                this.getAnimationChannel().setLoopMode(LoopMode.Loop);
+                if (!this.getAnimationChannel().getAnimationName().equals(AnimConstants.IDLE)) {
+                    this.getAnimationChannel().setAnim(AnimConstants.IDLE, 0f);
+                    this.getAnimationChannel().setSpeed(1f);
+                }
+                this.getPlayerStepsNode(false).pause();
+            }
+        } else {
+            this.getPlayerStepsNode(false).pause();
+        }
+
+        if(this.getActionTime() > 0) {
+            this.setActionTime(this.getActionTime() - k);
+        }
+
+        if(this.isBlocking()) {
+            if (this.getActionTime() <= 0 && !this.getAttackChannel().getAnimationName().equals(AnimConstants.BLOCK)) {
+                this.block();
+            }
+            if(!this.isBlock_pressed() && this.getActionTime() <= 0) {
+                this.getAttackChannel().setAnim(AnimConstants.IDLE, 0f);
+                this.getAttackChannel().setSpeed(1f);
+                this.setBlocking(false);
+            }
+        } else if(this.isAttacking()) {
+            if (this.getActionTime() <= 0 && !this.getAttackChannel().getAnimationName().equals(AnimConstants.ATTACK)) {
+                this.attack();
+            }
+            if(!this.isAttack_pressed() && this.getActionTime() <= 0) {
+                this.getAttackChannel().setAnim(AnimConstants.IDLE, 0f);
+                this.getAttackChannel().setSpeed(1f);
+                this.setAttacking(false);
+            }
+        }
+
+        this.getCharacterControl().setWalkDirection(this.getWalkDirection());
+
+        // Rotate model to point walk direction if moving
+        if((this.getWalkDirection().length() != 0) && (this.isUp() || this.isLeft() || this.isRight()))
+            this.getCharacterControl().setViewDirection(this.getWalkDirection().negate());
+        // negating cause the model is flipped
+
+        //walk backwards
+        if((this.getWalkDirection().length() != 0) && this.isDown())
+            this.getCharacterControl().setViewDirection(this.getWalkDirection());
     }
 
     private void healthBarUpdate() {

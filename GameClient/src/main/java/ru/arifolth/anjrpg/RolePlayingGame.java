@@ -36,6 +36,7 @@ import com.jme3.scene.Node;
 import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.water.WaterFilter;
 import com.simsilica.lemur.OptionPanelState;
+import com.simsilica.lemur.event.PopupState;
 import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.tools.SizeValue;
@@ -66,11 +67,9 @@ public abstract class RolePlayingGame extends SimpleApplication {
     private GameLogicCore gameLogicCore;
 
     public RolePlayingGame() {
-        super(new StatsAppState(),
-                new FlyCamAppState(),
+        super(new FlyCamAppState(),
                 new AudioListenerState(),
-                new DebugKeysAppState(),
-                new ConstantVerifierState(),
+                new PopupState(),
                 new OptionPanelState(),
                 new MainMenuState()
         );
@@ -107,9 +106,8 @@ public abstract class RolePlayingGame extends SimpleApplication {
     }
 
     void setupGameLogic() {
-        gameLogicCore = new GameLogicCore(cam, flyCam, inputManager, bulletAppState, assetManager, soundManager, getRootNode());
+        gameLogicCore = new GameLogicCore(app, cam, flyCam, inputManager, bulletAppState, assetManager, soundManager, getRootNode());
         gameLogicCore.initialize();
-//        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
     private void setupAssetManager() {

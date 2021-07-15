@@ -46,21 +46,12 @@ public class AudioMenuState extends CompositeAppState {
     }
 
     private void apply() {
-        AppSettings settings = ((ANJRpg)getApplication()).getSettings();
-
-        getApplication().setSettings(settings);
-
         soundManager.setVolume((float) volumeModel.getValue());
         soundManager.reInitialize();
         ((RolePlayingGame) getApplication()).getGameLogicCore().reInitialize();
 
         setEnabled(false);
         parent.setEnabled(false);
-        parent.getParent().setEnabled(false);
-
-        getApplication().restart();
-
-        parent.getParent().setEnabled(true);
     }
 
     @Override

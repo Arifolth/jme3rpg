@@ -61,7 +61,7 @@ public class VideoMenuState extends CompositeAppState {
         samplesDropDown.initialize(settings);
     }
 
-    private void apply() {
+    private void restartGame() {
         AppSettings settings = ((ANJRpg)getApplication()).getSettings();
         applyRenderer(settings);
         applyResolution(settings);
@@ -75,12 +75,17 @@ public class VideoMenuState extends CompositeAppState {
 
         setEnabled(false);
         parent.setEnabled(false);
-        parent.getParent().setEnabled(false);
 
-        getApplication().restart();
         saveSettings(settings);
 
-        parent.getParent().setEnabled(true);
+//        getApplication().getContext().restart();
+        getApplication().stop();
+    }
+
+    private void apply() {
+        getState(OptionPanelState.class).show("Confirmation", "Restart required!",
+                new CallMethodAction("Apply", this, "restartGame"),
+                new EmptyAction("Cancel"));
     }
 
     private void saveSettings(AppSettings settings) {

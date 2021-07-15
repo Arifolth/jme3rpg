@@ -26,6 +26,7 @@ import com.simsilica.state.CompositeAppState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.arifolth.anjrpg.ANJRpg;
+import ru.arifolth.anjrpg.MovementController;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.East;
 
@@ -34,6 +35,7 @@ public class ControlsMenuState extends CompositeAppState {
     public static final int WIDTH = 0;
     public static final int HEIGHT = 1;
     private OptionsMenuState parent;
+    private MovementController movementController;
     private Container audioOptionsWindow;
     private TextField forwardBinding;
     private TextField backwardBinding;
@@ -45,23 +47,15 @@ public class ControlsMenuState extends CompositeAppState {
 
     public ControlsMenuState(OptionsMenuState parent) {
         this.parent = parent;
+        this.movementController = ((ANJRpg) parent.getApplication()).getGameLogicCore().getMovementController();
     }
 
     private void apply() {
-        AppSettings settings = ((ANJRpg)getApplication()).getSettings();
-
-        getApplication().setSettings(settings);
-
         //Apply options here
         forwardBinding.getText();
 
         setEnabled(false);
         parent.setEnabled(false);
-        parent.getParent().setEnabled(false);
-
-        getApplication().restart();
-
-        parent.getParent().setEnabled(true);
     }
 
     @Override
