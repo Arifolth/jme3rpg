@@ -108,25 +108,33 @@ public class MovementController implements ActionListener {
     public void setUpKeys() {
         inputManager.deleteMapping(SimpleApplication.INPUT_MAPPING_EXIT);
 
-        inputManager.addMapping(ESCAPE.toString(),  new KeyTrigger(KeyInput.KEY_ESCAPE));
-        inputManager.addMapping(LEFT.toString(),  new KeyTrigger(KeyInput.KEY_A));
-        inputManager.addMapping(RIGHT.toString(), new KeyTrigger(KeyInput.KEY_D));
-        inputManager.addMapping(UP.toString(),    new KeyTrigger(KeyInput.KEY_W));
-        inputManager.addMapping(DOWN.toString(),  new KeyTrigger(KeyInput.KEY_S));
-        inputManager.addMapping(JUMP.toString(),  new KeyTrigger(KeyInput.KEY_SPACE));
-        inputManager.addMapping(RUN.toString(),    new KeyTrigger(KeyInput.KEY_LSHIFT));
+        addInputMapping(ESCAPE, KeyInput.KEY_ESCAPE);
+
+        addInputMapping(UP, KeyInput.KEY_W);
+        addInputMapping(DOWN, KeyInput.KEY_S);
+        addInputMapping(LEFT, KeyInput.KEY_A);
+        addInputMapping(RIGHT, KeyInput.KEY_D);
+        addInputMapping(JUMP, KeyInput.KEY_SPACE);
+        addInputMapping(RUN, KeyInput.KEY_LSHIFT);
+
+
         inputManager.addMapping(ATTACK.toString(), new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
         inputManager.addMapping(BLOCK.toString(), new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
+        registerInputListener(ATTACK);
+        registerInputListener(BLOCK);
+    }
 
-        inputManager.addListener(this, ESCAPE.toString());
-        inputManager.addListener(this, LEFT.toString());
-        inputManager.addListener(this, RIGHT.toString());
-        inputManager.addListener(this, UP.toString());
-        inputManager.addListener(this, DOWN.toString());
-        inputManager.addListener(this, JUMP.toString());
-        inputManager.addListener(this, RUN.toString());
-        inputManager.addListener(this, ATTACK.toString());
-        inputManager.addListener(this, BLOCK.toString());
+    private void registerInputListener(BindingConstants mapping) {
+        inputManager.addListener(this, mapping.toString());
+    }
+
+    public void addInputMapping(BindingConstants mapping, int key) {
+        String mappingName = mapping.toString();
+
+        inputManager.deleteMapping(mappingName);
+        inputManager.addMapping(mappingName, new KeyTrigger(key));
+
+        registerInputListener(mapping);
     }
 
     public void setPlayerCharacter(PlayerCharacter playerCharacter) {

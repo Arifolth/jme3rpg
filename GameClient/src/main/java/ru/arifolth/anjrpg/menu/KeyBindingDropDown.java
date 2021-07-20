@@ -16,38 +16,30 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 package ru.arifolth.anjrpg.menu;
 
 import com.jme3.system.AppSettings;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
-public class BitsPerPixelDropDown extends Dropdown {
-    private static final int BITS_PER_PIXEL_SIZE = 2;
+public abstract class KeyBindingDropDown extends Dropdown {
 
     protected void initialize(AppSettings settings) {
         this.settings = settings;
-        listBox.getModel().addAll(getBitsPerPixel());
+        listBox.getModel().addAll(getAllKeyboardKeys());
 
         setCurrentValue();
     }
 
-    protected void setCurrentValue() {
-        int bitsPerPixel = settings.getBitsPerPixel();
-
-        chosenElement.setText(Integer.toString(bitsPerPixel));
+    @Override
+    public String getSelectedValue() {
+        Integer selectionItem = getSelectionModel().getSelection();
+        if (null == selectionItem)
+            selectionItem = getDefaultSelection(chosenElement.getText());
+        return getModel().get(selectionItem);
     }
 
-    private Collection<String> getBitsPerPixel() {
-        List<String> bitsPerPixel = new ArrayList<>(BITS_PER_PIXEL_SIZE);
-
-        bitsPerPixel.add(Integer.toString(16));
-        bitsPerPixel.add(Integer.toString(24));
-        bitsPerPixel.add(Integer.toString(32));
-
-        return bitsPerPixel;
+    private Collection<String> getAllKeyboardKeys() {
+        return MenuUtils.getAllKeyboardKeys();
     }
 }

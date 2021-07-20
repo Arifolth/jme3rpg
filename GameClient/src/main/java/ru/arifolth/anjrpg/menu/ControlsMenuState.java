@@ -19,8 +19,10 @@
 package ru.arifolth.anjrpg.menu;
 
 import com.jme3.app.Application;
+import com.jme3.input.KeyInput;
 import com.jme3.system.AppSettings;
 import com.simsilica.lemur.*;
+import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.state.CompositeAppState;
 import org.slf4j.Logger;
@@ -29,6 +31,8 @@ import ru.arifolth.anjrpg.ANJRpg;
 import ru.arifolth.anjrpg.MovementController;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.East;
+import static com.simsilica.lemur.component.BorderLayout.Position.West;
+import static ru.arifolth.anjrpg.BindingConstants.*;
 
 public class ControlsMenuState extends CompositeAppState {
     static Logger log = LoggerFactory.getLogger(ControlsMenuState.class);
@@ -37,22 +41,94 @@ public class ControlsMenuState extends CompositeAppState {
     private OptionsMenuState parent;
     private MovementController movementController;
     private Container audioOptionsWindow;
-    private TextField forwardBinding;
-    private TextField backwardBinding;
-    private TextField leftBinding;
-    private TextField rightBinding;
-    private TextField jumpBinding;
-    private TextField actionBinding;
-    private TextField runBinding;
+    private Dropdown forwardBindingDropDown = new KeyBindingDropDown() {
+        @Override
+        protected void setCurrentValue() {
+            try {
+                chosenElement.setText(MenuUtils.getResolvedKey("W"));
+            } catch (NoSuchFieldException e) {
+                e.printStackTrace();
+            }
+        }
+    };
+    private Dropdown backwardBindingDropDown = new KeyBindingDropDown() {
+        @Override
+        protected void setCurrentValue() {
+            try {
+                chosenElement.setText(MenuUtils.getResolvedKey("S"));
+            } catch (NoSuchFieldException e) {
+                e.printStackTrace();
+            }
+        }
+    };
+    private Dropdown leftBindingDropDown = new KeyBindingDropDown() {
+        @Override
+        protected void setCurrentValue() {
+            try {
+                chosenElement.setText(MenuUtils.getResolvedKey("A"));
+            } catch (NoSuchFieldException e) {
+                e.printStackTrace();
+            }
+        }
+    };
+    private Dropdown rightBindingDropDown = new KeyBindingDropDown() {
+        @Override
+        protected void setCurrentValue() {
+            try {
+                chosenElement.setText(MenuUtils.getResolvedKey("D"));
+            } catch (NoSuchFieldException e) {
+                e.printStackTrace();
+            }
+        }
+    };
+    private Dropdown jumpBindingDropDown = new KeyBindingDropDown() {
+        @Override
+        protected void setCurrentValue() {
+            try {
+                chosenElement.setText(MenuUtils.getResolvedKey("SPACE"));
+            } catch (NoSuchFieldException e) {
+                e.printStackTrace();
+            }
+        }
+    };
+    private Dropdown runBindingDropDown = new KeyBindingDropDown() {
+        @Override
+        protected void setCurrentValue() {
+            try {
+                chosenElement.setText(MenuUtils.getResolvedKey("LSHIFT"));
+            } catch (NoSuchFieldException e) {
+                e.printStackTrace();
+            }
+        }
+    };
 
     public ControlsMenuState(OptionsMenuState parent) {
         this.parent = parent;
+
+        AppSettings settings = this.parent.getApplication().getContext().getSettings();
+
         this.movementController = ((ANJRpg) parent.getApplication()).getGameLogicCore().getMovementController();
+
+        this.forwardBindingDropDown.initialize(settings);
+        this.backwardBindingDropDown.initialize(settings);
+        this.leftBindingDropDown.initialize(settings);
+        this.rightBindingDropDown.initialize(settings);
+        this.jumpBindingDropDown.initialize(settings);
+        this.runBindingDropDown.initialize(settings);
     }
 
     private void apply() {
         //Apply options here
-        forwardBinding.getText();
+        try {
+            movementController.addInputMapping(UP, MenuUtils.getKey(forwardBindingDropDown.getSelectedValue()));
+            movementController.addInputMapping(DOWN, MenuUtils.getKey(backwardBindingDropDown.getSelectedValue()));
+            movementController.addInputMapping(LEFT, MenuUtils.getKey(leftBindingDropDown.getSelectedValue()));
+            movementController.addInputMapping(RIGHT, MenuUtils.getKey(rightBindingDropDown.getSelectedValue()));
+            movementController.addInputMapping(JUMP, MenuUtils.getKey(jumpBindingDropDown.getSelectedValue()));
+            movementController.addInputMapping(RUN, MenuUtils.getKey(runBindingDropDown.getSelectedValue()));
+        } catch (NoSuchFieldException|IllegalAccessException e) {
+            e.printStackTrace();
+        }
 
         setEnabled(false);
         parent.setEnabled(false);
@@ -83,26 +159,36 @@ public class ControlsMenuState extends CompositeAppState {
         props.setBackground(null);
 
         //Options go here
-        props.addChild(new Label("Move forward:"));
-        forwardBinding = props.addChild(new TextField("W"), 1);
+        props = joinPanel.addChild(new Container(new BorderLayout()));
+        props.setBackground(null);
+        props.addChild(new Label("Move forward:"), West);
+        props.addChild(forwardBindingDropDown, East);
 
-        props.addChild(new Label("Move backwards:"));
-        backwardBinding = props.addChild(new TextField("S"), 1);
+        props = joinPanel.addChild(new Container(new BorderLayout()));
+        props.setBackground(null);
+        props.addChild(new Label("Move backwards:"), West);
+        props.addChild(backwardBindingDropDown, East);
 
-        props.addChild(new Label("Move left:"));
-        leftBinding = props.addChild(new TextField("A"), 1);
+        props = joinPanel.addChild(new Container(new BorderLayout()));
+        props.setBackground(null);
+        props.addChild(new Label("Move left:"), West);
+        props.addChild(leftBindingDropDown, East);
 
-        props.addChild(new Label("Move right:"));
-        rightBinding = props.addChild(new TextField("D"), 1);
+        props = joinPanel.addChild(new Container(new BorderLayout()));
+        props.setBackground(null);
+        props.addChild(new Label("Move right:"), West);
+        props.addChild(rightBindingDropDown, East);
 
-        props.addChild(new Label("Jump:"));
-        jumpBinding = props.addChild(new TextField("Space"), 1);
+        props = joinPanel.addChild(new Container(new BorderLayout()));
+        props.setBackground(null);
+        props.addChild(new Label("Jump:"), West);
+        props.addChild(jumpBindingDropDown, East);
 
-        props.addChild(new Label("Run:"));
-        runBinding = props.addChild(new TextField("Shift"), 1);
+        props = joinPanel.addChild(new Container(new BorderLayout()));
+        props.setBackground(null);
+        props.addChild(new Label("Run:"), West);
+        props.addChild(runBindingDropDown, East);
 
-        props.addChild(new Label("Action:"));
-        actionBinding = props.addChild(new TextField("E"), 1);
         /**/
         ActionButton options = menuContainer.addChild(new ActionButton(new CallMethodAction("Apply", this, "apply")));
         options.setInsets(new Insets3f(10, 10, 10, 10));
