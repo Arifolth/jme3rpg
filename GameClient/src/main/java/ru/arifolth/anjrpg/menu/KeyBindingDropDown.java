@@ -19,16 +19,34 @@
 package ru.arifolth.anjrpg.menu;
 
 import com.jme3.system.AppSettings;
+import ru.arifolth.anjrpg.BindingConstants;
 
 import java.util.Collection;
 
-public abstract class KeyBindingDropDown extends Dropdown {
+public class KeyBindingDropDown extends Dropdown {
+    private final BindingConstants binding;
 
+    public KeyBindingDropDown(BindingConstants binding) {
+        this.binding = binding;
+    }
+
+    @Override
     protected void initialize(AppSettings settings) {
         this.settings = settings;
         listBox.getModel().addAll(getAllKeyboardKeys());
 
         setCurrentValue();
+    }
+
+    @Override
+    protected void setCurrentValue() {
+        Integer key = (Integer) settings.get(binding.name());
+        try {
+            String keyName = null == key ? MenuUtils.getKeyName(binding.getDefaultName()) : MenuUtils.getKeyName(key);
+            chosenElement.setText(keyName);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

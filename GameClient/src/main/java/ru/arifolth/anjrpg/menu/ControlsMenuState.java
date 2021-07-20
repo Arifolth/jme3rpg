@@ -28,6 +28,7 @@ import com.simsilica.state.CompositeAppState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.arifolth.anjrpg.ANJRpg;
+import ru.arifolth.anjrpg.BindingConstants;
 import ru.arifolth.anjrpg.MovementController;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.East;
@@ -36,76 +37,21 @@ import static ru.arifolth.anjrpg.BindingConstants.*;
 
 public class ControlsMenuState extends CompositeAppState {
     static Logger log = LoggerFactory.getLogger(ControlsMenuState.class);
-    public static final int WIDTH = 0;
-    public static final int HEIGHT = 1;
-    private OptionsMenuState parent;
-    private MovementController movementController;
+    private final OptionsMenuState parent;
+    private final MovementController movementController;
     private Container audioOptionsWindow;
-    private Dropdown forwardBindingDropDown = new KeyBindingDropDown() {
-        @Override
-        protected void setCurrentValue() {
-            try {
-                chosenElement.setText(MenuUtils.getResolvedKey("W"));
-            } catch (NoSuchFieldException e) {
-                e.printStackTrace();
-            }
-        }
-    };
-    private Dropdown backwardBindingDropDown = new KeyBindingDropDown() {
-        @Override
-        protected void setCurrentValue() {
-            try {
-                chosenElement.setText(MenuUtils.getResolvedKey("S"));
-            } catch (NoSuchFieldException e) {
-                e.printStackTrace();
-            }
-        }
-    };
-    private Dropdown leftBindingDropDown = new KeyBindingDropDown() {
-        @Override
-        protected void setCurrentValue() {
-            try {
-                chosenElement.setText(MenuUtils.getResolvedKey("A"));
-            } catch (NoSuchFieldException e) {
-                e.printStackTrace();
-            }
-        }
-    };
-    private Dropdown rightBindingDropDown = new KeyBindingDropDown() {
-        @Override
-        protected void setCurrentValue() {
-            try {
-                chosenElement.setText(MenuUtils.getResolvedKey("D"));
-            } catch (NoSuchFieldException e) {
-                e.printStackTrace();
-            }
-        }
-    };
-    private Dropdown jumpBindingDropDown = new KeyBindingDropDown() {
-        @Override
-        protected void setCurrentValue() {
-            try {
-                chosenElement.setText(MenuUtils.getResolvedKey("SPACE"));
-            } catch (NoSuchFieldException e) {
-                e.printStackTrace();
-            }
-        }
-    };
-    private Dropdown runBindingDropDown = new KeyBindingDropDown() {
-        @Override
-        protected void setCurrentValue() {
-            try {
-                chosenElement.setText(MenuUtils.getResolvedKey("LSHIFT"));
-            } catch (NoSuchFieldException e) {
-                e.printStackTrace();
-            }
-        }
-    };
+    private final AppSettings settings;
+    private final Dropdown forwardBindingDropDown = new KeyBindingDropDown(UP);
+    private final Dropdown backwardBindingDropDown = new KeyBindingDropDown(DOWN);
+    private final Dropdown leftBindingDropDown = new KeyBindingDropDown(LEFT);
+    private final Dropdown rightBindingDropDown = new KeyBindingDropDown(RIGHT);
+    private final Dropdown jumpBindingDropDown = new KeyBindingDropDown(JUMP);
+    private final Dropdown runBindingDropDown = new KeyBindingDropDown(RUN);
 
     public ControlsMenuState(OptionsMenuState parent) {
         this.parent = parent;
 
-        AppSettings settings = this.parent.getApplication().getContext().getSettings();
+        settings = this.parent.getApplication().getContext().getSettings();
 
         this.movementController = ((ANJRpg) parent.getApplication()).getGameLogicCore().getMovementController();
 
@@ -120,18 +66,27 @@ public class ControlsMenuState extends CompositeAppState {
     private void apply() {
         //Apply options here
         try {
-            movementController.addInputMapping(UP, MenuUtils.getKey(forwardBindingDropDown.getSelectedValue()));
-            movementController.addInputMapping(DOWN, MenuUtils.getKey(backwardBindingDropDown.getSelectedValue()));
-            movementController.addInputMapping(LEFT, MenuUtils.getKey(leftBindingDropDown.getSelectedValue()));
-            movementController.addInputMapping(RIGHT, MenuUtils.getKey(rightBindingDropDown.getSelectedValue()));
-            movementController.addInputMapping(JUMP, MenuUtils.getKey(jumpBindingDropDown.getSelectedValue()));
-            movementController.addInputMapping(RUN, MenuUtils.getKey(runBindingDropDown.getSelectedValue()));
+            settings.put(UP.name(), MenuUtils.getKey(forwardBindingDropDown.getSelectedValue()));
+            settings.put(DOWN.name(), MenuUtils.getKey(backwardBindingDropDown.getSelectedValue()));
+            settings.put(LEFT.name(), MenuUtils.getKey(leftBindingDropDown.getSelectedValue()));
+            settings.put(RIGHT.name(), MenuUtils.getKey(rightBindingDropDown.getSelectedValue()));
+            settings.put(JUMP.name(), MenuUtils.getKey(jumpBindingDropDown.getSelectedValue()));
+            settings.put(RUN.name(), MenuUtils.getKey(runBindingDropDown.getSelectedValue()));
         } catch (NoSuchFieldException|IllegalAccessException e) {
             e.printStackTrace();
         }
 
+        movementController.addInputMapping(UP, (Integer) settings.get(UP.name()));
+        movementController.addInputMapping(DOWN, (Integer) settings.get(DOWN.name()));
+        movementController.addInputMapping(LEFT, (Integer) settings.get(LEFT.name()));
+        movementController.addInputMapping(RIGHT, (Integer) settings.get(RIGHT.name()));
+        movementController.addInputMapping(JUMP, (Integer) settings.get(JUMP.name()));
+        movementController.addInputMapping(RUN, (Integer) settings.get(RUN.name()));
+
         setEnabled(false);
         parent.setEnabled(false);
+
+        MenuUtils.saveSettings(settings);
     }
 
     @Override

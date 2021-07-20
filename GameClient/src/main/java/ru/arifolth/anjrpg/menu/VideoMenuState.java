@@ -30,7 +30,6 @@ import ru.arifolth.anjrpg.ANJRpg;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.prefs.BackingStoreException;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.East;
 import static com.simsilica.lemur.component.BorderLayout.Position.West;
@@ -76,7 +75,7 @@ public class VideoMenuState extends CompositeAppState {
         setEnabled(false);
         parent.setEnabled(false);
 
-        saveSettings(settings);
+        MenuUtils.saveSettings(settings);
 
 //        getApplication().getContext().restart();
         getApplication().stop();
@@ -86,15 +85,6 @@ public class VideoMenuState extends CompositeAppState {
         getState(OptionPanelState.class).show("Confirmation", "Restart required!",
                 new CallMethodAction("Apply", this, "restartGame"),
                 new EmptyAction("Cancel"));
-    }
-
-    private void saveSettings(AppSettings settings) {
-        //HKEY_CURRENT_USER\Software\JavaSoft\Prefs\ru\arifolth\anjrpg
-        try {
-            settings.save("ru.arifolth.anjrpg");
-        } catch (BackingStoreException ex) {
-            ex.printStackTrace();
-        }
     }
 
     private void applySamples(AppSettings settings) {

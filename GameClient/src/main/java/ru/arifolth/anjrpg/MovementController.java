@@ -28,6 +28,7 @@ import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import ru.arifolth.anjrpg.menu.InitStateEnum;
 import ru.arifolth.anjrpg.menu.MainMenuState;
+import ru.arifolth.anjrpg.menu.MenuUtils;
 import ru.arifolth.game.models.PlayerCharacter;
 
 import static ru.arifolth.anjrpg.BindingConstants.*;
@@ -107,15 +108,14 @@ public class MovementController implements ActionListener {
      * */
     public void setUpKeys() {
         inputManager.deleteMapping(SimpleApplication.INPUT_MAPPING_EXIT);
-
         addInputMapping(ESCAPE, KeyInput.KEY_ESCAPE);
 
-        addInputMapping(UP, KeyInput.KEY_W);
-        addInputMapping(DOWN, KeyInput.KEY_S);
-        addInputMapping(LEFT, KeyInput.KEY_A);
-        addInputMapping(RIGHT, KeyInput.KEY_D);
-        addInputMapping(JUMP, KeyInput.KEY_SPACE);
-        addInputMapping(RUN, KeyInput.KEY_LSHIFT);
+        addDefaultInputMapping(UP);
+        addDefaultInputMapping(DOWN);
+        addDefaultInputMapping(LEFT);
+        addDefaultInputMapping(RIGHT);
+        addDefaultInputMapping(JUMP);
+        addDefaultInputMapping(RUN);
 
 
         inputManager.addMapping(ATTACK.toString(), new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
@@ -126,6 +126,17 @@ public class MovementController implements ActionListener {
 
     private void registerInputListener(BindingConstants mapping) {
         inputManager.addListener(this, mapping.toString());
+    }
+
+    public void addDefaultInputMapping(BindingConstants mapping) {
+        Integer key = (Integer) app.getContext().getSettings().get(mapping.name());
+        try {
+            key = (null == key) ? MenuUtils.getKey(MenuUtils.getKeyName(mapping.getDefaultName())) : key;
+
+            addInputMapping(mapping, key);
+        } catch (NoSuchFieldException|IllegalAccessException e) {
+            e.printStackTrace();
+        }
     }
 
     public void addInputMapping(BindingConstants mapping, int key) {

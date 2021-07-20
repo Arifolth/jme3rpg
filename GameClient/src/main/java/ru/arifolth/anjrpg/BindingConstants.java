@@ -20,18 +20,22 @@ package ru.arifolth.anjrpg;
 
 public enum BindingConstants {
     ESCAPE("Escape"),
-    LEFT("Left"),
-    RIGHT("Right"),
-    UP("Up"),
-    DOWN("Down"),
-    JUMP("Jump"),
-    RUN("Run"),
+    UP("W"),
+    DOWN("S"),
+    LEFT("A"),
+    RIGHT("D"),
+    JUMP("SPACE"),
+    RUN("LSHIFT"),
     BLOCK("Block"),
     ATTACK("Attack");
 
-    private String binding;
+    private String defaultName;
 
-    private BindingConstants(String binding) {
-        this.binding = binding;
+    public String getDefaultName() {
+        return defaultName;
+    }
+
+    BindingConstants(String defaultName) {
+        this.defaultName = defaultName;
     }
 }
