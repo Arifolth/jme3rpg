@@ -38,7 +38,11 @@ public class DynamicSky extends Node {
     public Vector3f getSunDirection(){
         return dynamicSun.getSunDirection();
     }
-        
+
+    public DynamicSun getDynamicSun() {
+        return dynamicSun;
+    }
+
     public void updateTime(){
         dynamicSun.updateTime();
         dynamicBackground.updateLightPosition(dynamicSun.getSunSystem().getPosition());

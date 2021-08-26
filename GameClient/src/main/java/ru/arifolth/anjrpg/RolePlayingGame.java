@@ -1,96 +1,112 @@
-package ru.arifolth.anjrpg; /**
- * Created by IntelliJ IDEA.
- * User: Administrator
- * Date: 16.12.12
- * Time: 1:36
- * To change this template use File | Settings | File Templates.
+/**
+ *     ANJRpg - an open source Role Playing Game written in Java.
+ *     Copyright (C) 2021 Alexander Nilov
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+package ru.arifolth.anjrpg;
+
 import com.idflood.sky.DynamicSky;
-import com.jme3.app.Application;
-import com.jme3.app.SimpleApplication;
+import com.jayfella.minimap.MiniMapState;
+import com.jme3.app.*;
+import com.jme3.app.state.ConstantVerifierState;
 import com.jme3.app.state.ScreenshotAppState;
 import com.jme3.asset.plugins.ClasspathLocator;
+import com.jme3.audio.AudioListenerState;
 import com.jme3.bullet.BulletAppState;
-import com.jme3.bullet.collision.shapes.CollisionShape;
-import com.jme3.bullet.control.RigidBodyControl;
-import com.jme3.bullet.util.CollisionShapeFactory;
-import com.jme3.material.Material;
+import com.jme3.bullet.control.CharacterControl;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.*;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Node;
 import com.jme3.shadow.PssmShadowRenderer;
-import com.jme3.system.AppSettings;
-import com.jme3.terrain.geomipmap.TerrainLodControl;
-import com.jme3.terrain.geomipmap.TerrainQuad;
-import com.jme3.terrain.heightmap.AbstractHeightMap;
-import com.jme3.terrain.heightmap.ImageBasedHeightMap;
-import com.jme3.texture.Texture;
-import com.jme3.texture.Texture.WrapMode;
+import com.jme3.water.WaterFilter;
+import com.simsilica.lemur.OptionPanelState;
+import com.simsilica.lemur.event.PopupState;
+import de.lessvoid.nifty.elements.Element;
+import de.lessvoid.nifty.elements.render.TextRenderer;
+import de.lessvoid.nifty.tools.SizeValue;
+import ru.arifolth.anjrpg.menu.MainMenuState;
+import ru.arifolth.game.SoundManager;
+import ru.arifolth.game.TerrainManager;
+import ru.arifolth.game.models.PlayerCharacter;
 
+import java.util.logging.Logger;
 
-public class RolePlayingGame extends SimpleApplication {
-    LightScatteringFilter lsf;
+public abstract class RolePlayingGame extends SimpleApplication {
+    public static final SSAOFilter SSAO_FILTER_BASIC = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.9f);
+    public static final SSAOFilter SSAO_FILTER_STRONG = new SSAOFilter(2.9299974f, 25f, 5.8100376f, 0.091000035f);
+    protected Element progressBarElement;
+    protected TextRenderer textRenderer;
+    private LightScatteringFilter lsf;
+    private WaterFilter waterFilter;
+    private volatile float progress;
+    final private static Logger LOGGER = Logger.getLogger(RolePlayingGame.class.getName());
 
-    private void initializeApplicationSettings() {
-        showSettings = false;
+    protected static Application app;
 
-        AppSettings settings = new AppSettings(true);
-        //GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        settings.setResolution(1280,720);
-        //settings.setFullscreen(device.isFullScreenSupported());
-        settings.setBitsPerPixel(32);
-        settings.setSamples(16);
-        settings.setVSync(true);
-        settings.setRenderer(AppSettings.LWJGL_OPENGL2);
-        settings.setFrameRate(60);
-
-        //setDisplayFps(true);
-        //setDisplayStatView(false);
-
-        this.setSettings(settings);
-    }
-
-    private static Application app;
-    private TerrainQuad terrain;
-    private Material matTerrain;
-    private RigidBodyControl landscape;
     private DynamicSky sky;
-    private BulletAppState bulletAppState;
+    private TerrainManager terrainManager;
+    private SoundManager soundManager;
+    protected BulletAppState bulletAppState;
     private PssmShadowRenderer pssmRenderer;
     private GameLogicCore gameLogicCore;
-    private Vector3f lightDir;
 
     public RolePlayingGame() {
-        initializeApplicationSettings();
+        super(new FlyCamAppState(),
+                new AudioListenerState(),
+                new PopupState(),
+                new OptionPanelState(),
+                new MainMenuState()
+        );
     }
 
-    public static void main(String[] args) {
-        app = new RolePlayingGame();
-        app.start();
+    public GameLogicCore getGameLogicCore() {
+        return gameLogicCore;
     }
 
+    @Override
     public void simpleInitApp() {
-        //chain of responsibility
+        /* Game stuff */
         setupAssetManager();
-        setupPhysix();
-        setupGameLogic();
+    }
 
-        setupTerrain();
-
+    protected void loadResources() {
         setupShadowRenderer();
         setupScreenCapture();
-        //addFog();
+        addFog();
         setupSky();
         addFilters();
+
+        attachPlayer();
+        attachTerrain();
+        attachSky();
+
+        enablePhysics();
     }
 
-    private void setupGameLogic() {
-        gameLogicCore = new GameLogicCore(cam, flyCam, inputManager, bulletAppState, assetManager, rootNode);
+    protected void createMinimap() {
+        // create the minimap
+        MiniMapState miniMapState = new MiniMapState(getRootNode());
+        stateManager.attach(miniMapState);
+    }
+
+    void setupGameLogic() {
+        gameLogicCore = new GameLogicCore(app, cam, flyCam, inputManager, bulletAppState, assetManager, soundManager, getRootNode());
         gameLogicCore.initialize();
     }
 
@@ -109,209 +125,173 @@ public class RolePlayingGame extends SimpleApplication {
     public void simpleUpdate(float tpf) {
         gameLogicCore.update(tpf);
 
+        terrainManager.update(tpf);
+
         //skydome
         sky.updateTime();
 
         //update filters on observer pattern base
-        lsf.setLightPosition(sky.getSunDirection().normalize().mult(500));
-
-        pssmRenderer.setDirection(sky.getSunDirection().normalize().mult(-500));
+        lsf.setLightPosition(sky.getSunDirection().normalize());
+        pssmRenderer.setDirection(sky.getSunDirection().normalize());
+        waterFilter.setLightDirection(sky.getSunDirection().normalize());
     }
 
-    private void addFog() {
+    void addFog() {
         /** Add fog to a scene */
         FilterPostProcessor fpp=new FilterPostProcessor(assetManager);
         FogFilter fog=new FogFilter();
         fog.setFogColor(new ColorRGBA(0.9f, 0.9f, 0.9f, 1.0f));
-        fog.setFogDistance(800);
-        fog.setFogDensity(1.0f);
+        fog.setFogDistance(1000);
+        fog.setFogDensity(0.255f);
         fpp.addFilter(fog);
         viewPort.addProcessor(fpp);
     }
 
-    private void setupShadowRenderer() {
-        pssmRenderer = new PssmShadowRenderer(assetManager, 4096, 32);
-        //pssmRenderer.setDirection(lightDir);
+    void setupShadowRenderer() {
+        pssmRenderer = new PssmShadowRenderer(assetManager, 2048, 16);
         pssmRenderer.setShadowIntensity(0.55f);
         pssmRenderer.setFilterMode(PssmShadowRenderer.FilterMode.PCF8);
         pssmRenderer.setCompareMode(PssmShadowRenderer.CompareMode.Hardware);
-        terrain.setShadowMode(ShadowMode.CastAndReceive);
         viewPort.addProcessor(pssmRenderer);
+
+        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
-    private void addFilters() {
+    void addFilters() {
         FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
 
         FXAAFilter fxaa = new FXAAFilter();
+        fxaa.setSubPixelShift(5.0f);
+        fxaa.setReduceMul(5.0f);
+        fxaa.setVxOffset(5.0f);
+        fxaa.setEnabled(true);
         fpp.addFilter(fxaa);
 
-        BloomFilter bloom = new BloomFilter(/*BloomFilter.GlowMode.Objects*/);
+        BloomFilter bloom = new BloomFilter(BloomFilter.GlowMode.SceneAndObjects);
         bloom.setDownSamplingFactor(2.0f);
         bloom.setExposurePower(55);
         bloom.setBloomIntensity(1.0f);
         fpp.addFilter(bloom);
 
-        lsf = new LightScatteringFilter(sky.getSunDirection().normalize());
+        lsf = new LightScatteringFilter(sky.getSunDirection().normalize().mult(500));
         lsf.setLightDensity(1.0f);
-        //LightScatteringUI ui = new LightScatteringUI(inputManager, lsf);
         fpp.addFilter(lsf);
 
         DepthOfFieldFilter dof=new DepthOfFieldFilter();
-        dof.setFocusDistance(10000);
-        dof.setFocusRange(15000);
-        dof.setBlurScale(0.65f);
+        dof.setFocusDistance(0);
+        dof.setFocusRange(50);
+        dof.setBlurScale(1.4f);
         fpp.addFilter(dof);
 
-        //SSAOFilter ssaoFilter = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.9f);
-        SSAOFilter ssaoFilter = new SSAOFilter(10.0f, 25.0f, 0.35f, 1.0f);
+        SSAOFilter ssaoFilter = SSAO_FILTER_BASIC;
         fpp.addFilter(ssaoFilter);
 
         fpp.addFilter(new TranslucentBucketFilter());
 
-        /*
-        FadeFilter fade = new FadeFilter(3);
-        fpp.addFilter(fade);
-        fade.fadeIn();
-        */
+        // add an ocean.
+        waterFilter = new WaterFilter(getRootNode(), sky.getSunDirection().normalize());
+        waterFilter.setWaterHeight(-70);
+        fpp.addFilter(waterFilter);
+        viewPort.addProcessor(fpp);
 
-        /*
         CartoonEdgeFilter toon=new CartoonEdgeFilter();
-        toon.setEdgeColor(ColorRGBA.Yellow);
+        toon.setEdgeWidth(0.5f);
+        toon.setEdgeIntensity(0.09f);
+        toon.setNormalThreshold(0.8f);
         fpp.addFilter(toon);
-        */
 
         viewPort.addProcessor(fpp);
+
+        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
-    private void setupSky() {
+    void setupSky() {
         // load sky
-        sky = new DynamicSky(assetManager, viewPort, rootNode);
-        rootNode.attachChild(sky);
-        rootNode.setShadowMode(ShadowMode.Off);
+        sky = new DynamicSky(assetManager, viewPort, getRootNode());
+        getRootNode().setShadowMode(ShadowMode.Off);
+        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
-    private void setupPhysix() {
+    protected void attachTerrain() {
+        getRootNode().attachChild(terrainManager.getTerrain());
+    }
+
+    protected void attachSky() {
+        getRootNode().attachChild(sky);
+    }
+
+    protected void enablePhysics() {
+        PlayerCharacter playerCharacter = gameLogicCore.getPlayerCharacter();
+        CharacterControl characterControl = playerCharacter.getCharacterControl();
+        characterControl.setJumpSpeed(20);
+        characterControl.setFallSpeed(300);
+        characterControl.setGravity(30);
+        setProgress(new Object() {}.getClass().getEnclosingMethod().getName());
+    }
+
+    protected void attachPlayer() {
+        getRootNode().attachChild(gameLogicCore.getPlayerCharacter().getNode());
+    }
+
+    @Override
+    public synchronized Node getRootNode() {
+        return this.rootNode;
+    }
+
+    void setupPhysix() {
         /** Set up Physics */
         bulletAppState = new BulletAppState();
         bulletAppState.setThreadingType(BulletAppState.ThreadingType.PARALLEL);
         stateManager.attach(bulletAppState);
         bulletAppState.setEnabled(true);
         //collision capsule shape is visible in debug mode
-        //bulletAppState.getPhysicsSpace().enableDebug(assetManager);
+        //bulletAppState.setDebugEnabled(true);
+//        setProgress(new Object() {}.getClass().getEnclosingMethod().getName());
     }
 
-    private void setupTerrain() {
-        /** 1. Create terrain material and load four textures into it. */
-        /*matTerrain = new Material(assetManager, "Common/MatDefs/Terrain/TerrainLighting.j3md");
-        matTerrain.setBoolean("useTriPlanarMapping", false);
-        matTerrain.setFloat("Shininess", 0.0f);*/
-        matTerrain = new Material(assetManager, "Common/MatDefs/Terrain/Terrain.j3md");
-
-        /** 1.1) Add ALPHA map (for red-blue-green coded splat textures) */
-        matTerrain.setTexture("Alpha", assetManager.loadTexture(
-                "Textures/Terrain/splat/alphamap.png"));
-
-        //matTerrain.setTexture("GrassAlphaMap", assetManager.loadTexture(
-                //"Textures/Terrain/grass-map512.png"));
-
-        /** 1.2) Add GRASS texture into the red layer (Tex1). */
-        Texture grass = assetManager.loadTexture(
-                "Textures/Terrain/splat/grass.jpg");
-        grass.setWrap(WrapMode.Repeat);
-        matTerrain.setTexture("Tex1", grass);
-        matTerrain.setFloat("Tex1Scale", 256f);
-
-        /** 1.3) Add DIRT texture into the green layer (Tex2) */
-        Texture dirt = assetManager.loadTexture(
-                "Textures/Terrain/splat/dirt.jpg");
-        dirt.setWrap(WrapMode.Repeat);
-        matTerrain.setTexture("Tex2", dirt);
-        matTerrain.setFloat("Tex2Scale", 128f);
-
-        /** 1.4) Add ROAD texture into the blue layer (Tex3) */
-        Texture rock = assetManager.loadTexture(
-                "Textures/Terrain/splat/road.jpg");
-        rock.setWrap(WrapMode.Repeat);
-        matTerrain.setTexture("Tex3", rock);
-        matTerrain.setFloat("Tex3Scale", 512f);
-
-
-        /** 2. Create the height map */
-
-        AbstractHeightMap heightmap = null;
-        Texture heightMapImage = assetManager.loadTexture(
-                "Textures/Terrain/splat/mountains512.png");
-        heightmap = new ImageBasedHeightMap(heightMapImage.getImage());
-        heightmap.load();
-        /*
-        HillHeightMap heightmap = null;
-        HillHeightMap.NORMALIZE_RANGE = 100; // optional
-        try {                                       //50/75
-            heightmap = new HillHeightMap(513, 1000, 50, 350, (byte) 0); // byte 3 is a random seed
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        */
-
-        /** 3. We have prepared material and heightmap.
-         * Now we createCharacter the actual terrain:
-         * 3.1) Create a TerrainQuad and name it "my terrain".
-         * 3.2) A good value for terrain tiles is 64x64 -- so we supply 64+1=65.
-         * 3.3) We prepared a heightmap of size 512x512 -- so we supply 512+1=513.
-         * 3.4) As LOD step scale we supply Vector3f(1,1,1).
-         * 3.5) We supply the prepared heightmap itself.
-         */
-
-        /*
-         int patchSize = 97;
-            terrain = new TerrainQuad(
-                "my terrain",
-                patchSize,
-                1025,
-                heightmap.getHeightMap());
-         */
-        int patchSize = 65;
-        terrain = new TerrainQuad(
-                "my terrain",
-                patchSize,
-                513,
-                heightmap.getHeightMap());
-
-        /** 4. We give the terrain its material, position & scale it, and attach it. */
-        terrain.setMaterial(matTerrain);
-        //terrain.setLocalTranslation(0, -1000, 0);
-        //terrain.setLocalScale(2f, 1f, 2f);
-        terrain.setLocalTranslation(0, -1150, 0);
-        terrain.setLocalScale(20f, 10f, 20f);
-        rootNode.attachChild(terrain);
-
-        /** 5. The LOD (level of detail) depends on were the camera is: */
-        TerrainLodControl control = new TerrainLodControl(terrain, getCamera());
-        terrain.addControl(control);
-        // We load the scene from the zip file and adjust its size.
-        //assetManager.registerLocator("town.zip", ZipLocator.class);
-        //sceneModel = assetManager.loadModel("main.scene");
-        //sceneModel.setLocalScale(2f);
-
-        // We set up collision detection for the scene by creating a
-        // compound collision shape and a static RigidBodyControl with mass zero.
-        CollisionShape sceneShape = CollisionShapeFactory.createMeshShape((Node) terrain);
-        landscape = new RigidBodyControl(sceneShape, 0);
-        terrain.addControl(landscape);
-
-        //debug terrain
-        //Material debugMat = assetManager.loadMaterial("Common/Materials/VertexColor.j3m");
-        //terrain.generateDebugTangents(debugMat);
-        //terrain.addControl(new SimpleGrassControl(assetManager,"Textures/Terrain/grass/weedy_grass_clover_9091077.JPG"));
-
-        // We attach the scene and the playerControl to the rootNode and the physics space,
-        // to make them appear in the game world.
-        bulletAppState.getPhysicsSpace().add(landscape);
+    void setupTerrain() {
+        terrainManager = new TerrainManager(assetManager, bulletAppState, this);
+//        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
-    private void setupScreenCapture() {
+    void setupSound() {
+        soundManager = new SoundManager(assetManager);
+//        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
+    }
+
+    void setupScreenCapture() {
         ScreenshotAppState screenShotState = new ScreenshotAppState();
-        this.stateManager.attach(screenShotState);
+        stateManager.attach(screenShotState);
+        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
+    public void setProgress(final String loadingText) {
+        if(loadingText.equals("Loading complete"))
+            progress = 1f;
+        else
+            progress += 0.1;
+
+        //Since this method is called from another thread, we enqueue the
+        //changes to the progressbar to the update loop thread.
+        enqueue(() -> {
+            final int MIN_WIDTH = 32;
+            int pixelWidth = (int) (MIN_WIDTH + (progressBarElement.getParent().getWidth() - MIN_WIDTH) * progress) * 2;
+            if(pixelWidth > progressBarElement.getParent().getWidth())
+                pixelWidth = progressBarElement.getParent().getWidth();
+            progressBarElement.setConstraintWidth(new SizeValue(pixelWidth + "px"));
+            progressBarElement.getParent().layoutElements();
+
+            textRenderer.setText(loadingText);
+
+            return null;
+        });
+    }
+
+    public SoundManager getSoundManager() {
+        return soundManager;
+    }
+
+    public TerrainManager getTerrainManager() {
+        return terrainManager;
+    }
 }

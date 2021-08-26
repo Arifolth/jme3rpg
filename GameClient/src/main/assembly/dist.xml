@@ -38,28 +38,4 @@
       <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
     </dependencySet>
   </dependencySets>
-
-
-<!--
-    <dependencySet>
-      <useProjectArtifact>false</useProjectArtifact>
-      <useTransitiveDependencies>true</useTransitiveDependencies>
-      <unpack>false</unpack>
-      <scope>runtime</scope>
-      <fileMode>0644</fileMode>
-      <directoryMode>0755</directoryMode>
-      <outputDirectory>lib</outputDirectory>
-
-    <includes>
-        <include>com.group.id:project-lib1</include>
-        <include>com.group.id:project-lib2</include>
-        <include>com.group.id:project-lib3</include>
-        <include>com.group.id:project-lib4</include>
-      </includes>
-    </dependencySet>
-
-  </dependencySets>
--->
-
-
 </assembly>
