@@ -1,5 +1,6 @@
 /**
- *     Copyright (C) 2021  Alexander Nilov
+ *     ANJRpg - an open source Role Playing Game written in Java.
+ *     Copyright (C) 2021 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -19,6 +20,9 @@ package ru.arifolth.anjrpg;
 
 import com.jme3.math.Vector3f;
 import com.jme3.niftygui.NiftyJmeDisplay;
+import com.jme3.system.AppSettings;
+import com.simsilica.lemur.GuiGlobals;
+import com.simsilica.lemur.style.BaseStyles;
 import de.lessvoid.nifty.Nifty;
 import de.lessvoid.nifty.controls.Controller;
 import de.lessvoid.nifty.controls.Parameters;
@@ -27,10 +31,12 @@ import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.input.NiftyInputEvent;
 import de.lessvoid.nifty.screen.Screen;
 import de.lessvoid.nifty.screen.ScreenController;
+import ru.arifolth.anjrpg.menu.InitStateEnum;
 
-import java.util.concurrent.*;
+import java.awt.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.BackingStoreException;
 
 import static com.jme3.niftygui.NiftyJmeDisplay.newNiftyJmeDisplay;
 
@@ -38,64 +44,60 @@ import static com.jme3.niftygui.NiftyJmeDisplay.newNiftyJmeDisplay;
 * https://ev1lbl0w.github.io/jme-wiki-pt-pt/jme3/advanced/loading_screen.html
 * */
 public class ANJRpg extends RolePlayingGame implements ScreenController, Controller {
-
+    public static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, -15, 0);
     private NiftyJmeDisplay niftyDisplay;
     private Nifty nifty;
-    private Boolean load = false;
-    private ScheduledExecutorService exec = Executors.newScheduledThreadPool(2);
-    private Future loadFuture = null;
+    private InitStateEnum initialization = InitStateEnum.PENDING;
     final private static Logger LOGGER = Logger.getLogger(ANJRpg.class.getName());
+    private boolean loadingCompleted = false;
 
     public static void main(String[] args) {
         app = new ANJRpg();
         app.start();
     }
 
+    public ANJRpg() {
+        initializeApplicationSettings();
+    }
+
     @Override
     public void simpleInitApp()  {
         super.simpleInitApp();
 
-        niftyDisplay = newNiftyJmeDisplay(assetManager,
-                inputManager,
-                audioRenderer,
-                guiViewPort);
-        nifty = niftyDisplay.getNifty();
+        /* Lemur stuff */
+        GuiGlobals.initialize(this);
+        GuiGlobals globals = GuiGlobals.getInstance();
+        BaseStyles.loadGlassStyle();
+        globals.getStyles().setDefaultStyle("glass");
 
-        nifty.fromXml("Interface/nifty_loading.xml", "start", this);
-
-        guiViewPort.addProcessor(niftyDisplay);
-
-        showLoadingMenu();
+        setupPhysix();
+        setupSound();
+        setupGameLogic();
+        setupTerrain();
     }
 
     @Override
     public void simpleUpdate(float tpf) {
-        if(null == load) {
-            super.simpleUpdate(tpf);
-            return;
-        }
-
-        if (load) {
-            if (loadFuture == null) {
-                //if we have not started loading, submit Callable to executor
-                loadFuture = exec.submit(loadingCallable);
-            }
-            //check if the execution on the other thread is done
-            if (loadFuture.isDone()) {
-                try {
-                    countDownLatch.await(3L, TimeUnit.SECONDS);
-                } catch (InterruptedException e) {
-                    LOGGER.log(Level.SEVERE, "Resources did not loaded properly: ", e.getStackTrace());
-                } finally {
-                    attachPlayer();
-                    attachTerrain();
-                    attachSky();
+        switch (initialization) {
+            case PENDING: {
+                if(!loadingCompleted) {
+                    return;
                 }
 
+                Element element = nifty.getScreen("loadlevel").findElementById("loadingtext");
+                textRenderer = element.getRenderer(TextRenderer.class);
+
+                loadResources();
+
+                setProgress("Loading complete");
+                initialization = InitStateEnum.INITIALIZED;
+                break;
+            }
+            case INITIALIZED: {
                 //wait until land appears in Physics Space
-                if(bulletAppState.getPhysicsSpace().getRigidBodyList().size() == 4) {
+                if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == 4) {
                     //put player at the beginning location
-                    getGameLogicCore().getPlayerCharacter().getCharacterControl().setPhysicsLocation(new Vector3f(0, -15, 0));
+                    getGameLogicCore().getPlayerCharacter().getCharacterControl().setPhysicsLocation(PLAYER_START_LOCATION);
 
                     //these calls have to be done on the update loop thread,
                     //especially attaching the terrain to the rootNode
@@ -104,37 +106,21 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
                     nifty.gotoScreen("end");
                     nifty.exit();
                     guiViewPort.removeProcessor(niftyDisplay);
-                    load = null;
+                    initialization = InitStateEnum.RUNNING;
 
                     createMinimap();
                 }
+                break;
+            }
+            case RUNNING: {
+                //run game
+                super.simpleUpdate(tpf);
             }
         }
     }
 
-    //This is the callable that contains the code that is run on the other
-    //thread.
-    //Since the assetmananger is threadsafe, it can be used to load data from
-    //any thread.
-    //We do *not* attach the objects to the rootNode here!
-    Callable<Void> loadingCallable = new Callable<Void>() {
-
-        @Override
-        public Void call() throws InterruptedException {
-            Element element = nifty.getScreen("loadlevel").findElementById("loadingtext");
-            textRenderer = element.getRenderer(TextRenderer.class);
-
-            loadResources();
-
-            setProgress("Loading complete");
-
-            return null;
-        }
-    };
-
     public void showLoadingMenu() {
         nifty.gotoScreen("loadlevel");
-        load = true;
     }
 
     @Override
@@ -163,27 +149,6 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
     @Override
     public void destroy() {
         super.destroy();
-        shutdownAndAwaitTermination(exec);
-    }
-
-    //standard shutdown process for executor
-    private void shutdownAndAwaitTermination(ExecutorService pool) {
-        pool.shutdown(); // Disable new tasks from being submitted
-        try {
-            // Wait a while for existing tasks to terminate
-            if (!pool.awaitTermination(6, TimeUnit.SECONDS)) {
-                pool.shutdownNow(); // Cancel currently executing tasks
-                // Wait a while for tasks to respond to being cancelled
-                if (!pool.awaitTermination(6, TimeUnit.SECONDS)) {
-                    LOGGER.log(Level.SEVERE, "Pool did not terminate {0}", pool);
-                }
-            }
-        } catch (InterruptedException ie) {
-            // (Re-)Cancel if current thread also interrupted
-            pool.shutdownNow();
-            // Preserve interrupt status
-            Thread.currentThread().interrupt();
-        }
     }
 
     @Override
@@ -196,4 +161,76 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
     public void init(Parameters prmtrs) {
     }
 
+    public void setUpGUI() {
+        /* Game stuff */
+        niftyDisplay = newNiftyJmeDisplay(assetManager,
+                inputManager,
+                audioRenderer,
+                guiViewPort);
+        nifty = niftyDisplay.getNifty();
+        nifty.registerScreenController(this);
+        nifty.fromXml("Interface/nifty_loading.xml", "loadlevel", this);
+
+        guiViewPort.addProcessor(niftyDisplay);
+
+        showLoadingMenu();
+        loadingCompleted = true;
+    }
+
+    private void initializeApplicationSettings() {
+        if(loadingCompleted) {
+            return;
+        }
+
+        showSettings = false;
+
+        AppSettings settings = new AppSettings(false);
+        try {
+            AppSettings oldSettings = new AppSettings(false);
+            oldSettings.load("ru.arifolth.anjrpg");
+            if(oldSettings.size() == 0) {
+                oldSettings.copyFrom(new AppSettings(true));
+                applyDefaultSettings(settings);
+            }
+            settings.mergeFrom(oldSettings);
+        } catch (BackingStoreException e) {
+            e.printStackTrace();
+        }
+
+        //setDisplayFps(true);
+        //setDisplayStatView(false);
+
+        this.setSettings(settings);
+        this.setShowSettings(showSettings);
+
+        //do not output excessive info on console
+        Logger.getLogger("").setLevel(Level.SEVERE);
+
+        // hide FPS HUD
+        setDisplayFps(false);
+
+        //hide statistics HUD
+        setDisplayStatView(false);
+    }
+
+    private void applyDefaultSettings(AppSettings settings) {
+        settings.setTitle("Alexander's Nilov Java RPG");
+        GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        settings.setFullscreen(device.isFullScreenSupported());
+        settings.setBitsPerPixel(32); //24
+        settings.setSamples(1); //16
+        settings.setVSync(true);
+        settings.setResolution(3840,2160);
+        settings.setRenderer(AppSettings.LWJGL_OPENGL45);
+        settings.setFrameRate(60);
+        settings.setGammaCorrection(false);
+    }
+
+    public InitStateEnum getInitStatus() {
+        return initialization;
+    }
+
+    public AppSettings getSettings(){
+        return this.settings;
+    }
 }

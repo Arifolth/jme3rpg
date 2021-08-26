@@ -1,5 +1,6 @@
 /**
- *     Copyright (C) 2021  Alexander Nilov
+ *     ANJRpg - an open source Role Playing Game written in Java.
+ *     Copyright (C) 2021 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -17,6 +18,8 @@
 
 package ru.arifolth.anjrpg;
 
+import com.jme3.app.Application;
+import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.input.*;
@@ -25,6 +28,7 @@ import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
+import ru.arifolth.game.SoundManager;
 import ru.arifolth.game.models.Character;
 import ru.arifolth.game.models.PlayerCharacter;
 import ru.arifolth.game.models.factory.CharacterFactory;
@@ -35,6 +39,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class GameLogicCore {
+    private MovementController movementController;
+    private Application app;
     private Camera cam;
     private FlyByCamera flyCam;
     private InputManager inputManager;
@@ -42,28 +48,36 @@ public class GameLogicCore {
     private AssetManager assetManager;
     private Node rootNode;
     private CharacterFactory characterFactory;
+    private SoundManager soundManager;
 
     private PlayerCharacter playerCharacter = null;
     private Set<Character> characterSet = new LinkedHashSet<Character>();
     private Set<Emitter> weatherEffectsSet = new LinkedHashSet<Emitter>();
     
-    public GameLogicCore(Camera cam, FlyByCamera flyCam, InputManager inputManager, BulletAppState bulletAppState, AssetManager assetManager, Node rootNode) {
+    public GameLogicCore(Application app, Camera cam, FlyByCamera flyCam, InputManager inputManager, BulletAppState bulletAppState, AssetManager assetManager, SoundManager soundManager, Node rootNode) {
+        this.movementController = new MovementController(app, inputManager);
         this.cam = cam;
         this.flyCam = flyCam;
         this.inputManager = inputManager;
         this.bulletAppState = bulletAppState;
         this.assetManager = assetManager;
+        this.soundManager = soundManager;
         this.rootNode = rootNode;
     }
 
     public void initialize() {
-        characterFactory = new CharacterFactory(bulletAppState, assetManager);
+        characterFactory = new CharacterFactory(bulletAppState, assetManager, soundManager);
 
         setupPlayer();
+
         setupCamera();
 
-        setUpKeys();
+        movementController.setUpKeys();
         //setupWeatherEffects();
+    }
+
+    public void reInitialize() {
+        getPlayerCharacter().initializeSounds();
     }
 
     private void setupWeatherEffects() {
@@ -81,6 +95,7 @@ public class GameLogicCore {
         playerCharacter = (PlayerCharacter)characterFactory.createCharacter(PlayerCharacter.class);
         playerCharacter.setCam(cam);
         characterSet.add(playerCharacter);
+        movementController.setPlayerCharacter(playerCharacter);
     }
 
     public void setupCamera() {
@@ -114,36 +129,15 @@ public class GameLogicCore {
         //Uncomment this to look 3 world units above the target
         //chaseCam.setLookAtOffset(Vector3f.UNIT_Y.mult(3));
         //chaseCam.setLookAtOffset(new Vector3f(0, 1, -1).mult(3));
-        chaseCam.setLookAtOffset(new Vector3f(0, 3.5f, -1.5f).mult(3));
+        chaseCam.setLookAtOffset(new Vector3f(0, 3.5f, 1.5f).mult(3));
 
         //Uncomment this to enable rotation when the middle mouse button is pressed (like Blender)
         //WARNING : setting this trigger disable the rotation on right and left mouse button click
-        //chaseCam.setToggleRotationTrigger(new MouseButtonTrigger(MouseInput.BUTTON_MIDDLE));
+        chaseCam.setToggleRotationTrigger(new MouseButtonTrigger(MouseInput.BUTTON_MIDDLE));
 
         //chaseCam.setDefaultDistance(40);
         //chaseCam.setDefaultHorizontalRotation(90f);
         //chaseCam.setDefaultVerticalRotation(90f);
-    }
-
-    /** We over-write some navigational key mappings here, so we can
-     * add physics-controlled walking and jumping: */
-    public void setUpKeys() {
-        inputManager.addMapping("Left",  new KeyTrigger(KeyInput.KEY_A));
-        inputManager.addMapping("Right", new KeyTrigger(KeyInput.KEY_D));
-        inputManager.addMapping("Up",    new KeyTrigger(KeyInput.KEY_W));
-        inputManager.addMapping("Down",  new KeyTrigger(KeyInput.KEY_S));
-        inputManager.addMapping("Jump",  new KeyTrigger(KeyInput.KEY_SPACE));
-        inputManager.addMapping("CatchM", new KeyTrigger(KeyInput.KEY_Q));
-        inputManager.addMapping("Run",    new KeyTrigger(KeyInput.KEY_LSHIFT));
-        inputManager.addMapping("Attack", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
-        inputManager.addListener(playerCharacter, "Left");
-        inputManager.addListener(playerCharacter, "Right");
-        inputManager.addListener(playerCharacter, "Up");
-        inputManager.addListener(playerCharacter, "Down");
-        inputManager.addListener(playerCharacter, "Jump");
-        inputManager.addListener(playerCharacter, "CatchM");
-        inputManager.addListener(playerCharacter, "Run");
-        inputManager.addListener(playerCharacter, "Attack");
     }
 
     public void update(float tpf) {
@@ -156,5 +150,7 @@ public class GameLogicCore {
         }
     }
 
-
+    public MovementController getMovementController() {
+        return movementController;
+    }
 }

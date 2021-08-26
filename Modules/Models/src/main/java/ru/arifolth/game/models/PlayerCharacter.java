@@ -1,5 +1,6 @@
 /**
- *     Copyright (C) 2021  Alexander Nilov
+ *     ANJRpg - an open source Role Playing Game written in Java.
+ *     Copyright (C) 2021 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -19,171 +20,76 @@ package ru.arifolth.game.models;
 
 import com.jme3.animation.AnimChannel;
 import com.jme3.animation.AnimControl;
-import com.jme3.animation.AnimEventListener;
 import com.jme3.animation.LoopMode;
-import com.jme3.asset.AssetManager;
-import com.jme3.bullet.BulletAppState;
-import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
-import com.jme3.bullet.control.CharacterControl;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
-import com.jme3.renderer.queue.RenderQueue;
-import com.jme3.scene.Node;
 
-public class PlayerCharacter extends GameCharacter implements ActionListener, AnimEventListener {
-    private Node characterNode = new Node("Player");
-
-    private Camera cam;
-    private AnimChannel animationChannel;
-    private AnimChannel attackChannel;
-    private AnimControl animationControl;
-
-    private Vector3f walkDirection = new Vector3f();
+public class PlayerCharacter extends NinjaCharacter {
     private boolean left = false, right = false, up = false, down = false,
-        attacking = false, capture_mouse = true, running = false,
-        jumping = false, jump_pressed = false, attack_pressed = false,
-        lock_movement = false;
+        attacking = false, capture_mouse = true, running = false, blocking = false, block_pressed = false,
+        jumping = false, jump_pressed = false, attack_pressed = false;
+    private final Vector3f walkDirection = new Vector3f();
     private float airTime = 0;
+    private float actionTime = 0;
+    private HealthBar healthBar;
+    private Camera cam;
 
     public PlayerCharacter() {
-
     }
 
-    public void initialize(BulletAppState bulletAppState, AssetManager assetManager) {
-        super.initialize(bulletAppState, assetManager);
-
-        initializePhysixControl(bulletAppState);
-
-        initializeCharacterModel(assetManager);
-
-        initializeAnimation();
-
-    }
-
-    private void initializePhysixControl(BulletAppState bulletAppState) {
-        // We set up collision detection for the characterControl by creating
-        // a capsule collision shape and a CharacterControl.
-        // The CharacterControl offers extra settings for
-        // size, stepheight, jumping, falling, and gravity.
-        // We also put the characterControl in its starting position.
-        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.5f, 6f, 1);
-        characterControl = new CharacterControl(capsuleShape, 0.8f);
-        characterControl.setJumpSpeed(20);
-        characterControl.setFallSpeed(300);
-        characterControl.setGravity(30);
-        bulletAppState.getPhysicsSpace().add(characterControl);
-    }
-
-    private void initializeCharacterModel(AssetManager assetManager) {
-        //characterModel = assetManager.loadModel("Models/Sinbad/Sinbad.mesh.xml");
-        characterModel = assetManager.loadModel("Models/Ninja/Ninja.mesh.xml");
-        //Material playerMaterial = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
-        //characterModel.setMaterial(playerMaterial);
-        characterModel.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
-        //characterModel.setLocalScale(1f);
-        characterModel.setLocalScale(0.055f);
-        characterModel.setQueueBucket(RenderQueue.Bucket.Transparent);
-
-        characterNode.addControl(characterControl);
-        characterNode.attachChild(characterModel);
-
-        //ninja collision sphere offset fix
-        //characterModel.move(0, -5f, 0); //sinbad
-        characterModel.move(0, -4.6f, 0);
-
-        //http://jmonkeyengine.org/forum/topic/my-ninja-character-is-floating-after-i-replaced-oto-with-him/
-        //characterModel.setLocalTranslation(new Vector3f(0f, 40.0f, 0f));
-        //characterControl.setPhysicsLocation(characterModel.getLocalTranslation());
-        //characterModel.getLocalTranslation().subtractLocal(0f, 50.0f,0f); // model offset fix
-    }
-
-    private void initializeAnimation() {
-        animationControl = characterModel.getControl(AnimControl.class);
-        animationControl.addListener(this);
-        animationChannel = animationControl.createChannel();
-        animationChannel.setAnim("Idle3");
-        attackChannel = animationControl.createChannel();
-
-        /*attackChannel.addBone(animationControl.getSkeleton().getBone("Joint5"));
-        attackChannel.addBone(animationControl.getSkeleton().getBone("Joint6"));
-        attackChannel.addBone(animationControl.getSkeleton().getBone("Joint7"));
-        attackChannel.addBone(animationControl.getSkeleton().getBone("Joint8"));
-        attackChannel.addBone(animationControl.getSkeleton().getBone("Joint9"));
-        attackChannel.addBone(animationControl.getSkeleton().getBone("Joint10"));
-        attackChannel.addBone(animationControl.getSkeleton().getBone("Joint11"));
-        attackChannel.addBone(animationControl.getSkeleton().getBone("Joint12"));
-        attackChannel.addBone(animationControl.getSkeleton().getBone("Joint13"));
-        attackChannel.addBone(animationControl.getSkeleton().getBone("Joint29"));*/
+    @Override
+    protected void initializeHealthBar() {
+        healthBar = new HealthBar(assetManager, getNode());
+        healthBar.create();
     }
 
     public void setCam(Camera cam) {
         this.cam = cam;
     }
 
-    public Node getNode() {
-        return characterNode;
+    public void block() {
+        //TODO: Show Blocking animation only in case attack is coming, do nothing otherwise
+        getAttackChannel().setAnim(AnimConstants.BLOCK, 0.1f);
+        //TODO: ADD Blocking event
+        getAttackChannel().setLoopMode(LoopMode.DontLoop);
+        getAttackChannel().setSpeed(1f);
+        getAttackChannel().setTime(getAttackChannel().getAnimMaxTime() / 2);
+        setActionTime(getAttackChannel().getAnimMaxTime() / 2);
+
+        playSwordSound(getSwordBlockNode(), SWORD_BLOCK);
     }
 
-    /** These are our custom actions triggered by key presses.
-     * We do not walk yet, we just keep track of the direction the user pressed. */
-    public void onAction(String binding, boolean pressed, float tpf) {
-        if (binding.equals("Left")) {
-            left = pressed;
-        }
-        else if (binding.equals("Right")) {
-            right = pressed;
-        }
-        else if (binding.equals("Up")) {
-            up = pressed;
-        }
-        else if (binding.equals("Down")) {
-            down = pressed;
-        }
-        else if (binding.equals("Jump")) {
-            jump_pressed = true;
-        }
-        else if (binding.equals("Run")) {
-            running = pressed;
-        }
-        else if (binding.equals("Attack")) {
-            if(capture_mouse && !jumping) {
-                attack_pressed = pressed;
-                if(pressed && !attacking) {
-                    attacking = true;
-                    //attack();
-                }
-            }
-        }
+    public void attack() {
+        getAttackChannel().setAnim(AnimConstants.ATTACK, 0.1f);
+        getAttackChannel().setLoopMode(LoopMode.DontLoop);
+        getAttackChannel().setSpeed(1f);
+        setActionTime(getAttackChannel().getAnimMaxTime());
+
+        playSwordSound(getSwordSwingNode(), SWORD_SWING);
     }
 
-    private void attack() {
-        attackChannel.setAnim("Attack3", 0.1f);
-        attackChannel.setLoopMode(LoopMode.DontLoop);
-    }
-
+    @Override
     public void onAnimCycleDone(AnimControl ctrl, AnimChannel ch, String name) {
-        if(name.equals("Attack3") && attacking && !attack_pressed) {
-            if (!ch.getAnimationName().equals("Idle3")) {
-                ch.setAnim("Idle3", 0f);
+        if(name.equals(AnimConstants.ATTACK) && attacking && !attack_pressed) {
+            if (!ch.getAnimationName().equals(AnimConstants.IDLE)) {
+                ch.setAnim(AnimConstants.IDLE, 0f);
                 ch.setLoopMode(LoopMode.Loop);
                 ch.setSpeed(1f);
-                attacking = false;
-                lock_movement = false;
+                setAttacking(false);
             }
-        }
-        else if(name.equals("JumpNoHeight")) {
-            jump_pressed = false;
-        }
-
-        if (ch == attackChannel) {
-            ch.setAnim("Walk");
+        } else if(name.equals(AnimConstants.BLOCK) && blocking && !block_pressed) {
+            if (!ch.getAnimationName().equals(AnimConstants.IDLE)) {
+                ch.setAnim(AnimConstants.IDLE, 0f);
+                ch.setLoopMode(LoopMode.Loop);
+                ch.setSpeed(1f);
+                setBlocking(false);
+            }
+        } else if(name.equals(AnimConstants.JUMP)) {
+            setJump_pressed(false);
         }
     }
 
-    public void onAnimChange(AnimControl ctrl, AnimChannel ch, String name) {
-        //TODO:
-    }
     /**
      * This is the main event loop--walking happens here.
      * We check in which direction the playerControl is walking by interpreting
@@ -191,87 +97,255 @@ public class PlayerCharacter extends GameCharacter implements ActionListener, An
      * The setWalkDirection() command is what lets a physics-controlled playerControl walk.
      * We also make sure here that the camera moves with playerControl.
      */
+    @Override
     public void simpleUpdate(float k) {
+        healthBarUpdate();
+
+        movementUpdate(k);
+    }
+
+
+    public void movementUpdate(float k) {
         float movement_amount = 0.3f;
-        if(running) {
+        if(this.isRunning()) {
             movement_amount *= 1.75;
         }
 
         // Gets forward direction and moves it forward
-        Vector3f camDir = cam.getDirection().clone().multLocal(movement_amount);
+        Vector3f camDir = this.getCam().getDirection().clone().multLocal(movement_amount);
         // Gets left direction and moves it to the left
-        Vector3f camLeft = cam.getLeft().clone().multLocal(movement_amount * 0.75f);
+        Vector3f camLeft = this.getCam().getLeft().clone().multLocal(movement_amount * 0.75f);
 
         // We don't want to fly or go underground
         camDir.y = 0;
         camLeft.y = 0;
 
-        walkDirection.set(0, 0, 0); // The walk direction is initially null
+        this.getWalkDirection().set(0, 0, 0); // The walk direction is initially null
 
-        if(left) { walkDirection.addLocal(camLeft); }
-        if(right) { walkDirection.addLocal(camLeft.negate()); }
-        if(up) { walkDirection.addLocal(camDir);
+        if(this.isUp()) {
+            this.getWalkDirection().addLocal(camDir);
+
+            if(this.isLeft()) {
+                this.getWalkDirection().addLocal(camLeft);
+            } else if(this.isRight()) {
+                this.getWalkDirection().addLocal(camLeft.negate());
+            }
+        } else if(this.isDown()) {
+            this.getWalkDirection().addLocal(camDir.negate());
+
+            if(this.isLeft()) {
+                this.getWalkDirection().addLocal(camLeft);
+            } else if(this.isRight()) {
+                this.getWalkDirection().addLocal(camLeft.negate());
+            }
+        } else if(this.isLeft()) {
+            this.getWalkDirection().addLocal(camLeft);
+        } else if(this.isRight()) {
+            this.getWalkDirection().addLocal(camLeft.negate());
         }
-        if(down) { walkDirection.addLocal(camDir.negate()); }
 
-        if(!characterControl.onGround()) airTime += k;
-        else {
-            airTime = 0;
-            jumping = false;
+        if(!this.getCharacterControl().onGround()) {
+            this.setAirTime(this.getAirTime() + k);
+        } else {
+            this.setAirTime(0);
+            this.setJumping(false);
         }
 
-        if ((airTime > 0.1f || jump_pressed) && !attacking) {
-            jumping = true;
+        if (this.getAirTime() > 0.1f || this.isJump_pressed()) {
+            this.setJumping(true);
             // Stop movement if jumping while walking
-            if(jump_pressed && animationChannel.getAnimationName().equals("Walk"))
-                lock_movement = true;
-            if (!animationChannel.getAnimationName().equals("JumpNoHeight")) {
-                animationChannel.setAnim("JumpNoHeight");
-                animationChannel.setSpeed(1f);
-                animationChannel.setLoopMode(LoopMode.DontLoop);
+            if(this.isJump_pressed() && this.getAnimationChannel().getAnimationName().equals(AnimConstants.WALK))
+                if (!this.getAnimationChannel().getAnimationName().equals(AnimConstants.JUMP)) {
+                    this.getAnimationChannel().setAnim(AnimConstants.JUMP);
+                    this.getAnimationChannel().setSpeed(1f);
+                    this.getAnimationChannel().setLoopMode(LoopMode.DontLoop);
+                }
+            if(this.getAnimationChannel().getTime() >= 0.32f) { // Delay jump to make the animation look decent
+                this.getCharacterControl().jump();
             }
-            if(animationChannel.getTime() >= 0.32f) { // Delay jump to make the animation look decent
-                characterControl.jump();
-                lock_movement = false;
-            }
-        } else if(attacking) {
-            lock_movement = true;
-            if (!animationChannel.getAnimationName().equals("Attack3")) {
-                animationChannel.setAnim("Attack3");
-                animationChannel.setSpeed(1f);
-                animationChannel.setLoopMode(LoopMode.Loop);
+        }
+
+        if(!this.isJumping()) {
+            if ((this.isUp() || this.isDown() || this.isLeft() || this.isRight())) {
+                //set the walking animation
+                this.getAnimationChannel().setLoopMode(LoopMode.Loop);
+                if (!this.getAnimationChannel().getAnimationName().equals(AnimConstants.WALK)) {
+                    this.getAnimationChannel().setAnim(AnimConstants.WALK, 0.5f);
+                }
+                if (this.isRunning()) {
+                    this.getAnimationChannel().setSpeed(1.75f);
+                }
+                else {
+                    this.getAnimationChannel().setSpeed(1f);
+                }
+                this.getPlayerStepsNode(this.isRunning()).play();
+            } else if (this.getWalkDirection().length() == 0) {
+                this.getAnimationChannel().setLoopMode(LoopMode.Loop);
+                if (!this.getAnimationChannel().getAnimationName().equals(AnimConstants.IDLE)) {
+                    this.getAnimationChannel().setAnim(AnimConstants.IDLE, 0f);
+                    this.getAnimationChannel().setSpeed(1f);
+                }
+                this.getPlayerStepsNode(false).pause();
             }
         } else {
-            // If we're not walking, set standing animation if not jumping
-            if (walkDirection.length() == 0) {
-                animationChannel.setLoopMode(LoopMode.Loop);
-                if (!animationChannel.getAnimationName().equals("Idle3")) {
-                    animationChannel.setAnim("Idle3", 0f);
-                    animationChannel.setSpeed(1f);
-                }
-            } else {
-                // ... otherwise, set the walking animation
-                animationChannel.setLoopMode(LoopMode.Loop);
-                if(!animationChannel.getAnimationName().equals("Walk"))
-                    animationChannel.setAnim("Walk", 0.5f);
-                if(running) animationChannel.setSpeed(1.75f);
-                else animationChannel.setSpeed(1f);
+            this.getPlayerStepsNode(false).pause();
+        }
+
+        if(this.getActionTime() > 0) {
+            this.setActionTime(this.getActionTime() - k);
+        }
+
+        if(this.isBlocking()) {
+            if (this.getActionTime() <= 0 && !this.getAttackChannel().getAnimationName().equals(AnimConstants.BLOCK)) {
+                this.block();
+            }
+            if(!this.isBlock_pressed() && this.getActionTime() <= 0) {
+                this.getAttackChannel().setAnim(AnimConstants.IDLE, 0f);
+                this.getAttackChannel().setSpeed(1f);
+                this.setBlocking(false);
+            }
+        } else if(this.isAttacking()) {
+            if (this.getActionTime() <= 0 && !this.getAttackChannel().getAnimationName().equals(AnimConstants.ATTACK)) {
+                this.attack();
+            }
+            if(!this.isAttack_pressed() && this.getActionTime() <= 0) {
+                this.getAttackChannel().setAnim(AnimConstants.IDLE, 0f);
+                this.getAttackChannel().setSpeed(1f);
+                this.setAttacking(false);
             }
         }
-        if(!lock_movement)
-            characterControl.setWalkDirection(walkDirection);
-        else
-            characterControl.setWalkDirection(Vector3f.ZERO);
+
+        this.getCharacterControl().setWalkDirection(this.getWalkDirection());
 
         // Rotate model to point walk direction if moving
-        if(walkDirection.length() != 0)
-            characterControl.setViewDirection(walkDirection.negate());
+        if((this.getWalkDirection().length() != 0) && (this.isUp() || this.isLeft() || this.isRight()))
+            this.getCharacterControl().setViewDirection(this.getWalkDirection().negate());
         // negating cause the model is flipped
 
-        // Rotate model to point camera direction if attacking
-        //if(attacking)
-            //characterControl.setViewDirection(direction.negate());
+        //walk backwards
+        if((this.getWalkDirection().length() != 0) && this.isDown())
+            this.getCharacterControl().setViewDirection(this.getWalkDirection());
     }
 
+    private void healthBarUpdate() {
+        healthBar.update();
+    }
 
+    @Override
+    public boolean isAttacking() {
+        return attacking;
+    }
+
+    @Override
+    public boolean isBlocking() {
+        return blocking;
+    }
+
+    public Vector3f getWalkDirection() {
+        return walkDirection;
+    }
+
+    public boolean isLeft() {
+        return left;
+    }
+
+    public boolean isRight() {
+        return right;
+    }
+
+    public boolean isUp() {
+        return up;
+    }
+
+    public boolean isDown() {
+        return down;
+    }
+
+    public boolean isCapture_mouse() {
+        return capture_mouse;
+    }
+
+    public boolean isRunning() {
+        return running;
+    }
+
+    public boolean isBlock_pressed() {
+        return block_pressed;
+    }
+
+    public boolean isJumping() {
+        return jumping;
+    }
+
+    public boolean isJump_pressed() {
+        return jump_pressed;
+    }
+
+    public boolean isAttack_pressed() {
+        return attack_pressed;
+    }
+
+    public float getAirTime() {
+        return airTime;
+    }
+
+    public float getActionTime() {
+        return actionTime;
+    }
+
+    public Camera getCam() {
+        return cam;
+    }
+
+    public void setAttacking(boolean attacking) {
+        this.attacking = attacking;
+    }
+
+    public void setBlocking(boolean blocking) {
+        this.blocking = blocking;
+    }
+
+    public void setAttack_pressed(boolean attack_pressed) {
+        this.attack_pressed = attack_pressed;
+    }
+
+    public void setLeft(boolean left) {
+        this.left = left;
+    }
+
+    public void setRight(boolean right) {
+        this.right = right;
+    }
+
+    public void setUp(boolean up) {
+        this.up = up;
+    }
+
+    public void setDown(boolean down) {
+        this.down = down;
+    }
+
+    public void setJumping(boolean jumping) {
+        this.jumping = jumping;
+    }
+
+    public void setBlock_pressed(boolean block_pressed) {
+        this.block_pressed = block_pressed;
+    }
+
+    public void setJump_pressed(boolean jump_pressed) {
+        this.jump_pressed = jump_pressed;
+    }
+
+    public void setRunning(boolean running) {
+        this.running = running;
+    }
+
+    public void setActionTime(float actionTime) {
+        this.actionTime = actionTime;
+    }
+
+    public void setAirTime(float airTime) {
+        this.airTime = airTime;
+    }
 }

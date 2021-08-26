@@ -1,5 +1,6 @@
 /**
- *     Copyright (C) 2021  Alexander Nilov
+ *     ANJRpg - an open source Role Playing Game written in Java.
+ *     Copyright (C) 2021 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -19,7 +20,7 @@ package ru.arifolth.game.models;
 
 import com.jme3.scene.Node;
 
-public class NonPlayerCharacter extends GameCharacter {
+public class NonPlayerCharacter extends PlayerCharacter {
 
     public NonPlayerCharacter() {
     }
