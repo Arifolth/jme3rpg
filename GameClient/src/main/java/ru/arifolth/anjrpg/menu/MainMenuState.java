@@ -37,6 +37,7 @@ public class MainMenuState extends BaseAppState {
     static Logger log = LoggerFactory.getLogger(MainMenuState.class);
 
     private Container mainWindow;
+    private Container menuContainer;
 
     public MainMenuState() {
     }
@@ -46,11 +47,7 @@ public class MainMenuState extends BaseAppState {
     }
 
     private void exitGame() {
-        getState(OptionPanelState.class).show("Confirmation", "Exit game?",
-                new CallMethodAction("Yes",
-                        getApplication(),
-                        "stop"),
-                new EmptyAction("No"));
+        getStateManager().attach(new ExitMenuState(this));
     }
 
     private void resumeGame() {
@@ -78,6 +75,10 @@ public class MainMenuState extends BaseAppState {
     protected void cleanup( Application app ) {
     }
 
+    public Container getMenuContainer() {
+        return menuContainer;
+    }
+
     @Override
     protected void onEnable() {
         ANJRpg application = (ANJRpg) getApplication();
@@ -87,7 +88,7 @@ public class MainMenuState extends BaseAppState {
 
         mainWindow = new Container(new BorderLayout());
 
-        Container menuContainer = mainWindow.addChild(new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even)), West);
+        menuContainer = mainWindow.addChild(new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even)), West);
         Label title = menuContainer.addChild(new Label("ANJRpg"));
         title.setFontSize(32);
         title.setInsets(new Insets3f(10, 10, 0, 10));
@@ -119,6 +120,15 @@ public class MainMenuState extends BaseAppState {
         exit.setInsets(new Insets3f(10, 10, 10, 10));
 
 
+        setWindowSize(height);
+
+
+        Node gui = application.getGuiNode();
+        gui.attachChild(mainWindow);
+        GuiGlobals.getInstance().requestFocus(mainWindow);
+    }
+
+    private void setWindowSize(int height) {
         Vector3f pref = mainWindow.getPreferredSize().clone();
 
         float standardScale = getStandardScale();
@@ -129,11 +139,6 @@ public class MainMenuState extends BaseAppState {
 
         mainWindow.setLocalTranslation(100 * standardScale, y, 0);
         mainWindow.setLocalScale(1.5f * standardScale);
-
-
-        Node gui = application.getGuiNode();
-        gui.attachChild(mainWindow);
-        GuiGlobals.getInstance().requestFocus(mainWindow);
     }
 
     @Override

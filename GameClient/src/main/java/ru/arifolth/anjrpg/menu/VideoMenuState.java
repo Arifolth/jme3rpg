@@ -23,7 +23,6 @@ import com.jme3.system.AppSettings;
 import com.simsilica.lemur.*;
 import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.SpringGridLayout;
-import com.simsilica.state.CompositeAppState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.arifolth.anjrpg.ANJRpg;
@@ -31,10 +30,9 @@ import ru.arifolth.anjrpg.ANJRpg;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.simsilica.lemur.component.BorderLayout.Position.East;
-import static com.simsilica.lemur.component.BorderLayout.Position.West;
+import static com.simsilica.lemur.component.BorderLayout.Position.*;
 
-public class VideoMenuState extends CompositeAppState {
+public class VideoMenuState extends CustomCompositeAppState {
     static Logger log = LoggerFactory.getLogger(VideoMenuState.class);
     public static final int WIDTH = 0;
     public static final int HEIGHT = 1;
@@ -43,14 +41,12 @@ public class VideoMenuState extends CompositeAppState {
     private Dropdown frameRateDropDown = new FrameRateDropDown();
     private Dropdown bitsPerPixelDropDown = new BitsPerPixelDropDown();
     private Dropdown samplesDropDown = new SamplesDropDown();
-    private OptionsMenuState parent;
-    private Container videoOptionsWindow;
     private Checkbox fullscreen = new Checkbox("Fullscreen");
     private Checkbox vsync = new Checkbox("VSync");
     private Checkbox gammaCorrection = new Checkbox("Gamma Correction");
 
     public VideoMenuState(OptionsMenuState parent) {
-        this.parent = parent;
+        super(parent);
 
         AppSettings settings = this.parent.getApplication().getContext().getSettings();
         resolutionsDropDown.initialize(settings);
@@ -58,6 +54,10 @@ public class VideoMenuState extends CompositeAppState {
         frameRateDropDown.initialize(settings);
         bitsPerPixelDropDown.initialize(settings);
         samplesDropDown.initialize(settings);
+    }
+
+    public OptionsMenuState getParent() {
+        return parent;
     }
 
     private void restartGame() {
@@ -82,9 +82,7 @@ public class VideoMenuState extends CompositeAppState {
     }
 
     private void apply() {
-        getState(OptionPanelState.class).show("Confirmation", "Restart required!",
-                new CallMethodAction("Apply", this, "restartGame"),
-                new EmptyAction("Cancel"));
+        getStateManager().attach(new ConfirmationMenuState(this));
     }
 
     private void applySamples(AppSettings settings) {
@@ -133,9 +131,9 @@ public class VideoMenuState extends CompositeAppState {
 
     @Override
     protected void onEnable() {
-        videoOptionsWindow = new Container();
+        window = new Container();
 
-        Container menuContainer = videoOptionsWindow.addChild(new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even)));
+        Container menuContainer = window.addChild(new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even)));
         Label title = menuContainer.addChild(new Label("Video"));
         title.setFontSize(24);
         title.setInsets(new Insets3f(10, 10, 0, 10));
@@ -178,15 +176,16 @@ public class VideoMenuState extends CompositeAppState {
         temp = joinPanel.addChild(vsync);
         temp.setChecked(true);
 
-        ActionButton options = menuContainer.addChild(new ActionButton(new CallMethodAction("Apply", this, "apply")));
-        options.setInsets(new Insets3f(10, 10, 10, 10));
+        props = joinPanel.addChild(new Container(new BorderLayout()));
+        props.setBackground(null);
+        props.addChild(new ActionButton(new CallMethodAction("Apply", this, "apply")), West);
 
-        parent.getMainWindow().addChild(videoOptionsWindow, East);
-        GuiGlobals.getInstance().requestFocus(videoOptionsWindow);
+        parent.getMainWindow().addChild(window, East);
+        GuiGlobals.getInstance().requestFocus(window);
     }
 
     @Override
     protected void onDisable() {
-        videoOptionsWindow.removeFromParent();
+        window.removeFromParent();
     }
 }

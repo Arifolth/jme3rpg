@@ -19,27 +19,22 @@
 package ru.arifolth.anjrpg.menu;
 
 import com.jme3.app.Application;
-import com.jme3.input.KeyInput;
 import com.jme3.system.AppSettings;
 import com.simsilica.lemur.*;
 import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.SpringGridLayout;
-import com.simsilica.state.CompositeAppState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.arifolth.anjrpg.ANJRpg;
-import ru.arifolth.anjrpg.BindingConstants;
 import ru.arifolth.anjrpg.MovementController;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.East;
 import static com.simsilica.lemur.component.BorderLayout.Position.West;
 import static ru.arifolth.anjrpg.BindingConstants.*;
 
-public class ControlsMenuState extends CompositeAppState {
+public class ControlsMenuState extends CustomCompositeAppState {
     static Logger log = LoggerFactory.getLogger(ControlsMenuState.class);
-    private final OptionsMenuState parent;
     private final MovementController movementController;
-    private Container audioOptionsWindow;
     private final AppSettings settings;
     private final Dropdown forwardBindingDropDown = new KeyBindingDropDown(UP);
     private final Dropdown backwardBindingDropDown = new KeyBindingDropDown(DOWN);
@@ -49,7 +44,7 @@ public class ControlsMenuState extends CompositeAppState {
     private final Dropdown runBindingDropDown = new KeyBindingDropDown(RUN);
 
     public ControlsMenuState(OptionsMenuState parent) {
-        this.parent = parent;
+        super(parent);
 
         settings = this.parent.getApplication().getContext().getSettings();
 
@@ -61,6 +56,10 @@ public class ControlsMenuState extends CompositeAppState {
         this.rightBindingDropDown.initialize(settings);
         this.jumpBindingDropDown.initialize(settings);
         this.runBindingDropDown.initialize(settings);
+    }
+
+    public OptionsMenuState getParent() {
+        return parent;
     }
 
     private void apply() {
@@ -100,9 +99,9 @@ public class ControlsMenuState extends CompositeAppState {
 
     @Override
     protected void onEnable() {
-        audioOptionsWindow = new Container();
+        window = new Container();
 
-        Container menuContainer = audioOptionsWindow.addChild(new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even)));
+        Container menuContainer = window.addChild(new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even)));
         Label title = menuContainer.addChild(new Label("Controls"));
         title.setFontSize(24);
         title.setInsets(new Insets3f(10, 10, 0, 10));
@@ -144,17 +143,17 @@ public class ControlsMenuState extends CompositeAppState {
         props.addChild(new Label("Run:"), West);
         props.addChild(runBindingDropDown, East);
 
-        /**/
-        ActionButton options = menuContainer.addChild(new ActionButton(new CallMethodAction("Apply", this, "apply")));
-        options.setInsets(new Insets3f(10, 10, 10, 10));
+        props = joinPanel.addChild(new Container(new BorderLayout()));
+        props.setBackground(null);
+        props.addChild(new ActionButton(new CallMethodAction("Apply", this, "apply")), West);
 
 
-        parent.getMainWindow().addChild(audioOptionsWindow, East);
-        GuiGlobals.getInstance().requestFocus(audioOptionsWindow);
+        parent.getMainWindow().addChild(window, East);
+        GuiGlobals.getInstance().requestFocus(window);
     }
 
     @Override
     protected void onDisable() {
-        audioOptionsWindow.removeFromParent();
+        window.removeFromParent();
     }
 }
