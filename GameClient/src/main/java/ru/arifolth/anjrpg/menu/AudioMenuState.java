@@ -19,29 +19,25 @@
 package ru.arifolth.anjrpg.menu;
 
 import com.jme3.app.Application;
-import com.jme3.system.AppSettings;
 import com.simsilica.lemur.*;
 import com.simsilica.lemur.component.*;
 import com.simsilica.state.CompositeAppState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.arifolth.anjrpg.ANJRpg;
 import ru.arifolth.anjrpg.RolePlayingGame;
 import ru.arifolth.game.SoundManager;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.*;
 
-public class AudioMenuState extends CompositeAppState {
+public class AudioMenuState extends CustomCompositeAppState {
     static Logger log = LoggerFactory.getLogger(AudioMenuState.class);
     public static final int WIDTH = 0;
     public static final int HEIGHT = 1;
     private final SoundManager soundManager;
-    private OptionsMenuState parent;
-    private Container audioOptionsWindow;
     private RangedValueModel volumeModel = new DefaultRangedValueModel(0, 6, 3);
 
     public AudioMenuState(OptionsMenuState parent) {
-        this.parent = parent;
+        super(parent);
         this.soundManager = ((RolePlayingGame) this.parent.getApplication()).getSoundManager();
     }
 
@@ -65,9 +61,9 @@ public class AudioMenuState extends CompositeAppState {
 
     @Override
     protected void onEnable() {
-        audioOptionsWindow = new Container();
+        window = new Container();
 
-        Container menuContainer = audioOptionsWindow.addChild(new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even)));
+        Container menuContainer = window.addChild(new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even)));
         Label title = menuContainer.addChild(new Label("Audio"));
         title.setFontSize(24);
         title.setInsets(new Insets3f(10, 10, 0, 10));
@@ -84,17 +80,16 @@ public class AudioMenuState extends CompositeAppState {
         slider.getDecrementButton().addClickCommands();
         slider.setInsetsComponent(new DynamicInsetsComponent(0.5f, 0.5f, 0.5f, 0.5f));
 
-        //
-        ActionButton options = menuContainer.addChild(new ActionButton(new CallMethodAction("Apply", this, "apply")));
-        options.setInsets(new Insets3f(10, 10, 10, 10));
+        props = joinPanel.addChild(new Container(new BorderLayout()));
+        props.setBackground(null);
+        props.addChild(new ActionButton(new CallMethodAction("Apply", this, "apply")), West);
 
-
-        parent.getMainWindow().addChild(audioOptionsWindow, East);
-        GuiGlobals.getInstance().requestFocus(audioOptionsWindow);
+        parent.getMainWindow().addChild(window, East);
+        GuiGlobals.getInstance().requestFocus(window);
     }
 
     @Override
     protected void onDisable() {
-        audioOptionsWindow.removeFromParent();
+        window.removeFromParent();
     }
 }
