@@ -27,8 +27,10 @@
                     <image filename="Interface/loading.png" align="center" width="50%" height="25%"/>
                     <image filename="Interface/br.png" align="center" width="150%" height="10%"/>
                     <panel id = "footer" childLayout="horizontal" align="center" height="40%" width="70%">
-                        <image filename="Interface/copyright.png" align="left" width="50%" height="15%"/>
+                        <image filename="Interface/copyright.png" align="left" width="50%" height="25%"/>
                         <image filename="Interface/jMonkey.jpg" align="right" width="25%" height="25%"/>
+                        <control id="loadingtext" name="label" align="right" width="50%" height="30%"
+                                 text="Version: ${CALL.getVersion()}"/>
                     </panel>
                 </panel>
             </panel>

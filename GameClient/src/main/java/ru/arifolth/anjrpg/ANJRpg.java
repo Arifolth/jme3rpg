@@ -31,9 +31,11 @@ import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.input.NiftyInputEvent;
 import de.lessvoid.nifty.screen.Screen;
 import de.lessvoid.nifty.screen.ScreenController;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import ru.arifolth.anjrpg.menu.InitStateEnum;
 
 import java.awt.*;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
@@ -51,12 +53,12 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
     final private static Logger LOGGER = Logger.getLogger(ANJRpg.class.getName());
     private boolean loadingCompleted = false;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws XmlPullParserException, IOException {
         app = new ANJRpg();
         app.start();
     }
 
-    public ANJRpg() {
+    public ANJRpg() throws XmlPullParserException, IOException {
         initializeApplicationSettings();
     }
 
@@ -214,11 +216,10 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
     }
 
     private void applyDefaultSettings(AppSettings settings) {
-        settings.setTitle("Alexander's Nilov Java RPG");
         GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         settings.setFullscreen(device.isFullScreenSupported());
-        settings.setBitsPerPixel(32); //24
-        settings.setSamples(1); //16
+        settings.setBitsPerPixel(24); //24
+        settings.setSamples(0); //16
         settings.setVSync(true);
         settings.setResolution(3840,2160);
         settings.setRenderer(AppSettings.LWJGL_OPENGL45);

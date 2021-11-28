@@ -20,8 +20,9 @@ package ru.arifolth.anjrpg;
 
 import com.idflood.sky.DynamicSky;
 import com.jayfella.minimap.MiniMapState;
-import com.jme3.app.*;
-import com.jme3.app.state.ConstantVerifierState;
+import com.jme3.app.Application;
+import com.jme3.app.FlyCamAppState;
+import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.ScreenshotAppState;
 import com.jme3.asset.plugins.ClasspathLocator;
 import com.jme3.audio.AudioListenerState;
@@ -40,16 +41,21 @@ import com.simsilica.lemur.event.PopupState;
 import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.tools.SizeValue;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import ru.arifolth.anjrpg.menu.MainMenuState;
 import ru.arifolth.game.SoundManager;
 import ru.arifolth.game.TerrainManager;
 import ru.arifolth.game.models.PlayerCharacter;
 
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.logging.Logger;
 
 public abstract class RolePlayingGame extends SimpleApplication {
     public static final SSAOFilter SSAO_FILTER_BASIC = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.9f);
     public static final SSAOFilter SSAO_FILTER_STRONG = new SSAOFilter(2.9299974f, 25f, 5.8100376f, 0.091000035f);
+    protected String version;
     protected Element progressBarElement;
     protected TextRenderer textRenderer;
     private LightScatteringFilter lsf;
@@ -66,13 +72,15 @@ public abstract class RolePlayingGame extends SimpleApplication {
     private PssmShadowRenderer pssmRenderer;
     private GameLogicCore gameLogicCore;
 
-    public RolePlayingGame() {
+    public RolePlayingGame() throws IOException, XmlPullParserException {
         super(new FlyCamAppState(),
                 new AudioListenerState(),
                 new PopupState(),
                 new OptionPanelState(),
                 new MainMenuState()
         );
+
+        version = new MavenXpp3Reader().read(new FileReader("pom.xml")).getVersion();
     }
 
     public GameLogicCore getGameLogicCore() {
@@ -293,5 +301,9 @@ public abstract class RolePlayingGame extends SimpleApplication {
 
     public TerrainManager getTerrainManager() {
         return terrainManager;
+    }
+
+    public String getVersion() {
+        return version;
     }
 }

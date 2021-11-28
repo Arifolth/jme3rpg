@@ -57,6 +57,7 @@ public class ConfirmationMenuState extends CompositeAppState {
         parent.getParent().getMainWindow().setAlpha(0.0f);
         parent.getMainWindow().setAlpha(0.0f);
 
+        parent.getMainWindow().clearChildren();
         setWindowSize();
 
         Container menuContainer = window.addChild(new Container(new BorderLayout()));

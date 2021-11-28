@@ -92,6 +92,9 @@ public class MainMenuState extends BaseAppState {
         Label title = menuContainer.addChild(new Label("ANJRpg"));
         title.setFontSize(32);
         title.setInsets(new Insets3f(10, 10, 0, 10));
+        Label version = menuContainer.addChild(new Label("Version: " + ((ANJRpg) getApplication()).getVersion()));
+        version.setFontSize(12);
+        version.setInsets(new Insets3f(10, 10, 0, 10));
 
         switch(((ANJRpg)getApplication()).getInitStatus()) {
             case RUNNING: {
