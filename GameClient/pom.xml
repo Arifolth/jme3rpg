@@ -125,6 +125,6 @@
     </dependencies>
 
     <properties>
-        <java.main.class>ru.arifolth.anjrpg.RolePlayingGame</java.main.class>
+        <java.main.class>ru.arifolth.anjrpg.ANJRpg</java.main.class>
     </properties>
 </project>
