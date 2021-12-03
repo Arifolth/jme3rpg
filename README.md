@@ -17,7 +17,7 @@ mvn package
 ```
 ## Run
 ```bash
-mvn exec:java -pl GameClient
+mvn exec:java -pl GameClient -Djvm.options="-XX:-TieredCompilation -XX:TieredStopAtLevel=3 -server -XX:+UnlockExperimentalVMOptions -XX:+UseZGC"
 ```
 ## Repo
 
