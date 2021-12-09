@@ -1,202 +1,157 @@
-/**
- *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2021 Alexander Nilov
- *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
- *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 package ru.arifolth.game;
 
 import com.jme3.app.LegacyApplication;
+import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
+import com.jme3.asset.TextureKey;
 import com.jme3.bullet.BulletAppState;
-import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.collision.shapes.CollisionShape;
-import com.jme3.bullet.collision.shapes.HeightfieldCollisionShape;
-import com.jme3.bullet.control.CharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.material.Material;
-import com.jme3.math.Vector3f;
-import com.jme3.renderer.queue.RenderQueue;
-import com.jme3.terrain.geomipmap.*;
-import com.jme3.terrain.geomipmap.grid.FractalTileLoader;
+import com.jme3.terrain.geomipmap.TerrainLodControl;
+import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.terrain.geomipmap.lodcalc.DistanceLodCalculator;
 import com.jme3.terrain.heightmap.AbstractHeightMap;
 import com.jme3.terrain.heightmap.ImageBasedHeightMap;
-import com.jme3.terrain.noise.ShaderUtils;
-import com.jme3.terrain.noise.basis.FilteredBasis;
-import com.jme3.terrain.noise.filter.IterativeFilter;
-import com.jme3.terrain.noise.filter.OptimizedErode;
-import com.jme3.terrain.noise.filter.PerturbFilter;
-import com.jme3.terrain.noise.filter.SmoothFilter;
-import com.jme3.terrain.noise.fractal.FractalSum;
-import com.jme3.terrain.noise.modulator.NoiseModulator;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
 import com.jme3.texture.Texture2D;
 import com.jme3.texture.Texture3D;
 import com.jme3.scene.Node;
+import com.stomrage.grassarea.GrassArea;
+import com.stomrage.grassarea.GrassAreaControl;
 
-public class TerrainManager {
-    private TerrainGrid terrain;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+public class TerrainManager implements TerrainManagerInterface {
+    final private static Logger LOGGER = Logger.getLogger(TerrainManager.class.getName());
+
+    private GrassArea grassArea;
+    private TerrainQuad terrain;
     private Material matTerrain;
+    private RigidBodyControl landscape;
 
     private AssetManager assetManager;
     private BulletAppState bulletAppState;
-    private LegacyApplication app;
+    private RolePlayingGameInterface app;
 
-    private FractalSum base;
-    private PerturbFilter perturb;
-    private OptimizedErode therm;
-    private SmoothFilter smooth;
-    private IterativeFilter iterate;
-
-    private float grassScale = 64;
-    private float dirtScale = 16;
-    private float rockScale = 128;
-
-    public TerrainManager(AssetManager assetManager, BulletAppState bulletAppState, LegacyApplication app) {
+    public TerrainManager(AssetManager assetManager, BulletAppState bulletAppState, RolePlayingGameInterface app) {
         this.assetManager = assetManager;
         this.bulletAppState = bulletAppState;
         this.app = app;
 
         initialize();
-
-        getTerrain().setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
     }
 
     private void initialize() {
-        // TERRAIN TEXTURE material
-        this.matTerrain = new Material(this.assetManager, "MatDefs/HeightBasedTerrain.j3md");
+        matTerrain = new Material(assetManager, "Common/MatDefs/Terrain/TerrainLighting.j3md");
+        matTerrain.setBoolean("useTriPlanarMapping", false);
+        matTerrain.setFloat("Shininess", 0.0f);
+        matTerrain.setTexture("AlphaMap", assetManager.loadTexture("Textures/Grass/alpha1.png"));
+        matTerrain.setTexture("AlphaMap_1", assetManager.loadTexture("Textures/Grass/alpha2.png"));
+        TextureKey hmKey = new TextureKey("Textures/Grass/mountains512.png", false);
+        Texture heightMapImage = assetManager.loadTexture(hmKey);
+        Texture dirt = assetManager.loadTexture("Textures/Grass/Grass_1.jpg");
+        dirt.setWrap(Texture.WrapMode.Repeat);
+        matTerrain.setTexture("DiffuseMap", dirt);
+        matTerrain.setFloat("DiffuseMap_0_scale", 64);
+        Texture darkRock = assetManager.loadTexture("Textures/Grass/Grass_1.jpg");
+        darkRock.setWrap(Texture.WrapMode.Repeat);
+        matTerrain.setTexture("DiffuseMap_1", darkRock);
+        matTerrain.setFloat("DiffuseMap_1_scale", 64);
+        Texture pinkRock = assetManager.loadTexture("Textures/Grass/Grass_1.jpg");
+        pinkRock.setWrap(Texture.WrapMode.Repeat);
+        matTerrain.setTexture("DiffuseMap_2", pinkRock);
+        matTerrain.setFloat("DiffuseMap_2_scale", 64);
+        Texture riverRock = assetManager.loadTexture("Textures/Grass/Grass_1.jpg");
+        riverRock.setWrap(Texture.WrapMode.Repeat);
+        matTerrain.setTexture("DiffuseMap_3", riverRock);
+        matTerrain.setFloat("DiffuseMap_3_scale", 64);
+        Texture grass = assetManager.loadTexture("Textures/Grass/Grass_1.jpg");
+        grass.setWrap(Texture.WrapMode.Repeat);
+        matTerrain.setTexture("DiffuseMap_4", grass);
+        matTerrain.setFloat("DiffuseMap_4_scale", 64);
+        Texture brick = assetManager.loadTexture("Textures/Grass/Grass_1.jpg");
+        brick.setWrap(Texture.WrapMode.Repeat);
+        matTerrain.setTexture("DiffuseMap_5", brick);
+        matTerrain.setFloat("DiffuseMap_5_scale", 64);
+        Texture road = assetManager.loadTexture("Textures/Grass/Grass_1.jpg");
+        road.setWrap(Texture.WrapMode.Repeat);
+        matTerrain.setTexture("DiffuseMap_6", road);
+        matTerrain.setFloat("DiffuseMap_6_scale", 64);
 
-        // Parameters to material:
-        // regionXColorMap: X = 1..4 the texture that should be appliad to state X
-        // regionX: a Vector3f containing the following information:
-        //      regionX.x: the start height of the region
-        //      regionX.y: the end height of the region
-        //      regionX.z: the texture scale for the region
-        //  it might not be the most elegant way for storing these 3 values, but it packs the data nicely :)
-        // slopeColorMap: the texture to be used for cliffs, and steep mountain sites
-        // slopeTileFactor: the texture scale for slopes
-        // terrainSize: the total size of the terrain (used for scaling the texture)
-        // GRASS texture
-        Texture grass = this.assetManager.loadTexture("Textures/Terrain/splat/grass.jpg");
-        grass.setWrap(WrapMode.Repeat);
-        this.matTerrain.setTexture("region1ColorMap", grass);
-        this.matTerrain.setVector3("region1", new Vector3f(15, 200, this.grassScale));
 
-        // DIRT texture
-        Texture dirt = this.assetManager.loadTexture("Textures/Terrain/splat/dirt.jpg");
-        dirt.setWrap(WrapMode.Repeat);
-        this.matTerrain.setTexture("region2ColorMap", dirt);
-        this.matTerrain.setVector3("region2", new Vector3f(0, 20, this.dirtScale));
+        /** 2. Create the height map */
 
-        // ROCK texture
-        Texture rock = this.assetManager.loadTexture("Textures/Terrain/Rock2/rock.jpg");
-        rock.setWrap(WrapMode.Repeat);
-        this.matTerrain.setTexture("region3ColorMap", rock);
-        this.matTerrain.setVector3("region3", new Vector3f(198, 260, this.rockScale));
+        AbstractHeightMap heightmap = null;
+        heightmap = new ImageBasedHeightMap(heightMapImage.getImage());
+        heightmap.load();
+        heightmap.smooth(0.9f, 1);
 
-        this.matTerrain.setTexture("region4ColorMap", rock);
-        this.matTerrain.setVector3("region4", new Vector3f(198, 260, this.rockScale));
+        /** 3. We have prepared material and heightmap.
+         * Now we createCharacter the actual terrain:
+         * 3.1) Create a TerrainQuad and name it "my terrain".
+         * 3.2) A good value for terrain tiles is 64x64 -- so we supply 64+1=65.
+         * 3.3) We prepared a heightmap of size 512x512 -- so we supply 512+1=513.
+         * 3.4) As LOD step scale we supply Vector3f(1,1,1).
+         * 3.5) We supply the prepared heightmap itself.
+         */
 
-        this.matTerrain.setTexture("slopeColorMap", rock);
-        this.matTerrain.setFloat("slopeTileFactor", 32);
+        int patchSize = 65;
+        terrain = new TerrainQuad(
+                "my terrain",
+                patchSize,
+                513,
+                heightmap.getHeightMap());
 
-        this.matTerrain.setFloat("terrainSize", 513);
+        /** 4. We give the terrain its material, position & scale it, and attach it. */
+        terrain.setMaterial(matTerrain);
 
-        this.base = new FractalSum();
-        this.base.setRoughness(0.82f);
-        this.base.setFrequency(1.2f);
-        this.base.setAmplitude(1.1f);
-        this.base.setLacunarity(2.12f);
-        this.base.setOctaves(8);
-        this.base.setScale(0.02125f);
-        this.base.addModulator(new NoiseModulator() {
+        /** 5. The LOD (level of detail) depends on were the camera is: */
+        TerrainLodControl control = new TerrainLodControl(terrain, app.getCamera());
+        control.setLodCalculator(new DistanceLodCalculator(65, 2.7f)); // patch size, and a multiplier
 
-            @Override
-            public float value(float... in) {
-                return ShaderUtils.clamp(in[0] * 0.5f + 0.5f, 0, 1);
-            }
-        });
+        terrain.addControl(control);
 
-        FilteredBasis ground = new FilteredBasis(this.base);
+        // We set up collision detection for the scene by creating a
+        // compound collision shape and a static RigidBodyControl with mass zero.
+        CollisionShape sceneShape = CollisionShapeFactory.createMeshShape((Node) terrain);
+        landscape = new RigidBodyControl(sceneShape, 0);
+        terrain.addControl(landscape);
 
-        this.perturb = new PerturbFilter();
-        this.perturb.setMagnitude(0.419f);
-
-        this.therm = new OptimizedErode();
-        this.therm.setRadius(1);
-        this.therm.setTalus(0.711f);
-
-        this.smooth = new SmoothFilter();
-        this.smooth.setRadius(1);
-        this.smooth.setEffect(0.7f);
-
-        this.iterate = new IterativeFilter();
-        this.iterate.addPreFilter(this.perturb);
-        this.iterate.addPostFilter(this.smooth);
-        this.iterate.setFilter(this.therm);
-        this.iterate.setIterations(1);
-
-        ground.addPreFilter(this.iterate);
-
-        this.terrain = new TerrainGrid("terrain", 65, 513, new FractalTileLoader(ground, 256f));
-
-        this.terrain.setMaterial(this.matTerrain);
-
+//        TODO:move terrain UNDER the player start location
+        //terrain.setLocalTranslation(this.app.getGameLogicCore().getPlayerCharacter().getCharacterModel().getLocalTranslation());
+//        terrain.setLocalTranslation(Constants.PLAYER_START_LOCATION.getX(), -50, Constants.PLAYER_START_LOCATION.getZ());
+//        terrain.setLocalScale(1f, 1f, 1f);
         //terrain postion
         terrain.setLocalTranslation(0, -200, 0);
-        terrain.setLocalScale(2f, 1f, 2f);
-        setUpLODControl();
+        terrain.setLocalScale(1f, 1f, 1f);
 
-        setUpCollision();
+        // We attach the scene and the playerControl to the rootNode and the physics space,
+        // to make them appear in the game world.
+        bulletAppState.getPhysicsSpace().add(landscape);
     }
 
-    private void setUpLODControl() {
-        /** 5. The LOD (level of detail) depends on were the camera is: */
-        TerrainLodControl control = new TerrainGridLodControl(this.terrain, app.getCamera());
-        control.setLodCalculator(new DistanceLodCalculator(65, 2.7f)); // patch size, and a multiplier
-        this.terrain.addControl(control);
-    }
-
-    private void setUpCollision() {
-        terrain.addListener(new TerrainGridListener() {
-            @Override
-            public void gridMoved(Vector3f newCenter) {
-            }
-
-            @Override
-            public void tileAttached(Vector3f cell, TerrainQuad quad) {
-                while(quad.getControl(RigidBodyControl.class)!=null){
-                    quad.removeControl(RigidBodyControl.class);
-                }
-                quad.addControl(new RigidBodyControl(new HeightfieldCollisionShape(quad.getHeightMap(), terrain.getLocalScale()), 0));
-                bulletAppState.getPhysicsSpace().add(quad);
-            }
-
-            @Override
-            public void tileDetached(Vector3f cell, TerrainQuad quad) {
-                if (quad.getControl(RigidBodyControl.class) != null) {
-                    bulletAppState.getPhysicsSpace().remove(quad);
-                    quad.removeControl(RigidBodyControl.class);
-                }
-            }
-
-        });
+    public void generateGrass() {
+        try {
+            grassArea = new GrassArea(terrain, 8, assetManager, 75);
+            grassArea.setColorTexture(assetManager.loadTexture("Textures/Grass/tile_1.png"));
+            grassArea.setDissolveTexture(assetManager.loadTexture("Textures/Grass/noise.png"));
+            grassArea.addDensityMap(assetManager.loadTexture("Textures/Grass/noise.png"));
+            grassArea.addDensityMap(assetManager.loadTexture("Textures/Grass/noise_2.png"));
+            grassArea.addLayer(0f, 0.5f, 0.75f, GrassArea.ColorChannel.RED_CHANNEL, GrassArea.DensityMap.DENSITY_MAP_1, 2f, 3f);
+            grassArea.addLayer(0.5f, 0.5f, 0.75f, GrassArea.ColorChannel.BLUE_CHANNEL, GrassArea.DensityMap.DENSITY_MAP_2, 2f, 3f);
+            grassArea.generate();
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+        GrassAreaControl grassAreaControl = new GrassAreaControl(this.app.getCamera());
+        grassArea.addControl(grassAreaControl);
+        grassArea.setAutoUpdate(true);
+        this.app.getRootNode().attachChild(grassArea);
     }
 
     public TerrainQuad getTerrain() {

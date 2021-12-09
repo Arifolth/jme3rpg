@@ -25,6 +25,7 @@ import com.jme3.animation.SkeletonControl;
 import com.jme3.audio.AudioNode;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.scene.debug.SkeletonDebugger;
@@ -74,8 +75,8 @@ public abstract class NinjaCharacter extends GameCharacter implements AnimEventL
         //characterModel.move(0, -4.6f, 0);
 
         //http://jmonkeyengine.org/forum/topic/my-ninja-character-is-floating-after-i-replaced-oto-with-him/
-        //characterModel.setLocalTranslation(new Vector3f(0f, 40.0f, 0f));
-        //characterControl.setPhysicsLocation(characterModel.getLocalTranslation());
+//        characterModel.setLocalTranslation(new Vector3f(0f, 150.0f, 0f));
+//        characterControl.setPhysicsLocation(characterModel.getLocalTranslation());
         //characterModel.getLocalTranslation().subtractLocal(0f, 50.0f,0f); // model offset fix
 
         characterModel.getControl(SkeletonControl.class).setHardwareSkinningPreferred(true);

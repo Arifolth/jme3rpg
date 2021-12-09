@@ -35,7 +35,7 @@ import static com.simsilica.lemur.component.BorderLayout.Position.East;
 import static com.simsilica.lemur.component.BorderLayout.Position.West;
 
 public class OptionsMenuState extends CompositeAppState {
-    static Logger log = LoggerFactory.getLogger(OptionsMenuState.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(OptionsMenuState.class);
     private MainMenuState parent;
     private Container optionsWindow;
 

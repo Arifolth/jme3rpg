@@ -16,19 +16,11 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.game.models;
+package ru.arifolth.game.models.factory;
 
-import com.jme3.asset.AssetManager;
-import com.jme3.bullet.BulletAppState;
-import com.jme3.bullet.control.CharacterControl;
-import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
-import ru.arifolth.game.SoundManager;
 
-public interface Character {
-    void simpleUpdate(float tpf);
-    void initialize(BulletAppState bulletAppState, AssetManager assetManager, SoundManager soundManager);
-    Spatial getCharacterModel();
-    CharacterControl getCharacterControl();
-    Node getNode();
+import ru.arifolth.game.CharacterInterface;
+
+public interface CharacterFactoryInterface<T extends CharacterInterface> {
+    T createCharacter(Class<T> clazz);
 }

@@ -16,26 +16,15 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.anjrpg;
+package ru.arifolth.game;
 
-public enum BindingConstants {
-    ESCAPE("Escape"),
-    UP("W"),
-    DOWN("S"),
-    LEFT("A"),
-    RIGHT("D"),
-    JUMP("SPACE"),
-    RUN("LSHIFT"),
-    BLOCK("Block"),
-    ATTACK("Attack");
+import com.jme3.math.Vector3f;
 
-    private String defaultName;
+public class Constants {
+    public static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, -15, 0);
 
-    public String getDefaultName() {
-        return defaultName;
+    private Constants() {
     }
 
-    BindingConstants(String defaultName) {
-        this.defaultName = defaultName;
-    }
+
 }

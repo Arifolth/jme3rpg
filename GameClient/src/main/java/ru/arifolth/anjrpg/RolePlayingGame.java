@@ -20,7 +20,6 @@ package ru.arifolth.anjrpg;
 
 import com.idflood.sky.DynamicSky;
 import com.jayfella.minimap.MiniMapState;
-import com.jme3.app.Application;
 import com.jme3.app.FlyCamAppState;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.ScreenshotAppState;
@@ -29,11 +28,13 @@ import com.jme3.audio.AudioListenerState;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.*;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.water.WaterFilter;
 import com.simsilica.lemur.OptionPanelState;
@@ -44,15 +45,13 @@ import de.lessvoid.nifty.tools.SizeValue;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import ru.arifolth.anjrpg.menu.MainMenuState;
-import ru.arifolth.game.SoundManager;
-import ru.arifolth.game.TerrainManager;
-import ru.arifolth.game.models.PlayerCharacter;
+import ru.arifolth.game.*;
 
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-public abstract class RolePlayingGame extends SimpleApplication {
+public abstract class RolePlayingGame extends SimpleApplication implements RolePlayingGameInterface {
     public static final SSAOFilter SSAO_FILTER_BASIC = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.9f);
     public static final SSAOFilter SSAO_FILTER_STRONG = new SSAOFilter(2.9299974f, 25f, 5.8100376f, 0.091000035f);
     protected String version;
@@ -62,15 +61,12 @@ public abstract class RolePlayingGame extends SimpleApplication {
     private WaterFilter waterFilter;
     private volatile float progress;
     final private static Logger LOGGER = Logger.getLogger(RolePlayingGame.class.getName());
-
-    protected static Application app;
-
     private DynamicSky sky;
-    private TerrainManager terrainManager;
-    private SoundManager soundManager;
+    private TerrainManagerInterface terrainManager;
+    private SoundManagerInterface soundManager;
     protected BulletAppState bulletAppState;
     private PssmShadowRenderer pssmRenderer;
-    private GameLogicCore gameLogicCore;
+    private GameLogicCoreInterface gameLogicCore;
 
     public RolePlayingGame() throws IOException, XmlPullParserException {
         super(new FlyCamAppState(),
@@ -81,10 +77,6 @@ public abstract class RolePlayingGame extends SimpleApplication {
         );
 
         version = new MavenXpp3Reader().read(new FileReader("pom.xml")).getVersion();
-    }
-
-    public GameLogicCore getGameLogicCore() {
-        return gameLogicCore;
     }
 
     @Override
@@ -100,11 +92,17 @@ public abstract class RolePlayingGame extends SimpleApplication {
         setupSky();
         addFilters();
 
-        attachPlayer();
         attachTerrain();
+        attachPlayer();
         attachSky();
 
         enablePhysics();
+
+        //enableGrass();
+    }
+
+    private void enableGrass() {
+        terrainManager.generateGrass();
     }
 
     protected void createMinimap() {
@@ -114,7 +112,7 @@ public abstract class RolePlayingGame extends SimpleApplication {
     }
 
     void setupGameLogic() {
-        gameLogicCore = new GameLogicCore(app, cam, flyCam, inputManager, bulletAppState, assetManager, soundManager, getRootNode());
+        gameLogicCore = new GameLogicCore(this, cam, flyCam, inputManager, bulletAppState, assetManager, soundManager, getRootNode());
         gameLogicCore.initialize();
     }
 
@@ -229,7 +227,7 @@ public abstract class RolePlayingGame extends SimpleApplication {
     }
 
     protected void enablePhysics() {
-        PlayerCharacter playerCharacter = gameLogicCore.getPlayerCharacter();
+        CharacterInterface playerCharacter = gameLogicCore.getPlayerCharacter();
         CharacterControl characterControl = playerCharacter.getCharacterControl();
         characterControl.setJumpSpeed(20);
         characterControl.setFallSpeed(300);
@@ -238,7 +236,15 @@ public abstract class RolePlayingGame extends SimpleApplication {
     }
 
     protected void attachPlayer() {
+        gameLogicCore.getPlayerCharacter().getCharacterModel().setLocalTranslation(new Vector3f(0f, 100.0f, 0f));
+        //gameLogicCore.getPlayerCharacter().getCharacterControl().setPhysicsLocation(gameLogicCore.getPlayerCharacter().getCharacterModel().getLocalTranslation());
+        //characterModel.getLocalTranslation().subtractLocal(0f, 50.0f,0f); // model offset fix
         getRootNode().attachChild(gameLogicCore.getPlayerCharacter().getNode());
+    }
+
+    @Override
+    public GameLogicCoreInterface getGameLogicCore() {
+        return gameLogicCore;
     }
 
     @Override
@@ -253,7 +259,7 @@ public abstract class RolePlayingGame extends SimpleApplication {
         stateManager.attach(bulletAppState);
         bulletAppState.setEnabled(true);
         //collision capsule shape is visible in debug mode
-        //bulletAppState.setDebugEnabled(true);
+        bulletAppState.setDebugEnabled(true);
 //        setProgress(new Object() {}.getClass().getEnclosingMethod().getName());
     }
 
@@ -295,14 +301,17 @@ public abstract class RolePlayingGame extends SimpleApplication {
         });
     }
 
-    public SoundManager getSoundManager() {
+    @Override
+    public SoundManagerInterface getSoundManager() {
         return soundManager;
     }
 
-    public TerrainManager getTerrainManager() {
+    @Override
+    public TerrainManagerInterface getTerrainManager() {
         return terrainManager;
     }
 
+    @Override
     public String getVersion() {
         return version;
     }

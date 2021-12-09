@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import static com.simsilica.lemur.component.BorderLayout.Position.*;
 
 public class ExitMenuState extends CompositeAppState {
-    static Logger log = LoggerFactory.getLogger(OptionsMenuState.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(OptionsMenuState.class);
     private MainMenuState parent;
     private Container window;
 

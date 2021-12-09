@@ -23,18 +23,19 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
-import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
-import ru.arifolth.anjrpg.menu.InitStateEnum;
+import ru.arifolth.game.InitStateEnum;
 import ru.arifolth.anjrpg.menu.MainMenuState;
 import ru.arifolth.anjrpg.menu.MenuUtils;
-import ru.arifolth.game.models.PlayerCharacter;
+import ru.arifolth.game.BindingConstants;
+import ru.arifolth.game.CharacterInterface;
+import ru.arifolth.game.MovementControllerInterface;
 
-import static ru.arifolth.anjrpg.BindingConstants.*;
+import static ru.arifolth.game.BindingConstants.*;
 
-public class MovementController implements ActionListener {
-    private PlayerCharacter playerCharacter;
+public class MovementController implements MovementControllerInterface {
+    private CharacterInterface playerCharacter;
     private Application app;
     private InputManager inputManager;
 
@@ -45,6 +46,7 @@ public class MovementController implements ActionListener {
 
     /** These are our custom actions triggered by key presses.
      * We do not walk yet, we just keep track of the direction the user pressed. */
+    @Override
     public void onAction(String binding, boolean pressed, float tpf) {
         keyPressed(binding, pressed);
     }
@@ -106,6 +108,7 @@ public class MovementController implements ActionListener {
     /** We over-write some navigational key mappings here, so we can
      * add physics-controlled walking and jumping
      * */
+    @Override
     public void setUpKeys() {
         inputManager.deleteMapping(SimpleApplication.INPUT_MAPPING_EXIT);
         addInputMapping(ESCAPE, KeyInput.KEY_ESCAPE);
@@ -139,6 +142,7 @@ public class MovementController implements ActionListener {
         }
     }
 
+    @Override
     public void addInputMapping(BindingConstants mapping, int key) {
         String mappingName = mapping.toString();
 
@@ -148,7 +152,8 @@ public class MovementController implements ActionListener {
         registerInputListener(mapping);
     }
 
-    public void setPlayerCharacter(PlayerCharacter playerCharacter) {
+    @Override
+    public void setPlayerCharacter(CharacterInterface playerCharacter) {
         this.playerCharacter = playerCharacter;
     }
 }

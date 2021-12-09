@@ -33,7 +33,7 @@ import java.util.List;
 import static com.simsilica.lemur.component.BorderLayout.Position.*;
 
 public class VideoMenuState extends CustomCompositeAppState {
-    static Logger log = LoggerFactory.getLogger(VideoMenuState.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(VideoMenuState.class);
     public static final int WIDTH = 0;
     public static final int HEIGHT = 1;
     private Dropdown rendererDropDown = new RendererDropDown();

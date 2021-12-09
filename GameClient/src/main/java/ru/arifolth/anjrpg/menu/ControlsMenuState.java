@@ -26,15 +26,15 @@ import com.simsilica.lemur.component.SpringGridLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.arifolth.anjrpg.ANJRpg;
-import ru.arifolth.anjrpg.MovementController;
+import ru.arifolth.game.MovementControllerInterface;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.East;
 import static com.simsilica.lemur.component.BorderLayout.Position.West;
-import static ru.arifolth.anjrpg.BindingConstants.*;
+import static ru.arifolth.game.BindingConstants.*;
 
 public class ControlsMenuState extends CustomCompositeAppState {
-    static Logger log = LoggerFactory.getLogger(ControlsMenuState.class);
-    private final MovementController movementController;
+    private final static Logger LOGGER = LoggerFactory.getLogger(ControlsMenuState.class);
+    private final MovementControllerInterface movementController;
     private final AppSettings settings;
     private final Dropdown forwardBindingDropDown = new KeyBindingDropDown(UP);
     private final Dropdown backwardBindingDropDown = new KeyBindingDropDown(DOWN);

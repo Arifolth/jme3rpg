@@ -26,7 +26,7 @@ import com.jme3.audio.AudioNode;
 
 import java.util.logging.Logger;
 
-public class SoundManager {
+public class SoundManager implements SoundManagerInterface {
     final private static Logger LOGGER = Logger.getLogger(SoundManager.class.getName());
 
     private enum SoundType {

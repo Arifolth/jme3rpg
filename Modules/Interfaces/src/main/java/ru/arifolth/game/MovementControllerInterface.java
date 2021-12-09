@@ -16,10 +16,14 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.game.models.factory;
+package ru.arifolth.game;
 
-import ru.arifolth.game.models.Character;
+import com.jme3.input.controls.ActionListener;
 
-public interface ICharacterFactory <T extends Character> {
-    public T createCharacter(Class<T> clazz);
+public interface MovementControllerInterface extends ActionListener {
+    void setUpKeys();
+
+    void setPlayerCharacter(CharacterInterface playerCharacter);
+
+    void addInputMapping(BindingConstants up, int integer);
 }

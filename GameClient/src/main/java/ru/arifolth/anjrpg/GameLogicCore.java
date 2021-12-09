@@ -19,27 +19,27 @@
 package ru.arifolth.anjrpg;
 
 import com.jme3.app.Application;
-import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
-import com.jme3.input.*;
-import com.jme3.input.controls.KeyTrigger;
+import com.jme3.input.ChaseCamera;
+import com.jme3.input.FlyByCamera;
+import com.jme3.input.InputManager;
+import com.jme3.input.MouseInput;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
-import ru.arifolth.game.SoundManager;
-import ru.arifolth.game.models.Character;
-import ru.arifolth.game.models.PlayerCharacter;
-import ru.arifolth.game.models.factory.CharacterFactory;
 import ru.arifolth.anjrpg.weather.Emitter;
 import ru.arifolth.anjrpg.weather.RainEmitter;
+import ru.arifolth.game.*;
+import ru.arifolth.game.models.PlayerCharacter;
+import ru.arifolth.game.models.factory.CharacterFactory;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class GameLogicCore {
-    private MovementController movementController;
+public class GameLogicCore implements GameLogicCoreInterface {
+    private MovementControllerInterface movementController;
     private Application app;
     private Camera cam;
     private FlyByCamera flyCam;
@@ -48,13 +48,13 @@ public class GameLogicCore {
     private AssetManager assetManager;
     private Node rootNode;
     private CharacterFactory characterFactory;
-    private SoundManager soundManager;
+    private SoundManagerInterface soundManager;
 
-    private PlayerCharacter playerCharacter = null;
-    private Set<Character> characterSet = new LinkedHashSet<Character>();
+    private CharacterInterface playerCharacter = null;
+    private Set<CharacterInterface> characterSet = new LinkedHashSet<CharacterInterface>();
     private Set<Emitter> weatherEffectsSet = new LinkedHashSet<Emitter>();
     
-    public GameLogicCore(Application app, Camera cam, FlyByCamera flyCam, InputManager inputManager, BulletAppState bulletAppState, AssetManager assetManager, SoundManager soundManager, Node rootNode) {
+    public GameLogicCore(Application app, Camera cam, FlyByCamera flyCam, InputManager inputManager, BulletAppState bulletAppState, AssetManager assetManager, SoundManagerInterface soundManager, Node rootNode) {
         this.movementController = new MovementController(app, inputManager);
         this.cam = cam;
         this.flyCam = flyCam;
@@ -86,7 +86,7 @@ public class GameLogicCore {
         weatherEffectsSet.add(snowEmitter);
     }
 
-    public PlayerCharacter getPlayerCharacter() {
+    public CharacterInterface getPlayerCharacter() {
         return playerCharacter;
     }
 
@@ -141,7 +141,7 @@ public class GameLogicCore {
     }
 
     public void update(float tpf) {
-        for(Character character : characterSet) {
+        for(CharacterInterface character : characterSet) {
             character.simpleUpdate(tpf);
         }
 
@@ -150,7 +150,7 @@ public class GameLogicCore {
         }
     }
 
-    public MovementController getMovementController() {
+    public MovementControllerInterface getMovementController() {
         return movementController;
     }
 }

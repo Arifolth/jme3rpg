@@ -18,7 +18,6 @@
 
 package ru.arifolth.anjrpg;
 
-import com.jme3.math.Vector3f;
 import com.jme3.niftygui.NiftyJmeDisplay;
 import com.jme3.system.AppSettings;
 import com.simsilica.lemur.GuiGlobals;
@@ -32,7 +31,9 @@ import de.lessvoid.nifty.input.NiftyInputEvent;
 import de.lessvoid.nifty.screen.Screen;
 import de.lessvoid.nifty.screen.ScreenController;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import ru.arifolth.anjrpg.menu.InitStateEnum;
+import ru.arifolth.game.Constants;
+import ru.arifolth.game.InitStateEnum;
+import ru.arifolth.game.RolePlayingGameInterface;
 
 import java.awt.*;
 import java.io.IOException;
@@ -46,12 +47,13 @@ import static com.jme3.niftygui.NiftyJmeDisplay.newNiftyJmeDisplay;
 * https://ev1lbl0w.github.io/jme-wiki-pt-pt/jme3/advanced/loading_screen.html
 * */
 public class ANJRpg extends RolePlayingGame implements ScreenController, Controller {
-    public static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, -15, 0);
     private NiftyJmeDisplay niftyDisplay;
     private Nifty nifty;
     private InitStateEnum initialization = InitStateEnum.PENDING;
     final private static Logger LOGGER = Logger.getLogger(ANJRpg.class.getName());
     private boolean loadingCompleted = false;
+
+    private static RolePlayingGameInterface app;
 
     public static void main(String[] args) throws XmlPullParserException, IOException {
         app = new ANJRpg();
@@ -97,9 +99,9 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
             }
             case INITIALIZED: {
                 //wait until land appears in Physics Space
-                if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == 4) {
+                if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == 1) {
                     //put player at the beginning location
-                    getGameLogicCore().getPlayerCharacter().getCharacterControl().setPhysicsLocation(PLAYER_START_LOCATION);
+                    getGameLogicCore().getPlayerCharacter().getCharacterControl().setPhysicsLocation(Constants.PLAYER_START_LOCATION);
 
                     //these calls have to be done on the update loop thread,
                     //especially attaching the terrain to the rootNode
@@ -199,9 +201,6 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
             e.printStackTrace();
         }
 
-        //setDisplayFps(true);
-        //setDisplayStatView(false);
-
         this.setSettings(settings);
         this.setShowSettings(showSettings);
 
@@ -223,7 +222,7 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
         settings.setVSync(true);
         settings.setResolution(3840,2160);
         settings.setRenderer(AppSettings.LWJGL_OPENGL45);
-        settings.setFrameRate(60);
+        settings.setFrameRate(30);
         settings.setGammaCorrection(false);
     }
 

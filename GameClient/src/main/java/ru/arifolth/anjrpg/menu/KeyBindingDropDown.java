@@ -19,7 +19,7 @@
 package ru.arifolth.anjrpg.menu;
 
 import com.jme3.system.AppSettings;
-import ru.arifolth.anjrpg.BindingConstants;
+import ru.arifolth.game.BindingConstants;
 
 import java.util.Collection;
 

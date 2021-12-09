@@ -16,10 +16,14 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.anjrpg.menu;
+package ru.arifolth.game;
 
-public enum InitStateEnum {
-    PENDING,
-    INITIALIZED,
-    RUNNING;
+import com.jme3.scene.Spatial;
+
+public interface TerrainManagerInterface {
+    void generateGrass();
+
+    void update(float tpf);
+
+    Spatial getTerrain();
 }

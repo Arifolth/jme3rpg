@@ -24,15 +24,17 @@ import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import ru.arifolth.game.CharacterInterface;
 import ru.arifolth.game.SoundManager;
+import ru.arifolth.game.SoundManagerInterface;
 
-public abstract class GameCharacter implements Character {
+public abstract class GameCharacter implements CharacterInterface {
     protected BulletAppState bulletAppState;
     protected AssetManager assetManager;
 
     protected CharacterControl characterControl;
     protected Spatial characterModel;
-    protected SoundManager soundManager;
+    protected SoundManagerInterface soundManager;
     private Node characterNode;
 
     public GameCharacter() {
@@ -81,7 +83,7 @@ public abstract class GameCharacter implements Character {
 
     protected abstract void initializeHealthBar();
 
-    public void initialize(BulletAppState bulletAppState, AssetManager assetManager, SoundManager soundManager) {
+    public void initialize(BulletAppState bulletAppState, AssetManager assetManager, SoundManagerInterface soundManager) {
         this.bulletAppState = bulletAppState;
         this.assetManager = assetManager;
         this.soundManager = soundManager;
