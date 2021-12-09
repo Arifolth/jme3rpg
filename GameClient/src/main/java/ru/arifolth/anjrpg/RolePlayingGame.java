@@ -92,13 +92,13 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         setupSky();
         addFilters();
 
-        attachTerrain();
         attachPlayer();
+        attachTerrain();
         attachSky();
 
         enablePhysics();
 
-        //enableGrass();
+        enableGrass();
     }
 
     private void enableGrass() {
@@ -236,9 +236,6 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     }
 
     protected void attachPlayer() {
-        gameLogicCore.getPlayerCharacter().getCharacterModel().setLocalTranslation(new Vector3f(0f, 100.0f, 0f));
-        //gameLogicCore.getPlayerCharacter().getCharacterControl().setPhysicsLocation(gameLogicCore.getPlayerCharacter().getCharacterModel().getLocalTranslation());
-        //characterModel.getLocalTranslation().subtractLocal(0f, 50.0f,0f); // model offset fix
         getRootNode().attachChild(gameLogicCore.getPlayerCharacter().getNode());
     }
 
@@ -259,7 +256,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         stateManager.attach(bulletAppState);
         bulletAppState.setEnabled(true);
         //collision capsule shape is visible in debug mode
-        bulletAppState.setDebugEnabled(true);
+        //bulletAppState.setDebugEnabled(true);
 //        setProgress(new Object() {}.getClass().getEnclosingMethod().getName());
     }
 
