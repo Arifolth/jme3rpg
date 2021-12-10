@@ -36,6 +36,8 @@ import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.shadow.PssmShadowRenderer;
+import com.jme3.terrain.geomipmap.TerrainGrid;
+import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.water.WaterFilter;
 import com.simsilica.lemur.OptionPanelState;
 import com.simsilica.lemur.event.PopupState;
@@ -97,12 +99,6 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         attachSky();
 
         enablePhysics();
-
-        enableGrass();
-    }
-
-    private void enableGrass() {
-        terrainManager.generateGrass();
     }
 
     protected void createMinimap() {
@@ -220,6 +216,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
 
     protected void attachTerrain() {
         getRootNode().attachChild(terrainManager.getTerrain());
+        //terrainManager.generateGrass(terrainManager.getTerrain());
     }
 
     protected void attachSky() {

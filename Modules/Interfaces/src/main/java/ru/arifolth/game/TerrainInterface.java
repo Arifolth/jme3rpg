@@ -20,10 +20,7 @@ package ru.arifolth.game;
 
 import com.jme3.terrain.geomipmap.TerrainQuad;
 
-public interface TerrainManagerInterface {
-    void generateGrass(TerrainQuad terrain);
+public interface TerrainInterface {
+    TerrainQuad generateTerrain();
 
-    void update(float tpf);
-
-    TerrainQuad getTerrain();
 }

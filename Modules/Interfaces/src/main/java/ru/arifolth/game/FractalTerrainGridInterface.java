@@ -18,12 +18,6 @@
 
 package ru.arifolth.game;
 
-import com.jme3.terrain.geomipmap.TerrainQuad;
+public interface FractalTerrainGridInterface extends TerrainInterface  {
 
-public interface TerrainManagerInterface {
-    void generateGrass(TerrainQuad terrain);
-
-    void update(float tpf);
-
-    TerrainQuad getTerrain();
 }
