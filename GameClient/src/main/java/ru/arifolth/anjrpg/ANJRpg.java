@@ -99,7 +99,7 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
             }
             case INITIALIZED: {
                 //wait until land appears in Physics Space
-                if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == 1) {
+                if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == 4) {
                     //put player at the beginning location
                     getGameLogicCore().getPlayerCharacter().getCharacterControl().setPhysicsLocation(Constants.PLAYER_START_LOCATION);
 
