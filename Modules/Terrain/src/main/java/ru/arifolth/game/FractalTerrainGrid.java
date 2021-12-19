@@ -144,7 +144,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
 
         ground.addPreFilter(this.iterate);
 
-        this.terrain = new TerrainGrid("terrain", 65, 513, new FractalTileLoader(ground, 256f));
+        this.terrain = new TerrainGrid("terrain", 65, 1025, new FractalTileLoader(ground, 256f));
 
         this.terrain.setMaterial(this.matTerrain);
 
