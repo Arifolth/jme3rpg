@@ -22,10 +22,7 @@ import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.terrain.geomipmap.TerrainQuad;
-import com.stomrage.grassarea.GrassArea;
-import com.stomrage.grassarea.GrassAreaControl;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class TerrainManager implements TerrainManagerInterface {
@@ -53,26 +50,8 @@ public class TerrainManager implements TerrainManagerInterface {
         terrain = terrainBuilder.generateTerrain();
     }
 
-    public void generateGrass(TerrainQuad terrain) {
-        GrassArea grassArea = null;
-        try {
-            grassArea = new GrassArea(terrain, 8, assetManager, 75);
-            grassArea.setColorTexture(assetManager.loadTexture("Textures/Grass/tile_1.png"));
-            grassArea.setDissolveTexture(assetManager.loadTexture("Textures/Grass/noise.png"));
-            grassArea.addDensityMap(assetManager.loadTexture("Textures/Grass/noise.png"));
-            grassArea.addDensityMap(assetManager.loadTexture("Textures/Grass/noise_2.png"));
-            grassArea.addLayer(0f, 0.5f, 0.75f, GrassArea.ColorChannel.RED_CHANNEL, GrassArea.DensityMap.DENSITY_MAP_1, 2f, 3f);
-            grassArea.addLayer(0.5f, 0.5f, 0.75f, GrassArea.ColorChannel.BLUE_CHANNEL, GrassArea.DensityMap.DENSITY_MAP_2, 2f, 3f);
-            grassArea.generate();
-        } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, "Grass generation error: ", ex);
-        }
-        if(null != grassArea) {
-            GrassAreaControl grassAreaControl = new GrassAreaControl(this.app.getCamera());
-            grassArea.addControl(grassAreaControl);
-            grassArea.setAutoUpdate(true);
-            this.app.getRootNode().attachChild(grassArea);
-        }
+    public void generateGrass() {
+
     }
 
     public TerrainQuad getTerrain() {

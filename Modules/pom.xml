@@ -16,7 +16,6 @@
 
   <modules>
     <module>Sky</module>
-    <module>Grass</module>
     <module>Interfaces</module>
     <module>Terrain</module>
     <module>Models</module>
