@@ -18,8 +18,9 @@
 
 package ru.arifolth.game.models.factory;
 
-import ru.arifolth.game.models.Character;
 
-public interface ICharacterFactory <T extends Character> {
-    public T createCharacter(Class<T> clazz);
+import ru.arifolth.game.CharacterInterface;
+
+public interface CharacterFactoryInterface<T extends CharacterInterface> {
+    T createCharacter(Class<T> clazz);
 }

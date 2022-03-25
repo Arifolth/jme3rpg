@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import static com.simsilica.lemur.component.BorderLayout.Position.*;
 
 public class ConfirmationMenuState extends CompositeAppState {
-    static Logger log = LoggerFactory.getLogger(OptionsMenuState.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(OptionsMenuState.class);
     private CustomCompositeAppState parent;
     private Container window;
 

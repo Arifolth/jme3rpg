@@ -20,17 +20,17 @@ package ru.arifolth.game.models.factory;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
-import ru.arifolth.game.SoundManager;
-import ru.arifolth.game.models.Character;
+import ru.arifolth.game.CharacterInterface;
+import ru.arifolth.game.SoundManagerInterface;
 
 import java.lang.reflect.InvocationTargetException;
 
-public class CharacterFactory<T extends Character> implements ICharacterFactory<T>{
-    private final SoundManager soundManager;
+public class CharacterFactory<T extends CharacterInterface> implements CharacterFactoryInterface<T> {
+    private final SoundManagerInterface soundManager;
     private BulletAppState bulletAppState;
     private AssetManager assetManager;
 
-    public CharacterFactory(BulletAppState bulletAppState, AssetManager assetManager, SoundManager soundManager) {
+    public CharacterFactory(BulletAppState bulletAppState, AssetManager assetManager, SoundManagerInterface soundManager) {
         this.bulletAppState = bulletAppState;
         this.assetManager = assetManager;
         this.soundManager = soundManager;

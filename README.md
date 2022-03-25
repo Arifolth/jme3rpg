@@ -13,7 +13,7 @@ mailto: <arifolth@gmail.com>
 Use [Maven](https://maven.apache.org/) to build the ANJRpg.
 
 ```bash
-mvn package
+mvn install
 ```
 ## Run
 ```bash

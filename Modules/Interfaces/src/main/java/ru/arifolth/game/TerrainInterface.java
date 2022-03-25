@@ -16,22 +16,11 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.game.models;
+package ru.arifolth.game;
 
-import com.jme3.scene.Node;
-import ru.arifolth.game.CharacterInterface;
+import com.jme3.terrain.geomipmap.TerrainQuad;
 
-public class NonPlayerCharacter extends PlayerCharacter {
-
-    public NonPlayerCharacter() {
-    }
-
-    public void simpleUpdate(float tpf) {
-
-    }
-
-    public Node getNode() {
-        return null;
-    }
+public interface TerrainInterface {
+    TerrainQuad generateTerrain();
 
 }

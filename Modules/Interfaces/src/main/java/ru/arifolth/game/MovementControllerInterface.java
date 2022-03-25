@@ -16,22 +16,14 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.game.models;
+package ru.arifolth.game;
 
-import com.jme3.scene.Node;
-import ru.arifolth.game.CharacterInterface;
+import com.jme3.input.controls.ActionListener;
 
-public class NonPlayerCharacter extends PlayerCharacter {
+public interface MovementControllerInterface extends ActionListener {
+    void setUpKeys();
 
-    public NonPlayerCharacter() {
-    }
+    void setPlayerCharacter(CharacterInterface playerCharacter);
 
-    public void simpleUpdate(float tpf) {
-
-    }
-
-    public Node getNode() {
-        return null;
-    }
-
+    void addInputMapping(BindingConstants up, int integer);
 }

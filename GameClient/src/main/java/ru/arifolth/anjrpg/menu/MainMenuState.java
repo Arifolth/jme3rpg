@@ -34,7 +34,7 @@ import ru.arifolth.anjrpg.ANJRpg;
 import static com.simsilica.lemur.component.BorderLayout.Position.West;
 
 public class MainMenuState extends BaseAppState {
-    static Logger log = LoggerFactory.getLogger(MainMenuState.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(MainMenuState.class);
 
     private Container mainWindow;
     private Container menuContainer;

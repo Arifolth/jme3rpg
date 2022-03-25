@@ -21,9 +21,13 @@ package ru.arifolth.game.models;
 import com.jme3.animation.AnimChannel;
 import com.jme3.animation.AnimControl;
 import com.jme3.animation.LoopMode;
+import com.jme3.asset.AssetManager;
+import com.jme3.bullet.BulletAppState;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
+import ru.arifolth.game.CharacterInterface;
+import ru.arifolth.game.SoundManagerInterface;
 
 public class PlayerCharacter extends NinjaCharacter {
     private boolean left = false, right = false, up = false, down = false,

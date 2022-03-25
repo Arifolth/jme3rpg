@@ -16,22 +16,26 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.game.models;
+package ru.arifolth.game;
 
-import com.jme3.scene.Node;
-import ru.arifolth.game.CharacterInterface;
+public enum BindingConstants {
+    ESCAPE("Escape"),
+    UP("W"),
+    DOWN("S"),
+    LEFT("A"),
+    RIGHT("D"),
+    JUMP("SPACE"),
+    RUN("LSHIFT"),
+    BLOCK("Block"),
+    ATTACK("Attack");
 
-public class NonPlayerCharacter extends PlayerCharacter {
+    private String defaultName;
 
-    public NonPlayerCharacter() {
+    public String getDefaultName() {
+        return defaultName;
     }
 
-    public void simpleUpdate(float tpf) {
-
+    BindingConstants(String defaultName) {
+        this.defaultName = defaultName;
     }
-
-    public Node getNode() {
-        return null;
-    }
-
 }

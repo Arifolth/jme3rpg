@@ -26,14 +26,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.arifolth.anjrpg.RolePlayingGame;
 import ru.arifolth.game.SoundManager;
+import ru.arifolth.game.SoundManagerInterface;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.*;
 
 public class AudioMenuState extends CustomCompositeAppState {
-    static Logger log = LoggerFactory.getLogger(AudioMenuState.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(AudioMenuState.class);
     public static final int WIDTH = 0;
     public static final int HEIGHT = 1;
-    private final SoundManager soundManager;
+    private final SoundManagerInterface soundManager;
     private RangedValueModel volumeModel = new DefaultRangedValueModel(0, 6, 3);
 
     public AudioMenuState(OptionsMenuState parent) {

@@ -16,22 +16,20 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.game.models;
+package ru.arifolth.game;
 
-import com.jme3.scene.Node;
-import ru.arifolth.game.CharacterInterface;
+import com.jme3.audio.AudioNode;
 
-public class NonPlayerCharacter extends PlayerCharacter {
+public interface SoundManagerInterface {
+    void setVolume(float value);
 
-    public NonPlayerCharacter() {
-    }
+    void reInitialize();
 
-    public void simpleUpdate(float tpf) {
+    AudioNode getFootStepsNode();
 
-    }
+    AudioNode getWindNode();
 
-    public Node getNode() {
-        return null;
-    }
+    AudioNode getSwordSwingNode();
 
+    AudioNode getSwordBlockNode();
 }

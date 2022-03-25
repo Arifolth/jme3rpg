@@ -16,22 +16,17 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.game.models;
+package ru.arifolth.game;
 
-import com.jme3.scene.Node;
-import ru.arifolth.game.CharacterInterface;
+public interface GameLogicCoreInterface {
 
-public class NonPlayerCharacter extends PlayerCharacter {
+    CharacterInterface getPlayerCharacter();
 
-    public NonPlayerCharacter() {
-    }
+    void reInitialize();
 
-    public void simpleUpdate(float tpf) {
+    MovementControllerInterface getMovementController();
 
-    }
+    void initialize();
 
-    public Node getNode() {
-        return null;
-    }
-
+    void update(float tpf);
 }

@@ -16,26 +16,8 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.anjrpg;
+package ru.arifolth.game;
 
-public enum BindingConstants {
-    ESCAPE("Escape"),
-    UP("W"),
-    DOWN("S"),
-    LEFT("A"),
-    RIGHT("D"),
-    JUMP("SPACE"),
-    RUN("LSHIFT"),
-    BLOCK("Block"),
-    ATTACK("Attack");
+public interface FractalTerrainGridInterface extends TerrainInterface  {
 
-    private String defaultName;
-
-    public String getDefaultName() {
-        return defaultName;
-    }
-
-    BindingConstants(String defaultName) {
-        this.defaultName = defaultName;
-    }
 }
