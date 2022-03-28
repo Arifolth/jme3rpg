@@ -61,7 +61,7 @@
 
     <encoding>UTF-8</encoding>
 
-    <jmonkey.version>3.5.0-stable</jmonkey.version>
+    <jmonkey.version>3.5.1-stable</jmonkey.version>
     <jme3.groupId>org.jmonkeyengine</jme3.groupId>
 
     <lemur.version>1.15.0</lemur.version>
