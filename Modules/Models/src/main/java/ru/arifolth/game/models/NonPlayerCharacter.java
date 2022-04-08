@@ -39,7 +39,7 @@ public class NonPlayerCharacter extends PlayerCharacter {
         this.setName(this.getClass().getName());
 
         this.turnRate = FastMath.QUARTER_PI / 5f;
-        this.walkingRange = 50f;
+        this.walkingRange = 500f;
         this.firingRange = 20f;
         this.walkSpeed = .5f;
         this.shootRate = 1f;
@@ -94,14 +94,13 @@ public class NonPlayerCharacter extends PlayerCharacter {
     public void turningTo(Vector3f target) {
         Quaternion diff1 = new Quaternion();
         Quaternion diff2 = new Quaternion();
-        Quaternion diff3 = new Quaternion();
 
         Vector3f newOrient = target.subtract(characterControl.getPhysicsLocation());
         Vector3f curOrient = characterControl.getViewDirection();
 
         diff1.lookAt(newOrient, Vector3f.UNIT_Y);
         diff2.lookAt(curOrient, Vector3f.UNIT_Y);
-        diff3 = diff1.subtract(diff2);
+        Quaternion diff3 = diff1.subtract(diff2);
 
         float ydiff = diff3.getY();
 
