@@ -31,7 +31,6 @@ import de.lessvoid.nifty.input.NiftyInputEvent;
 import de.lessvoid.nifty.screen.Screen;
 import de.lessvoid.nifty.screen.ScreenController;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import ru.arifolth.game.Constants;
 import ru.arifolth.game.InitStateEnum;
 import ru.arifolth.game.RolePlayingGameInterface;
 
@@ -101,7 +100,7 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
                 //wait until land appears in Physics Space
                 if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == 4) {
                     //put player at the beginning location
-                    getGameLogicCore().getPlayerCharacter().getCharacterControl().setPhysicsLocation(Constants.PLAYER_START_LOCATION);
+                    positionCharacters();
 
                     //these calls have to be done on the update loop thread,
                     //especially attaching the terrain to the rootNode

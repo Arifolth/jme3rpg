@@ -27,17 +27,17 @@ import com.jme3.asset.plugins.ClasspathLocator;
 import com.jme3.audio.AudioListenerState;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.CharacterControl;
+import com.jme3.collision.CollisionResult;
+import com.jme3.collision.CollisionResults;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.*;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
 import com.jme3.shadow.PssmShadowRenderer;
-import com.jme3.terrain.geomipmap.TerrainGrid;
-import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.water.WaterFilter;
 import com.simsilica.lemur.OptionPanelState;
 import com.simsilica.lemur.event.PopupState;
@@ -56,6 +56,7 @@ import java.util.logging.Logger;
 public abstract class RolePlayingGame extends SimpleApplication implements RolePlayingGameInterface {
     public static final SSAOFilter SSAO_FILTER_BASIC = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.9f);
     public static final SSAOFilter SSAO_FILTER_STRONG = new SSAOFilter(2.9299974f, 25f, 5.8100376f, 0.091000035f);
+    public static final String POM_XML = "pom.xml";
     protected String version;
     protected Element progressBarElement;
     protected TextRenderer textRenderer;
@@ -78,7 +79,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
                 new MainMenuState()
         );
 
-        version = new MavenXpp3Reader().read(new FileReader("pom.xml")).getVersion();
+        version = new MavenXpp3Reader().read(new FileReader(POM_XML)).getVersion();
     }
 
     @Override
@@ -99,7 +100,28 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         attachSky();
 
         enablePhysics();
+        attachNPC();
     }
+
+    protected void positionCharacters() {
+        CollisionResults results = new CollisionResults();
+        // 2. Aim the ray from cam loc to cam direction.
+        Vector3f start = Constants.PLAYER_START_LOCATION;
+        Ray ray = new Ray(start, new Vector3f(0, -1, 0));
+
+        // 3. Collect intersections between Ray and Shootables in results list.
+        getTerrainManager().getTerrain().collideWith(ray, results);
+        CollisionResult hit = results.getClosestCollision();
+
+        Vector3f playerStartLoc = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y + 3f, hit.getContactPoint().z);
+        gameLogicCore.getPlayerCharacter().getCharacterControl().setPhysicsLocation(playerStartLoc);
+
+        Vector3f npcStartLoc = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y + 40f, hit.getContactPoint().z);
+        for(CharacterInterface character: gameLogicCore.getCharacterSet()) {
+            character.getCharacterControl().setPhysicsLocation(npcStartLoc);
+        }
+    }
+
 
     protected void createMinimap() {
         // create the minimap
@@ -225,15 +247,29 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
 
     protected void enablePhysics() {
         CharacterInterface playerCharacter = gameLogicCore.getPlayerCharacter();
-        CharacterControl characterControl = playerCharacter.getCharacterControl();
-        characterControl.setJumpSpeed(20);
-        characterControl.setFallSpeed(300);
-        characterControl.setGravity(30);
+        CharacterControl playerCharacterControl = playerCharacter.getCharacterControl();
+        playerCharacterControl.setJumpSpeed(20);
+        playerCharacterControl.setFallSpeed(300);
+        playerCharacterControl.setGravity(30);
+
+        for(CharacterInterface character: gameLogicCore.getCharacterSet()) {
+            CharacterControl characterControl = character.getCharacterControl();
+            characterControl.setJumpSpeed(20);
+            characterControl.setFallSpeed(300);
+            characterControl.setGravity(30);
+        }
+
         setProgress(new Object() {}.getClass().getEnclosingMethod().getName());
     }
 
     protected void attachPlayer() {
         getRootNode().attachChild(gameLogicCore.getPlayerCharacter().getNode());
+    }
+
+    protected void attachNPC() {
+        for(CharacterInterface character: gameLogicCore.getCharacterSet()) {
+            getRootNode().attachChild(character.getNode());
+        }
     }
 
     @Override
@@ -253,7 +289,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         stateManager.attach(bulletAppState);
         bulletAppState.setEnabled(true);
         //collision capsule shape is visible in debug mode
-        //bulletAppState.setDebugEnabled(true);
+        bulletAppState.setDebugEnabled(true);
 //        setProgress(new Object() {}.getClass().getEnclosingMethod().getName());
     }
 

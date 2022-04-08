@@ -19,6 +19,17 @@ mvn install
 ```bash
 mvn exec:java -pl GameClient -Djvm.options="-XX:-TieredCompilation -XX:TieredStopAtLevel=3 -server -XX:+UnlockExperimentalVMOptions -XX:+UseZGC"
 ```
+## About game
+Features borderless procedurally generated world
+Day and Night Cycle
+Weather effects
+Physics 
+Enemies with AI and Combat System
+Animated models
+Sounds
+UI
+Loading Screen and Main Menu
+
 ## Repo
 
 <https://github.com/Arifolth/jme3rpg>

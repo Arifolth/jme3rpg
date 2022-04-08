@@ -32,6 +32,7 @@ import com.jme3.scene.Node;
 import ru.arifolth.anjrpg.weather.Emitter;
 import ru.arifolth.anjrpg.weather.RainEmitter;
 import ru.arifolth.game.*;
+import ru.arifolth.game.models.NonPlayerCharacter;
 import ru.arifolth.game.models.PlayerCharacter;
 import ru.arifolth.game.models.factory.CharacterFactory;
 
@@ -70,10 +71,17 @@ public class GameLogicCore implements GameLogicCoreInterface {
 
         setupPlayer();
 
+        setupNPC();
+
         setupCamera();
 
         movementController.setUpKeys();
         //setupWeatherEffects();
+    }
+
+    private void setupNPC() {
+        CharacterInterface nonPlayerCharacter = (NonPlayerCharacter)characterFactory.createCharacter(NonPlayerCharacter.class);
+        characterSet.add(nonPlayerCharacter);
     }
 
     public void reInitialize() {
@@ -81,9 +89,9 @@ public class GameLogicCore implements GameLogicCoreInterface {
     }
 
     private void setupWeatherEffects() {
-        Emitter snowEmitter = new RainEmitter(rootNode, assetManager);
-        snowEmitter.setSpatial(playerCharacter.getNode());
-        weatherEffectsSet.add(snowEmitter);
+        Emitter emitter = new RainEmitter(rootNode, assetManager);
+        emitter.setSpatial(playerCharacter.getNode());
+        weatherEffectsSet.add(emitter);
     }
 
     public CharacterInterface getPlayerCharacter() {
@@ -94,7 +102,6 @@ public class GameLogicCore implements GameLogicCoreInterface {
         //create player
         playerCharacter = (PlayerCharacter)characterFactory.createCharacter(PlayerCharacter.class);
         playerCharacter.setCam(cam);
-        characterSet.add(playerCharacter);
         movementController.setPlayerCharacter(playerCharacter);
     }
 
@@ -141,6 +148,8 @@ public class GameLogicCore implements GameLogicCoreInterface {
     }
 
     public void update(float tpf) {
+        playerCharacter.simpleUpdate(tpf);
+
         for(CharacterInterface character : characterSet) {
             character.simpleUpdate(tpf);
         }
@@ -148,6 +157,11 @@ public class GameLogicCore implements GameLogicCoreInterface {
         for(Emitter emitter : weatherEffectsSet) {
             emitter.simpleUpdate(tpf);
         }
+    }
+
+    @Override
+    public Set<CharacterInterface> getCharacterSet() {
+        return characterSet;
     }
 
     public MovementControllerInterface getMovementController() {

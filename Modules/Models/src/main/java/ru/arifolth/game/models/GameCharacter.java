@@ -36,6 +36,8 @@ public abstract class GameCharacter implements CharacterInterface {
     protected Spatial characterModel;
     protected SoundManagerInterface soundManager;
     private Node characterNode;
+    //default model name
+    private String name = this.getClass().getName();
 
     public GameCharacter() {
     }
@@ -56,7 +58,7 @@ public abstract class GameCharacter implements CharacterInterface {
     }
 
     protected void initializeCharacterNode() {
-        characterNode = new Node("Player");
+        characterNode = new Node(name);
         characterNode.addControl(characterControl);
         characterNode.attachChild(characterModel);
     }
@@ -75,13 +77,21 @@ public abstract class GameCharacter implements CharacterInterface {
         bulletAppState.getPhysicsSpace().add(characterControl);
     }
 
-    private void setUpDefaultPhysics() {
+    protected void setUpDefaultPhysics() {
         characterControl.setJumpSpeed(0);
         characterControl.setFallSpeed(0);
         characterControl.setGravity(0);
     }
 
     protected abstract void initializeHealthBar();
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public void initialize(BulletAppState bulletAppState, AssetManager assetManager, SoundManagerInterface soundManager) {
         this.bulletAppState = bulletAppState;

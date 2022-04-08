@@ -18,20 +18,53 @@
 
 package ru.arifolth.game.models;
 
-import com.jme3.scene.Node;
-import ru.arifolth.game.CharacterInterface;
+import com.jme3.animation.SkeletonControl;
+import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
+import com.jme3.bullet.control.CharacterControl;
+import com.jme3.renderer.queue.RenderQueue;
 
 public class NonPlayerCharacter extends PlayerCharacter {
 
     public NonPlayerCharacter() {
+        this.setModel("Models/skele11/skele11.j3o");
+        this.setName(this.getClass().getName());
+    }
+
+    protected void initializeCharacterModel() {
+        characterModel = assetManager.loadModel(model);
+        characterModel.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+        characterModel.setLocalScale(2.5f);
+        characterModel.setQueueBucket(RenderQueue.Bucket.Transparent);
+
+        SkeletonControl skeletonControl = characterModel.getControl(SkeletonControl.class);
+        if(null != skeletonControl)
+            skeletonControl.setHardwareSkinningPreferred(true);
     }
 
     public void simpleUpdate(float tpf) {
+        // TODO maybe change this to target
+        /*Player player = game.getPlayer();
 
+        shootUpdate(tpf);
+
+        if (withinRange(walkingRange, player)) {
+            turningTo(player.getLocation());
+
+            if (withinRange(firingRange, player)) {
+                stop();
+                attack();
+            } else {
+                walkForward();
+            }
+        } else {
+            stop();
+        }*/
     }
 
-    public Node getNode() {
-        return null;
-    }
+    @Override
+    protected void initializeAnimation() { }
+
+    @Override
+    protected void initializeSkeletonDebug() { }
 
 }

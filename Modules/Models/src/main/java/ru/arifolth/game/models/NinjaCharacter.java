@@ -25,7 +25,6 @@ import com.jme3.animation.SkeletonControl;
 import com.jme3.audio.AudioNode;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.scene.debug.SkeletonDebugger;
@@ -46,7 +45,7 @@ public abstract class NinjaCharacter extends GameCharacter implements AnimEventL
     public static final String SWORD_BLOCK = "swordBlock";
     public static final String SWORD_SWING = "swordSwing";
     public static final String PLAYER_FOOTSTEPS = "playerFootsteps";
-    public static final String NINJA_MODEL = "Models/Ninja/Ninja.j3o";
+    protected String model;
     private AnimChannel animationChannel;
     private AnimChannel attackChannel;
     private AnimControl animationControl;
@@ -62,7 +61,7 @@ public abstract class NinjaCharacter extends GameCharacter implements AnimEventL
             ex.printStackTrace();
         }
         */
-        characterModel = assetManager.loadModel(NINJA_MODEL);
+        characterModel = assetManager.loadModel(model);
         //Material playerMaterial = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
         //characterModel.setMaterial(playerMaterial);
         characterModel.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
@@ -79,7 +78,9 @@ public abstract class NinjaCharacter extends GameCharacter implements AnimEventL
 //        characterControl.setPhysicsLocation(characterModel.getLocalTranslation());
         //characterModel.getLocalTranslation().subtractLocal(0f, 50.0f,0f); // model offset fix
 
-        characterModel.getControl(SkeletonControl.class).setHardwareSkinningPreferred(true);
+        SkeletonControl skeletonControl = characterModel.getControl(SkeletonControl.class);
+        if(null != skeletonControl)
+            skeletonControl.setHardwareSkinningPreferred(true);
     }
 
     @Override
@@ -162,5 +163,13 @@ public abstract class NinjaCharacter extends GameCharacter implements AnimEventL
 
     public AnimChannel getAttackChannel() {
         return attackChannel;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
     }
 }

@@ -18,11 +18,15 @@
 
 package ru.arifolth.game;
 
+import java.util.Set;
+
 public interface GameLogicCoreInterface {
 
     CharacterInterface getPlayerCharacter();
 
     void reInitialize();
+
+    Set<CharacterInterface> getCharacterSet();
 
     MovementControllerInterface getMovementController();
 
