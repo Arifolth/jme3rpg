@@ -18,6 +18,9 @@
 
 package ru.arifolth.game;
 
+import com.jme3.asset.AssetManager;
+import com.jme3.bullet.BulletAppState;
+
 import java.util.Set;
 
 public interface GameLogicCoreInterface {
@@ -33,4 +36,10 @@ public interface GameLogicCoreInterface {
     void initialize();
 
     void update(float tpf);
+
+    BulletAppState getBulletAppState();
+
+    AssetManager getAssetManager();
+
+    SoundManagerInterface getSoundManager();
 }

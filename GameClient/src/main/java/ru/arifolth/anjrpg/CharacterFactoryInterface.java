@@ -16,7 +16,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.game.models.factory;
+package ru.arifolth.anjrpg;
 
 
 import ru.arifolth.game.CharacterInterface;

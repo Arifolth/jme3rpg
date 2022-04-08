@@ -113,6 +113,17 @@ public abstract class GameCharacter implements CharacterInterface {
         initializeSkeletonDebug();
     }
 
+    public boolean withinRange(float distance, CharacterInterface enemy) {
+        CharacterControl control = enemy.getCharacterControl();
+        float dist = control.getPhysicsLocation().distanceSquared(characterControl.getPhysicsLocation());
+
+        if (dist <= distance * distance) {
+            return true;
+        }
+
+        return false;
+    }
+
     public abstract void initializeSounds();
     protected abstract void initializeAnimation();
     protected abstract void initializeSkeletonDebug();

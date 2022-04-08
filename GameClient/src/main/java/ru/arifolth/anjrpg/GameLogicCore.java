@@ -31,10 +31,12 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import ru.arifolth.anjrpg.weather.Emitter;
 import ru.arifolth.anjrpg.weather.RainEmitter;
-import ru.arifolth.game.*;
+import ru.arifolth.game.CharacterInterface;
+import ru.arifolth.game.GameLogicCoreInterface;
+import ru.arifolth.game.MovementControllerInterface;
+import ru.arifolth.game.SoundManagerInterface;
 import ru.arifolth.game.models.NonPlayerCharacter;
 import ru.arifolth.game.models.PlayerCharacter;
-import ru.arifolth.game.models.factory.CharacterFactory;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -67,7 +69,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
     }
 
     public void initialize() {
-        characterFactory = new CharacterFactory(bulletAppState, assetManager, soundManager);
+        characterFactory = new CharacterFactory(this);
 
         setupPlayer();
 
@@ -80,7 +82,8 @@ public class GameLogicCore implements GameLogicCoreInterface {
     }
 
     private void setupNPC() {
-        CharacterInterface nonPlayerCharacter = (NonPlayerCharacter)characterFactory.createCharacter(NonPlayerCharacter.class);
+        NonPlayerCharacter nonPlayerCharacter = (NonPlayerCharacter)characterFactory.createCharacter(NonPlayerCharacter.class);
+        nonPlayerCharacter.setPlayerCharacter(playerCharacter);
         characterSet.add(nonPlayerCharacter);
     }
 
@@ -166,5 +169,20 @@ public class GameLogicCore implements GameLogicCoreInterface {
 
     public MovementControllerInterface getMovementController() {
         return movementController;
+    }
+
+    @Override
+    public BulletAppState getBulletAppState() {
+        return bulletAppState;
+    }
+
+    @Override
+    public AssetManager getAssetManager() {
+        return assetManager;
+    }
+
+    @Override
+    public SoundManagerInterface getSoundManager() {
+        return soundManager;
     }
 }
