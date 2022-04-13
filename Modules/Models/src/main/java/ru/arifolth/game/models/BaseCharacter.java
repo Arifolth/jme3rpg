@@ -28,18 +28,19 @@ import ru.arifolth.game.CharacterInterface;
 import ru.arifolth.game.SoundManager;
 import ru.arifolth.game.SoundManagerInterface;
 
-public abstract class GameCharacter implements CharacterInterface {
+public abstract class BaseCharacter implements CharacterInterface {
     protected BulletAppState bulletAppState;
     protected AssetManager assetManager;
 
     protected CharacterControl characterControl;
     protected Spatial characterModel;
     protected SoundManagerInterface soundManager;
+    protected HealthBar healthBar;
     private Node characterNode;
     //default model name
     private String name = this.getClass().getName();
 
-    public GameCharacter() {
+    public BaseCharacter() {
     }
 
     @Override
@@ -131,4 +132,7 @@ public abstract class GameCharacter implements CharacterInterface {
     public abstract boolean isAttacking();
     public abstract boolean isBlocking();
 
+    public HealthBar getHealthBar() {
+        return healthBar;
+    }
 }

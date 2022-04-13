@@ -24,18 +24,18 @@ import com.jme3.animation.LoopMode;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 
-public class PlayerCharacter extends NinjaCharacter {
+public class PlayerCharacter extends AnimatedCharacter {
+    public static final String PLAYER_CHARACTER_MODEL = "Models/Ninja/Ninja.j3o";
     private boolean left = false, right = false, up = false, down = false,
         attacking = false, capture_mouse = true, running = false, blocking = false, block_pressed = false,
         jumping = false, jump_pressed = false, attack_pressed = false;
     private final Vector3f walkDirection = new Vector3f();
     private float airTime = 0;
     private float actionTime = 0;
-    private HealthBar healthBar;
     private Camera cam;
 
     public PlayerCharacter() {
-        this.setModel("Models/Ninja/Ninja.j3o");
+        this.setModel(PLAYER_CHARACTER_MODEL);
         this.setName(this.getClass().getName());
     }
 

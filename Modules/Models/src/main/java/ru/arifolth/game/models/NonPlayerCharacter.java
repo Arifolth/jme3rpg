@@ -26,6 +26,7 @@ import com.jme3.renderer.queue.RenderQueue;
 import ru.arifolth.game.CharacterInterface;
 
 public class NonPlayerCharacter extends PlayerCharacter {
+    public static final String NPC_SKELETON_MODEL = "Models/skele11/skele11.j3o";
     protected float turnRate;
     protected float firingRange;
     protected float walkingRange;
@@ -36,7 +37,7 @@ public class NonPlayerCharacter extends PlayerCharacter {
     protected CharacterInterface playerCharacter;
 
     public NonPlayerCharacter() {
-        this.setModel("Models/skele11/skele11.j3o");
+        this.setModel(NPC_SKELETON_MODEL);
         this.setName(this.getClass().getName());
 
         this.turnRate = FastMath.QUARTER_PI / 5f;

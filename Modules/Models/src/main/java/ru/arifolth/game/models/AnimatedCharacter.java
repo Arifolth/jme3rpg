@@ -41,7 +41,7 @@ import com.jme3.scene.debug.SkeletonDebugger;
     Number of bones: 28
     Initial facing vector: Vector3::NEGATIVE_UNIT_Z
 */
-public abstract class NinjaCharacter extends GameCharacter implements AnimEventListener {
+public abstract class AnimatedCharacter extends BaseCharacter implements AnimEventListener {
     public static final String SWORD_BLOCK = "swordBlock";
     public static final String SWORD_SWING = "swordSwing";
     public static final String PLAYER_FOOTSTEPS = "playerFootsteps";
