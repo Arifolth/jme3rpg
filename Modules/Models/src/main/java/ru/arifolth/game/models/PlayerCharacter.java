@@ -58,7 +58,7 @@ public class PlayerCharacter extends NinjaCharacter {
         getAttackChannel().setTime(getAttackChannel().getAnimMaxTime() / 2);
         setActionTime(getAttackChannel().getAnimMaxTime() / 2);
 
-        playSwordSound(getSwordBlockNode(), SWORD_BLOCK);
+        playSwordSound(getSwordBlockNode());
     }
 
     public void attack() {
@@ -67,7 +67,7 @@ public class PlayerCharacter extends NinjaCharacter {
         getAttackChannel().setSpeed(1f);
         setActionTime(getAttackChannel().getAnimMaxTime());
 
-        playSwordSound(getSwordSwingNode(), SWORD_SWING);
+        playSwordSound(getSwordSwingNode());
     }
 
     @Override

@@ -31,6 +31,7 @@ public class NonPlayerCharacter extends PlayerCharacter {
     protected float walkingRange;
     protected float walkSpeed;
     protected float shootRate;
+    protected float shootDelay;
     protected Vector3f walkDirection, viewDirection;
     protected CharacterInterface playerCharacter;
 
@@ -40,9 +41,10 @@ public class NonPlayerCharacter extends PlayerCharacter {
 
         this.turnRate = FastMath.QUARTER_PI / 5f;
         this.walkingRange = 500f;
-        this.firingRange = 20f;
-        this.walkSpeed = .5f;
+        this.firingRange = 5f;
+        this.walkSpeed = .3f;
         this.shootRate = 1f;
+        this.shootDelay = 2f;
     }
 
     protected void initializeCharacterModel() {
@@ -56,15 +58,13 @@ public class NonPlayerCharacter extends PlayerCharacter {
             skeletonControl.setHardwareSkinningPreferred(true);
     }
 
-    public CharacterInterface getPlayerCharacter() {
-        return playerCharacter;
-    }
-
     public void setPlayerCharacter(CharacterInterface playerCharacter) {
         this.playerCharacter = playerCharacter;
     }
 
     public void simpleUpdate(float tpf) {
+        shootUpdate(tpf);
+
         if (withinRange(walkingRange, playerCharacter)) {
             turningTo(playerCharacter.getCharacterControl().getPhysicsLocation());
 
@@ -84,10 +84,23 @@ public class NonPlayerCharacter extends PlayerCharacter {
     }
 
     public void attack() {
-        /*if (shootDelay < 0f) {
+        if (shootDelay < 0f) {
             useWeapon();
             shootDelay = shootRate;
-        }*/
+        }
+    }
+
+    public void shootUpdate(float tpf) {
+        if (shootDelay > 0f) {
+            shootDelay -= tpf;
+        }
+    }
+
+    public void useWeapon() {
+        Vector3f playerPos = playerCharacter.getCharacterControl().getPhysicsLocation();
+        Vector3f from = playerCharacter.getCharacterControl().getPhysicsLocation().add(playerPos.subtract(characterControl.getPhysicsLocation()).normalize().mult(20f));
+        Vector3f to = playerCharacter.getCharacterControl().getPhysicsLocation();
+
         System.out.println("ATTACK!");
     }
 

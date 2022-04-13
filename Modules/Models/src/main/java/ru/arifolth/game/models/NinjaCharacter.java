@@ -129,10 +129,10 @@ public abstract class NinjaCharacter extends GameCharacter implements AnimEventL
         soundManager.getWindNode().play();
     }
 
-    protected void playSwordSound(AudioNode swordSwingNode, String swordSwing) {
-        getNode().attachChild(swordSwingNode);
-        swordSwingNode.play();
-        getNode().detachChildNamed(swordSwing);
+    protected void playSwordSound(AudioNode swordSoundNode) {
+        getNode().attachChild(swordSoundNode);
+        swordSoundNode.play();
+        getNode().detachChildNamed(swordSoundNode.getName());
     }
 
     protected AudioNode getSwordBlockNode() {

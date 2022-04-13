@@ -26,7 +26,6 @@ import com.jme3.app.state.ScreenshotAppState;
 import com.jme3.asset.plugins.ClasspathLocator;
 import com.jme3.audio.AudioListenerState;
 import com.jme3.bullet.BulletAppState;
-import com.jme3.bullet.control.CharacterControl;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import com.jme3.math.ColorRGBA;
@@ -57,6 +56,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     public static final SSAOFilter SSAO_FILTER_BASIC = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.9f);
     public static final SSAOFilter SSAO_FILTER_STRONG = new SSAOFilter(2.9299974f, 25f, 5.8100376f, 0.091000035f);
     public static final String POM_XML = "pom.xml";
+    public static final int WATER_LEVEL_HEIGHT = -70;
     protected String version;
     protected Element progressBarElement;
     protected TextRenderer textRenderer;
@@ -116,7 +116,8 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         Vector3f playerStartLoc = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y + 3f, hit.getContactPoint().z);
         gameLogicCore.getPlayerCharacter().getCharacterControl().setPhysicsLocation(playerStartLoc);
 
-        Vector3f npcStartLoc = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y + 40f, hit.getContactPoint().z);
+        //TODO: X coordinate Random generation
+        Vector3f npcStartLoc = new Vector3f(hit.getContactPoint().x + 40f, hit.getContactPoint().y + 40f, hit.getContactPoint().z);
         for(CharacterInterface character: gameLogicCore.getCharacterSet()) {
             character.getCharacterControl().setPhysicsLocation(npcStartLoc);
         }
@@ -214,7 +215,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
 
         // add an ocean.
         waterFilter = new WaterFilter(getRootNode(), sky.getSunDirection().normalize());
-        waterFilter.setWaterHeight(-70);
+        waterFilter.setWaterHeight(WATER_LEVEL_HEIGHT);
         fpp.addFilter(waterFilter);
         viewPort.addProcessor(fpp);
 
@@ -247,16 +248,10 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
 
     protected void enablePhysics() {
         CharacterInterface playerCharacter = gameLogicCore.getPlayerCharacter();
-        CharacterControl playerCharacterControl = playerCharacter.getCharacterControl();
-        playerCharacterControl.setJumpSpeed(20);
-        playerCharacterControl.setFallSpeed(300);
-        playerCharacterControl.setGravity(30);
+        Utils.enableEntityPhysics(playerCharacter);
 
         for(CharacterInterface character: gameLogicCore.getCharacterSet()) {
-            CharacterControl characterControl = character.getCharacterControl();
-            characterControl.setJumpSpeed(20);
-            characterControl.setFallSpeed(300);
-            characterControl.setGravity(30);
+            Utils.enableEntityPhysics(character);
         }
 
         setProgress(new Object() {}.getClass().getEnclosingMethod().getName());

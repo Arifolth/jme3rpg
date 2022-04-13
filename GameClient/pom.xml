@@ -20,7 +20,7 @@
   </parent>
 
   <build>
-    <plugins>
+    <!--<plugins>
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
         <version>2.4</version>
@@ -50,7 +50,7 @@
           <descriptors>
             <descriptor>src/main/assembly/dist.xml</descriptor>
           </descriptors>
-                <!--<archive>
+                &lt;!&ndash;<archive>
                     <manifest>
                         <mainClass>ru.arifolth.anjrpg.RolePlayingGame</mainClass>
                         <addClasspath>true</addClasspath>
@@ -58,7 +58,7 @@
                     <manifestEntries>
                         <Class-Path>/lib/</Class-Path>
                     </manifestEntries>
-                </archive>-->
+                </archive>&ndash;&gt;
         </configuration>
         <executions>
           <execution>
@@ -80,7 +80,7 @@
                 <mainClass>${java.main.class}</mainClass>
             </configuration>
         </plugin>
-    </plugins>
+    </plugins>-->
   </build>
 
 
