@@ -40,7 +40,7 @@ public class PlayerCharacter extends AnimatedCharacter {
     }
 
     @Override
-    protected void initializeHealthBar() {
+    protected void initHealthBar() {
         healthBar = new HealthBar(assetManager, getNode());
         healthBar.create();
     }

@@ -27,6 +27,7 @@ import ru.arifolth.game.CharacterInterface;
 
 public class NonPlayerCharacter extends PlayerCharacter {
     public static final String NPC_SKELETON_MODEL = "Models/skele11/skele11.j3o";
+    public static final float HIT = 25f;
     protected float turnRate;
     protected float firingRange;
     protected float walkingRange;
@@ -97,12 +98,22 @@ public class NonPlayerCharacter extends PlayerCharacter {
         }
     }
 
+    //TODO: Rewrite as a Melee/Ranged class later
     public void useWeapon() {
-        Vector3f playerPos = playerCharacter.getCharacterControl().getPhysicsLocation();
-        Vector3f from = playerCharacter.getCharacterControl().getPhysicsLocation().add(playerPos.subtract(characterControl.getPhysicsLocation()).normalize().mult(20f));
-        Vector3f to = playerCharacter.getCharacterControl().getPhysicsLocation();
-
+//        Vector3f playerPos = playerCharacter.getCharacterControl().getPhysicsLocation();
+//        Vector3f from = playerCharacter.getCharacterControl().getPhysicsLocation().add(playerPos.subtract(characterControl.getPhysicsLocation()).normalize().mult(20f));
+//        Vector3f to = playerCharacter.getCharacterControl().getPhysicsLocation();
         System.out.println("ATTACK!");
+        playSwordSound(getSwordSwingNode());
+
+        if(!playerCharacter.isBlocking()) {
+            playerCharacter.getHealthBar().setHealth(HIT);
+            System.out.println("HIT!");
+            playSwordSound(getSwordHitNode());
+        } else {
+            System.out.println("BLOCKED!");
+            playSwordSound(getSwordBlockNode());
+        }
     }
 
     public void turningTo(Vector3f target) {
@@ -132,11 +143,13 @@ public class NonPlayerCharacter extends PlayerCharacter {
     public void walkForward() {
         walkDirection = viewDirection = characterControl.getViewDirection().normalize().mult(walkSpeed);
         characterControl.setWalkDirection(walkDirection);
+        this.getPlayerStepsNode(this.isRunning()).play();
     }
 
     public void stop() {
         walkDirection.set(0f, 0f, 0f);
         characterControl.setWalkDirection(walkDirection);
+        this.getPlayerStepsNode(this.isRunning()).pause();
     }
 
     public void turnLeft() {

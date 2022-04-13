@@ -25,7 +25,7 @@ import com.jme3.bullet.control.CharacterControl;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import ru.arifolth.game.CharacterInterface;
-import ru.arifolth.game.SoundManager;
+import ru.arifolth.game.HealthBarInterface;
 import ru.arifolth.game.SoundManagerInterface;
 
 public abstract class BaseCharacter implements CharacterInterface {
@@ -35,7 +35,7 @@ public abstract class BaseCharacter implements CharacterInterface {
     protected CharacterControl characterControl;
     protected Spatial characterModel;
     protected SoundManagerInterface soundManager;
-    protected HealthBar healthBar;
+    protected HealthBarInterface healthBar;
     private Node characterNode;
     //default model name
     private String name = this.getClass().getName();
@@ -84,7 +84,7 @@ public abstract class BaseCharacter implements CharacterInterface {
         characterControl.setGravity(0);
     }
 
-    protected abstract void initializeHealthBar();
+    protected abstract void initHealthBar();
 
     public String getName() {
         return name;
@@ -105,7 +105,7 @@ public abstract class BaseCharacter implements CharacterInterface {
 
         initializeCharacterNode();
 
-        initializeHealthBar();
+        initHealthBar();
 
         initializeSounds();
 
@@ -129,10 +129,8 @@ public abstract class BaseCharacter implements CharacterInterface {
     protected abstract void initializeAnimation();
     protected abstract void initializeSkeletonDebug();
 
-    public abstract boolean isAttacking();
-    public abstract boolean isBlocking();
-
-    public HealthBar getHealthBar() {
+    @Override
+    public HealthBarInterface getHealthBar() {
         return healthBar;
     }
 }

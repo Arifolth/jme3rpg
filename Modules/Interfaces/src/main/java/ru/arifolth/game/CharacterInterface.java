@@ -64,4 +64,10 @@ public interface CharacterInterface {
     void setAttack_pressed(boolean pressed);
 
     void initialize(BulletAppState bulletAppState, AssetManager assetManager, SoundManagerInterface soundManager);
+
+    boolean isAttacking();
+
+    boolean isBlocking();
+
+    HealthBarInterface getHealthBar();
 }

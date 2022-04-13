@@ -25,9 +25,11 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.control.BillboardControl;
 import com.jme3.scene.shape.Quad;
+import ru.arifolth.game.HealthBarInterface;
 
-public class HealthBar {
-    public static final float MAXIMUM_HEALTH = 75f;
+public class HealthBar implements HealthBarInterface {
+    public static final float MAXIMUM_HEALTH = 100f;
+    public static final String HEALTH = "health";
     private AssetManager assetManager;
     private Node characterNode;
 
@@ -36,13 +38,14 @@ public class HealthBar {
         this.characterNode = characterNode;
     }
 
+    @Override
     public void create() {
-        characterNode.setUserData("health", MAXIMUM_HEALTH);
+        characterNode.setUserData(HEALTH, MAXIMUM_HEALTH);
 
         // add healthbar
         BillboardControl billboard = new BillboardControl();
         //new Quad(HEALTHBAR_LENGTH, HELTHBAR_HEIGHT))
-        Geometry healthbar = new Geometry("healthbar", new Quad((float) characterNode.getUserData("health") / 25f, 0.2f));
+        Geometry healthbar = new Geometry(this.getClass().getName(), new Quad((float) characterNode.getUserData(HEALTH) / 25f, 0.2f));
         Material mathb = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         mathb.setColor("Color", ColorRGBA.Red);
         healthbar.setMaterial(mathb);
@@ -52,7 +55,18 @@ public class HealthBar {
         characterNode.attachChild(healthbar);
     }
 
+    @Override
     public void update() {
-        ((Quad)((Geometry)characterNode.getChild("healthbar")).getMesh()).updateGeometry((float) characterNode.getUserData("health") / 25f, 0.2f);
+        ((Quad)((Geometry)characterNode.getChild(this.getClass().getName())).getMesh()).updateGeometry((float) characterNode.getUserData(HEALTH) / 25f, 0.2f);
+    }
+
+    @Override
+    public void setHealth(float delta) {
+        characterNode.setUserData(HEALTH, (float) characterNode.getUserData(HEALTH) - delta);
+    }
+
+    @Override
+    public float getHealth() {
+        return (float) characterNode.getUserData(HEALTH) / 25f;
     }
 }

@@ -44,6 +44,7 @@ import com.jme3.scene.debug.SkeletonDebugger;
 public abstract class AnimatedCharacter extends BaseCharacter implements AnimEventListener {
     public static final String SWORD_BLOCK = "swordBlock";
     public static final String SWORD_SWING = "swordSwing";
+    public static final String SWORD_HIT = "swordHit";
     public static final String PLAYER_FOOTSTEPS = "playerFootsteps";
     protected String model;
     private AnimChannel animationChannel;
@@ -144,6 +145,12 @@ public abstract class AnimatedCharacter extends BaseCharacter implements AnimEve
     protected AudioNode getSwordSwingNode() {
         AudioNode audioNode = soundManager.getSwordSwingNode();
         audioNode.setName(SWORD_SWING);
+        return audioNode;
+    }
+
+    protected AudioNode getSwordHitNode() {
+        AudioNode audioNode = soundManager.getSwordHitNode();
+        audioNode.setName(SWORD_HIT);
         return audioNode;
     }
 
