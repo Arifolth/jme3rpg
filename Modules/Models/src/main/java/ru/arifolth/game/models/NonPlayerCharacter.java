@@ -23,6 +23,7 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.ui.Picture;
 import ru.arifolth.game.CharacterInterface;
 
 public class NonPlayerCharacter extends PlayerCharacter {
@@ -58,6 +59,10 @@ public class NonPlayerCharacter extends PlayerCharacter {
         SkeletonControl skeletonControl = characterModel.getControl(SkeletonControl.class);
         if(null != skeletonControl)
             skeletonControl.setHardwareSkinningPreferred(true);
+    }
+
+    protected void initHud() {
+        //NOOP for NonPlayerCharacter
     }
 
     public void setPlayerCharacter(CharacterInterface playerCharacter) {
@@ -100,9 +105,6 @@ public class NonPlayerCharacter extends PlayerCharacter {
 
     //TODO: Rewrite as a Melee/Ranged class later
     public void useWeapon() {
-//        Vector3f playerPos = playerCharacter.getCharacterControl().getPhysicsLocation();
-//        Vector3f from = playerCharacter.getCharacterControl().getPhysicsLocation().add(playerPos.subtract(characterControl.getPhysicsLocation()).normalize().mult(20f));
-//        Vector3f to = playerCharacter.getCharacterControl().getPhysicsLocation();
         System.out.println("ATTACK!");
         playSwordSound(getSwordSwingNode());
 

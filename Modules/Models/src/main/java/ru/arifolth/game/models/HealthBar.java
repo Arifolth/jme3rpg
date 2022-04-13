@@ -31,42 +31,43 @@ public class HealthBar implements HealthBarInterface {
     public static final float MAXIMUM_HEALTH = 100f;
     public static final String HEALTH = "health";
     private AssetManager assetManager;
-    private Node characterNode;
+    private PlayerCharacter character;
 
-    public HealthBar(AssetManager assetManager, Node characterNode) {
+    public HealthBar(AssetManager assetManager, PlayerCharacter character) {
         this.assetManager = assetManager;
-        this.characterNode = characterNode;
+        this.character = character;
     }
 
     @Override
     public void create() {
-        characterNode.setUserData(HEALTH, MAXIMUM_HEALTH);
+        character.getNode().setUserData(HEALTH, MAXIMUM_HEALTH);
 
         // add healthbar
         BillboardControl billboard = new BillboardControl();
         //new Quad(HEALTHBAR_LENGTH, HELTHBAR_HEIGHT))
-        Geometry healthbar = new Geometry(this.getClass().getName(), new Quad((float) characterNode.getUserData(HEALTH) / 25f, 0.2f));
+        Geometry healthbar = new Geometry(this.getClass().getName(), new Quad((float) character.getNode().getUserData(HEALTH) / 25f, 0.2f));
         Material mathb = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         mathb.setColor("Color", ColorRGBA.Red);
         healthbar.setMaterial(mathb);
         healthbar.setLocalTranslation(0.3f, 6.0f, 0f);
         healthbar.addControl(billboard);
 
-        characterNode.attachChild(healthbar);
+        character.getNode().attachChild(healthbar);
     }
 
     @Override
     public void update() {
-        ((Quad)((Geometry)characterNode.getChild(this.getClass().getName())).getMesh()).updateGeometry((float) characterNode.getUserData(HEALTH) / 25f, 0.2f);
+        ((Quad)((Geometry)character.getNode().getChild(this.getClass().getName())).getMesh()).updateGeometry((float) character.getNode().getUserData(HEALTH) / 25f, 0.2f);
     }
 
     @Override
     public void setHealth(float delta) {
-        characterNode.setUserData(HEALTH, (float) characterNode.getUserData(HEALTH) - delta);
+        character.getNode().setUserData(HEALTH, (float) character.getNode().getUserData(HEALTH) - delta);
+        character.setPlayerDamaged();
     }
 
     @Override
     public float getHealth() {
-        return (float) characterNode.getUserData(HEALTH) / 25f;
+        return (float) character.getNode().getUserData(HEALTH) / 25f;
     }
 }

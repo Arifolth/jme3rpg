@@ -21,8 +21,10 @@ package ru.arifolth.game.models;
 import com.jme3.animation.AnimChannel;
 import com.jme3.animation.AnimControl;
 import com.jme3.animation.LoopMode;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
+import com.jme3.ui.Picture;
 
 public class PlayerCharacter extends AnimatedCharacter {
     public static final String PLAYER_CHARACTER_MODEL = "Models/Ninja/Ninja.j3o";
@@ -33,6 +35,9 @@ public class PlayerCharacter extends AnimatedCharacter {
     private float airTime = 0;
     private float actionTime = 0;
     private Camera cam;
+    private static float MAX_DAMAGED_TIME = 3f;
+    private float playerDamaged = 0f;
+    private Picture damageIndicator;
 
     public PlayerCharacter() {
         this.setModel(PLAYER_CHARACTER_MODEL);
@@ -41,7 +46,7 @@ public class PlayerCharacter extends AnimatedCharacter {
 
     @Override
     protected void initHealthBar() {
-        healthBar = new HealthBar(assetManager, getNode());
+        healthBar = new HealthBar(assetManager, this);
         healthBar.create();
     }
 
@@ -58,7 +63,7 @@ public class PlayerCharacter extends AnimatedCharacter {
         getAttackChannel().setTime(getAttackChannel().getAnimMaxTime() / 2);
         setActionTime(getAttackChannel().getAnimMaxTime() / 2);
 
-        playSwordSound(getSwordBlockNode());
+        playSwordSound(getSwordSwingNode());
     }
 
     public void attack() {
@@ -100,7 +105,7 @@ public class PlayerCharacter extends AnimatedCharacter {
      */
     @Override
     public void simpleUpdate(float k) {
-        healthBarUpdate();
+        healthBarUpdate(k);
 
         movementUpdate(k);
     }
@@ -228,8 +233,23 @@ public class PlayerCharacter extends AnimatedCharacter {
             this.getCharacterControl().setViewDirection(this.getWalkDirection());
     }
 
-    private void healthBarUpdate() {
+    public void setPlayerDamaged() {
+        playerDamaged = MAX_DAMAGED_TIME;
+    }
+
+    @Override
+    public void setDamageIndicator(Picture damageIndicator) {
+        this.damageIndicator = damageIndicator;
+    }
+
+    private void healthBarUpdate(float k) {
         healthBar.update();
+
+        damageIndicator.getMaterial().setColor("Color",
+                new ColorRGBA(1f, 0f, 0f, .5f - (MAX_DAMAGED_TIME - playerDamaged) / (2*MAX_DAMAGED_TIME)));
+
+        if (playerDamaged > 0)
+            playerDamaged -= k;
     }
 
     @Override

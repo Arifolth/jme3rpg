@@ -29,6 +29,7 @@ import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
+import com.jme3.ui.Picture;
 import ru.arifolth.anjrpg.weather.Emitter;
 import ru.arifolth.anjrpg.weather.RainEmitter;
 import ru.arifolth.game.CharacterInterface;
@@ -101,11 +102,26 @@ public class GameLogicCore implements GameLogicCoreInterface {
         return playerCharacter;
     }
 
+
+    protected Picture createDamageIndicator() {
+        Picture damageIndicator = new Picture("DamageIndicator");
+        damageIndicator.setImage(assetManager, "Textures/damageIndicator.png", true);
+        damageIndicator.setWidth(3840);
+        damageIndicator.setHeight(2160);
+        damageIndicator.setPosition(0, 0);
+
+        rootNode.attachChild(damageIndicator);
+
+        return damageIndicator;
+    }
+
     private void setupPlayer() {
         //create player
         playerCharacter = (PlayerCharacter)characterFactory.createCharacter(PlayerCharacter.class);
         playerCharacter.setCam(cam);
         movementController.setPlayerCharacter(playerCharacter);
+
+        playerCharacter.setDamageIndicator(createDamageIndicator());
     }
 
     public void setupCamera() {
