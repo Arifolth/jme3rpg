@@ -60,6 +60,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
     
     public GameLogicCore(Application app, Camera cam, FlyByCamera flyCam, InputManager inputManager, BulletAppState bulletAppState, AssetManager assetManager, SoundManagerInterface soundManager, Node rootNode) {
         this.movementController = new MovementController(app, inputManager);
+        this.app = app;
         this.cam = cam;
         this.flyCam = flyCam;
         this.inputManager = inputManager;
@@ -106,8 +107,8 @@ public class GameLogicCore implements GameLogicCoreInterface {
     protected Picture createDamageIndicator() {
         Picture damageIndicator = new Picture("DamageIndicator");
         damageIndicator.setImage(assetManager, "Textures/damageIndicator.png", true);
-        damageIndicator.setWidth(3840);
-        damageIndicator.setHeight(2160);
+        damageIndicator.setWidth(((ANJRpg)app).getSettings().getWidth());
+        damageIndicator.setHeight(((ANJRpg)app).getSettings().getHeight());
         damageIndicator.setPosition(0, 0);
 
         rootNode.attachChild(damageIndicator);
