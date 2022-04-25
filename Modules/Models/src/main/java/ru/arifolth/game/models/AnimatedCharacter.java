@@ -62,7 +62,7 @@ public abstract class AnimatedCharacter extends BaseCharacter implements AnimEve
             ex.printStackTrace();
         }
         */
-        characterModel = assetManager.loadModel(model);
+        characterModel = gameLogicCore.getAssetManager().loadModel(model);
         //Material playerMaterial = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
         //characterModel.setMaterial(playerMaterial);
         characterModel.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
@@ -107,7 +107,7 @@ public abstract class AnimatedCharacter extends BaseCharacter implements AnimEve
     protected void initializeSkeletonDebug() {
         //debug skeleton
         SkeletonDebugger skeletonDebug = new SkeletonDebugger("skeleton", animationControl.getSkeleton());
-        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        Material mat = new Material(gameLogicCore.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
         mat.getAdditionalRenderState().setWireframe(true);
         mat.setColor("Color", ColorRGBA.Blue);
         mat.getAdditionalRenderState().setDepthTest(false);
@@ -122,12 +122,12 @@ public abstract class AnimatedCharacter extends BaseCharacter implements AnimEve
     public void initializeSounds() {
         getNode().detachChildNamed(PLAYER_FOOTSTEPS);
 
-        AudioNode audioNode = soundManager.getFootStepsNode();
+        AudioNode audioNode = gameLogicCore.getSoundManager().getFootStepsNode();
         audioNode.setName(PLAYER_FOOTSTEPS);
 
         getNode().attachChild(audioNode);
 
-        soundManager.getWindNode().play();
+        gameLogicCore.getSoundManager().getWindNode().play();
     }
 
     protected void playSwordSound(AudioNode swordSoundNode) {
@@ -137,19 +137,19 @@ public abstract class AnimatedCharacter extends BaseCharacter implements AnimEve
     }
 
     protected AudioNode getSwordBlockNode() {
-        AudioNode audioNode = soundManager.getSwordBlockNode();
+        AudioNode audioNode = gameLogicCore.getSoundManager().getSwordBlockNode();
         audioNode.setName(SWORD_BLOCK);
         return audioNode;
     }
 
     protected AudioNode getSwordSwingNode() {
-        AudioNode audioNode = soundManager.getSwordSwingNode();
+        AudioNode audioNode = gameLogicCore.getSoundManager().getSwordSwingNode();
         audioNode.setName(SWORD_SWING);
         return audioNode;
     }
 
     protected AudioNode getSwordHitNode() {
-        AudioNode audioNode = soundManager.getSwordHitNode();
+        AudioNode audioNode = gameLogicCore.getSoundManager().getSwordHitNode();
         audioNode.setName(SWORD_HIT);
         return audioNode;
     }

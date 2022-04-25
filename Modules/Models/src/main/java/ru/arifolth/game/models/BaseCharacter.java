@@ -18,27 +18,20 @@
 
 package ru.arifolth.game.models;
 
-import com.jme3.asset.AssetManager;
-import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import ru.arifolth.game.CharacterInterface;
+import ru.arifolth.game.GameLogicCoreInterface;
 import ru.arifolth.game.HealthBarInterface;
-import ru.arifolth.game.SoundManagerInterface;
 
 public abstract class BaseCharacter implements CharacterInterface {
-    protected BulletAppState bulletAppState;
-    protected AssetManager assetManager;
-
+    protected GameLogicCoreInterface gameLogicCore;
     protected CharacterControl characterControl;
     protected Spatial characterModel;
-    protected SoundManagerInterface soundManager;
     protected HealthBarInterface healthBar;
-    private Node characterNode;
-    //default model name
-    private String name = this.getClass().getName();
+    private Node characterNode = new Node();
 
     public BaseCharacter() {
     }
@@ -58,8 +51,7 @@ public abstract class BaseCharacter implements CharacterInterface {
         return characterNode;
     }
 
-    protected void initializeCharacterNode() {
-        characterNode = new Node(name);
+    protected void setUpCharacterNode() {
         characterNode.addControl(characterControl);
         characterNode.attachChild(characterModel);
     }
@@ -75,7 +67,7 @@ public abstract class BaseCharacter implements CharacterInterface {
         CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.5f, 6f, 1);
         characterControl = new CharacterControl(capsuleShape, 0.8f);
         setUpDefaultPhysics();
-        bulletAppState.getPhysicsSpace().add(characterControl);
+        gameLogicCore.getBulletAppState().getPhysicsSpace().add(characterControl);
     }
 
     protected void setUpDefaultPhysics() {
@@ -87,23 +79,21 @@ public abstract class BaseCharacter implements CharacterInterface {
     protected abstract void initHealthBar();
 
     public String getName() {
-        return name;
+        return getNode().getName();
     }
 
     public void setName(String name) {
-        this.name = name;
+        getNode().setName(name);
     }
 
-    public void initialize(BulletAppState bulletAppState, AssetManager assetManager, SoundManagerInterface soundManager) {
-        this.bulletAppState = bulletAppState;
-        this.assetManager = assetManager;
-        this.soundManager = soundManager;
+    public void initialize(GameLogicCoreInterface gameLogicCore) {
+        this.gameLogicCore = gameLogicCore;
 
         initializePhysixControl();
 
         initializeCharacterModel();
 
-        initializeCharacterNode();
+        setUpCharacterNode();
 
         initHealthBar();
 

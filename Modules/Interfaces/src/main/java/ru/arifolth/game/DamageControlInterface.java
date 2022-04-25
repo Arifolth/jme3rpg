@@ -16,11 +16,16 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.anjrpg.weather;
+package ru.arifolth.game;
 
+import com.jme3.bullet.collision.PhysicsCollisionEvent;
+import com.jme3.bullet.collision.PhysicsCollisionListener;
 import com.jme3.scene.Spatial;
 
-public interface Emitter {
-    void setSpatial(Spatial spatial);
+public interface DamageControlInterface extends PhysicsCollisionListener {
+    void collision(PhysicsCollisionEvent event);
+
+    void checkCollision(Spatial a, Spatial b);
+
     void update(float tpf);
 }

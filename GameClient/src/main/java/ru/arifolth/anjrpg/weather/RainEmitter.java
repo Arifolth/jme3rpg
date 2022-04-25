@@ -61,7 +61,7 @@ public class RainEmitter implements Emitter {
         this.spatial = spatial;
     }
 
-    public void simpleUpdate(float tpf) {
+    public void update(float tpf) {
         rain.setLocalTranslation(spatial.getLocalTranslation());
         rain.emitAllParticles();
     }

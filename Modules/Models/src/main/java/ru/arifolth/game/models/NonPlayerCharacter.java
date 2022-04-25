@@ -19,16 +19,15 @@
 package ru.arifolth.game.models;
 
 import com.jme3.animation.SkeletonControl;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
-import com.jme3.ui.Picture;
 import ru.arifolth.game.CharacterInterface;
+import ru.arifolth.game.Constants;
 
 public class NonPlayerCharacter extends PlayerCharacter {
-    public static final String NPC_SKELETON_MODEL = "Models/skele11/skele11.j3o";
-    public static final float HIT = 25f;
     protected float turnRate;
     protected float firingRange;
     protected float walkingRange;
@@ -39,37 +38,29 @@ public class NonPlayerCharacter extends PlayerCharacter {
     protected CharacterInterface playerCharacter;
 
     public NonPlayerCharacter() {
-        this.setModel(NPC_SKELETON_MODEL);
         this.setName(this.getClass().getName());
 
         this.turnRate = FastMath.QUARTER_PI / 5f;
         this.walkingRange = 500f;
         this.firingRange = 5f;
         this.walkSpeed = .3f;
-        this.shootRate = 1f;
-        this.shootDelay = 2f;
+        this.shootRate = 3.5f;
+        this.shootDelay = 3f;
     }
 
     protected void initializeCharacterModel() {
-        characterModel = assetManager.loadModel(model);
-        characterModel.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
-        characterModel.setLocalScale(2.5f);
-        characterModel.setQueueBucket(RenderQueue.Bucket.Transparent);
-
+        super.initializeCharacterModel();
+        characterModel.rotate(0,3.14159f,0);
         SkeletonControl skeletonControl = characterModel.getControl(SkeletonControl.class);
         if(null != skeletonControl)
-            skeletonControl.setHardwareSkinningPreferred(true);
-    }
-
-    protected void initHud() {
-        //NOOP for NonPlayerCharacter
+            skeletonControl.setHardwareSkinningPreferred(false);
     }
 
     public void setPlayerCharacter(CharacterInterface playerCharacter) {
         this.playerCharacter = playerCharacter;
     }
 
-    public void simpleUpdate(float tpf) {
+    public void update(float tpf) {
         shootUpdate(tpf);
 
         if (withinRange(walkingRange, playerCharacter)) {
@@ -84,6 +75,12 @@ public class NonPlayerCharacter extends PlayerCharacter {
         } else {
             stop();
         }
+
+        healthBarUpdate(tpf);
+    }
+
+    protected void healthBarUpdate(float k) {
+        healthBar.update();
     }
 
     public void jump() {
@@ -109,7 +106,7 @@ public class NonPlayerCharacter extends PlayerCharacter {
         playSwordSound(getSwordSwingNode());
 
         if(!playerCharacter.isBlocking()) {
-            playerCharacter.getHealthBar().setHealth(HIT);
+            playerCharacter.getHealthBar().setHealth(Constants.DAMAGE);
             System.out.println("HIT!");
             playSwordSound(getSwordHitNode());
         } else {

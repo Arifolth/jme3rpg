@@ -20,7 +20,11 @@ package ru.arifolth.game;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
+import com.jme3.input.FlyByCamera;
+import com.jme3.renderer.Camera;
+import com.jme3.scene.Node;
 
+import java.util.List;
 import java.util.Set;
 
 public interface GameLogicCoreInterface {
@@ -29,7 +33,9 @@ public interface GameLogicCoreInterface {
 
     void reInitialize();
 
-    Set<CharacterInterface> getCharacterSet();
+    List<DamageControlInterface> getDamageSet();
+
+    List<CharacterInterface> getCharacterSet();
 
     MovementControllerInterface getMovementController();
 
@@ -39,7 +45,13 @@ public interface GameLogicCoreInterface {
 
     BulletAppState getBulletAppState();
 
+    Node getRootNode();
+
     AssetManager getAssetManager();
 
     SoundManagerInterface getSoundManager();
+
+    Camera getCam();
+
+    FlyByCamera getFlyCam();
 }

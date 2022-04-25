@@ -33,7 +33,7 @@ public class CharacterFactory<T extends CharacterInterface> implements Character
         T result = null;
         try {
             result = clazz.getDeclaredConstructor().newInstance();
-            result.initialize(gameLogicCore.getBulletAppState(), gameLogicCore.getAssetManager(), gameLogicCore.getSoundManager());
+            result.initialize(gameLogicCore);
         } catch (IllegalAccessException | NoSuchMethodException | InstantiationException | InvocationTargetException e) {
             e.printStackTrace();
         }
