@@ -23,17 +23,18 @@ import com.jme3.animation.AnimControl;
 import com.jme3.animation.LoopMode;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
+import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
-import com.jme3.scene.Geometry;
-import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
+import com.jme3.scene.*;
+import com.jme3.scene.debug.Arrow;
 import com.jme3.ui.Picture;
 import ru.arifolth.game.CharacterInterface;
 import ru.arifolth.game.Constants;
+import ru.arifolth.game.Debug;
 
 import java.util.List;
 import java.util.Optional;
@@ -91,35 +92,27 @@ public class PlayerCharacter extends AnimatedCharacter {
 
         playSwordSound(getSwordSwingNode());
 
-        for (int num = 0; num < gameLogicCore.getCharacterSet().size(); num++) {
-            CharacterInterface npc = gameLogicCore.getCharacterSet().get(num);
-            if (withinRange(firingRange, npc)) {
-                Vector3f direction = npc.getCharacterControl().getPhysicsLocation();
+        Node enemies = gameLogicCore.getEnemies();
 
-                // Create a line that starts at 'avatarPosition' and has a direction
-                Ray ray = new Ray(this.getCharacterControl().getViewDirection(), direction);
-                ray.setLimit(MELEE_DISTANCE_LIMIT);
-                // Results of the collision test are written into this object
-                CollisionResults results = new CollisionResults();
+        Ray ray = new Ray(characterControl.getPhysicsLocation(), characterControl.getViewDirection().negate());
+        ray.setLimit(MELEE_DISTANCE_LIMIT);
+        // Results of the collision test are written into this object
+        CollisionResults results = new CollisionResults();
 
-                // Test for collisions between the road and the ray
-                gameLogicCore.getRootNode().collideWith(ray, results);
-                if(results.size() > 0) {
-                    Geometry geometry = results.getClosestCollision().getGeometry();
-                    if(geometry == null)
-                        continue;
-                    Node parent = geometry.getParent();
-                    if(parent == null)
-                        continue;
-                    Node grandParent = parent.getParent();
-                    if (grandParent != null && grandParent.equals(npc.getNode())) {
-                        npc.getHealthBar().setHealth(Constants.DAMAGE);
-                        playSwordSound(getSwordHitNode());
-                    }
-                    /////
-
-                    break;
-                }
+        // Test for collisions between the road and the ray
+        enemies.collideWith(ray, results);
+        if(results.size() > 0) {
+            Geometry geometry = results.getClosestCollision().getGeometry();
+            if(geometry == null)
+                return;
+            Node parent = geometry.getParent();
+            if(parent == null)
+                return;
+            Node grandParent = parent.getParent();
+            CharacterInterface npc = gameLogicCore.getCharacterMap().get(grandParent);
+            if(npc != null && withinRange(firingRange, npc)) {
+                npc.getHealthBar().setHealth(Constants.DAMAGE);
+                playSwordSound(getSwordHitNode());
             }
         }
     }

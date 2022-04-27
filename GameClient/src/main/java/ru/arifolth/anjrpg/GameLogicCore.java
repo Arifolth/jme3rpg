@@ -32,19 +32,23 @@ import com.jme3.scene.Node;
 import com.jme3.ui.Picture;
 import ru.arifolth.anjrpg.weather.Emitter;
 import ru.arifolth.anjrpg.weather.RainEmitter;
-import ru.arifolth.game.*;
+import ru.arifolth.game.CharacterInterface;
+import ru.arifolth.game.GameLogicCoreInterface;
+import ru.arifolth.game.MovementControllerInterface;
+import ru.arifolth.game.SoundManagerInterface;
 import ru.arifolth.game.models.NonPlayerCharacter;
 import ru.arifolth.game.models.PlayerCharacter;
 
 import java.util.LinkedHashSet;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class GameLogicCore implements GameLogicCoreInterface {
     private MovementControllerInterface movementController;
     private Application app;
     private Camera cam;
+    private Node enemies = new Node("enemies");
     private FlyByCamera flyCam;
     private InputManager inputManager;
     private BulletAppState bulletAppState;
@@ -54,9 +58,8 @@ public class GameLogicCore implements GameLogicCoreInterface {
     private SoundManagerInterface soundManager;
 
     private CharacterInterface playerCharacter = null;
-    private List<CharacterInterface> characterSet = new CopyOnWriteArrayList<>();
+    private Map<Node, CharacterInterface> characterMap = new ConcurrentHashMap<>();
     private Set<Emitter> weatherEffectsSet = new LinkedHashSet<>();
-    private List<DamageControlInterface> damageSet = new CopyOnWriteArrayList<>();
 
     public GameLogicCore(Application app, Camera cam, FlyByCamera flyCam, InputManager inputManager, BulletAppState bulletAppState, AssetManager assetManager, SoundManagerInterface soundManager, Node rootNode) {
         this.movementController = new MovementController(app, inputManager);
@@ -86,7 +89,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
     private void setupNPC() {
         NonPlayerCharacter nonPlayerCharacter = (NonPlayerCharacter)characterFactory.createCharacter(NonPlayerCharacter.class);
         nonPlayerCharacter.setPlayerCharacter(playerCharacter);
-        characterSet.add(nonPlayerCharacter);
+        characterMap.put(nonPlayerCharacter.getNode(), nonPlayerCharacter);
     }
 
     public void reInitialize() {
@@ -170,16 +173,8 @@ public class GameLogicCore implements GameLogicCoreInterface {
     public void update(float tpf) {
         playerCharacter.update(tpf);
 
-        for(CharacterInterface character : characterSet) {
+        for(CharacterInterface character : characterMap.values()) {
             character.update(tpf);
-        }
-
-        for(CharacterInterface character : characterSet) {
-            character.update(tpf);
-        }
-
-        for(DamageControlInterface damageControl : damageSet) {
-            damageControl.update(tpf);
         }
 
         for(Emitter emitter : weatherEffectsSet) {
@@ -188,13 +183,8 @@ public class GameLogicCore implements GameLogicCoreInterface {
     }
 
     @Override
-    public List<DamageControlInterface> getDamageSet() {
-        return damageSet;
-    }
-
-    @Override
-    public List<CharacterInterface> getCharacterSet() {
-        return characterSet;
+    public Map<Node,CharacterInterface> getCharacterMap() {
+        return characterMap;
     }
 
     public MovementControllerInterface getMovementController() {
@@ -229,5 +219,10 @@ public class GameLogicCore implements GameLogicCoreInterface {
     @Override
     public FlyByCamera getFlyCam() {
         return flyCam;
+    }
+
+    @Override
+    public Node getEnemies() {
+        return enemies;
     }
 }

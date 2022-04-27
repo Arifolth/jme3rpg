@@ -25,6 +25,7 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface GameLogicCoreInterface {
@@ -33,9 +34,7 @@ public interface GameLogicCoreInterface {
 
     void reInitialize();
 
-    List<DamageControlInterface> getDamageSet();
-
-    List<CharacterInterface> getCharacterSet();
+    Map<Node,CharacterInterface> getCharacterMap();
 
     MovementControllerInterface getMovementController();
 
@@ -54,4 +53,6 @@ public interface GameLogicCoreInterface {
     Camera getCam();
 
     FlyByCamera getFlyCam();
+
+    Node getEnemies();
 }

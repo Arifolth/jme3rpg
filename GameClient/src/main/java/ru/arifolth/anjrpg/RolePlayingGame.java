@@ -118,7 +118,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
 
         //TODO: X coordinate Random generation
         Vector3f npcStartLoc = new Vector3f(hit.getContactPoint().x + 40f, hit.getContactPoint().y + 40f, hit.getContactPoint().z);
-        for(CharacterInterface character: gameLogicCore.getCharacterSet()) {
+        for(CharacterInterface character: gameLogicCore.getCharacterMap().values()) {
             character.getCharacterControl().setPhysicsLocation(npcStartLoc);
         }
     }
@@ -250,7 +250,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         CharacterInterface playerCharacter = gameLogicCore.getPlayerCharacter();
         Utils.enableEntityPhysics(playerCharacter);
 
-        for(CharacterInterface character: gameLogicCore.getCharacterSet()) {
+        for(CharacterInterface character: gameLogicCore.getCharacterMap().values()) {
             Utils.enableEntityPhysics(character);
         }
 
@@ -262,8 +262,11 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     }
 
     protected void attachNPC() {
-        for(CharacterInterface character: gameLogicCore.getCharacterSet()) {
-            getRootNode().attachChild(character.getNode());
+        Node enemies = gameLogicCore.getEnemies();
+        getRootNode().attachChild(enemies);
+
+        for(CharacterInterface character: gameLogicCore.getCharacterMap().values()) {
+            enemies.attachChild(character.getNode());
         }
     }
 

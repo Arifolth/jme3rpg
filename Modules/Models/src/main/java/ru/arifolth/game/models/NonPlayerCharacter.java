@@ -26,6 +26,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import ru.arifolth.game.CharacterInterface;
 import ru.arifolth.game.Constants;
+import ru.arifolth.game.Debug;
 
 public class NonPlayerCharacter extends PlayerCharacter {
     protected float turnRate;
@@ -173,6 +174,8 @@ public class NonPlayerCharacter extends PlayerCharacter {
     protected void initializeAnimation() { }
 
     @Override
-    protected void initializeSkeletonDebug() { }
+    protected void initializeSkeletonDebug() {
+        Debug.showNodeAxes(gameLogicCore.getAssetManager(), this.getNode(), 5);
+    }
 
 }

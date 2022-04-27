@@ -28,6 +28,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.scene.debug.SkeletonDebugger;
+import ru.arifolth.game.Debug;
 
 /*
 *
@@ -113,6 +114,8 @@ public abstract class AnimatedCharacter extends BaseCharacter implements AnimEve
         mat.getAdditionalRenderState().setDepthTest(false);
         skeletonDebug.setMaterial(mat);
         ((Node)characterModel).attachChild(skeletonDebug);
+
+        Debug.showNodeAxes(gameLogicCore.getAssetManager(), this.getNode(), 5);
     }
 
     @Override
