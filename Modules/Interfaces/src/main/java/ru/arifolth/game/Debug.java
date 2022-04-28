@@ -27,6 +27,9 @@ import com.jme3.scene.Node;
 import com.jme3.scene.debug.Arrow;
 
 public class Debug {
+
+    public static final String UNSHADED = "Common/MatDefs/Misc/Unshaded.j3md";
+
     private Debug() {
     }
 
@@ -34,7 +37,7 @@ public class Debug {
     {
         Vector3f v = new Vector3f(axisLen, 0, 0);
         Arrow a = new Arrow(v);
-        Material mat = new Material(am, "Common/MatDefs/Misc/Unshaded.j3md");
+        Material mat = new Material(am, UNSHADED);
         mat.setColor("Color", ColorRGBA.Red);
         Geometry geom = new Geometry(n.getName() + "XAxis", a);
         geom.setMaterial(mat);
@@ -44,7 +47,7 @@ public class Debug {
         //
         v = new Vector3f(0, axisLen, 0);
         a = new Arrow(v);
-        mat = new Material(am, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat = new Material(am, UNSHADED);
         mat.setColor("Color", ColorRGBA.Green);
         geom = new Geometry(n.getName() + "YAxis", a);
         geom.setMaterial(mat);
@@ -54,7 +57,7 @@ public class Debug {
         //
         v = new Vector3f(0, 0, axisLen);
         a = new Arrow(v);
-        mat = new Material(am, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat = new Material(am, UNSHADED);
         mat.setColor("Color", ColorRGBA.Blue);
         geom = new Geometry(n.getName() + "ZAxis", a);
         geom.setMaterial(mat);

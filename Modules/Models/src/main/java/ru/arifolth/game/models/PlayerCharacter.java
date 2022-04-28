@@ -110,7 +110,7 @@ public class PlayerCharacter extends AnimatedCharacter {
                 return;
             Node grandParent = parent.getParent();
             CharacterInterface npc = gameLogicCore.getCharacterMap().get(grandParent);
-            if(npc != null && withinRange(firingRange, npc)) {
+            if(npc != null) {
                 npc.getHealthBar().setHealth(Constants.DAMAGE);
                 playSwordSound(getSwordHitNode());
             }
