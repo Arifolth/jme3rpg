@@ -36,8 +36,6 @@ import ru.arifolth.game.CharacterInterface;
 import ru.arifolth.game.GameLogicCoreInterface;
 import ru.arifolth.game.MovementControllerInterface;
 import ru.arifolth.game.SoundManagerInterface;
-import ru.arifolth.game.models.NonPlayerCharacter;
-import ru.arifolth.game.models.PlayerCharacter;
 
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -45,19 +43,22 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GameLogicCore implements GameLogicCoreInterface {
+    private CharacterFactory characterFactory = new CharacterFactory(this);
+    private Initializer initializer = new Initializer(this);
+    private Node enemies = new Node("enemies");
+
     private MovementControllerInterface movementController;
     private Application app;
     private Camera cam;
-    private Node enemies = new Node("enemies");
     private FlyByCamera flyCam;
     private InputManager inputManager;
     private BulletAppState bulletAppState;
     private AssetManager assetManager;
     private Node rootNode;
-    private CharacterFactory characterFactory;
     private SoundManagerInterface soundManager;
 
     private CharacterInterface playerCharacter = null;
+    private Picture damageIndicator = null;
     private Map<Node, CharacterInterface> characterMap = new ConcurrentHashMap<>();
     private Set<Emitter> weatherEffectsSet = new LinkedHashSet<>();
 
@@ -74,58 +75,41 @@ public class GameLogicCore implements GameLogicCoreInterface {
     }
 
     public void initialize() {
-        characterFactory = new CharacterFactory(this);
+        initializer.setupDamageIndicator();
 
-        setupPlayer();
+        initializer.setupPlayer();
 
-        setupNPC();
+        initializer.setupNPC();
 
         setupCamera();
 
         movementController.setUpKeys();
-        //setupWeatherEffects();
-    }
-
-    private void setupNPC() {
-        NonPlayerCharacter nonPlayerCharacter = (NonPlayerCharacter)characterFactory.createCharacter(NonPlayerCharacter.class);
-        nonPlayerCharacter.setPlayerCharacter(playerCharacter);
-        characterMap.put(nonPlayerCharacter.getNode(), nonPlayerCharacter);
+        initializer.setupWeatherEffects();
     }
 
     public void reInitialize() {
         getPlayerCharacter().initializeSounds();
     }
 
-    private void setupWeatherEffects() {
-        Emitter emitter = new RainEmitter(rootNode, assetManager);
-        emitter.setSpatial(playerCharacter.getNode());
-        weatherEffectsSet.add(emitter);
-    }
-
     public CharacterInterface getPlayerCharacter() {
         return playerCharacter;
     }
 
-
-    protected Picture createDamageIndicator() {
-        Picture damageIndicator = new Picture("DamageIndicator");
-        damageIndicator.setImage(assetManager, "Textures/damageIndicator.png", true);
-        damageIndicator.setWidth(((ANJRpg)app).getSettings().getWidth());
-        damageIndicator.setHeight(((ANJRpg)app).getSettings().getHeight());
-        damageIndicator.setPosition(0, 0);
-
-        rootNode.attachChild(damageIndicator);
-
+    @Override
+    public Picture getDamageIndicator() {
         return damageIndicator;
     }
 
-    private void setupPlayer() {
-        //create player
-        playerCharacter = (PlayerCharacter)characterFactory.createCharacter(PlayerCharacter.class);
-        playerCharacter.setCam(cam);
-        movementController.setPlayerCharacter(playerCharacter);
+    public void setDamageIndicator(Picture damageIndicator) {
+        this.damageIndicator = damageIndicator;
+    }
 
-        playerCharacter.setDamageIndicator(createDamageIndicator());
+    public CharacterFactory getCharacterFactory() {
+        return characterFactory;
+    }
+
+    public void setPlayerCharacter(CharacterInterface playerCharacter) {
+        this.playerCharacter = playerCharacter;
     }
 
     public void setupCamera() {
@@ -192,6 +176,11 @@ public class GameLogicCore implements GameLogicCoreInterface {
     }
 
     @Override
+    public Set<Emitter> getWeatherEffectsSet() {
+        return weatherEffectsSet;
+    }
+
+    @Override
     public BulletAppState getBulletAppState() {
         return bulletAppState;
     }
@@ -219,6 +208,11 @@ public class GameLogicCore implements GameLogicCoreInterface {
     @Override
     public FlyByCamera getFlyCam() {
         return flyCam;
+    }
+
+    @Override
+    public Application getApp() {
+        return app;
     }
 
     @Override

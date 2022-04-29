@@ -21,8 +21,15 @@ package ru.arifolth.anjrpg;
 import com.jme3.bullet.control.CharacterControl;
 import ru.arifolth.game.CharacterInterface;
 
+import java.util.Random;
+
 public class Utils {
     private Utils() {
+    }
+
+    static public int getRandomNumber(int min, int max) {
+        Random random = new Random();
+        return random.ints(min, max).findFirst().getAsInt();
     }
 
     static void enableEntityPhysics(CharacterInterface playerCharacter) {

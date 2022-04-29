@@ -21,8 +21,10 @@ package ru.arifolth.anjrpg;
 import ru.arifolth.game.CharacterInterface;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.logging.Logger;
 
 public class CharacterFactory<T extends CharacterInterface> implements CharacterFactoryInterface<T> {
+    final private static Logger LOGGER = Logger.getLogger(CharacterFactory.class.getName());
     private GameLogicCore gameLogicCore;
 
     public CharacterFactory(GameLogicCore gameLogicCore) {
@@ -35,7 +37,7 @@ public class CharacterFactory<T extends CharacterInterface> implements Character
             result = clazz.getDeclaredConstructor().newInstance();
             result.initialize(gameLogicCore);
         } catch (IllegalAccessException | NoSuchMethodException | InstantiationException | InvocationTargetException e) {
-            e.printStackTrace();
+            LOGGER.severe(e.getMessage());
         }
         return result;
     }

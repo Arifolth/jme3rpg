@@ -95,12 +95,17 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         setupSky();
         addFilters();
 
+        attachDamageIndicator();
         attachPlayer();
         attachTerrain();
         attachSky();
 
         enablePhysics();
         attachNPC();
+    }
+
+    protected void attachDamageIndicator() {
+        rootNode.attachChild(gameLogicCore.getDamageIndicator());
     }
 
     protected void positionCharacters() {
@@ -117,8 +122,8 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         gameLogicCore.getPlayerCharacter().getCharacterControl().setPhysicsLocation(playerStartLoc);
 
         //TODO: X coordinate Random generation
-        Vector3f npcStartLoc = new Vector3f(hit.getContactPoint().x + 40f, hit.getContactPoint().y + 40f, hit.getContactPoint().z);
         for(CharacterInterface character: gameLogicCore.getCharacterMap().values()) {
+            Vector3f npcStartLoc = new Vector3f(hit.getContactPoint().x + 40, hit.getContactPoint().y + 40, hit.getContactPoint().z);
             character.getCharacterControl().setPhysicsLocation(npcStartLoc);
         }
     }
