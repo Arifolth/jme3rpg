@@ -20,15 +20,17 @@ mvn install
 mvn exec:java -pl GameClient -Djvm.options="-XX:-TieredCompilation -XX:TieredStopAtLevel=3 -server -XX:+UnlockExperimentalVMOptions -XX:+UseZGC"
 ```
 ## About game
-Features borderless procedurally generated world
-Day and Night Cycle
-Weather effects
-Physics 
-Enemies with AI and Combat System
-Animated models
-Sounds
-UI
-Loading Screen and Main Menu
+Features:
+- Modular Maven build
+- Borderless procedurally generated world (Work In Progress)
+- Day and Night Cycle 
+- Weather effects (Work In Progress)
+- Physics 
+- Enemies with AI and Combat System
+- Animated models
+- Environmental and combat sounds
+- UI
+- Loading Screen and Main Menu
 
 ## Repo
 
@@ -42,4 +44,4 @@ Loading Screen and Main Menu
 ## License
 [GPLv3](https://www.gnu.org/licenses/gpl-3.0.txt)
 
-#### Copyright 2021 &copy; Alexander Nilov
+#### Copyright 2022 &copy; Alexander Nilov
