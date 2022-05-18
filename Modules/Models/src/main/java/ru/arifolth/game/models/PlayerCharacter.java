@@ -32,9 +32,11 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.*;
 import com.jme3.scene.debug.Arrow;
 import com.jme3.ui.Picture;
+import ru.arifolth.anjrpg.ANJRpgInterface;
 import ru.arifolth.game.CharacterInterface;
 import ru.arifolth.game.Constants;
 import ru.arifolth.game.Debug;
+import ru.arifolth.game.InitStateEnum;
 
 import java.util.List;
 import java.util.Optional;
@@ -50,10 +52,11 @@ public class PlayerCharacter extends AnimatedCharacter {
     private float airTime = 0;
     private float actionTime = 0;
     private Camera cam;
-    private static float MAX_DAMAGED_TIME = 3f;
+    private static final float MAX_DAMAGED_TIME = 3f;
     private float playerDamaged = 0f;
     private Picture damageIndicator;
     protected float firingRange;
+    protected boolean dead = false;
 
     public PlayerCharacter() {
         this.setModel(PLAYER_CHARACTER_MODEL);
@@ -135,6 +138,20 @@ public class PlayerCharacter extends AnimatedCharacter {
             }
         } else if(name.equals(AnimConstants.JUMP)) {
             setJump_pressed(false);
+        } else if (name.equals(AnimConstants.DEATH) & dead) {
+            if (ch.getAnimationName().equals(AnimConstants.DEATH)) {
+                ch.setAnim(AnimConstants.DEATH, 0f);
+                ch.setLoopMode(LoopMode.Loop);
+                ch.setSpeed(0f);
+                setActionTime(getAttackChannel().getAnimMaxTime());
+            }
+
+            this.getNode().removeControl(characterControl);
+
+            gameLogicCore.getRootNode().detachChild(this.getNode());
+            this.getHealthBar().destroy();
+
+            removePhysixControl();
         }
     }
 
@@ -147,6 +164,9 @@ public class PlayerCharacter extends AnimatedCharacter {
      */
     @Override
     public void update(float k) {
+        if(isDead())
+            return;
+
         healthBarUpdate(k);
 
         movementUpdate(k);
@@ -295,6 +315,27 @@ public class PlayerCharacter extends AnimatedCharacter {
     }
 
     @Override
+    public void spawn() {
+        gameLogicCore.getRootNode().attachChild(this.getNode());
+    }
+
+    @Override
+    public void die() {
+        deathAnim();
+
+        setDead(true);
+    }
+
+    protected void deathAnim() {
+        this.getAnimationChannel().setLoopMode(LoopMode.DontLoop);
+        if (!this.getAnimationChannel().getAnimationName().equals(AnimConstants.DEATH)) {
+            this.getAnimationChannel().setAnim(AnimConstants.DEATH, 0.1f);
+            this.getAnimationChannel().setSpeed(1f);
+        }
+        this.getPlayerStepsNode(false).pause();
+    }
+
+    @Override
     public boolean isAttacking() {
         return attacking;
     }
@@ -410,5 +451,14 @@ public class PlayerCharacter extends AnimatedCharacter {
 
     public void setAirTime(float airTime) {
         this.airTime = airTime;
+    }
+
+    @Override
+    public boolean isDead() {
+        return dead;
+    }
+
+    public void setDead(boolean dead) {
+        this.dead = dead;
     }
 }

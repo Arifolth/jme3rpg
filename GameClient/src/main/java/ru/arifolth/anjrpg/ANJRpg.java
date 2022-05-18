@@ -45,7 +45,8 @@ import static com.jme3.niftygui.NiftyJmeDisplay.newNiftyJmeDisplay;
 /*
 * https://ev1lbl0w.github.io/jme-wiki-pt-pt/jme3/advanced/loading_screen.html
 * */
-public class ANJRpg extends RolePlayingGame implements ScreenController, Controller {
+public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
+    public static final int RIGID_BODIES_SIZE = 4;
     private NiftyJmeDisplay niftyDisplay;
     private Nifty nifty;
     private InitStateEnum initialization = InitStateEnum.PENDING;
@@ -98,7 +99,7 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
             }
             case INITIALIZED: {
                 //wait until land appears in Physics Space
-                if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == 4) {
+                if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == RIGID_BODIES_SIZE) {
                     //put player at the beginning location
                     positionCharacters();
 
@@ -164,6 +165,7 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
     public void init(Parameters prmtrs) {
     }
 
+    @Override
     public void setUpGUI() {
         /* Game stuff */
         niftyDisplay = newNiftyJmeDisplay(assetManager,

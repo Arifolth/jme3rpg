@@ -67,7 +67,15 @@ public abstract class BaseCharacter implements CharacterInterface {
         CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.5f, 6f, 1);
         characterControl = new CharacterControl(capsuleShape, 0.8f);
         setUpDefaultPhysics();
+        addPhysixControl();
+    }
+
+    private void addPhysixControl() {
         gameLogicCore.getBulletAppState().getPhysicsSpace().add(characterControl);
+    }
+
+    protected void removePhysixControl() {
+        gameLogicCore.getBulletAppState().getPhysicsSpace().remove(characterControl);
     }
 
     protected void setUpDefaultPhysics() {
@@ -105,6 +113,9 @@ public abstract class BaseCharacter implements CharacterInterface {
     }
 
     public boolean withinRange(float distance, CharacterInterface enemy) {
+        if(enemy.isDead())
+            return false;
+
         CharacterControl control = enemy.getCharacterControl();
         float dist = control.getPhysicsLocation().distanceSquared(characterControl.getPhysicsLocation());
 

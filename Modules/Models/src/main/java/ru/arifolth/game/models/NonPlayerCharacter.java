@@ -24,6 +24,7 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.scene.Node;
 import ru.arifolth.game.CharacterInterface;
 import ru.arifolth.game.Constants;
 import ru.arifolth.game.Debug;
@@ -178,4 +179,25 @@ public class NonPlayerCharacter extends PlayerCharacter {
         Debug.showNodeAxes(gameLogicCore.getAssetManager(), this.getNode(), 5);
     }
 
+    @Override
+    public void spawn() {
+        Node enemies = gameLogicCore.getEnemies();
+        enemies.attachChild(this.getNode());
+    }
+
+    @Override
+    public void die() {
+        //deathAnim();
+
+        this.getNode().removeControl(characterControl);
+        this.getNode().detachChild(characterModel);
+
+        gameLogicCore.getRootNode().detachChild(this.getNode());
+        gameLogicCore.getCharacterMap().remove(this.getNode());
+        this.getHealthBar().destroy();
+
+        removePhysixControl();
+
+        setDead(true);
+    }
 }

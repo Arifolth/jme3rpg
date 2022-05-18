@@ -18,24 +18,9 @@
 
 package ru.arifolth.anjrpg;
 
-import com.jme3.bullet.control.CharacterControl;
-import ru.arifolth.game.CharacterInterface;
+import de.lessvoid.nifty.controls.Controller;
+import de.lessvoid.nifty.screen.ScreenController;
 
-import java.util.Random;
-
-public class Utils {
-    private Utils() {
-    }
-
-    static public float getRandomNumber(float min, float max) {
-        Random random = new Random();
-        return (float) random.doubles(min, max).findFirst().getAsDouble();
-    }
-
-    static void enableEntityPhysics(CharacterInterface character) {
-        CharacterControl characterControl = character.getCharacterControl();
-        characterControl.setJumpSpeed(20);
-        characterControl.setFallSpeed(300);
-        characterControl.setGravity(30);
-    }
+public interface ANJRpgInterface extends ScreenController, Controller {
+    void setUpGUI();
 }

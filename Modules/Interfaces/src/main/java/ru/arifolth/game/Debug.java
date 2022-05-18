@@ -33,34 +33,35 @@ public class Debug {
     private Debug() {
     }
 
-    public static void showNodeAxes(AssetManager am, Node n, float axisLen)
+    public static void showNodeAxes(AssetManager assetManager, Node node, float axisLen)
     {
-        Vector3f v = new Vector3f(axisLen, 0, 0);
-        Arrow a = new Arrow(v);
-        Material mat = new Material(am, UNSHADED);
-        mat.setColor("Color", ColorRGBA.Red);
-        Geometry geom = new Geometry(n.getName() + "XAxis", a);
-        geom.setMaterial(mat);
-        n.attachChild(geom);
+        //X
+        Vector3f vector3f = new Vector3f(axisLen, 0, 0);
+        Arrow arrow = new Arrow(vector3f);
+        Material material = new Material(assetManager, UNSHADED);
+        material.setColor("Color", ColorRGBA.Red);
+        Geometry geometry = new Geometry(node.getName() + "XAxis", arrow);
+        geometry.setMaterial(material);
+        node.attachChild(geometry);
 
 
-        //
-        v = new Vector3f(0, axisLen, 0);
-        a = new Arrow(v);
-        mat = new Material(am, UNSHADED);
-        mat.setColor("Color", ColorRGBA.Green);
-        geom = new Geometry(n.getName() + "YAxis", a);
-        geom.setMaterial(mat);
-        n.attachChild(geom);
+        //Y
+        vector3f = new Vector3f(0, axisLen, 0);
+        arrow = new Arrow(vector3f);
+        material = new Material(assetManager, UNSHADED);
+        material.setColor("Color", ColorRGBA.Green);
+        geometry = new Geometry(node.getName() + "YAxis", arrow);
+        geometry.setMaterial(material);
+        node.attachChild(geometry);
 
 
-        //
-        v = new Vector3f(0, 0, axisLen);
-        a = new Arrow(v);
-        mat = new Material(am, UNSHADED);
-        mat.setColor("Color", ColorRGBA.Blue);
-        geom = new Geometry(n.getName() + "ZAxis", a);
-        geom.setMaterial(mat);
-        n.attachChild(geom);
+        //Z
+        vector3f = new Vector3f(0, 0, axisLen);
+        arrow = new Arrow(vector3f);
+        material = new Material(assetManager, UNSHADED);
+        material.setColor("Color", ColorRGBA.Blue);
+        geometry = new Geometry(node.getName() + "ZAxis", arrow);
+        geometry.setMaterial(material);
+        node.attachChild(geometry);
     }
 }

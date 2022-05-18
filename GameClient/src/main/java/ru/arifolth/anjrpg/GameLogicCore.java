@@ -84,7 +84,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
         setupCamera();
 
         movementController.setUpKeys();
-        initializer.setupWeatherEffects();
+//        initializer.setupWeatherEffects();
     }
 
     public void reInitialize() {

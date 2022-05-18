@@ -21,6 +21,8 @@ package ru.arifolth.game;
 public interface HealthBarInterface {
     void create();
 
+    void destroy();
+
     void update();
 
 

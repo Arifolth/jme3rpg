@@ -66,9 +66,15 @@ public interface CharacterInterface {
 
     void setDamageIndicator(Picture damageIndicator);
 
+    void spawn();
+
+    void die();
+
     boolean isAttacking();
 
     boolean isBlocking();
 
     HealthBarInterface getHealthBar();
+
+    boolean isDead();
 }

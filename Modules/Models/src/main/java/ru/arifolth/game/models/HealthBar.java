@@ -30,8 +30,9 @@ import ru.arifolth.game.HealthBarInterface;
 public class HealthBar implements HealthBarInterface {
     public static final float MAXIMUM_HEALTH = 100f;
     public static final String HEALTH = "health";
-    private AssetManager assetManager;
-    private PlayerCharacter character;
+    private final AssetManager assetManager;
+    private final PlayerCharacter character;
+    private Geometry healthbar;
 
     public HealthBar(AssetManager assetManager, PlayerCharacter character) {
         this.assetManager = assetManager;
@@ -45,7 +46,7 @@ public class HealthBar implements HealthBarInterface {
         // add healthbar
         BillboardControl billboard = new BillboardControl();
         //new Quad(HEALTHBAR_LENGTH, HELTHBAR_HEIGHT))
-        Geometry healthbar = new Geometry(this.getClass().getName(), new Quad((float) character.getNode().getUserData(HEALTH) / 25f, 0.2f));
+        healthbar = new Geometry(this.getClass().getName(), new Quad((float) character.getNode().getUserData(HEALTH) / 25f, 0.2f));
         Material mathb = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         mathb.setColor("Color", ColorRGBA.Red);
         healthbar.setMaterial(mathb);
@@ -53,6 +54,11 @@ public class HealthBar implements HealthBarInterface {
         healthbar.addControl(billboard);
 
         character.getNode().attachChild(healthbar);
+    }
+
+    @Override
+    public void destroy() {
+        character.getNode().detachChild(healthbar);
     }
 
     @Override
@@ -64,6 +70,9 @@ public class HealthBar implements HealthBarInterface {
     public void setHealth(float delta) {
         character.getNode().setUserData(HEALTH, (float) character.getNode().getUserData(HEALTH) - delta);
         character.setPlayerDamaged();
+        if(getHealth() <= 0 && !character.isDead()) {
+            character.die();
+        }
     }
 
     @Override
