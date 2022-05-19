@@ -81,6 +81,16 @@
             </configuration>
         </plugin>
     </plugins>-->
+      <plugins>
+          <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-compiler-plugin</artifactId>
+              <configuration>
+                  <source>17</source>
+                  <target>17</target>
+              </configuration>
+          </plugin>
+      </plugins>
   </build>
 
 
@@ -131,6 +141,12 @@
         <dependency>
             <groupId>ru.arifolth.game</groupId>
             <artifactId>Interfaces</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>ru.arifolth.game</groupId>
+            <artifactId>Menu</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>

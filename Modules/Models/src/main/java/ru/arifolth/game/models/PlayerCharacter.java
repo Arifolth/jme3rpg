@@ -152,6 +152,8 @@ public class PlayerCharacter extends AnimatedCharacter {
             this.getHealthBar().destroy();
 
             removePhysixControl();
+
+            //TODO: restart dialog
         }
     }
 

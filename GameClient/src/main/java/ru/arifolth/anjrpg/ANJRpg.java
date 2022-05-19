@@ -227,10 +227,12 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
         settings.setGammaCorrection(false);
     }
 
+    @Override
     public InitStateEnum getInitStatus() {
         return initialization;
     }
 
+    @Override
     public AppSettings getSettings(){
         return this.settings;
     }

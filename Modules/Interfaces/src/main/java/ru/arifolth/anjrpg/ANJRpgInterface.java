@@ -18,9 +18,16 @@
 
 package ru.arifolth.anjrpg;
 
+import com.jme3.system.AppSettings;
 import de.lessvoid.nifty.controls.Controller;
 import de.lessvoid.nifty.screen.ScreenController;
+import ru.arifolth.game.InitStateEnum;
+import ru.arifolth.game.RolePlayingGameInterface;
 
-public interface ANJRpgInterface extends ScreenController, Controller {
+public interface ANJRpgInterface extends RolePlayingGameInterface, ScreenController, Controller {
     void setUpGUI();
+
+    InitStateEnum getInitStatus();
+
+    AppSettings getSettings();
 }

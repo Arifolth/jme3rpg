@@ -25,7 +25,7 @@ import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.SpringGridLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.arifolth.anjrpg.ANJRpg;
+import ru.arifolth.anjrpg.ANJRpgInterface;
 
 import java.util.Arrays;
 import java.util.List;
@@ -61,7 +61,7 @@ public class VideoMenuState extends CustomCompositeAppState {
     }
 
     private void restartGame() {
-        AppSettings settings = ((ANJRpg)getApplication()).getSettings();
+        AppSettings settings = ((ANJRpgInterface) getApplication()).getSettings();
         applyRenderer(settings);
         applyResolution(settings);
         applyFrameRate(settings);

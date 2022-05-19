@@ -6,8 +6,20 @@
   <packaging>pom</packaging>
 
   <name>Game Modules</name>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>17</source>
+                    <target>17</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
-  <parent>
+    <parent>
     <groupId>ru.arifolth.game</groupId>
     <artifactId>Libraries</artifactId>
     <version>1.0-SNAPSHOT</version>
@@ -15,6 +27,7 @@
   </parent>
 
   <modules>
+    <module>Menu</module>
     <module>Sky</module>
     <module>Interfaces</module>
     <module>Terrain</module>

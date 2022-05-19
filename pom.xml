@@ -31,8 +31,8 @@
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
+          <source>17</source>
+          <target>17</target>
           <encoding>UTF-8</encoding>
         </configuration>
         <version>3.8.0</version>
@@ -46,30 +46,30 @@
             </configuration>
         </plugin>
 
-      <!--
-      <plugin>
-        <artifactId>maven-source-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      -->
+        <!--
+        <plugin>
+          <artifactId>maven-source-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>attach-sources</id>
+              <phase>verify</phase>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        -->
     </plugins>
   </build>
 
   <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
 
     <encoding>UTF-8</encoding>
 
-    <jmonkey.version>3.5.1-stable</jmonkey.version>
+    <jmonkey.version>3.5.2-stable</jmonkey.version>
     <jme3.groupId>org.jmonkeyengine</jme3.groupId>
 
     <lemur.version>1.15.0</lemur.version>

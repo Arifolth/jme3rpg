@@ -19,20 +19,14 @@
 package ru.arifolth.anjrpg.menu;
 
 import com.jme3.app.Application;
-import com.jme3.system.AppSettings;
 import com.simsilica.lemur.*;
 import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.state.CompositeAppState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.arifolth.anjrpg.ANJRpg;
-
-import java.util.Arrays;
-import java.util.List;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.East;
-import static com.simsilica.lemur.component.BorderLayout.Position.West;
 
 public class OptionsMenuState extends CompositeAppState {
     private final static Logger LOGGER = LoggerFactory.getLogger(OptionsMenuState.class);
