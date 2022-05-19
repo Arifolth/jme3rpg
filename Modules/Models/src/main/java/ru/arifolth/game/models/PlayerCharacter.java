@@ -43,7 +43,7 @@ import java.util.Optional;
 
 public class PlayerCharacter extends AnimatedCharacter {
     public static final String PLAYER_CHARACTER_MODEL = "Models/Ninja/Ninja.j3o";
-    public static final float MELEE_DISTANCE_LIMIT = 5f;
+    protected static float MELEE_DISTANCE_LIMIT = 15f;
     private float speed = 50f;
     private boolean left = false, right = false, up = false, down = false,
         attacking = false, capture_mouse = true, running = false, blocking = false, block_pressed = false,
