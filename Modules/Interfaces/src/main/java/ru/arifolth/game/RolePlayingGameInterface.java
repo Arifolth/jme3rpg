@@ -30,5 +30,7 @@ public interface RolePlayingGameInterface extends Application {
 
     TerrainManagerInterface getTerrainManager();
 
+    void setTerrainManager(TerrainManagerInterface terrainManager);
+
     String getVersion();
 }

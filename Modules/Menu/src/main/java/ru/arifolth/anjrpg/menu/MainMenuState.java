@@ -31,6 +31,7 @@ import com.simsilica.lemur.component.SpringGridLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.arifolth.anjrpg.ANJRpgInterface;
+import ru.arifolth.game.GameLogicCoreInterface;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.West;
 
@@ -45,6 +46,25 @@ public class MainMenuState extends BaseAppState {
 
     public float getStandardScale() {
         return getApplication().getCamera().getHeight() / (getApplication().getCamera().getHeight() / 2f);
+    }
+
+    private void respawn() {
+        ANJRpgInterface application = (ANJRpgInterface) getApplication();
+        GameLogicCoreInterface gameLogicCore = application.getGameLogicCore();
+
+        gameLogicCore.detachNPC();
+
+        gameLogicCore.setupPlayer();
+        gameLogicCore.setupNPC();
+
+        gameLogicCore.setupCamera();
+
+        gameLogicCore.attachPlayer();
+        gameLogicCore.attachNPC();
+
+        gameLogicCore.positionCharacters();
+
+        gameLogicCore.enablePhysics();
     }
 
     private void exitGame() {
@@ -100,8 +120,13 @@ public class MainMenuState extends BaseAppState {
         switch(((ANJRpgInterface)getApplication()).getInitStatus()) {
             case RUNNING: {
                 mainWindow.setBackground(null);
-                ActionButton resume = menuContainer.addChild(new ActionButton(new CallMethodAction("Resume Game", this, "resumeGame")));
-                resume.setInsets(new Insets3f(10, 10, 10, 10));
+                if(application.getGameLogicCore().getPlayerCharacter().isDead()) {
+                    ActionButton resume = menuContainer.addChild(new ActionButton(new CallMethodAction("Respawn", this, "respawn")));
+                    resume.setInsets(new Insets3f(10, 10, 10, 10));
+                } else {
+                    ActionButton resume = menuContainer.addChild(new ActionButton(new CallMethodAction("Resume Game", this, "resumeGame")));
+                    resume.setInsets(new Insets3f(10, 10, 10, 10));
+                }
                 break;
             }
             default: {

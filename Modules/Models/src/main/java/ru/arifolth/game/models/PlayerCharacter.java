@@ -33,6 +33,7 @@ import com.jme3.scene.*;
 import com.jme3.scene.debug.Arrow;
 import com.jme3.ui.Picture;
 import ru.arifolth.anjrpg.ANJRpgInterface;
+import ru.arifolth.anjrpg.menu.*;
 import ru.arifolth.game.CharacterInterface;
 import ru.arifolth.game.Constants;
 import ru.arifolth.game.Debug;
@@ -318,13 +319,15 @@ public class PlayerCharacter extends AnimatedCharacter {
 
     @Override
     public void spawn() {
+        gameLogicCore.detachGameOverIndicator();
         gameLogicCore.getRootNode().attachChild(this.getNode());
+        setDead(false);
     }
 
     @Override
     public void die() {
         deathAnim();
-
+        gameLogicCore.attachGameOverIndicator();
         setDead(true);
     }
 

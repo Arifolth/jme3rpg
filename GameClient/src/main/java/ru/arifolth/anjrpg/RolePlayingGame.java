@@ -37,6 +37,7 @@ import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Node;
 import com.jme3.shadow.PssmShadowRenderer;
+import com.jme3.ui.Picture;
 import com.jme3.water.WaterFilter;
 import com.simsilica.lemur.OptionPanelState;
 import com.simsilica.lemur.event.PopupState;
@@ -108,27 +109,6 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         rootNode.attachChild(gameLogicCore.getDamageIndicator());
     }
 
-    protected void positionCharacters() {
-        CollisionResults results = new CollisionResults();
-        // 2. Aim the ray from cam loc to cam direction.
-        Vector3f start = Constants.PLAYER_START_LOCATION;
-        Ray ray = new Ray(start, new Vector3f(0, -1, 0));
-
-        // 3. Collect intersections between Ray and Shootables in results list.
-        getTerrainManager().getTerrain().collideWith(ray, results);
-        CollisionResult hit = results.getClosestCollision();
-
-        Vector3f playerStartLoc = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y + 3f, hit.getContactPoint().z);
-        gameLogicCore.getPlayerCharacter().getCharacterControl().setPhysicsLocation(playerStartLoc);
-
-        for(CharacterInterface character: gameLogicCore.getCharacterMap().values()) {
-//            Vector3f npcStartLoc = new Vector3f(hit.getContactPoint().x + Utils.getRandomNumber(-40, 40), hit.getContactPoint().y + Utils.getRandomNumber(-40, 40), hit.getContactPoint().z);
-            Vector3f npcStartLoc = new Vector3f(hit.getContactPoint().x + 40, hit.getContactPoint().y + 40, hit.getContactPoint().z);
-            character.getCharacterControl().setPhysicsLocation(npcStartLoc);
-        }
-    }
-
-
     protected void createMinimap() {
         // create the minimap
         MiniMapState miniMapState = new MiniMapState(getRootNode());
@@ -136,7 +116,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     }
 
     void setupGameLogic() {
-        gameLogicCore = new GameLogicCore(this, cam, flyCam, inputManager, bulletAppState, assetManager, soundManager, getRootNode());
+        gameLogicCore = new GameLogicCore(this, cam, flyCam, inputManager, bulletAppState, assetManager, soundManager, terrainManager, getRootNode());
         gameLogicCore.initialize();
     }
 
@@ -252,27 +232,16 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     }
 
     protected void enablePhysics() {
-        CharacterInterface playerCharacter = gameLogicCore.getPlayerCharacter();
-        Utils.enableEntityPhysics(playerCharacter);
-
-        for(CharacterInterface character: gameLogicCore.getCharacterMap().values()) {
-            Utils.enableEntityPhysics(character);
-        }
-
+        gameLogicCore.enablePhysics();
         setProgress(new Object() {}.getClass().getEnclosingMethod().getName());
     }
 
     protected void attachPlayer() {
-        gameLogicCore.getPlayerCharacter().spawn();
+        gameLogicCore.attachPlayer();
     }
 
     protected void attachNPC() {
-        Node enemies = gameLogicCore.getEnemies();
-        getRootNode().attachChild(enemies);
-
-        for(CharacterInterface character: gameLogicCore.getCharacterMap().values()) {
-            character.spawn();
-        }
+        gameLogicCore.attachNPC();
     }
 
     @Override
@@ -342,6 +311,11 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     @Override
     public TerrainManagerInterface getTerrainManager() {
         return terrainManager;
+    }
+
+    @Override
+    public void setTerrainManager(TerrainManagerInterface terrainManager) {
+        this.terrainManager = terrainManager;
     }
 
     @Override

@@ -22,6 +22,7 @@ import com.jme3.app.Application;
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.input.FlyByCamera;
+import com.jme3.input.InputManager;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.ui.Picture;
@@ -35,6 +36,12 @@ public interface GameLogicCoreInterface {
 
     CharacterInterface getPlayerCharacter();
 
+    void attachPlayer();
+
+    void detachNPC();
+
+    void attachNPC();
+
     void reInitialize();
 
     Map<Node,CharacterInterface> getCharacterMap();
@@ -44,6 +51,10 @@ public interface GameLogicCoreInterface {
     void initialize();
 
     Picture getDamageIndicator();
+
+    void setDamageIndicator(Picture damageIndicator);
+
+    void positionCharacters();
 
     void update(float tpf);
 
@@ -63,5 +74,19 @@ public interface GameLogicCoreInterface {
 
     Application getApp();
 
+    InputManager getInputManager();
+
     Node getEnemies();
+
+    void attachGameOverIndicator();
+
+    void detachGameOverIndicator();
+
+    void setupPlayer();
+
+    void setupNPC();
+
+    void setupCamera();
+
+    void enablePhysics();
 }

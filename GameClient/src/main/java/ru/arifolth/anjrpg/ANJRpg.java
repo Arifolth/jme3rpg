@@ -76,8 +76,8 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
 
         setupPhysix();
         setupSound();
-        setupGameLogic();
         setupTerrain();
+        setupGameLogic();
     }
 
     @Override
@@ -101,7 +101,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
                 //wait until land appears in Physics Space
                 if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == RIGID_BODIES_SIZE) {
                     //put player at the beginning location
-                    positionCharacters();
+                    getGameLogicCore().positionCharacters();
 
                     //these calls have to be done on the update loop thread,
                     //especially attaching the terrain to the rootNode

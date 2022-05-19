@@ -21,21 +21,17 @@ package ru.arifolth.anjrpg;
 import com.jme3.app.Application;
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
-import com.jme3.input.ChaseCamera;
+import com.jme3.collision.CollisionResult;
+import com.jme3.collision.CollisionResults;
 import com.jme3.input.FlyByCamera;
 import com.jme3.input.InputManager;
-import com.jme3.input.MouseInput;
-import com.jme3.input.controls.MouseButtonTrigger;
+import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.ui.Picture;
 import ru.arifolth.anjrpg.weather.Emitter;
-import ru.arifolth.anjrpg.weather.RainEmitter;
-import ru.arifolth.game.CharacterInterface;
-import ru.arifolth.game.GameLogicCoreInterface;
-import ru.arifolth.game.MovementControllerInterface;
-import ru.arifolth.game.SoundManagerInterface;
+import ru.arifolth.game.*;
 
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -48,6 +44,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
     private Node enemies = new Node("enemies");
 
     private MovementControllerInterface movementController;
+    private TerrainManagerInterface terrainManager;
     private Application app;
     private Camera cam;
     private FlyByCamera flyCam;
@@ -61,8 +58,9 @@ public class GameLogicCore implements GameLogicCoreInterface {
     private Picture damageIndicator = null;
     private Map<Node, CharacterInterface> characterMap = new ConcurrentHashMap<>();
     private Set<Emitter> weatherEffectsSet = new LinkedHashSet<>();
+    private Picture gameOverIndicator;
 
-    public GameLogicCore(Application app, Camera cam, FlyByCamera flyCam, InputManager inputManager, BulletAppState bulletAppState, AssetManager assetManager, SoundManagerInterface soundManager, Node rootNode) {
+    public GameLogicCore(Application app, Camera cam, FlyByCamera flyCam, InputManager inputManager, BulletAppState bulletAppState, AssetManager assetManager, SoundManagerInterface soundManager, TerrainManagerInterface terrainManager, Node rootNode) {
         this.movementController = new MovementController(app, inputManager);
         this.app = app;
         this.cam = cam;
@@ -71,20 +69,73 @@ public class GameLogicCore implements GameLogicCoreInterface {
         this.bulletAppState = bulletAppState;
         this.assetManager = assetManager;
         this.soundManager = soundManager;
+        this.terrainManager = terrainManager;
         this.rootNode = rootNode;
     }
 
     public void initialize() {
         initializer.setupDamageIndicator();
 
+        initializer.setupGameOverIndicator();
+
         initializer.setupPlayer();
 
         initializer.setupNPC();
 
-        setupCamera();
+        initializer.setupCamera();
 
         movementController.setUpKeys();
 //        initializer.setupWeatherEffects();
+    }
+
+    @Override
+    public void setupPlayer() {
+        initializer.setupPlayer();
+    }
+
+    @Override
+    public void setupNPC() {
+        initializer.setupNPC();
+    }
+
+    @Override
+    public void setupCamera() {
+        initializer.setupCamera();
+    }
+
+    @Override
+    public void enablePhysics() {
+        CharacterInterface playerCharacter = this.getPlayerCharacter();
+        Utils.enableEntityPhysics(playerCharacter);
+
+        for(CharacterInterface character: this.getCharacterMap().values()) {
+            Utils.enableEntityPhysics(character);
+        }
+    }
+
+    @Override
+    public void attachPlayer() {
+        this.getPlayerCharacter().spawn();
+    }
+
+    @Override
+    public void detachNPC() {
+        Node enemies = this.getEnemies();
+        getRootNode().detachChild(enemies);
+
+        for(CharacterInterface character: this.getCharacterMap().values()) {
+            character.die();
+        }
+    }
+
+    @Override
+    public void attachNPC() {
+        Node enemies = this.getEnemies();
+        getRootNode().attachChild(enemies);
+
+        for(CharacterInterface character: this.getCharacterMap().values()) {
+            character.spawn();
+        }
     }
 
     public void reInitialize() {
@@ -100,6 +151,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
         return damageIndicator;
     }
 
+    @Override
     public void setDamageIndicator(Picture damageIndicator) {
         this.damageIndicator = damageIndicator;
     }
@@ -112,46 +164,25 @@ public class GameLogicCore implements GameLogicCoreInterface {
         this.playerCharacter = playerCharacter;
     }
 
-    public void setupCamera() {
-        // We re-use the flyby camera for rotation, while positioning is handled by physics
-        //flyCam.setMoveSpeed(10);
-        flyCam.setMoveSpeed(100);
-        //change (increase) view distance
-        cam.setFrustumFar(10000);
-        cam.onFrameChange();
+    @Override
+    public void positionCharacters() {
+        CollisionResults results = new CollisionResults();
+        // 2. Aim the ray from cam loc to cam direction.
+        Vector3f start = Constants.PLAYER_START_LOCATION;
+        Ray ray = new Ray(start, new Vector3f(0, -1, 0));
 
-        /**/
-        // Disable the default first-person cam!
-        flyCam.setEnabled(false);
+        // 3. Collect intersections between Ray and Shootables in results list.
+        terrainManager.getTerrain().collideWith(ray, results);
+        CollisionResult hit = results.getClosestCollision();
 
-        // Enable a chase cam
-        ChaseCamera chaseCam = new ChaseCamera(cam, playerCharacter.getCharacterModel(), inputManager);
+        Vector3f playerStartLoc = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y + 3f, hit.getContactPoint().z);
+        getPlayerCharacter().getCharacterControl().setPhysicsLocation(playerStartLoc);
 
-        //Uncomment this to invert the camera's vertical rotation Axis
-        chaseCam.setInvertVerticalAxis(true);
-
-        //Uncomment this to invert the camera's horizontal rotation Axis
-        //chaseCam.setInvertHorizontalAxis(true);
-
-        //Comment this to disable smooth camera motion
-        chaseCam.setSmoothMotion(true);
-
-        //Uncomment this to disable trailing of the camera
-        //WARNING, trailing only works with smooth motion enabled. It is true by default.
-        //chaseCam.setTrailingEnabled(false);
-
-        //Uncomment this to look 3 world units above the target
-        //chaseCam.setLookAtOffset(Vector3f.UNIT_Y.mult(3));
-        //chaseCam.setLookAtOffset(new Vector3f(0, 1, -1).mult(3));
-        chaseCam.setLookAtOffset(new Vector3f(0, 3.5f, 1.5f).mult(3));
-
-        //Uncomment this to enable rotation when the middle mouse button is pressed (like Blender)
-        //WARNING : setting this trigger disable the rotation on right and left mouse button click
-        chaseCam.setToggleRotationTrigger(new MouseButtonTrigger(MouseInput.BUTTON_MIDDLE));
-
-        //chaseCam.setDefaultDistance(40);
-        //chaseCam.setDefaultHorizontalRotation(90f);
-        //chaseCam.setDefaultVerticalRotation(90f);
+        for(CharacterInterface character: getCharacterMap().values()) {
+//            Vector3f npcStartLoc = new Vector3f(hit.getContactPoint().x + Utils.getRandomNumber(-40, 40), hit.getContactPoint().y + Utils.getRandomNumber(-40, 40), hit.getContactPoint().z);
+            Vector3f npcStartLoc = new Vector3f(hit.getContactPoint().x + 40, hit.getContactPoint().y + 40, hit.getContactPoint().z);
+            character.getCharacterControl().setPhysicsLocation(npcStartLoc);
+        }
     }
 
     public void update(float tpf) {
@@ -216,7 +247,30 @@ public class GameLogicCore implements GameLogicCoreInterface {
     }
 
     @Override
+    public InputManager getInputManager() {
+        return inputManager;
+    }
+
+    public Initializer getInitializer() {
+        return initializer;
+    }
+
+    @Override
     public Node getEnemies() {
         return enemies;
+    }
+
+    @Override
+    public void attachGameOverIndicator() {
+        rootNode.attachChild(gameOverIndicator);
+    }
+
+    @Override
+    public void detachGameOverIndicator() {
+        rootNode.detachChild(gameOverIndicator);
+    }
+
+    public void setGameOverIndicator(Picture gameOverIndicator) {
+        this.gameOverIndicator = gameOverIndicator;
     }
 }
