@@ -70,18 +70,17 @@
           </execution>
         </executions>
       </plugin>
-
-        <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <version>1.2.1</version>
-            <configuration>
-                <includePluginDependencies>true</includePluginDependencies>
-                <mainClass>${java.main.class}</mainClass>
-            </configuration>
-        </plugin>
     </plugins>-->
       <plugins>
+          <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>exec-maven-plugin</artifactId>
+              <version>1.2.1</version>
+              <configuration>
+                  <includePluginDependencies>true</includePluginDependencies>
+                  <mainClass>${java.main.class}</mainClass>
+              </configuration>
+          </plugin>
           <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-compiler-plugin</artifactId>
