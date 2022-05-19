@@ -187,10 +187,10 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
 
             @Override
             public void tileDetached(Vector3f cell, TerrainQuad quad) {
-                /*if (quad.getControl(RigidBodyControl.class) != null) {
+                if (quad.getControl(RigidBodyControl.class) != null) {
                     bulletAppState.getPhysicsSpace().remove(quad);
                     quad.removeControl(RigidBodyControl.class);
-                }*/
+                }
             }
 
         });
