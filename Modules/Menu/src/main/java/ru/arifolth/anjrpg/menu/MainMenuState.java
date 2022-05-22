@@ -65,6 +65,8 @@ public class MainMenuState extends BaseAppState {
         gameLogicCore.positionCharacters();
 
         gameLogicCore.enablePhysics();
+
+        setEnabled(false);
     }
 
     private void exitGame() {
