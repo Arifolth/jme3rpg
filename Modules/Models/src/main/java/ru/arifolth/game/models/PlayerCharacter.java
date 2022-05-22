@@ -21,26 +21,15 @@ package ru.arifolth.game.models;
 import com.jme3.animation.AnimChannel;
 import com.jme3.animation.AnimControl;
 import com.jme3.animation.LoopMode;
-import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
-import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.*;
-import com.jme3.scene.debug.Arrow;
 import com.jme3.ui.Picture;
-import ru.arifolth.anjrpg.ANJRpgInterface;
-import ru.arifolth.anjrpg.menu.*;
 import ru.arifolth.game.CharacterInterface;
 import ru.arifolth.game.Constants;
-import ru.arifolth.game.Debug;
-import ru.arifolth.game.InitStateEnum;
-
-import java.util.List;
-import java.util.Optional;
 
 public class PlayerCharacter extends AnimatedCharacter {
     public static final String PLAYER_CHARACTER_MODEL = "Models/Ninja/Ninja.j3o";
@@ -89,10 +78,7 @@ public class PlayerCharacter extends AnimatedCharacter {
     }
 
     public void attack() {
-        getAttackChannel().setAnim(AnimConstants.ATTACK, 0.1f);
-        getAttackChannel().setLoopMode(LoopMode.DontLoop);
-        getAttackChannel().setSpeed(1f);
-        setActionTime(getAttackChannel().getAnimMaxTime());
+        attackAnimation();
 
         playSwordSound(getSwordSwingNode());
 
@@ -119,6 +105,13 @@ public class PlayerCharacter extends AnimatedCharacter {
                 playSwordSound(getSwordHitNode());
             }
         }
+    }
+
+    protected void attackAnimation() {
+        getAttackChannel().setAnim(AnimConstants.ATTACK, 0.1f);
+        getAttackChannel().setLoopMode(LoopMode.DontLoop);
+        getAttackChannel().setSpeed(1f);
+        setActionTime(getAttackChannel().getAnimMaxTime());
     }
 
     @Override
@@ -238,24 +231,10 @@ public class PlayerCharacter extends AnimatedCharacter {
 
         if(!this.isJumping()) {
             if ((this.isUp() || this.isDown() || this.isLeft() || this.isRight())) {
-                //set the walking animation
-                this.getAnimationChannel().setLoopMode(LoopMode.Loop);
-                if (!this.getAnimationChannel().getAnimationName().equals(AnimConstants.WALK)) {
-                    this.getAnimationChannel().setAnim(AnimConstants.WALK, 0.5f);
-                }
-                if (this.isRunning()) {
-                    this.getAnimationChannel().setSpeed(1.75f);
-                }
-                else {
-                    this.getAnimationChannel().setSpeed(1f);
-                }
+                walkingAnimation();
                 this.getPlayerStepsNode(this.isRunning()).play();
             } else if (this.getWalkDirection().length() == 0) {
-                this.getAnimationChannel().setLoopMode(LoopMode.Loop);
-                if (!this.getAnimationChannel().getAnimationName().equals(AnimConstants.IDLE)) {
-                    this.getAnimationChannel().setAnim(AnimConstants.IDLE, 0f);
-                    this.getAnimationChannel().setSpeed(1f);
-                }
+                idleAnimation();
                 this.getPlayerStepsNode(false).pause();
             }
         } else {
@@ -271,8 +250,7 @@ public class PlayerCharacter extends AnimatedCharacter {
                 this.block();
             }
             if(!this.isBlock_pressed() && this.getActionTime() <= 0) {
-                this.getAttackChannel().setAnim(AnimConstants.IDLE, 0f);
-                this.getAttackChannel().setSpeed(1f);
+                stopAnimation();
                 this.setBlocking(false);
             }
         } else if(this.isAttacking()) {
@@ -280,8 +258,7 @@ public class PlayerCharacter extends AnimatedCharacter {
                 this.attack();
             }
             if(!this.isAttack_pressed() && this.getActionTime() <= 0) {
-                this.getAttackChannel().setAnim(AnimConstants.IDLE, 0f);
-                this.getAttackChannel().setSpeed(1f);
+                stopAnimation();
                 this.setAttacking(false);
             }
         }
@@ -296,6 +273,33 @@ public class PlayerCharacter extends AnimatedCharacter {
         //walk backwards
         if((this.getWalkDirection().length() != 0) && this.isDown())
             this.getCharacterControl().setViewDirection(this.getWalkDirection());
+    }
+
+    protected void stopAnimation() {
+        this.getAttackChannel().setAnim(AnimConstants.IDLE, 0f);
+        this.getAttackChannel().setSpeed(1f);
+    }
+
+    protected void idleAnimation() {
+        this.getAnimationChannel().setLoopMode(LoopMode.Loop);
+        if (!this.getAnimationChannel().getAnimationName().equals(AnimConstants.IDLE)) {
+            this.getAnimationChannel().setAnim(AnimConstants.IDLE, 0f);
+            this.getAnimationChannel().setSpeed(1f);
+        }
+    }
+
+    protected void walkingAnimation() {
+        //set the walking animation
+        this.getAnimationChannel().setLoopMode(LoopMode.Loop);
+        if (!this.getAnimationChannel().getAnimationName().equals(AnimConstants.WALK)) {
+            this.getAnimationChannel().setAnim(AnimConstants.WALK, 0.5f);
+        }
+        if (this.isRunning()) {
+            this.getAnimationChannel().setSpeed(1.75f);
+        }
+        else {
+            this.getAnimationChannel().setSpeed(1f);
+        }
     }
 
     public void setPlayerDamaged() {
@@ -326,18 +330,18 @@ public class PlayerCharacter extends AnimatedCharacter {
 
     @Override
     public void die() {
-        deathAnim();
+        deathAnimation();
+        this.getPlayerStepsNode(false).pause();
         gameLogicCore.attachGameOverIndicator();
         setDead(true);
     }
 
-    protected void deathAnim() {
+    protected void deathAnimation() {
         this.getAnimationChannel().setLoopMode(LoopMode.DontLoop);
         if (!this.getAnimationChannel().getAnimationName().equals(AnimConstants.DEATH)) {
             this.getAnimationChannel().setAnim(AnimConstants.DEATH, 0.1f);
             this.getAnimationChannel().setSpeed(1f);
         }
-        this.getPlayerStepsNode(false).pause();
     }
 
     @Override
