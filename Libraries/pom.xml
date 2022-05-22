@@ -24,8 +24,8 @@
         </plugins>
     </build>
     <properties>
-		<groovy.version>3.0.8</groovy.version>
-		<sio2.version>1.6.0</sio2.version>
+		<groovy.version>3.0.10</groovy.version>
+		<sio2.version>1.7.0</sio2.version>
 	</properties>
 
 	<parent>
