@@ -37,7 +37,8 @@ Features:
 <https://github.com/Arifolth/jme3rpg>
 
 ## Materials used
-- Java sources of [Mtnrim_v0.zip](https://sourceforge.net/projects/mountainrim/)
+- [Mtnrim_v0.zip](https://sourceforge.net/projects/mountainrim/)
+- https://github.com/rdok/Arcem-Tutari
 - Sounds from https://freesound.org/
 - Other resources, credit is given in the code
 
