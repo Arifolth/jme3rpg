@@ -104,6 +104,7 @@ public class NonPlayerCharacter extends PlayerCharacter {
 
     //TODO: Rewrite as a Melee/Ranged class later
     public void useWeapon() {
+        attackAnimation();
         System.out.println("ATTACK!");
         playSwordSound(getSwordSwingNode());
 
@@ -145,12 +146,14 @@ public class NonPlayerCharacter extends PlayerCharacter {
         walkDirection = viewDirection = characterControl.getViewDirection().normalize().mult(walkSpeed);
         characterControl.setWalkDirection(walkDirection);
         this.getPlayerStepsNode(this.isRunning()).play();
+        walkingAnimation();
     }
 
     public void stop() {
         walkDirection.set(0f, 0f, 0f);
         characterControl.setWalkDirection(walkDirection);
         this.getPlayerStepsNode(this.isRunning()).pause();
+        idleAnimation();
     }
 
     public void turnLeft() {
@@ -172,9 +175,6 @@ public class NonPlayerCharacter extends PlayerCharacter {
     }
 
     @Override
-    protected void initializeAnimation() { }
-
-    @Override
     protected void initializeSkeletonDebug() {
         Debug.showNodeAxes(gameLogicCore.getAssetManager(), this.getNode(), 5);
     }
@@ -187,7 +187,7 @@ public class NonPlayerCharacter extends PlayerCharacter {
 
     @Override
     public void die() {
-        //deathAnim();
+        deathAnimation();
 
         this.getNode().removeControl(characterControl);
         this.getNode().detachChild(characterModel);
