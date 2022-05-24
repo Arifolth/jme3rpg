@@ -18,12 +18,13 @@
 
 package ru.arifolth.game.models;
 
+import com.jme3.animation.AnimChannel;
+import com.jme3.animation.AnimControl;
+import com.jme3.animation.LoopMode;
 import com.jme3.animation.SkeletonControl;
-import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
-import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import ru.arifolth.game.CharacterInterface;
 import ru.arifolth.game.Constants;
@@ -63,6 +64,9 @@ public class NonPlayerCharacter extends PlayerCharacter {
     }
 
     public void update(float tpf) {
+        if(isDead())
+            return;
+
         shootUpdate(tpf);
 
         if (withinRange(walkingRange, playerCharacter)) {
@@ -104,7 +108,7 @@ public class NonPlayerCharacter extends PlayerCharacter {
 
     //TODO: Rewrite as a Melee/Ranged class later
     public void useWeapon() {
-        attackAnimation();
+        animationDelegate.attackAnimation();
         System.out.println("ATTACK!");
         playSwordSound(getSwordSwingNode());
 
@@ -146,14 +150,14 @@ public class NonPlayerCharacter extends PlayerCharacter {
         walkDirection = viewDirection = characterControl.getViewDirection().normalize().mult(walkSpeed);
         characterControl.setWalkDirection(walkDirection);
         this.getPlayerStepsNode(this.isRunning()).play();
-        walkingAnimation();
+        animationDelegate.walkingAnimation();
     }
 
     public void stop() {
         walkDirection.set(0f, 0f, 0f);
         characterControl.setWalkDirection(walkDirection);
         this.getPlayerStepsNode(this.isRunning()).pause();
-        idleAnimation();
+        animationDelegate.idleAnimation();
     }
 
     public void turnLeft() {
@@ -186,17 +190,24 @@ public class NonPlayerCharacter extends PlayerCharacter {
     }
 
     @Override
+    public void onAnimCycleDone(AnimControl ctrl, AnimChannel ch, String name) {
+        if (isDead()) {
+            this.getNode().removeControl(characterControl);
+            this.getNode().detachChild(characterModel);
+
+            this.getPlayerStepsNode(false).pause();
+
+            gameLogicCore.getRootNode().detachChild(this.getNode());
+            gameLogicCore.getCharacterMap().remove(this.getNode());
+            this.getHealthBar().destroy();
+
+            removePhysixControl();
+        }
+    }
+
+    @Override
     public void die() {
-        deathAnimation();
-
-        this.getNode().removeControl(characterControl);
-        this.getNode().detachChild(characterModel);
-
-        gameLogicCore.getRootNode().detachChild(this.getNode());
-        gameLogicCore.getCharacterMap().remove(this.getNode());
-        this.getHealthBar().destroy();
-
-        removePhysixControl();
+        animationDelegate.deathAnimation();
 
         setDead(true);
     }

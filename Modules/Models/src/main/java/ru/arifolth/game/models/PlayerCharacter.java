@@ -34,6 +34,7 @@ import ru.arifolth.game.Constants;
 public class PlayerCharacter extends AnimatedCharacter {
     public static final String PLAYER_CHARACTER_MODEL = "Models/Ninja/Ninja.j3o";
     protected static float MELEE_DISTANCE_LIMIT = 15f;
+    protected final AnimationDelegate animationDelegate = new AnimationDelegate(this);
     private float speed = 50f;
     private boolean left = false, right = false, up = false, down = false,
         attacking = false, capture_mouse = true, running = false, blocking = false, block_pressed = false,
@@ -66,19 +67,13 @@ public class PlayerCharacter extends AnimatedCharacter {
     }
 
     public void block() {
-        //TODO: Show Blocking animation only in case attack is coming, do nothing otherwise
-        getAttackChannel().setAnim(AnimConstants.BLOCK, 0.1f);
-        //TODO: ADD Blocking event
-        getAttackChannel().setLoopMode(LoopMode.DontLoop);
-        getAttackChannel().setSpeed(1f);
-        getAttackChannel().setTime(getAttackChannel().getAnimMaxTime() / 2);
-        setActionTime(getAttackChannel().getAnimMaxTime() / 2);
+        animationDelegate.blockAnimation();
 
         playSwordSound(getSwordSwingNode());
     }
 
     public void attack() {
-        attackAnimation();
+        animationDelegate.attackAnimation();
 
         playSwordSound(getSwordSwingNode());
 
@@ -105,13 +100,6 @@ public class PlayerCharacter extends AnimatedCharacter {
                 playSwordSound(getSwordHitNode());
             }
         }
-    }
-
-    protected void attackAnimation() {
-        getAttackChannel().setAnim(AnimConstants.ATTACK, 0.1f);
-        getAttackChannel().setLoopMode(LoopMode.DontLoop);
-        getAttackChannel().setSpeed(1f);
-        setActionTime(getAttackChannel().getAnimMaxTime());
     }
 
     @Override
@@ -231,10 +219,10 @@ public class PlayerCharacter extends AnimatedCharacter {
 
         if(!this.isJumping()) {
             if ((this.isUp() || this.isDown() || this.isLeft() || this.isRight())) {
-                walkingAnimation();
+                animationDelegate.walkingAnimation();
                 this.getPlayerStepsNode(this.isRunning()).play();
             } else if (this.getWalkDirection().length() == 0) {
-                idleAnimation();
+                animationDelegate.idleAnimation();
                 this.getPlayerStepsNode(false).pause();
             }
         } else {
@@ -250,7 +238,7 @@ public class PlayerCharacter extends AnimatedCharacter {
                 this.block();
             }
             if(!this.isBlock_pressed() && this.getActionTime() <= 0) {
-                stopAnimation();
+                animationDelegate.stopAnimation();
                 this.setBlocking(false);
             }
         } else if(this.isAttacking()) {
@@ -258,7 +246,7 @@ public class PlayerCharacter extends AnimatedCharacter {
                 this.attack();
             }
             if(!this.isAttack_pressed() && this.getActionTime() <= 0) {
-                stopAnimation();
+                animationDelegate.stopAnimation();
                 this.setAttacking(false);
             }
         }
@@ -273,33 +261,6 @@ public class PlayerCharacter extends AnimatedCharacter {
         //walk backwards
         if((this.getWalkDirection().length() != 0) && this.isDown())
             this.getCharacterControl().setViewDirection(this.getWalkDirection());
-    }
-
-    protected void stopAnimation() {
-        this.getAttackChannel().setAnim(AnimConstants.IDLE, 0f);
-        this.getAttackChannel().setSpeed(1f);
-    }
-
-    protected void idleAnimation() {
-        this.getAnimationChannel().setLoopMode(LoopMode.Loop);
-        if (!this.getAnimationChannel().getAnimationName().equals(AnimConstants.IDLE)) {
-            this.getAnimationChannel().setAnim(AnimConstants.IDLE, 0f);
-            this.getAnimationChannel().setSpeed(1f);
-        }
-    }
-
-    protected void walkingAnimation() {
-        //set the walking animation
-        this.getAnimationChannel().setLoopMode(LoopMode.Loop);
-        if (!this.getAnimationChannel().getAnimationName().equals(AnimConstants.WALK)) {
-            this.getAnimationChannel().setAnim(AnimConstants.WALK, 0.5f);
-        }
-        if (this.isRunning()) {
-            this.getAnimationChannel().setSpeed(1.75f);
-        }
-        else {
-            this.getAnimationChannel().setSpeed(1f);
-        }
     }
 
     public void setPlayerDamaged() {
@@ -330,18 +291,10 @@ public class PlayerCharacter extends AnimatedCharacter {
 
     @Override
     public void die() {
-        deathAnimation();
+        animationDelegate.deathAnimation();
         this.getPlayerStepsNode(false).pause();
         gameLogicCore.attachGameOverIndicator();
         setDead(true);
-    }
-
-    protected void deathAnimation() {
-        this.getAnimationChannel().setLoopMode(LoopMode.DontLoop);
-        if (!this.getAnimationChannel().getAnimationName().equals(AnimConstants.DEATH)) {
-            this.getAnimationChannel().setAnim(AnimConstants.DEATH, 0.1f);
-            this.getAnimationChannel().setSpeed(1f);
-        }
     }
 
     @Override
