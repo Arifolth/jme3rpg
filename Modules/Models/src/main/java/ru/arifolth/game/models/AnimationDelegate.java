@@ -19,27 +19,31 @@
 package ru.arifolth.game.models;
 
 import com.jme3.animation.LoopMode;
+import ru.arifolth.game.AnimationDelegateInterface;
 
-public class AnimationDelegate {
+public class AnimationDelegate implements AnimationDelegateInterface {
     private final PlayerCharacter playerCharacter;
 
     public AnimationDelegate(PlayerCharacter playerCharacter) {
         this.playerCharacter = playerCharacter;
     }
 
-    protected void attackAnimation() {
+    @Override
+    public void attackAnimation() {
         playerCharacter.getAttackChannel().setAnim(AnimConstants.ATTACK, 0.1f);
         playerCharacter.getAttackChannel().setLoopMode(LoopMode.DontLoop);
         playerCharacter.getAttackChannel().setSpeed(1f);
         playerCharacter.setActionTime(playerCharacter.getAttackChannel().getAnimMaxTime());
     }
 
-    protected void stopAnimation() {
+    @Override
+    public void stopAnimation() {
         playerCharacter.getAttackChannel().setAnim(AnimConstants.IDLE, 0f);
         playerCharacter.getAttackChannel().setSpeed(1f);
     }
 
-    protected void idleAnimation() {
+    @Override
+    public void idleAnimation() {
         playerCharacter.getAnimationChannel().setLoopMode(LoopMode.Loop);
         if (!playerCharacter.getAnimationChannel().getAnimationName().equals(AnimConstants.IDLE)) {
             playerCharacter.getAnimationChannel().setAnim(AnimConstants.IDLE, 0f);
@@ -47,7 +51,8 @@ public class AnimationDelegate {
         }
     }
 
-    protected void walkingAnimation() {
+    @Override
+    public void walkingAnimation() {
         //set the walking animation
         playerCharacter.getAnimationChannel().setLoopMode(LoopMode.Loop);
         if (!playerCharacter.getAnimationChannel().getAnimationName().equals(AnimConstants.WALK)) {
@@ -60,7 +65,8 @@ public class AnimationDelegate {
         }
     }
 
-    protected void deathAnimation() {
+    @Override
+    public void deathAnimation() {
         playerCharacter.getAnimationChannel().setLoopMode(LoopMode.DontLoop);
         if (!playerCharacter.getAnimationChannel().getAnimationName().equals(AnimConstants.DEATH)) {
             playerCharacter.getAnimationChannel().setAnim(AnimConstants.DEATH, 0.1f);
@@ -68,7 +74,8 @@ public class AnimationDelegate {
         }
     }
 
-    void blockAnimation() {
+    @Override
+    public void blockAnimation() {
         //TODO: Show Blocking animation only in case attack is coming, do nothing otherwise
         playerCharacter.getAttackChannel().setAnim(AnimConstants.BLOCK, 0.1f);
         //TODO: ADD Blocking event

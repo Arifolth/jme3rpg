@@ -39,9 +39,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GameLogicCore implements GameLogicCoreInterface {
-    private CharacterFactory characterFactory = new CharacterFactory(this);
-    private Initializer initializer = new Initializer(this);
-    private Node enemies = new Node("enemies");
+    private final CharacterFactory characterFactory = new CharacterFactory(this);
+    private final Initializer initializer = new Initializer(this);
+    private final Node enemies = new Node("enemies");
 
     private MovementControllerInterface movementController;
     private TerrainManagerInterface terrainManager;

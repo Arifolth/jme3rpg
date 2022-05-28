@@ -66,9 +66,19 @@ public interface CharacterInterface {
 
     void setDamageIndicator(Picture damageIndicator);
 
+    void resetShootCounter();
+
+    void resetShootCounterByQuarter();
+
+    void shootUpdate(float tpf);
+
+    boolean isReady();
+
     void spawn();
 
     void die();
+
+    AnimationDelegateInterface getAnimationDelegate();
 
     boolean isAttacking();
 

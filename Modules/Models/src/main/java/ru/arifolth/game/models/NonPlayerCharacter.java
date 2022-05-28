@@ -35,20 +35,17 @@ public class NonPlayerCharacter extends PlayerCharacter {
     protected float firingRange;
     protected float walkingRange;
     protected float walkSpeed;
-    protected float shootRate;
-    protected float shootDelay;
     protected Vector3f walkDirection, viewDirection;
     protected CharacterInterface playerCharacter;
 
     public NonPlayerCharacter() {
+        super();
         this.setName(this.getClass().getName());
 
         this.turnRate = FastMath.QUARTER_PI / 5f;
         this.walkingRange = 500000f;
         this.firingRange = 5f;
         this.walkSpeed = .3f;
-        this.shootRate = 3.5f;
-        this.shootDelay = 3f;
     }
 
     protected void initializeCharacterModel() {
@@ -94,15 +91,9 @@ public class NonPlayerCharacter extends PlayerCharacter {
     }
 
     public void attack() {
-        if (shootDelay < 0f) {
+        if (isReady()) {
             useWeapon();
-            shootDelay = shootRate;
-        }
-    }
-
-    public void shootUpdate(float tpf) {
-        if (shootDelay > 0f) {
-            shootDelay -= tpf;
+            resetShootCounter();
         }
     }
 
@@ -202,6 +193,12 @@ public class NonPlayerCharacter extends PlayerCharacter {
             this.getHealthBar().destroy();
 
             removePhysixControl();
+        } else if(name.equals(AnimConstants.BLOCK) && isReady()) {
+            if (!ch.getAnimationName().equals(AnimConstants.IDLE)) {
+                ch.setAnim(AnimConstants.IDLE, 0f);
+                ch.setLoopMode(LoopMode.Loop);
+                ch.setSpeed(1f);
+            }
         }
     }
 

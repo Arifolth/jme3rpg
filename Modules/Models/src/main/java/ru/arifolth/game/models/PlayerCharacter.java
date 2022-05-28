@@ -28,18 +28,24 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.*;
 import com.jme3.ui.Picture;
+import ru.arifolth.game.AnimationDelegateInterface;
 import ru.arifolth.game.CharacterInterface;
 import ru.arifolth.game.Constants;
+
+import java.util.SplittableRandom;
 
 public class PlayerCharacter extends AnimatedCharacter {
     public static final String PLAYER_CHARACTER_MODEL = "Models/Ninja/Ninja.j3o";
     protected static float MELEE_DISTANCE_LIMIT = 15f;
-    protected final AnimationDelegate animationDelegate = new AnimationDelegate(this);
+    protected final AnimationDelegateInterface animationDelegate = new AnimationDelegate(this);
+    protected float shootDelay;
+    protected float shootRate;
     private float speed = 50f;
     private boolean left = false, right = false, up = false, down = false,
         attacking = false, capture_mouse = true, running = false, blocking = false, block_pressed = false,
         jumping = false, jump_pressed = false, attack_pressed = false;
     private final Vector3f walkDirection = new Vector3f();
+    private SplittableRandom random = new SplittableRandom();
     private float airTime = 0;
     private float actionTime = 0;
     private Camera cam;
@@ -54,6 +60,8 @@ public class PlayerCharacter extends AnimatedCharacter {
         this.setName(this.getClass().getName());
 
         this.firingRange = MELEE_DISTANCE_LIMIT;
+        this.shootDelay = 3f;
+        this.shootRate = 3.5f;
     }
 
     @Override
@@ -96,8 +104,15 @@ public class PlayerCharacter extends AnimatedCharacter {
             Node grandParent = parent.getParent();
             CharacterInterface npc = gameLogicCore.getCharacterMap().get(grandParent);
             if(npc != null) {
-                npc.getHealthBar().setHealth(Constants.DAMAGE);
-                playSwordSound(getSwordHitNode());
+                boolean blocked = random.nextInt(1, 101) <= 50;
+                if(!blocked) {
+                    npc.getHealthBar().setHealth(Constants.DAMAGE);
+                    playSwordSound(getSwordHitNode());
+                } else {
+                    npc.getAnimationDelegate().blockAnimation();
+                    npc.resetShootCounterByQuarter();
+                    playSwordSound(getSwordBlockNode());
+                }
             }
         }
     }
@@ -283,6 +298,28 @@ public class PlayerCharacter extends AnimatedCharacter {
     }
 
     @Override
+    public void resetShootCounter() {
+        shootDelay = shootRate;
+    }
+
+    @Override
+    public void resetShootCounterByQuarter() {
+        shootDelay = shootRate / 4;
+    }
+
+    @Override
+    public void shootUpdate(float tpf) {
+        if (shootDelay > 0f) {
+            shootDelay -= tpf;
+        }
+    }
+
+    @Override
+    public boolean isReady() {
+        return shootDelay < 0f;
+    }
+
+    @Override
     public void spawn() {
         gameLogicCore.detachGameOverIndicator();
         gameLogicCore.getRootNode().attachChild(this.getNode());
@@ -295,6 +332,11 @@ public class PlayerCharacter extends AnimatedCharacter {
         this.getPlayerStepsNode(false).pause();
         gameLogicCore.attachGameOverIndicator();
         setDead(true);
+    }
+
+    @Override
+    public AnimationDelegateInterface getAnimationDelegate() {
+        return animationDelegate;
     }
 
     @Override
