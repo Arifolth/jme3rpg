@@ -25,6 +25,8 @@ import com.jme3.scene.Spatial;
 import com.jme3.ui.Picture;
 
 public interface CharacterInterface {
+    void removeCharacter();
+
     void update(float tpf);
     Spatial getCharacterModel();
     CharacterControl getCharacterControl();

@@ -136,22 +136,18 @@ public class PlayerCharacter extends AnimatedCharacter {
         } else if(name.equals(AnimConstants.JUMP)) {
             setJump_pressed(false);
         } else if (name.equals(AnimConstants.DEATH) & dead) {
-            if (ch.getAnimationName().equals(AnimConstants.DEATH)) {
-                ch.setAnim(AnimConstants.DEATH, 0f);
-                ch.setLoopMode(LoopMode.Loop);
-                ch.setSpeed(0f);
-                setActionTime(getAttackChannel().getAnimMaxTime());
-            }
-
-            this.getNode().removeControl(characterControl);
-
-            gameLogicCore.getRootNode().detachChild(this.getNode());
-            this.getHealthBar().destroy();
-
-            removePhysixControl();
-
-            //TODO: restart dialog
+            removeCharacter();
         }
+    }
+
+    @Override
+    public void removeCharacter() {
+        this.getNode().removeControl(characterControl);
+
+        gameLogicCore.getRootNode().detachChild(this.getNode());
+        this.getHealthBar().destroy();
+
+        removePhysixControl();
     }
 
     /**

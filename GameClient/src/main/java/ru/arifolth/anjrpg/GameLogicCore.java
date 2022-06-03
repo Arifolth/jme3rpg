@@ -124,7 +124,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
         getRootNode().detachChild(enemies);
 
         for(CharacterInterface character: this.getCharacterMap().values()) {
-            character.die();
+            character.removeCharacter();
         }
     }
 

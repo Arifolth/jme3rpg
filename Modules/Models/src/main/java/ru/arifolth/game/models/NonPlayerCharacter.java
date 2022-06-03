@@ -183,16 +183,7 @@ public class NonPlayerCharacter extends PlayerCharacter {
     @Override
     public void onAnimCycleDone(AnimControl ctrl, AnimChannel ch, String name) {
         if (isDead()) {
-            this.getNode().removeControl(characterControl);
-            this.getNode().detachChild(characterModel);
-
-            this.getPlayerStepsNode(false).pause();
-
-            gameLogicCore.getRootNode().detachChild(this.getNode());
-            gameLogicCore.getCharacterMap().remove(this.getNode());
-            this.getHealthBar().destroy();
-
-            removePhysixControl();
+            removeCharacter();
         } else if(name.equals(AnimConstants.BLOCK) && isReady()) {
             if (!ch.getAnimationName().equals(AnimConstants.IDLE)) {
                 ch.setAnim(AnimConstants.IDLE, 0f);
@@ -200,6 +191,20 @@ public class NonPlayerCharacter extends PlayerCharacter {
                 ch.setSpeed(1f);
             }
         }
+    }
+
+    @Override
+    public void removeCharacter() {
+        this.getNode().removeControl(characterControl);
+        this.getNode().detachChild(characterModel);
+
+        this.getPlayerStepsNode(false).pause();
+
+        gameLogicCore.getRootNode().detachChild(this.getNode());
+        gameLogicCore.getCharacterMap().remove(this.getNode());
+        this.getHealthBar().destroy();
+
+        removePhysixControl();
     }
 
     @Override

@@ -48,11 +48,15 @@ public class MainMenuState extends BaseAppState {
         return getApplication().getCamera().getHeight() / (getApplication().getCamera().getHeight() / 2f);
     }
 
-    private void respawn() {
+    private void restart() {
         ANJRpgInterface application = (ANJRpgInterface) getApplication();
         GameLogicCoreInterface gameLogicCore = application.getGameLogicCore();
 
         gameLogicCore.detachNPC();
+
+        if(!application.getGameLogicCore().getPlayerCharacter().isDead()) {
+            gameLogicCore.getPlayerCharacter().removeCharacter();
+        }
 
         gameLogicCore.setupPlayer();
         gameLogicCore.setupNPC();
@@ -122,10 +126,10 @@ public class MainMenuState extends BaseAppState {
         switch(((ANJRpgInterface)getApplication()).getInitStatus()) {
             case RUNNING: {
                 mainWindow.setBackground(null);
-                if(application.getGameLogicCore().getPlayerCharacter().isDead()) {
-                    ActionButton resume = menuContainer.addChild(new ActionButton(new CallMethodAction("Respawn", this, "respawn")));
-                    resume.setInsets(new Insets3f(10, 10, 10, 10));
-                } else {
+                ActionButton restart = menuContainer.addChild(new ActionButton(new CallMethodAction("Restart Game", this, "restart")));
+                restart.setInsets(new Insets3f(10, 10, 10, 10));
+
+                if(!application.getGameLogicCore().getPlayerCharacter().isDead()) {
                     ActionButton resume = menuContainer.addChild(new ActionButton(new CallMethodAction("Resume Game", this, "resumeGame")));
                     resume.setInsets(new Insets3f(10, 10, 10, 10));
                 }
