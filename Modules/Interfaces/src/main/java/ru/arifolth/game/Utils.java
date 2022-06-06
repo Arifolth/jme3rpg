@@ -16,23 +16,29 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.anjrpg;
+package ru.arifolth.game;
 
 import com.jme3.bullet.control.CharacterControl;
 import ru.arifolth.game.CharacterInterface;
 
 import java.util.Random;
+import java.util.SplittableRandom;
 
 public class Utils {
+    private static SplittableRandom random = new SplittableRandom();
+
     private Utils() {
     }
 
-    static public float getRandomNumber(float min, float max) {
-        Random random = new Random();
+    public static boolean getRandom(int probability) {
+        return random.nextInt(1, 101) <= probability;
+    }
+
+    public static float getRandomNumberInRange(float min, float max) {
         return (float) random.doubles(min, max).findFirst().getAsDouble();
     }
 
-    static void enableEntityPhysics(CharacterInterface character) {
+    public static void enableEntityPhysics(CharacterInterface character) {
         CharacterControl characterControl = character.getCharacterControl();
         characterControl.setJumpSpeed(20);
         characterControl.setFallSpeed(300);

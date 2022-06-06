@@ -31,6 +31,7 @@ import com.jme3.ui.Picture;
 import ru.arifolth.game.AnimationDelegateInterface;
 import ru.arifolth.game.CharacterInterface;
 import ru.arifolth.game.Constants;
+import ru.arifolth.game.Utils;
 
 import java.util.SplittableRandom;
 
@@ -45,7 +46,6 @@ public class PlayerCharacter extends AnimatedCharacter {
         attacking = false, capture_mouse = true, running = false, blocking = false, block_pressed = false,
         jumping = false, jump_pressed = false, attack_pressed = false;
     private final Vector3f walkDirection = new Vector3f();
-    private SplittableRandom random = new SplittableRandom();
     private float airTime = 0;
     private float actionTime = 0;
     private Camera cam;
@@ -104,7 +104,7 @@ public class PlayerCharacter extends AnimatedCharacter {
             Node grandParent = parent.getParent();
             CharacterInterface npc = gameLogicCore.getCharacterMap().get(grandParent);
             if(npc != null) {
-                boolean blocked = random.nextInt(1, 101) <= 50;
+                boolean blocked = Utils.getRandom(50);
                 if(!blocked) {
                     npc.getHealthBar().setHealth(Constants.DAMAGE);
                     playSwordSound(getSwordHitNode());
