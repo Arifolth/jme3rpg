@@ -66,7 +66,7 @@ public class MainMenuState extends BaseAppState {
         gameLogicCore.attachPlayer();
         gameLogicCore.attachNPC();
 
-        gameLogicCore.positionCharacters();
+        gameLogicCore.positionNPCs(gameLogicCore.getCharacterMap());
 
         gameLogicCore.enablePhysics();
 

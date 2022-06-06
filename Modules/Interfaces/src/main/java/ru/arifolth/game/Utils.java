@@ -34,8 +34,12 @@ public class Utils {
         return random.nextInt(1, 101) <= probability;
     }
 
+    public static float getRandomNumber() {
+        return random.nextInt(0, 100);
+    }
+
     public static float getRandomNumberInRange(float min, float max) {
-        return (float) random.doubles(min, max).findFirst().getAsDouble();
+        return (float) random.doubles(min, max).findAny().getAsDouble();
     }
 
     public static void enableEntityPhysics(CharacterInterface character) {

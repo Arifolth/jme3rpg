@@ -28,7 +28,6 @@ import com.jme3.scene.Node;
 import com.jme3.ui.Picture;
 import ru.arifolth.anjrpg.weather.Emitter;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -54,7 +53,7 @@ public interface GameLogicCoreInterface {
 
     void setDamageIndicator(Picture damageIndicator);
 
-    void positionCharacters();
+    void positionNPCs(Map<Node, CharacterInterface> characterMap);
 
     void update(float tpf);
 
@@ -89,4 +88,6 @@ public interface GameLogicCoreInterface {
     void setupCamera();
 
     void enablePhysics();
+
+    void positionPlayer();
 }

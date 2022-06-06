@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GameLogicCore implements GameLogicCoreInterface {
+    public static final Vector3f RAY_DOWN = new Vector3f(0, -1, 0);
     private final CharacterFactory characterFactory = new CharacterFactory(this);
     private final Initializer initializer = new Initializer(this);
     private final Node enemies = new Node("enemies");
@@ -164,23 +165,34 @@ public class GameLogicCore implements GameLogicCoreInterface {
         this.playerCharacter = playerCharacter;
     }
 
-    @Override
-    public void positionCharacters() {
+    public void positionPlayer() {
         CollisionResults results = new CollisionResults();
-        // 2. Aim the ray from cam loc to cam direction.
-        Vector3f start = Constants.PLAYER_START_LOCATION;
-        Ray ray = new Ray(start, new Vector3f(0, -1, 0));
 
-        // 3. Collect intersections between Ray and Shootables in results list.
+        Vector3f start = Constants.PLAYER_START_LOCATION;
+        Ray ray = new Ray(start, RAY_DOWN);
+
         terrainManager.getTerrain().collideWith(ray, results);
         CollisionResult hit = results.getClosestCollision();
 
-        Vector3f playerStartLoc = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y + 3f, hit.getContactPoint().z);
+        Vector3f playerStartLoc = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y + 3, hit.getContactPoint().z);
         getPlayerCharacter().getCharacterControl().setPhysicsLocation(playerStartLoc);
+    }
 
-        for(CharacterInterface character: getCharacterMap().values()) {
-//            Vector3f npcStartLoc = new Vector3f(hit.getContactPoint().x + Utils.getRandomNumber(-40, 40), hit.getContactPoint().y + Utils.getRandomNumber(-40, 40), hit.getContactPoint().z);
-            Vector3f npcStartLoc = new Vector3f(hit.getContactPoint().x + 40, hit.getContactPoint().y + 40, hit.getContactPoint().z);
+    @Override
+    public void positionNPCs(Map<Node,CharacterInterface> characterMap) {
+        Vector3f playerPos = playerCharacter.getCharacterControl().getPhysicsLocation();
+        playerPos.y = playerPos.y + 150;
+        for(CharacterInterface character: characterMap.values()) {
+            CollisionResults results = new CollisionResults();
+            Vector3f adjustedPos = new Vector3f(playerPos.x + Utils.getRandomNumber() + Utils.getRandomNumberInRange(-Constants.LOCATION_RANGE, Constants.LOCATION_RANGE), playerPos.y + 150, playerPos.z + Utils.getRandomNumber() + Utils.getRandomNumberInRange(-Constants.LOCATION_RANGE, Constants.LOCATION_RANGE));
+            System.out.println(adjustedPos.normalize());
+            Ray ray = new Ray(adjustedPos, RAY_DOWN);
+
+            terrainManager.getTerrain().collideWith(ray, results);
+            CollisionResult hit = results.getClosestCollision();
+
+            Vector3f npcStartLoc = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y + 3, hit.getContactPoint().z);
+            System.out.println(npcStartLoc.normalize());
             character.getCharacterControl().setPhysicsLocation(npcStartLoc);
         }
     }

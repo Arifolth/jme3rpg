@@ -61,7 +61,7 @@ public class NonPlayerCharacter extends PlayerCharacter {
     }
 
     public void update(float tpf) {
-        if(isDead())
+        if(isDead() || playerCharacter.isDead())
             return;
 
         shootUpdate(tpf);
@@ -145,8 +145,10 @@ public class NonPlayerCharacter extends PlayerCharacter {
     }
 
     public void stop() {
-        walkDirection.set(0f, 0f, 0f);
-        characterControl.setWalkDirection(walkDirection);
+        if(walkDirection != null) {
+            walkDirection.set(0f, 0f, 0f);
+            characterControl.setWalkDirection(walkDirection);
+        }
         this.getPlayerStepsNode(this.isRunning()).pause();
         animationDelegate.idleAnimation();
     }

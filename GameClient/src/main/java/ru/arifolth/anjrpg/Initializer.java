@@ -26,11 +26,11 @@ import com.jme3.math.Vector3f;
 import com.jme3.ui.Picture;
 import ru.arifolth.anjrpg.weather.Emitter;
 import ru.arifolth.anjrpg.weather.RainEmitter;
+import ru.arifolth.game.Constants;
 import ru.arifolth.game.models.NonPlayerCharacter;
 import ru.arifolth.game.models.PlayerCharacter;
 
 public class Initializer {
-    public static final int NPC_AMOUNT = 1;
 
     private final GameLogicCore gameLogicCore;
 
@@ -49,7 +49,7 @@ public class Initializer {
     }
 
     void setupNPC() {
-        for (int i = 0; i < NPC_AMOUNT; i++) {
+        for (int i = 0; i < Constants.NPC_AMOUNT; i++) {
             NonPlayerCharacter nonPlayerCharacter = (NonPlayerCharacter) gameLogicCore.getCharacterFactory().createCharacter(NonPlayerCharacter.class);
             nonPlayerCharacter.setPlayerCharacter(gameLogicCore.getPlayerCharacter());
             gameLogicCore.getCharacterMap().put(nonPlayerCharacter.getNode(), nonPlayerCharacter);

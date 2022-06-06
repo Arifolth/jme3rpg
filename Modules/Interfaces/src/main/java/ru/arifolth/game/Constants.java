@@ -21,11 +21,12 @@ package ru.arifolth.game;
 import com.jme3.math.Vector3f;
 
 public class Constants {
-    public static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, 0, 0);
+    public static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, 150, 0);
     public static final float DAMAGE = 25f;
+    public static final int NPC_AMOUNT = 3;
+    public static final int LOCATION_RANGE = 80;
 
     private Constants() {
     }
-
 
 }

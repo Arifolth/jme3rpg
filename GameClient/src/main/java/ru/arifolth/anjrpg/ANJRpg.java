@@ -23,13 +23,11 @@ import com.jme3.system.AppSettings;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.style.BaseStyles;
 import de.lessvoid.nifty.Nifty;
-import de.lessvoid.nifty.controls.Controller;
 import de.lessvoid.nifty.controls.Parameters;
 import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.input.NiftyInputEvent;
 import de.lessvoid.nifty.screen.Screen;
-import de.lessvoid.nifty.screen.ScreenController;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import ru.arifolth.game.InitStateEnum;
 import ru.arifolth.game.RolePlayingGameInterface;
@@ -101,7 +99,9 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
                 //wait until land appears in Physics Space
                 if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == RIGID_BODIES_SIZE) {
                     //put player at the beginning location
-                    getGameLogicCore().positionCharacters();
+                    getGameLogicCore().positionPlayer();
+                    //position NPCs around the Player
+                    getGameLogicCore().positionNPCs(getGameLogicCore().getCharacterMap());
 
                     //these calls have to be done on the update loop thread,
                     //especially attaching the terrain to the rootNode
@@ -221,7 +221,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
         settings.setBitsPerPixel(24); //24
         settings.setSamples(0); //16
         settings.setVSync(true);
-        settings.setResolution(3840,2160);
+        settings.setResolution(1280,1024);
         settings.setRenderer(AppSettings.LWJGL_OPENGL45);
         settings.setFrameRate(30);
         settings.setGammaCorrection(false);
