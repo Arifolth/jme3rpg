@@ -88,5 +88,9 @@ public interface CharacterInterface {
 
     HealthBarInterface getHealthBar();
 
+    void setInitializing(boolean initializing);
+
     boolean isDead();
+
+    boolean isInitializing();
 }

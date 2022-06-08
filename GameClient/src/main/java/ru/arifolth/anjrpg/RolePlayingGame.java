@@ -26,18 +26,13 @@ import com.jme3.app.state.ScreenshotAppState;
 import com.jme3.asset.plugins.ClasspathLocator;
 import com.jme3.audio.AudioListenerState;
 import com.jme3.bullet.BulletAppState;
-import com.jme3.collision.CollisionResult;
-import com.jme3.collision.CollisionResults;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.Ray;
-import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.*;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Node;
 import com.jme3.shadow.PssmShadowRenderer;
-import com.jme3.ui.Picture;
 import com.jme3.water.WaterFilter;
 import com.simsilica.lemur.OptionPanelState;
 import com.simsilica.lemur.event.PopupState;
@@ -101,8 +96,8 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         attachTerrain();
         attachSky();
 
+        attachNPCs();
         enablePhysics();
-        attachNPC();
     }
 
     protected void attachDamageIndicator() {
@@ -232,7 +227,8 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     }
 
     protected void enablePhysics() {
-        gameLogicCore.enablePhysics();
+        gameLogicCore.enablePlayerPhysics();
+        gameLogicCore.enableNPCsPhysics();
         setProgress(new Object() {}.getClass().getEnclosingMethod().getName());
     }
 
@@ -240,8 +236,8 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         gameLogicCore.attachPlayer();
     }
 
-    protected void attachNPC() {
-        gameLogicCore.attachNPC();
+    protected void attachNPCs() {
+        gameLogicCore.attachInitialNPCs();
     }
 
     @Override

@@ -37,9 +37,15 @@ public interface GameLogicCoreInterface {
 
     void attachPlayer();
 
-    void detachNPC();
+    void detachNPCs();
 
-    void attachNPC();
+    void attachInitialNPCs();
+
+    void initPlayerComplete();
+
+    void initNPCsComplete();
+
+    void attachNPCs();
 
     void reInitialize();
 
@@ -83,11 +89,13 @@ public interface GameLogicCoreInterface {
 
     void setupPlayer();
 
-    void setupNPC();
+    void setupNPCs();
 
     void setupCamera();
 
-    void enablePhysics();
+    void enablePlayerPhysics();
+
+    void enableNPCsPhysics();
 
     void positionPlayer();
 }

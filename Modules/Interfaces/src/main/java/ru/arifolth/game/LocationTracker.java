@@ -18,15 +18,22 @@
 
 package ru.arifolth.game;
 
-import com.jme3.math.Vector3f;
+public class LocationTracker implements LocationTrackerInterface {
+    private GameLogicCoreInterface gameLogicCore;
 
-public class Constants {
-    public static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, 150, 0);
-    public static final float DAMAGE = 25f;
-    public static final int NPC_AMOUNT = 3;
-    public static final int LOCATION_RANGE = 500;
+    public LocationTracker(GameLogicCoreInterface gameLogicCore) {
+        this.gameLogicCore = gameLogicCore;
+    }
 
-    private Constants() {
+    @Override
+    public void update(float tpf) {
+        if(gameLogicCore.getCharacterMap().size() < Constants.NPC_AMOUNT) {
+            gameLogicCore.setupNPCs();
+            gameLogicCore.attachNPCs();
+            gameLogicCore.enableNPCsPhysics();
+            gameLogicCore.positionNPCs(gameLogicCore.getCharacterMap());
+            gameLogicCore.initNPCsComplete();
+        }
     }
 
 }

@@ -52,23 +52,23 @@ public class MainMenuState extends BaseAppState {
         ANJRpgInterface application = (ANJRpgInterface) getApplication();
         GameLogicCoreInterface gameLogicCore = application.getGameLogicCore();
 
-        gameLogicCore.detachNPC();
+        gameLogicCore.detachNPCs();
 
         if(!application.getGameLogicCore().getPlayerCharacter().isDead()) {
             gameLogicCore.getPlayerCharacter().removeCharacter();
         }
 
         gameLogicCore.setupPlayer();
-        gameLogicCore.setupNPC();
-
         gameLogicCore.setupCamera();
-
         gameLogicCore.attachPlayer();
-        gameLogicCore.attachNPC();
+        gameLogicCore.initPlayerComplete();
 
+        gameLogicCore.setupNPCs();
+        gameLogicCore.attachInitialNPCs();
         gameLogicCore.positionNPCs(gameLogicCore.getCharacterMap());
 
-        gameLogicCore.enablePhysics();
+        gameLogicCore.enablePlayerPhysics();
+        gameLogicCore.enableNPCsPhysics();
 
         setEnabled(false);
     }

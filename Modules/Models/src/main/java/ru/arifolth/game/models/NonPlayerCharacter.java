@@ -43,7 +43,7 @@ public class NonPlayerCharacter extends PlayerCharacter {
         this.setName(this.getClass().getName());
 
         this.turnRate = FastMath.QUARTER_PI / 5f;
-        this.walkingRange = 500000f;
+        this.walkingRange = 1000000f;
         this.firingRange = 5f;
         this.walkSpeed = .3f;
     }

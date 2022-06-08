@@ -30,6 +30,8 @@ import ru.arifolth.game.Constants;
 import ru.arifolth.game.models.NonPlayerCharacter;
 import ru.arifolth.game.models.PlayerCharacter;
 
+import java.util.stream.IntStream;
+
 public class Initializer {
 
     private final GameLogicCore gameLogicCore;
@@ -48,12 +50,14 @@ public class Initializer {
         gameLogicCore.setDamageIndicator(damageIndicator);
     }
 
+    void setupNPCs() {
+        IntStream.range(gameLogicCore.getCharacterMap().size(), Constants.NPC_AMOUNT).forEach(i -> setupNPC());
+    }
+
     void setupNPC() {
-        for (int i = 0; i < Constants.NPC_AMOUNT; i++) {
-            NonPlayerCharacter nonPlayerCharacter = (NonPlayerCharacter) gameLogicCore.getCharacterFactory().createCharacter(NonPlayerCharacter.class);
-            nonPlayerCharacter.setPlayerCharacter(gameLogicCore.getPlayerCharacter());
-            gameLogicCore.getCharacterMap().put(nonPlayerCharacter.getNode(), nonPlayerCharacter);
-        }
+        NonPlayerCharacter nonPlayerCharacter = (NonPlayerCharacter) gameLogicCore.getCharacterFactory().createCharacter(NonPlayerCharacter.class);
+        nonPlayerCharacter.setPlayerCharacter(gameLogicCore.getPlayerCharacter());
+        gameLogicCore.getCharacterMap().put(nonPlayerCharacter.getNode(), nonPlayerCharacter);
     }
 
     void setupPlayer() {

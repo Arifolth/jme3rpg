@@ -41,6 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class GameLogicCore implements GameLogicCoreInterface {
     public static final Vector3f RAY_DOWN = new Vector3f(0, -1, 0);
     private final CharacterFactory characterFactory = new CharacterFactory(this);
+    private LocationTrackerInterface locationTracker = new LocationTracker(this);
     private final Initializer initializer = new Initializer(this);
     private final Node enemies = new Node("enemies");
 
@@ -54,12 +55,12 @@ public class GameLogicCore implements GameLogicCoreInterface {
     private AssetManager assetManager;
     private Node rootNode;
     private SoundManagerInterface soundManager;
+    private Picture gameOverIndicator;
 
     private CharacterInterface playerCharacter = null;
     private Picture damageIndicator = null;
     private Map<Node, CharacterInterface> characterMap = new ConcurrentHashMap<>();
     private Set<Emitter> weatherEffectsSet = new LinkedHashSet<>();
-    private Picture gameOverIndicator;
 
     public GameLogicCore(Application app, Camera cam, FlyByCamera flyCam, InputManager inputManager, BulletAppState bulletAppState, AssetManager assetManager, SoundManagerInterface soundManager, TerrainManagerInterface terrainManager, Node rootNode) {
         this.movementController = new MovementController(app, inputManager);
@@ -81,7 +82,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
 
         initializer.setupPlayer();
 
-        initializer.setupNPC();
+        initializer.setupNPCs();
 
         initializer.setupCamera();
 
@@ -95,8 +96,8 @@ public class GameLogicCore implements GameLogicCoreInterface {
     }
 
     @Override
-    public void setupNPC() {
-        initializer.setupNPC();
+    public void setupNPCs() {
+        initializer.setupNPCs();
     }
 
     @Override
@@ -105,12 +106,16 @@ public class GameLogicCore implements GameLogicCoreInterface {
     }
 
     @Override
-    public void enablePhysics() {
-        CharacterInterface playerCharacter = this.getPlayerCharacter();
-        Utils.enableEntityPhysics(playerCharacter);
+    public void enablePlayerPhysics() {
+        Utils.enableEntityPhysics(this.getPlayerCharacter());
+    }
 
+    @Override
+    public void enableNPCsPhysics() {
         for(CharacterInterface character: this.getCharacterMap().values()) {
-            Utils.enableEntityPhysics(character);
+            if(character.isInitializing()) {
+                Utils.enableEntityPhysics(character);
+            }
         }
     }
 
@@ -120,7 +125,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
     }
 
     @Override
-    public void detachNPC() {
+    public void detachNPCs() {
         Node enemies = this.getEnemies();
         getRootNode().detachChild(enemies);
 
@@ -130,12 +135,32 @@ public class GameLogicCore implements GameLogicCoreInterface {
     }
 
     @Override
-    public void attachNPC() {
+    public void attachInitialNPCs() {
         Node enemies = this.getEnemies();
         getRootNode().attachChild(enemies);
 
+        attachNPCs();
+    }
+
+    public void initPlayerComplete() {
+        getPlayerCharacter().setInitializing(false);
+    }
+
+    @Override
+    public void initNPCsComplete() {
         for(CharacterInterface character: this.getCharacterMap().values()) {
-            character.spawn();
+            if(character.isInitializing()) {
+                character.setInitializing(false);
+            }
+        }
+    }
+
+    @Override
+    public void attachNPCs() {
+        for(CharacterInterface character: this.getCharacterMap().values()) {
+            if(character.isInitializing()) {
+                character.spawn();
+            }
         }
     }
 
@@ -183,23 +208,27 @@ public class GameLogicCore implements GameLogicCoreInterface {
         Vector3f playerPos = playerCharacter.getCharacterControl().getPhysicsLocation();
         playerPos.y = playerPos.y + 150;
         for(CharacterInterface character: characterMap.values()) {
-            CollisionResults results = new CollisionResults();
-            Vector3f adjustedPos = new Vector3f(playerPos.x + Utils.getRandomNumberInRange(-Constants.LOCATION_RANGE, Constants.LOCATION_RANGE), playerPos.y + 150, playerPos.z + Utils.getRandomNumberInRange(-Constants.LOCATION_RANGE, Constants.LOCATION_RANGE));
-            System.out.println(adjustedPos.normalize());
-            Ray ray = new Ray(adjustedPos, RAY_DOWN);
+            if(character.isInitializing()) {
+                CollisionResults results = new CollisionResults();
+                Vector3f adjustedPos = new Vector3f(playerPos.x + Utils.getRandomNumberInRange(-Constants.LOCATION_RANGE, Constants.LOCATION_RANGE), playerPos.y + 150, playerPos.z + Utils.getRandomNumberInRange(-Constants.LOCATION_RANGE, Constants.LOCATION_RANGE));
+                System.out.println(adjustedPos.normalize());
+                Ray ray = new Ray(adjustedPos, RAY_DOWN);
 
-            terrainManager.getTerrain().collideWith(ray, results);
-            CollisionResult hit = results.getClosestCollision();
-            if(hit != null) {
-                Vector3f npcStartLoc = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y + 3, hit.getContactPoint().z);
-                System.out.println(npcStartLoc.normalize());
-                character.getCharacterControl().setPhysicsLocation(npcStartLoc);
+                terrainManager.getTerrain().collideWith(ray, results);
+                CollisionResult hit = results.getClosestCollision();
+                if (hit != null) {
+                    Vector3f npcStartLoc = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y + 3, hit.getContactPoint().z);
+                    System.out.println(npcStartLoc.normalize());
+                    character.getCharacterControl().setPhysicsLocation(npcStartLoc);
+                }
             }
         }
     }
 
     public void update(float tpf) {
         playerCharacter.update(tpf);
+
+        locationTracker.update(tpf);
 
         for(CharacterInterface character : characterMap.values()) {
             character.update(tpf);

@@ -54,6 +54,7 @@ public class PlayerCharacter extends AnimatedCharacter {
     private Picture damageIndicator;
     protected float firingRange;
     protected boolean dead = false;
+    protected boolean initializing = true;
 
     public PlayerCharacter() {
         this.setModel(PLAYER_CHARACTER_MODEL);
@@ -319,7 +320,6 @@ public class PlayerCharacter extends AnimatedCharacter {
     public void spawn() {
         gameLogicCore.detachGameOverIndicator();
         gameLogicCore.getRootNode().attachChild(this.getNode());
-        setDead(false);
     }
 
     @Override
@@ -451,6 +451,16 @@ public class PlayerCharacter extends AnimatedCharacter {
 
     public void setAirTime(float airTime) {
         this.airTime = airTime;
+    }
+
+    @Override
+    public boolean isInitializing() {
+        return initializing;
+    }
+
+    @Override
+    public void setInitializing(boolean initializing) {
+        this.initializing = initializing;
     }
 
     @Override
