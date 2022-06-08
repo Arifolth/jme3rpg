@@ -221,9 +221,10 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
         settings.setBitsPerPixel(24); //24
         settings.setSamples(0); //16
         settings.setVSync(true);
-        settings.setResolution(1280,1024);
+        settings.setResolution(1920,1080);
         settings.setRenderer(AppSettings.LWJGL_OPENGL45);
         settings.setFrameRate(30);
+        settings.setFrequency(30);
         settings.setGammaCorrection(false);
     }
 
