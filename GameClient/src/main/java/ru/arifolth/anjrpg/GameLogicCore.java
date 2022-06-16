@@ -21,11 +21,8 @@ package ru.arifolth.anjrpg;
 import com.jme3.app.Application;
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
-import com.jme3.collision.CollisionResult;
-import com.jme3.collision.CollisionResults;
 import com.jme3.input.FlyByCamera;
 import com.jme3.input.InputManager;
-import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
@@ -42,7 +39,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
     public static final Vector3f RAY_DOWN = new Vector3f(0, -1, 0);
     private final CharacterFactory characterFactory = new CharacterFactory(this);
     private LocationTrackerInterface locationTracker = new LocationTracker(this);
-    private final Initializer initializer = new Initializer(this);
+    private final InitializationDelegate initializationDelegate = new InitializationDelegate(this);
     private final Node enemies = new Node("enemies");
 
     private MovementControllerInterface movementController;
@@ -76,92 +73,15 @@ public class GameLogicCore implements GameLogicCoreInterface {
     }
 
     public void initialize() {
-        initializer.setupDamageIndicator();
-
-        initializer.setupGameOverIndicator();
-
-        initializer.setupPlayer();
-
-        initializer.setupNPCs();
-
-        initializer.setupCamera();
+        /*
+        * Initialization order is important: first we create Player Entity and Camera, later we initialize other stuff
+        * */
+        initializationDelegate.setupDamageIndicator();
+        initializationDelegate.setupPlayer();
+        initializationDelegate.setupCamera();
 
         movementController.setUpKeys();
 //        initializer.setupWeatherEffects();
-    }
-
-    @Override
-    public void setupPlayer() {
-        initializer.setupPlayer();
-    }
-
-    @Override
-    public void setupNPCs() {
-        initializer.setupNPCs();
-    }
-
-    @Override
-    public void setupCamera() {
-        initializer.setupCamera();
-    }
-
-    @Override
-    public void enablePlayerPhysics() {
-        Utils.enableEntityPhysics(this.getPlayerCharacter());
-    }
-
-    @Override
-    public void enableNPCsPhysics() {
-        for(CharacterInterface character: this.getCharacterMap().values()) {
-            if(character.isInitializing()) {
-                Utils.enableEntityPhysics(character);
-            }
-        }
-    }
-
-    @Override
-    public void attachPlayer() {
-        this.getPlayerCharacter().spawn();
-    }
-
-    @Override
-    public void detachNPCs() {
-        Node enemies = this.getEnemies();
-        getRootNode().detachChild(enemies);
-
-        for(CharacterInterface character: this.getCharacterMap().values()) {
-            character.removeCharacter();
-        }
-    }
-
-    @Override
-    public void attachInitialNPCs() {
-        Node enemies = this.getEnemies();
-        getRootNode().attachChild(enemies);
-
-        attachNPCs();
-    }
-
-    public void initPlayerComplete() {
-        getPlayerCharacter().setInitializing(false);
-    }
-
-    @Override
-    public void initNPCsComplete() {
-        for(CharacterInterface character: this.getCharacterMap().values()) {
-            if(character.isInitializing()) {
-                character.setInitializing(false);
-            }
-        }
-    }
-
-    @Override
-    public void attachNPCs() {
-        for(CharacterInterface character: this.getCharacterMap().values()) {
-            if(character.isInitializing()) {
-                character.spawn();
-            }
-        }
     }
 
     public void reInitialize() {
@@ -188,41 +108,6 @@ public class GameLogicCore implements GameLogicCoreInterface {
 
     public void setPlayerCharacter(CharacterInterface playerCharacter) {
         this.playerCharacter = playerCharacter;
-    }
-
-    public void positionPlayer() {
-        CollisionResults results = new CollisionResults();
-
-        Vector3f start = Constants.PLAYER_START_LOCATION;
-        Ray ray = new Ray(start, RAY_DOWN);
-
-        terrainManager.getTerrain().collideWith(ray, results);
-        CollisionResult hit = results.getClosestCollision();
-
-        Vector3f playerStartLoc = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y + 3, hit.getContactPoint().z);
-        getPlayerCharacter().getCharacterControl().setPhysicsLocation(playerStartLoc);
-    }
-
-    @Override
-    public void positionNPCs(Map<Node,CharacterInterface> characterMap) {
-        Vector3f playerPos = playerCharacter.getCharacterControl().getPhysicsLocation();
-        playerPos.y = playerPos.y + 150;
-        for(CharacterInterface character: characterMap.values()) {
-            if(character.isInitializing()) {
-                CollisionResults results = new CollisionResults();
-                Vector3f adjustedPos = new Vector3f(playerPos.x + Utils.getRandomNumberInRange(-Constants.LOCATION_RANGE, Constants.LOCATION_RANGE), playerPos.y + 150, playerPos.z + Utils.getRandomNumberInRange(-Constants.LOCATION_RANGE, Constants.LOCATION_RANGE));
-                System.out.println(adjustedPos.normalize());
-                Ray ray = new Ray(adjustedPos, RAY_DOWN);
-
-                terrainManager.getTerrain().collideWith(ray, results);
-                CollisionResult hit = results.getClosestCollision();
-                if (hit != null) {
-                    Vector3f npcStartLoc = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y + 3, hit.getContactPoint().z);
-                    System.out.println(npcStartLoc.normalize());
-                    character.getCharacterControl().setPhysicsLocation(npcStartLoc);
-                }
-            }
-        }
     }
 
     public void update(float tpf) {
@@ -293,10 +178,6 @@ public class GameLogicCore implements GameLogicCoreInterface {
         return inputManager;
     }
 
-    public Initializer getInitializer() {
-        return initializer;
-    }
-
     @Override
     public Node getEnemies() {
         return enemies;
@@ -314,5 +195,14 @@ public class GameLogicCore implements GameLogicCoreInterface {
 
     public void setGameOverIndicator(Picture gameOverIndicator) {
         this.gameOverIndicator = gameOverIndicator;
+    }
+
+    @Override
+    public InitializationDelegateInterface getInitializationDelegate() {
+        return initializationDelegate;
+    }
+
+    public TerrainManagerInterface getTerrainManager() {
+        return terrainManager;
     }
 }

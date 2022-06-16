@@ -33,8 +33,6 @@ import ru.arifolth.game.CharacterInterface;
 import ru.arifolth.game.Constants;
 import ru.arifolth.game.Utils;
 
-import java.util.SplittableRandom;
-
 public class PlayerCharacter extends AnimatedCharacter {
     public static final String PLAYER_CHARACTER_MODEL = "Models/Ninja/Ninja.j3o";
     protected static float MELEE_DISTANCE_LIMIT = 15f;
@@ -55,6 +53,7 @@ public class PlayerCharacter extends AnimatedCharacter {
     protected float firingRange;
     protected boolean dead = false;
     protected boolean initializing = true;
+    private float health;
 
     public PlayerCharacter() {
         this.setModel(PLAYER_CHARACTER_MODEL);
@@ -107,7 +106,7 @@ public class PlayerCharacter extends AnimatedCharacter {
             if(npc != null) {
                 boolean blocked = Utils.getRandom(50);
                 if(!blocked) {
-                    npc.getHealthBar().setHealth(Constants.DAMAGE);
+                    npc.getHealthBar().applyDamage(Constants.DAMAGE);
                     playSwordSound(getSwordHitNode());
                 } else {
                     npc.getAnimationDelegate().blockAnimation();
@@ -136,19 +135,15 @@ public class PlayerCharacter extends AnimatedCharacter {
             }
         } else if(name.equals(AnimConstants.JUMP)) {
             setJump_pressed(false);
-        } else if (name.equals(AnimConstants.DEATH) & dead) {
-            removeCharacter();
+        } else if (name.equals(AnimConstants.DEATH)) {
+            if (ch.getAnimationName().equals(AnimConstants.DEATH)) {
+                ch.setAnim(AnimConstants.DEATH, 0f);
+                ch.setLoopMode(LoopMode.Loop);
+                ch.setSpeed(0f);
+                setActionTime(getAttackChannel().getAnimMaxTime());
+            }
+            gameLogicCore.getRootNode().detachChild(this.getNode());
         }
-    }
-
-    @Override
-    public void removeCharacter() {
-        this.getNode().removeControl(characterControl);
-
-        gameLogicCore.getRootNode().detachChild(this.getNode());
-        this.getHealthBar().destroy();
-
-        removePhysixControl();
     }
 
     /**
@@ -160,14 +155,15 @@ public class PlayerCharacter extends AnimatedCharacter {
      */
     @Override
     public void update(float k) {
-        if(isDead())
+        if(dead)
             return;
 
         healthBarUpdate(k);
 
+//        damageIndicatorUpdate(k);
+
         movementUpdate(k);
     }
-
 
     public void movementUpdate(float k) {
         float movement_amount = 0.3f;
@@ -284,14 +280,22 @@ public class PlayerCharacter extends AnimatedCharacter {
         this.damageIndicator = damageIndicator;
     }
 
+    protected void damageIndicatorUpdate(float k) {
+        if (playerDamaged > 0) {
+            gameLogicCore.getRootNode().attachChild(gameLogicCore.getDamageIndicator());
+
+            damageIndicator.getMaterial().setColor("Color",
+                    new ColorRGBA(1f, 0f, 0f, .5f - (MAX_DAMAGED_TIME - playerDamaged) / (2*MAX_DAMAGED_TIME)));
+
+            playerDamaged -= k;
+        } else if (playerDamaged < 0) {
+            gameLogicCore.getRootNode().detachChild(gameLogicCore.getDamageIndicator());
+            playerDamaged = 0;
+        }
+    }
+
     protected void healthBarUpdate(float k) {
         healthBar.update();
-
-        damageIndicator.getMaterial().setColor("Color",
-                new ColorRGBA(1f, 0f, 0f, .5f - (MAX_DAMAGED_TIME - playerDamaged) / (2*MAX_DAMAGED_TIME)));
-
-        if (playerDamaged > 0)
-            playerDamaged -= k;
     }
 
     @Override
@@ -317,17 +321,29 @@ public class PlayerCharacter extends AnimatedCharacter {
     }
 
     @Override
+    public void removeCharacter() {
+    }
+
+    @Override
     public void spawn() {
         gameLogicCore.detachGameOverIndicator();
+
         gameLogicCore.getRootNode().attachChild(this.getNode());
+
+        if(!initializing) {
+            healthBar.create();
+        }
+
+        dead = false;
     }
 
     @Override
     public void die() {
+        dead = true;
         animationDelegate.deathAnimation();
         this.getPlayerStepsNode(false).pause();
         gameLogicCore.attachGameOverIndicator();
-        setDead(true);
+        healthBar.destroy();
     }
 
     @Override
@@ -470,5 +486,13 @@ public class PlayerCharacter extends AnimatedCharacter {
 
     public void setDead(boolean dead) {
         this.dead = dead;
+    }
+
+    public void setHealth(float health) {
+        this.health = health;
+    }
+
+    public float getHealth() {
+        return health;
     }
 }

@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.arifolth.anjrpg.ANJRpgInterface;
 import ru.arifolth.game.GameLogicCoreInterface;
+import ru.arifolth.game.InitializationDelegateInterface;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.West;
 
@@ -51,24 +52,18 @@ public class MainMenuState extends BaseAppState {
     private void restart() {
         ANJRpgInterface application = (ANJRpgInterface) getApplication();
         GameLogicCoreInterface gameLogicCore = application.getGameLogicCore();
-
-        gameLogicCore.detachNPCs();
+        InitializationDelegateInterface initializationDelegate = gameLogicCore.getInitializationDelegate();
 
         if(!application.getGameLogicCore().getPlayerCharacter().isDead()) {
+            initializationDelegate.detachNPCs();
             gameLogicCore.getPlayerCharacter().removeCharacter();
         }
 
-        gameLogicCore.setupPlayer();
-        gameLogicCore.setupCamera();
-        gameLogicCore.attachPlayer();
-        gameLogicCore.initPlayerComplete();
+        initializationDelegate.initializePlayer(false);
 
-        gameLogicCore.setupNPCs();
-        gameLogicCore.attachInitialNPCs();
-        gameLogicCore.positionNPCs(gameLogicCore.getCharacterMap());
-
-        gameLogicCore.enablePlayerPhysics();
-        gameLogicCore.enableNPCsPhysics();
+        if(!application.getGameLogicCore().getPlayerCharacter().isDead()) {
+            initializationDelegate.initializeNPCs(true);
+        }
 
         setEnabled(false);
     }

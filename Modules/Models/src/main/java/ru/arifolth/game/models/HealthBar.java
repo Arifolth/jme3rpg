@@ -41,12 +41,12 @@ public class HealthBar implements HealthBarInterface {
 
     @Override
     public void create() {
-        character.getNode().setUserData(HEALTH, MAXIMUM_HEALTH);
+        character.setHealth(MAXIMUM_HEALTH);
 
         // add healthbar
         BillboardControl billboard = new BillboardControl();
         //new Quad(HEALTHBAR_LENGTH, HELTHBAR_HEIGHT))
-        healthbar = new Geometry(this.getClass().getName(), new Quad((float) character.getNode().getUserData(HEALTH) / 25f, 0.2f));
+        healthbar = new Geometry(this.getClass().getName(), new Quad(character.getHealth() / 25f, 0.2f));
         Material mathb = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         mathb.setColor("Color", ColorRGBA.Red);
         healthbar.setMaterial(mathb);
@@ -63,20 +63,21 @@ public class HealthBar implements HealthBarInterface {
 
     @Override
     public void update() {
-        ((Quad)((Geometry)character.getNode().getChild(this.getClass().getName())).getMesh()).updateGeometry((float) character.getNode().getUserData(HEALTH) / 25f, 0.2f);
+        ((Quad) healthbar.getMesh()).updateGeometry(character.getHealth() / 25f, 0.2f);
     }
 
     @Override
-    public void setHealth(float delta) {
-        character.getNode().setUserData(HEALTH, (float) character.getNode().getUserData(HEALTH) - delta);
+    public void applyDamage(float delta) {
+        character.setHealth(character.getHealth() - delta);
+
         character.setPlayerDamaged();
-        if(getHealth() <= 0 && !character.isDead()) {
+        if (getHealth() <= 0 && !character.isDead()) {
             character.die();
         }
     }
 
     @Override
     public float getHealth() {
-        return (float) character.getNode().getUserData(HEALTH) / 25f;
+        return character.getHealth() / 25f;
     }
 }

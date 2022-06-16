@@ -16,22 +16,24 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.game;
+package ru.arifolth.anjrpg;
 
-import com.jme3.math.Vector3f;
+import ru.arifolth.game.Constants;
+import ru.arifolth.game.GameLogicCoreInterface;
+import ru.arifolth.game.LocationTrackerInterface;
 
-public class Constants {
-    public static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, 150, 0);
+public class LocationTracker implements LocationTrackerInterface {
+    private GameLogicCoreInterface gameLogicCore;
 
-    public static final float DAMAGE = 25f;
-    public static final int NPC_AMOUNT = 3;
-    public static final int NPC_LOCATION_RANGE = 500;
-    public static final int WATER_LEVEL_HEIGHT = -70;
+    public LocationTracker(GameLogicCoreInterface gameLogicCore) {
+        this.gameLogicCore = gameLogicCore;
+    }
 
-    public static final String POM_XML = "pom.xml";
-    public static final int MODEL_ADJUSTMENT = 3;
-
-    private Constants() {
+    @Override
+    public void update(float tpf) {
+        if(gameLogicCore.getCharacterMap().size() < Constants.NPC_AMOUNT) {
+            gameLogicCore.getInitializationDelegate().initializeNPCs(true);
+        }
     }
 
 }

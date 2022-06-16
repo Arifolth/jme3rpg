@@ -51,8 +51,6 @@ import java.util.logging.Logger;
 public abstract class RolePlayingGame extends SimpleApplication implements RolePlayingGameInterface {
     public static final SSAOFilter SSAO_FILTER_BASIC = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.9f);
     public static final SSAOFilter SSAO_FILTER_STRONG = new SSAOFilter(2.9299974f, 25f, 5.8100376f, 0.091000035f);
-    public static final String POM_XML = "pom.xml";
-    public static final int WATER_LEVEL_HEIGHT = -70;
     protected String version;
     protected Element progressBarElement;
     protected TextRenderer textRenderer;
@@ -65,7 +63,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     private SoundManagerInterface soundManager;
     protected BulletAppState bulletAppState;
     private PssmShadowRenderer pssmRenderer;
-    private GameLogicCoreInterface gameLogicCore;
+    protected GameLogicCoreInterface gameLogicCore;
 
     public RolePlayingGame() throws IOException, XmlPullParserException {
         super(new FlyCamAppState(),
@@ -75,7 +73,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
                 new MainMenuState()
         );
 
-        version = new MavenXpp3Reader().read(new FileReader(POM_XML)).getVersion();
+        version = new MavenXpp3Reader().read(new FileReader(Constants.POM_XML)).getVersion();
     }
 
     @Override
@@ -91,18 +89,16 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         setupSky();
         addFilters();
 
-        attachDamageIndicator();
-        attachPlayer();
         attachTerrain();
         attachSky();
 
-        attachNPCs();
-        enablePhysics();
+        initializeEntities();
     }
 
-    protected void attachDamageIndicator() {
-        rootNode.attachChild(gameLogicCore.getDamageIndicator());
+    private void initializeEntities() {
+        gameLogicCore.getInitializationDelegate().initialize(false);
     }
+
 
     protected void createMinimap() {
         // create the minimap
@@ -195,7 +191,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
 
         // add an ocean.
         waterFilter = new WaterFilter(getRootNode(), sky.getSunDirection().normalize());
-        waterFilter.setWaterHeight(WATER_LEVEL_HEIGHT);
+        waterFilter.setWaterHeight(Constants.WATER_LEVEL_HEIGHT);
         fpp.addFilter(waterFilter);
         viewPort.addProcessor(fpp);
 
@@ -224,20 +220,6 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
 
     protected void attachSky() {
         getRootNode().attachChild(sky);
-    }
-
-    protected void enablePhysics() {
-        gameLogicCore.enablePlayerPhysics();
-        gameLogicCore.enableNPCsPhysics();
-        setProgress(new Object() {}.getClass().getEnclosingMethod().getName());
-    }
-
-    protected void attachPlayer() {
-        gameLogicCore.attachPlayer();
-    }
-
-    protected void attachNPCs() {
-        gameLogicCore.attachInitialNPCs();
     }
 
     @Override

@@ -18,25 +18,34 @@
 
 package ru.arifolth.anjrpg;
 
+import com.jme3.collision.CollisionResult;
+import com.jme3.collision.CollisionResults;
 import com.jme3.input.ChaseCamera;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
+import com.jme3.scene.Node;
 import com.jme3.ui.Picture;
 import ru.arifolth.anjrpg.weather.Emitter;
 import ru.arifolth.anjrpg.weather.RainEmitter;
+import ru.arifolth.game.CharacterInterface;
 import ru.arifolth.game.Constants;
+import ru.arifolth.game.InitializationDelegateInterface;
+import ru.arifolth.game.Utils;
 import ru.arifolth.game.models.NonPlayerCharacter;
 import ru.arifolth.game.models.PlayerCharacter;
 
+import java.util.Map;
 import java.util.stream.IntStream;
 
-public class Initializer {
+import static ru.arifolth.anjrpg.GameLogicCore.RAY_DOWN;
 
+public class InitializationDelegate implements InitializationDelegateInterface {
     private final GameLogicCore gameLogicCore;
 
-    public Initializer(GameLogicCore gameLogicCore) {
+    public InitializationDelegate(GameLogicCore gameLogicCore) {
         this.gameLogicCore = gameLogicCore;
     }
 
@@ -75,7 +84,6 @@ public class Initializer {
         gameLogicCore.getWeatherEffectsSet().add(emitter);
     }
 
-
     void setupGameOverIndicator() {
         Picture gameOverIndicator = new Picture("GameOverIndicator");
         gameOverIndicator.setImage(gameLogicCore.getAssetManager(), "Interface/gameover.png", true);
@@ -87,6 +95,18 @@ public class Initializer {
         gameLogicCore.setGameOverIndicator(gameOverIndicator);
     }
 
+    @Override
+    public void initialize(boolean positionCharacters) {
+        this.setupGameOverIndicator();
+
+        //put player at the beginning location
+        this.initializePlayer(positionCharacters);
+
+        //position NPCs around the Player
+        this.initializeNPCs(positionCharacters);
+    }
+
+    @Override
     public void setupCamera() {
         // We re-use the flyby camera for rotation, while positioning is handled by physics
         //flyCam.setMoveSpeed(10);
@@ -128,4 +148,122 @@ public class Initializer {
         //chaseCam.setDefaultHorizontalRotation(90f);
         //chaseCam.setDefaultVerticalRotation(90f);
     }
+
+    @Override
+    public void initializePlayer(boolean positionCharacters) {
+        this.attachPlayer();
+        this.enablePlayerPhysics();
+        if(positionCharacters) {
+            this.initPlayerComplete();
+        }
+    }
+
+    @Override
+    public void positionPlayer() {
+        CollisionResults results = new CollisionResults();
+
+        Vector3f start = Constants.PLAYER_START_LOCATION;
+        Ray ray = new Ray(start, RAY_DOWN);
+
+        gameLogicCore.getTerrainManager().getTerrain().collideWith(ray, results);
+        CollisionResult hit = results.getClosestCollision();
+
+        Vector3f playerStartLoc = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y + Constants.MODEL_ADJUSTMENT, hit.getContactPoint().z);
+        gameLogicCore.getPlayerCharacter().getCharacterControl().setPhysicsLocation(playerStartLoc);
+    }
+
+    @Override
+    public void initializeNPCs(boolean positionCharacters) {
+        this.setupNPCs();
+        this.attachInitialNPCs();
+        if(positionCharacters) {
+            this.positionNPCs(gameLogicCore.getCharacterMap());
+        }
+        this.enableNPCsPhysics();
+        if(positionCharacters) {
+            this.initNPCsComplete();
+        }
+    }
+
+    @Override
+    public void positionNPCs(Map<Node, CharacterInterface> characterMap) {
+        CharacterInterface playerCharacter = gameLogicCore.getPlayerCharacter();
+        Vector3f playerPos = playerCharacter.getCharacterControl().getPhysicsLocation();
+        playerPos.y = playerPos.y + 150;
+        for(CharacterInterface character: characterMap.values()) {
+            if(character.isInitializing()) {
+                CollisionResults results = new CollisionResults();
+                Vector3f adjustedPos = new Vector3f(playerPos.x + Utils.getRandomNumberInRange(-Constants.NPC_LOCATION_RANGE, Constants.NPC_LOCATION_RANGE), playerPos.y + 150, playerPos.z + Utils.getRandomNumberInRange(-Constants.NPC_LOCATION_RANGE, Constants.NPC_LOCATION_RANGE));
+                System.out.println(adjustedPos.normalize());
+                Ray ray = new Ray(adjustedPos, RAY_DOWN);
+
+                gameLogicCore.getTerrainManager().getTerrain().collideWith(ray, results);
+                CollisionResult hit = results.getClosestCollision();
+                if (hit != null) {
+                    Vector3f npcStartLoc = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y + Constants.MODEL_ADJUSTMENT, hit.getContactPoint().z);
+                    System.out.println(npcStartLoc.normalize());
+                    character.getCharacterControl().setPhysicsLocation(npcStartLoc);
+                }
+            }
+        }
+    }
+
+    public void enablePlayerPhysics() {
+        CharacterInterface character = gameLogicCore.getPlayerCharacter();
+        if(character.isInitializing()) {
+            Utils.enableEntityPhysics(character);
+        }
+    }
+
+    public void enableNPCsPhysics() {
+        for(CharacterInterface character: gameLogicCore.getCharacterMap().values()) {
+            if(character.isInitializing()) {
+                Utils.enableEntityPhysics(character);
+            }
+        }
+    }
+
+    public void attachPlayer() {
+        gameLogicCore.getPlayerCharacter().spawn();
+    }
+
+    @Override
+    public void detachNPCs() {
+        Node enemies = gameLogicCore.getEnemies();
+        gameLogicCore.getRootNode().detachChild(enemies);
+
+        for(CharacterInterface character: gameLogicCore.getCharacterMap().values()) {
+            character.removeCharacter();
+        }
+    }
+
+    public void attachInitialNPCs() {
+        Node enemies = gameLogicCore.getEnemies();
+        gameLogicCore.getRootNode().attachChild(enemies);
+
+        attachNPCs();
+    }
+
+    @Override
+    public void initPlayerComplete() {
+        gameLogicCore.getPlayerCharacter().setInitializing(false);
+    }
+
+    @Override
+    public void initNPCsComplete() {
+        for(CharacterInterface character: gameLogicCore.getCharacterMap().values()) {
+            if(character.isInitializing()) {
+                character.setInitializing(false);
+            }
+        }
+    }
+
+    public void attachNPCs() {
+        for(CharacterInterface character: gameLogicCore.getCharacterMap().values()) {
+            if(character.isInitializing()) {
+                character.spawn();
+            }
+        }
+    }
+
 }

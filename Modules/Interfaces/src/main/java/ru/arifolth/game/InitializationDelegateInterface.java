@@ -18,22 +18,26 @@
 
 package ru.arifolth.game;
 
-public class LocationTracker implements LocationTrackerInterface {
-    private GameLogicCoreInterface gameLogicCore;
+import com.jme3.scene.Node;
 
-    public LocationTracker(GameLogicCoreInterface gameLogicCore) {
-        this.gameLogicCore = gameLogicCore;
-    }
+import java.util.Map;
 
-    @Override
-    public void update(float tpf) {
-        if(gameLogicCore.getCharacterMap().size() < Constants.NPC_AMOUNT) {
-            gameLogicCore.setupNPCs();
-            gameLogicCore.attachNPCs();
-            gameLogicCore.enableNPCsPhysics();
-            gameLogicCore.positionNPCs(gameLogicCore.getCharacterMap());
-            gameLogicCore.initNPCsComplete();
-        }
-    }
+public interface InitializationDelegateInterface {
+    void initialize(boolean positionCharacters);
 
+    void setupCamera();
+
+    void initializePlayer(boolean positionCharacters);
+
+    void positionPlayer();
+
+    void initializeNPCs(boolean positionCharacters);
+
+    void positionNPCs(Map<Node, CharacterInterface> characterMap);
+
+    void detachNPCs();
+
+    void initPlayerComplete();
+
+    void initNPCsComplete();
 }

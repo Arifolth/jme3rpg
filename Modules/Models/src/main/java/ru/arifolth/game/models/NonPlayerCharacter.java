@@ -104,7 +104,7 @@ public class NonPlayerCharacter extends PlayerCharacter {
         playSwordSound(getSwordSwingNode());
 
         if(!playerCharacter.isBlocking()) {
-            playerCharacter.getHealthBar().setHealth(Constants.DAMAGE);
+            playerCharacter.getHealthBar().applyDamage(Constants.DAMAGE);
             System.out.println("HIT!");
             playSwordSound(getSwordHitNode());
         } else {

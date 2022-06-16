@@ -25,8 +25,7 @@ public interface HealthBarInterface {
 
     void update();
 
-
-    void setHealth(float delta);
+    void applyDamage(float delta);
 
     float getHealth();
 }

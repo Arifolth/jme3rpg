@@ -30,6 +30,7 @@ import de.lessvoid.nifty.input.NiftyInputEvent;
 import de.lessvoid.nifty.screen.Screen;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import ru.arifolth.game.InitStateEnum;
+import ru.arifolth.game.InitializationDelegateInterface;
 import ru.arifolth.game.RolePlayingGameInterface;
 
 import java.awt.*;
@@ -80,6 +81,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
 
     @Override
     public void simpleUpdate(float tpf) {
+        InitializationDelegateInterface initializationDelegate = gameLogicCore.getInitializationDelegate();
         switch (initialization) {
             case PENDING: {
                 if(!loadingCompleted) {
@@ -99,9 +101,11 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
                 //wait until land appears in Physics Space
                 if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == RIGID_BODIES_SIZE) {
                     //put player at the beginning location
-                    getGameLogicCore().positionPlayer();
+                    initializationDelegate.positionPlayer();
+                    initializationDelegate.initPlayerComplete();
                     //position NPCs around the Player
-                    getGameLogicCore().positionNPCs(getGameLogicCore().getCharacterMap());
+                    initializationDelegate.positionNPCs(getGameLogicCore().getCharacterMap());
+                    initializationDelegate.initNPCsComplete();
 
                     //these calls have to be done on the update loop thread,
                     //especially attaching the terrain to the rootNode

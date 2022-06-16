@@ -32,20 +32,7 @@ import java.util.Map;
 import java.util.Set;
 
 public interface GameLogicCoreInterface {
-
     CharacterInterface getPlayerCharacter();
-
-    void attachPlayer();
-
-    void detachNPCs();
-
-    void attachInitialNPCs();
-
-    void initPlayerComplete();
-
-    void initNPCsComplete();
-
-    void attachNPCs();
 
     void reInitialize();
 
@@ -58,8 +45,6 @@ public interface GameLogicCoreInterface {
     Picture getDamageIndicator();
 
     void setDamageIndicator(Picture damageIndicator);
-
-    void positionNPCs(Map<Node, CharacterInterface> characterMap);
 
     void update(float tpf);
 
@@ -87,15 +72,5 @@ public interface GameLogicCoreInterface {
 
     void detachGameOverIndicator();
 
-    void setupPlayer();
-
-    void setupNPCs();
-
-    void setupCamera();
-
-    void enablePlayerPhysics();
-
-    void enableNPCsPhysics();
-
-    void positionPlayer();
+    InitializationDelegateInterface getInitializationDelegate();
 }
