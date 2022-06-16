@@ -25,34 +25,59 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.control.BillboardControl;
 import com.jme3.scene.shape.Quad;
+import ru.arifolth.game.HealthBarInterface;
 
-public class HealthBar {
-    public static final float MAXIMUM_HEALTH = 75f;
-    private AssetManager assetManager;
-    private Node characterNode;
+public class HealthBar implements HealthBarInterface {
+    public static final float MAXIMUM_HEALTH = 100f;
+    public static final String HEALTH = "health";
+    private final AssetManager assetManager;
+    private final PlayerCharacter character;
+    private Geometry healthbar;
 
-    public HealthBar(AssetManager assetManager, Node characterNode) {
+    public HealthBar(AssetManager assetManager, PlayerCharacter character) {
         this.assetManager = assetManager;
-        this.characterNode = characterNode;
+        this.character = character;
     }
 
+    @Override
     public void create() {
-        characterNode.setUserData("health", MAXIMUM_HEALTH);
+        character.setHealth(MAXIMUM_HEALTH);
 
         // add healthbar
         BillboardControl billboard = new BillboardControl();
         //new Quad(HEALTHBAR_LENGTH, HELTHBAR_HEIGHT))
-        Geometry healthbar = new Geometry("healthbar", new Quad((float) characterNode.getUserData("health") / 25f, 0.2f));
+        healthbar = new Geometry(this.getClass().getName(), new Quad(character.getHealth() / 25f, 0.2f));
         Material mathb = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         mathb.setColor("Color", ColorRGBA.Red);
         healthbar.setMaterial(mathb);
         healthbar.setLocalTranslation(0.3f, 6.0f, 0f);
         healthbar.addControl(billboard);
 
-        characterNode.attachChild(healthbar);
+        character.getNode().attachChild(healthbar);
     }
 
+    @Override
+    public void destroy() {
+        character.getNode().detachChild(healthbar);
+    }
+
+    @Override
     public void update() {
-        ((Quad)((Geometry)characterNode.getChild("healthbar")).getMesh()).updateGeometry((float) characterNode.getUserData("health") / 25f, 0.2f);
+        ((Quad) healthbar.getMesh()).updateGeometry(character.getHealth() / 25f, 0.2f);
+    }
+
+    @Override
+    public void applyDamage(float delta) {
+        character.setHealth(character.getHealth() - delta);
+
+        character.setPlayerDamaged();
+        if (getHealth() <= 0 && !character.isDead()) {
+            character.die();
+        }
+    }
+
+    @Override
+    public float getHealth() {
+        return character.getHealth() / 25f;
     }
 }

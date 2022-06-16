@@ -18,20 +18,14 @@
 
 package ru.arifolth.game;
 
-import com.jme3.audio.AudioNode;
+public interface HealthBarInterface {
+    void create();
 
-public interface SoundManagerInterface {
-    void setVolume(float value);
+    void destroy();
 
-    void reInitialize();
+    void update();
 
-    AudioNode getFootStepsNode();
+    void applyDamage(float delta);
 
-    AudioNode getWindNode();
-
-    AudioNode getSwordSwingNode();
-
-    AudioNode getSwordHitNode();
-
-    AudioNode getSwordBlockNode();
+    float getHealth();
 }

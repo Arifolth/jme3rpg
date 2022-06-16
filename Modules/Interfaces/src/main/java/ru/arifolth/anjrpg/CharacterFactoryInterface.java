@@ -16,22 +16,11 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.game;
+package ru.arifolth.anjrpg;
 
-import com.jme3.audio.AudioNode;
 
-public interface SoundManagerInterface {
-    void setVolume(float value);
+import ru.arifolth.game.CharacterInterface;
 
-    void reInitialize();
-
-    AudioNode getFootStepsNode();
-
-    AudioNode getWindNode();
-
-    AudioNode getSwordSwingNode();
-
-    AudioNode getSwordHitNode();
-
-    AudioNode getSwordBlockNode();
+public interface CharacterFactoryInterface<T extends CharacterInterface> {
+    T createCharacter(Class<T> clazz);
 }

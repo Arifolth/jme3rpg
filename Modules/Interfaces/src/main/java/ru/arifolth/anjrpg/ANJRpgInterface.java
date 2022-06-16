@@ -16,22 +16,18 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.game;
+package ru.arifolth.anjrpg;
 
-import com.jme3.audio.AudioNode;
+import com.jme3.system.AppSettings;
+import de.lessvoid.nifty.controls.Controller;
+import de.lessvoid.nifty.screen.ScreenController;
+import ru.arifolth.game.InitStateEnum;
+import ru.arifolth.game.RolePlayingGameInterface;
 
-public interface SoundManagerInterface {
-    void setVolume(float value);
+public interface ANJRpgInterface extends RolePlayingGameInterface, ScreenController, Controller {
+    void setUpGUI();
 
-    void reInitialize();
+    InitStateEnum getInitStatus();
 
-    AudioNode getFootStepsNode();
-
-    AudioNode getWindNode();
-
-    AudioNode getSwordSwingNode();
-
-    AudioNode getSwordHitNode();
-
-    AudioNode getSwordBlockNode();
+    AppSettings getSettings();
 }

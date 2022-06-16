@@ -16,33 +16,28 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.game.models.factory;
+package ru.arifolth.anjrpg;
 
-import com.jme3.asset.AssetManager;
-import com.jme3.bullet.BulletAppState;
 import ru.arifolth.game.CharacterInterface;
-import ru.arifolth.game.SoundManagerInterface;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.logging.Logger;
 
 public class CharacterFactory<T extends CharacterInterface> implements CharacterFactoryInterface<T> {
-    private final SoundManagerInterface soundManager;
-    private BulletAppState bulletAppState;
-    private AssetManager assetManager;
+    final private static Logger LOGGER = Logger.getLogger(CharacterFactory.class.getName());
+    private GameLogicCore gameLogicCore;
 
-    public CharacterFactory(BulletAppState bulletAppState, AssetManager assetManager, SoundManagerInterface soundManager) {
-        this.bulletAppState = bulletAppState;
-        this.assetManager = assetManager;
-        this.soundManager = soundManager;
+    public CharacterFactory(GameLogicCore gameLogicCore) {
+        this.gameLogicCore = gameLogicCore;
     }
 
     public T createCharacter(Class<T> clazz) {
         T result = null;
         try {
             result = clazz.getDeclaredConstructor().newInstance();
-            result.initialize(bulletAppState, assetManager, soundManager);
+            result.initialize(gameLogicCore);
         } catch (IllegalAccessException | NoSuchMethodException | InstantiationException | InvocationTargetException e) {
-            e.printStackTrace();
+            LOGGER.severe(e.getMessage());
         }
         return result;
     }

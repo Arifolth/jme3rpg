@@ -16,22 +16,24 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.game;
+package ru.arifolth.anjrpg;
 
-import com.jme3.audio.AudioNode;
+import ru.arifolth.game.Constants;
+import ru.arifolth.game.GameLogicCoreInterface;
+import ru.arifolth.game.LocationTrackerInterface;
 
-public interface SoundManagerInterface {
-    void setVolume(float value);
+public class LocationTracker implements LocationTrackerInterface {
+    private GameLogicCoreInterface gameLogicCore;
 
-    void reInitialize();
+    public LocationTracker(GameLogicCoreInterface gameLogicCore) {
+        this.gameLogicCore = gameLogicCore;
+    }
 
-    AudioNode getFootStepsNode();
+    @Override
+    public void update(float tpf) {
+        if(gameLogicCore.getCharacterMap().size() < Constants.NPC_AMOUNT) {
+            gameLogicCore.getInitializationDelegate().initializeNPCs(true);
+        }
+    }
 
-    AudioNode getWindNode();
-
-    AudioNode getSwordSwingNode();
-
-    AudioNode getSwordHitNode();
-
-    AudioNode getSwordBlockNode();
 }

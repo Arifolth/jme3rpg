@@ -60,7 +60,7 @@ public class SnowEmitter implements Emitter {
         this.spatial = spatial;
     }
 
-    public void simpleUpdate(float tpf) {
+    public void update(float tpf) {
         snow.setLocalTranslation(spatial.getLocalTranslation());
         snow.emitAllParticles();
     }

@@ -18,20 +18,6 @@
 
 package ru.arifolth.game;
 
-import com.jme3.audio.AudioNode;
-
-public interface SoundManagerInterface {
-    void setVolume(float value);
-
-    void reInitialize();
-
-    AudioNode getFootStepsNode();
-
-    AudioNode getWindNode();
-
-    AudioNode getSwordSwingNode();
-
-    AudioNode getSwordHitNode();
-
-    AudioNode getSwordBlockNode();
+public interface LocationTrackerInterface {
+    void update(float tpf);
 }

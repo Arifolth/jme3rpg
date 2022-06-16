@@ -16,11 +16,28 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.anjrpg.weather;
+package ru.arifolth.game;
 
-import com.jme3.scene.Spatial;
+import com.jme3.scene.Node;
 
-public interface Emitter {
-    void setSpatial(Spatial spatial);
-    void simpleUpdate(float tpf);
+import java.util.Map;
+
+public interface InitializationDelegateInterface {
+    void initialize(boolean positionCharacters);
+
+    void setupCamera();
+
+    void initializePlayer(boolean positionCharacters);
+
+    void positionPlayer();
+
+    void initializeNPCs(boolean positionCharacters);
+
+    void positionNPCs(Map<Node, CharacterInterface> characterMap);
+
+    void detachNPCs();
+
+    void initPlayerComplete();
+
+    void initNPCsComplete();
 }

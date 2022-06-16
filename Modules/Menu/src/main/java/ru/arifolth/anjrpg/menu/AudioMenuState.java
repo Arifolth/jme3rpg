@@ -20,15 +20,16 @@ package ru.arifolth.anjrpg.menu;
 
 import com.jme3.app.Application;
 import com.simsilica.lemur.*;
-import com.simsilica.lemur.component.*;
-import com.simsilica.state.CompositeAppState;
+import com.simsilica.lemur.component.BorderLayout;
+import com.simsilica.lemur.component.DynamicInsetsComponent;
+import com.simsilica.lemur.component.SpringGridLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.arifolth.anjrpg.RolePlayingGame;
-import ru.arifolth.game.SoundManager;
+import ru.arifolth.game.RolePlayingGameInterface;
 import ru.arifolth.game.SoundManagerInterface;
 
-import static com.simsilica.lemur.component.BorderLayout.Position.*;
+import static com.simsilica.lemur.component.BorderLayout.Position.East;
+import static com.simsilica.lemur.component.BorderLayout.Position.West;
 
 public class AudioMenuState extends CustomCompositeAppState {
     private final static Logger LOGGER = LoggerFactory.getLogger(AudioMenuState.class);
@@ -39,13 +40,13 @@ public class AudioMenuState extends CustomCompositeAppState {
 
     public AudioMenuState(OptionsMenuState parent) {
         super(parent);
-        this.soundManager = ((RolePlayingGame) this.parent.getApplication()).getSoundManager();
+        this.soundManager = ((RolePlayingGameInterface) this.parent.getApplication()).getSoundManager();
     }
 
     private void apply() {
         soundManager.setVolume((float) volumeModel.getValue());
         soundManager.reInitialize();
-        ((RolePlayingGame) getApplication()).getGameLogicCore().reInitialize();
+        ((RolePlayingGameInterface) getApplication()).getGameLogicCore().reInitialize();
 
         setEnabled(false);
         parent.setEnabled(false);

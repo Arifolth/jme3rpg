@@ -19,6 +19,7 @@
 package ru.arifolth.anjrpg.menu;
 
 import com.jme3.app.Application;
+import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
@@ -29,7 +30,9 @@ import com.simsilica.lemur.component.IconComponent;
 import com.simsilica.lemur.component.SpringGridLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.arifolth.anjrpg.ANJRpg;
+import ru.arifolth.anjrpg.ANJRpgInterface;
+import ru.arifolth.game.GameLogicCoreInterface;
+import ru.arifolth.game.InitializationDelegateInterface;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.West;
 
@@ -46,6 +49,25 @@ public class MainMenuState extends BaseAppState {
         return getApplication().getCamera().getHeight() / (getApplication().getCamera().getHeight() / 2f);
     }
 
+    private void restart() {
+        ANJRpgInterface application = (ANJRpgInterface) getApplication();
+        GameLogicCoreInterface gameLogicCore = application.getGameLogicCore();
+        InitializationDelegateInterface initializationDelegate = gameLogicCore.getInitializationDelegate();
+
+        if(!application.getGameLogicCore().getPlayerCharacter().isDead()) {
+            initializationDelegate.detachNPCs();
+            gameLogicCore.getPlayerCharacter().removeCharacter();
+        }
+
+        initializationDelegate.initializePlayer(false);
+
+        if(!application.getGameLogicCore().getPlayerCharacter().isDead()) {
+            initializationDelegate.initializeNPCs(true);
+        }
+
+        setEnabled(false);
+    }
+
     private void exitGame() {
         getStateManager().attach(new ExitMenuState(this));
     }
@@ -55,7 +77,7 @@ public class MainMenuState extends BaseAppState {
     }
 
     private void startNewGame() {
-        ((ANJRpg)getApplication()).setUpGUI();
+        ((ANJRpgInterface) getApplication()).setUpGUI();
         setEnabled(false);
     }
 
@@ -81,7 +103,7 @@ public class MainMenuState extends BaseAppState {
 
     @Override
     protected void onEnable() {
-        ANJRpg application = (ANJRpg) getApplication();
+        ANJRpgInterface application = (ANJRpgInterface) getApplication();
 
         int width = application.getSettings().getWidth();
         int height = application.getSettings().getHeight();
@@ -92,15 +114,20 @@ public class MainMenuState extends BaseAppState {
         Label title = menuContainer.addChild(new Label("ANJRpg"));
         title.setFontSize(32);
         title.setInsets(new Insets3f(10, 10, 0, 10));
-        Label version = menuContainer.addChild(new Label("Version: " + ((ANJRpg) getApplication()).getVersion()));
+        Label version = menuContainer.addChild(new Label("Version: " + ((ANJRpgInterface) getApplication()).getVersion()));
         version.setFontSize(12);
         version.setInsets(new Insets3f(10, 10, 0, 10));
 
-        switch(((ANJRpg)getApplication()).getInitStatus()) {
+        switch(((ANJRpgInterface)getApplication()).getInitStatus()) {
             case RUNNING: {
                 mainWindow.setBackground(null);
-                ActionButton resume = menuContainer.addChild(new ActionButton(new CallMethodAction("Resume Game", this, "resumeGame")));
-                resume.setInsets(new Insets3f(10, 10, 10, 10));
+                ActionButton restart = menuContainer.addChild(new ActionButton(new CallMethodAction("Restart Game", this, "restart")));
+                restart.setInsets(new Insets3f(10, 10, 10, 10));
+
+                if(!application.getGameLogicCore().getPlayerCharacter().isDead()) {
+                    ActionButton resume = menuContainer.addChild(new ActionButton(new CallMethodAction("Resume Game", this, "resumeGame")));
+                    resume.setInsets(new Insets3f(10, 10, 10, 10));
+                }
                 break;
             }
             default: {
@@ -126,7 +153,7 @@ public class MainMenuState extends BaseAppState {
         setWindowSize(height);
 
 
-        Node gui = application.getGuiNode();
+        Node gui = ((SimpleApplication) application).getGuiNode();
         gui.attachChild(mainWindow);
         GuiGlobals.getInstance().requestFocus(mainWindow);
     }

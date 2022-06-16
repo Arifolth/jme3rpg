@@ -25,30 +25,30 @@ import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.SpringGridLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.arifolth.anjrpg.ANJRpg;
+import ru.arifolth.anjrpg.ANJRpgInterface;
+import ru.arifolth.game.BindingConstants;
 import ru.arifolth.game.MovementControllerInterface;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.East;
 import static com.simsilica.lemur.component.BorderLayout.Position.West;
-import static ru.arifolth.game.BindingConstants.*;
 
 public class ControlsMenuState extends CustomCompositeAppState {
     private final static Logger LOGGER = LoggerFactory.getLogger(ControlsMenuState.class);
     private final MovementControllerInterface movementController;
     private final AppSettings settings;
-    private final Dropdown forwardBindingDropDown = new KeyBindingDropDown(UP);
-    private final Dropdown backwardBindingDropDown = new KeyBindingDropDown(DOWN);
-    private final Dropdown leftBindingDropDown = new KeyBindingDropDown(LEFT);
-    private final Dropdown rightBindingDropDown = new KeyBindingDropDown(RIGHT);
-    private final Dropdown jumpBindingDropDown = new KeyBindingDropDown(JUMP);
-    private final Dropdown runBindingDropDown = new KeyBindingDropDown(RUN);
+    private final Dropdown forwardBindingDropDown = new KeyBindingDropDown(BindingConstants.UP);
+    private final Dropdown backwardBindingDropDown = new KeyBindingDropDown(BindingConstants.DOWN);
+    private final Dropdown leftBindingDropDown = new KeyBindingDropDown(BindingConstants.LEFT);
+    private final Dropdown rightBindingDropDown = new KeyBindingDropDown(BindingConstants.RIGHT);
+    private final Dropdown jumpBindingDropDown = new KeyBindingDropDown(BindingConstants.JUMP);
+    private final Dropdown runBindingDropDown = new KeyBindingDropDown(BindingConstants.RUN);
 
     public ControlsMenuState(OptionsMenuState parent) {
         super(parent);
 
         settings = this.parent.getApplication().getContext().getSettings();
 
-        this.movementController = ((ANJRpg) parent.getApplication()).getGameLogicCore().getMovementController();
+        this.movementController = ((ANJRpgInterface) parent.getApplication()).getGameLogicCore().getMovementController();
 
         this.forwardBindingDropDown.initialize(settings);
         this.backwardBindingDropDown.initialize(settings);
@@ -65,22 +65,22 @@ public class ControlsMenuState extends CustomCompositeAppState {
     private void apply() {
         //Apply options here
         try {
-            settings.put(UP.name(), MenuUtils.getKey(forwardBindingDropDown.getSelectedValue()));
-            settings.put(DOWN.name(), MenuUtils.getKey(backwardBindingDropDown.getSelectedValue()));
-            settings.put(LEFT.name(), MenuUtils.getKey(leftBindingDropDown.getSelectedValue()));
-            settings.put(RIGHT.name(), MenuUtils.getKey(rightBindingDropDown.getSelectedValue()));
-            settings.put(JUMP.name(), MenuUtils.getKey(jumpBindingDropDown.getSelectedValue()));
-            settings.put(RUN.name(), MenuUtils.getKey(runBindingDropDown.getSelectedValue()));
+            settings.put(BindingConstants.UP.name(), MenuUtils.getKey(forwardBindingDropDown.getSelectedValue()));
+            settings.put(BindingConstants.DOWN.name(), MenuUtils.getKey(backwardBindingDropDown.getSelectedValue()));
+            settings.put(BindingConstants.LEFT.name(), MenuUtils.getKey(leftBindingDropDown.getSelectedValue()));
+            settings.put(BindingConstants.RIGHT.name(), MenuUtils.getKey(rightBindingDropDown.getSelectedValue()));
+            settings.put(BindingConstants.JUMP.name(), MenuUtils.getKey(jumpBindingDropDown.getSelectedValue()));
+            settings.put(BindingConstants.RUN.name(), MenuUtils.getKey(runBindingDropDown.getSelectedValue()));
         } catch (NoSuchFieldException|IllegalAccessException e) {
             e.printStackTrace();
         }
 
-        movementController.addInputMapping(UP, (Integer) settings.get(UP.name()));
-        movementController.addInputMapping(DOWN, (Integer) settings.get(DOWN.name()));
-        movementController.addInputMapping(LEFT, (Integer) settings.get(LEFT.name()));
-        movementController.addInputMapping(RIGHT, (Integer) settings.get(RIGHT.name()));
-        movementController.addInputMapping(JUMP, (Integer) settings.get(JUMP.name()));
-        movementController.addInputMapping(RUN, (Integer) settings.get(RUN.name()));
+        movementController.addInputMapping(BindingConstants.UP, (Integer) settings.get(BindingConstants.UP.name()));
+        movementController.addInputMapping(BindingConstants.DOWN, (Integer) settings.get(BindingConstants.DOWN.name()));
+        movementController.addInputMapping(BindingConstants.LEFT, (Integer) settings.get(BindingConstants.LEFT.name()));
+        movementController.addInputMapping(BindingConstants.RIGHT, (Integer) settings.get(BindingConstants.RIGHT.name()));
+        movementController.addInputMapping(BindingConstants.JUMP, (Integer) settings.get(BindingConstants.JUMP.name()));
+        movementController.addInputMapping(BindingConstants.RUN, (Integer) settings.get(BindingConstants.RUN.name()));
 
         setEnabled(false);
         parent.setEnabled(false);

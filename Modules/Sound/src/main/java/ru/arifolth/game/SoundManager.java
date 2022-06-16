@@ -34,6 +34,7 @@ public class SoundManager implements SoundManagerInterface {
         WEATHER,
         FOOTSTEPS,
         SWORD_SWING,
+        SWORD_HIT,
         SWORD_BLOCK
     }
 
@@ -53,6 +54,7 @@ public class SoundManager implements SoundManagerInterface {
         initAmbientSounds();
         initFootsteps();
         initSwordBlock();
+        initSwordHit();
         initSwordSwing();
     }
 
@@ -68,6 +70,14 @@ public class SoundManager implements SoundManagerInterface {
         return SoundUtils.getRandomObject(soundMap.get(SoundType.WIND)).clone();
     }
 
+    private void initSwordHit() {
+        {
+            AudioNode audioNode = new AudioNode(assetManager, "Sounds/hit/215008__taira-komori__stabbing.ogg", AudioData.DataType.Buffer);
+            audioNode.setVolume(volume);
+            audioNode.setPitch(pitch);
+            soundMap.put(SoundType.SWORD_HIT, audioNode);
+        }
+    }
 
     private void initSwordSwing() {
         {
@@ -118,6 +128,9 @@ public class SoundManager implements SoundManagerInterface {
         return SoundUtils.getRandomObject(soundMap.get(SoundType.SWORD_SWING)).clone();
     }
 
+    public AudioNode getSwordHitNode() {
+        return SoundUtils.getRandomObject(soundMap.get(SoundType.SWORD_HIT)).clone();
+    }
 
     private void initSwordBlock() {
         {

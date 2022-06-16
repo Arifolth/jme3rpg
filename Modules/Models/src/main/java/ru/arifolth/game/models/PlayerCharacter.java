@@ -21,30 +21,52 @@ package ru.arifolth.game.models;
 import com.jme3.animation.AnimChannel;
 import com.jme3.animation.AnimControl;
 import com.jme3.animation.LoopMode;
-import com.jme3.asset.AssetManager;
-import com.jme3.bullet.BulletAppState;
-import com.jme3.input.controls.ActionListener;
+import com.jme3.collision.CollisionResults;
+import com.jme3.math.ColorRGBA;
+import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
+import com.jme3.scene.*;
+import com.jme3.ui.Picture;
+import ru.arifolth.game.AnimationDelegateInterface;
 import ru.arifolth.game.CharacterInterface;
-import ru.arifolth.game.SoundManagerInterface;
+import ru.arifolth.game.Constants;
+import ru.arifolth.game.Utils;
 
-public class PlayerCharacter extends NinjaCharacter {
+public class PlayerCharacter extends AnimatedCharacter {
+    public static final String PLAYER_CHARACTER_MODEL = "Models/Ninja/Ninja.j3o";
+    protected static float MELEE_DISTANCE_LIMIT = 15f;
+    protected final AnimationDelegateInterface animationDelegate = new AnimationDelegate(this);
+    protected float shootDelay;
+    protected float shootRate;
+    private float speed = 50f;
     private boolean left = false, right = false, up = false, down = false,
         attacking = false, capture_mouse = true, running = false, blocking = false, block_pressed = false,
         jumping = false, jump_pressed = false, attack_pressed = false;
     private final Vector3f walkDirection = new Vector3f();
     private float airTime = 0;
     private float actionTime = 0;
-    private HealthBar healthBar;
     private Camera cam;
+    private static final float MAX_DAMAGED_TIME = 3f;
+    private float playerDamaged = 0f;
+    private Picture damageIndicator;
+    protected float firingRange;
+    protected boolean dead = false;
+    protected boolean initializing = true;
+    private float health;
 
     public PlayerCharacter() {
+        this.setModel(PLAYER_CHARACTER_MODEL);
+        this.setName(this.getClass().getName());
+
+        this.firingRange = MELEE_DISTANCE_LIMIT;
+        this.shootDelay = 3f;
+        this.shootRate = 3.5f;
     }
 
     @Override
-    protected void initializeHealthBar() {
-        healthBar = new HealthBar(assetManager, getNode());
+    protected void initHealthBar() {
+        healthBar = new HealthBar(gameLogicCore.getAssetManager(), this);
         healthBar.create();
     }
 
@@ -53,24 +75,46 @@ public class PlayerCharacter extends NinjaCharacter {
     }
 
     public void block() {
-        //TODO: Show Blocking animation only in case attack is coming, do nothing otherwise
-        getAttackChannel().setAnim(AnimConstants.BLOCK, 0.1f);
-        //TODO: ADD Blocking event
-        getAttackChannel().setLoopMode(LoopMode.DontLoop);
-        getAttackChannel().setSpeed(1f);
-        getAttackChannel().setTime(getAttackChannel().getAnimMaxTime() / 2);
-        setActionTime(getAttackChannel().getAnimMaxTime() / 2);
+        animationDelegate.blockAnimation();
 
-        playSwordSound(getSwordBlockNode(), SWORD_BLOCK);
+        playSwordSound(getSwordSwingNode());
     }
 
     public void attack() {
-        getAttackChannel().setAnim(AnimConstants.ATTACK, 0.1f);
-        getAttackChannel().setLoopMode(LoopMode.DontLoop);
-        getAttackChannel().setSpeed(1f);
-        setActionTime(getAttackChannel().getAnimMaxTime());
+        animationDelegate.attackAnimation();
 
-        playSwordSound(getSwordSwingNode(), SWORD_SWING);
+        playSwordSound(getSwordSwingNode());
+
+        Node enemies = gameLogicCore.getEnemies();
+
+        Ray ray = new Ray(characterControl.getPhysicsLocation(), characterControl.getViewDirection().negate());
+        ray.setLimit(MELEE_DISTANCE_LIMIT);
+        // Results of the collision test are written into this object
+        CollisionResults results = new CollisionResults();
+
+        // Test for collisions between the road and the ray
+        enemies.collideWith(ray, results);
+        if(results.size() > 0) {
+            Geometry geometry = results.getClosestCollision().getGeometry();
+            if(geometry == null)
+                return;
+            Node parent = geometry.getParent();
+            if(parent == null)
+                return;
+            Node grandParent = parent.getParent();
+            CharacterInterface npc = gameLogicCore.getCharacterMap().get(grandParent);
+            if(npc != null) {
+                boolean blocked = Utils.getRandom(50);
+                if(!blocked) {
+                    npc.getHealthBar().applyDamage(Constants.DAMAGE);
+                    playSwordSound(getSwordHitNode());
+                } else {
+                    npc.getAnimationDelegate().blockAnimation();
+                    npc.resetShootCounterByQuarter();
+                    playSwordSound(getSwordBlockNode());
+                }
+            }
+        }
     }
 
     @Override
@@ -91,6 +135,14 @@ public class PlayerCharacter extends NinjaCharacter {
             }
         } else if(name.equals(AnimConstants.JUMP)) {
             setJump_pressed(false);
+        } else if (name.equals(AnimConstants.DEATH)) {
+            if (ch.getAnimationName().equals(AnimConstants.DEATH)) {
+                ch.setAnim(AnimConstants.DEATH, 0f);
+                ch.setLoopMode(LoopMode.Loop);
+                ch.setSpeed(0f);
+                setActionTime(getAttackChannel().getAnimMaxTime());
+            }
+            gameLogicCore.getRootNode().detachChild(this.getNode());
         }
     }
 
@@ -102,12 +154,16 @@ public class PlayerCharacter extends NinjaCharacter {
      * We also make sure here that the camera moves with playerControl.
      */
     @Override
-    public void simpleUpdate(float k) {
-        healthBarUpdate();
+    public void update(float k) {
+        if(dead)
+            return;
+
+        healthBarUpdate(k);
+
+//        damageIndicatorUpdate(k);
 
         movementUpdate(k);
     }
-
 
     public void movementUpdate(float k) {
         float movement_amount = 0.3f;
@@ -171,24 +227,10 @@ public class PlayerCharacter extends NinjaCharacter {
 
         if(!this.isJumping()) {
             if ((this.isUp() || this.isDown() || this.isLeft() || this.isRight())) {
-                //set the walking animation
-                this.getAnimationChannel().setLoopMode(LoopMode.Loop);
-                if (!this.getAnimationChannel().getAnimationName().equals(AnimConstants.WALK)) {
-                    this.getAnimationChannel().setAnim(AnimConstants.WALK, 0.5f);
-                }
-                if (this.isRunning()) {
-                    this.getAnimationChannel().setSpeed(1.75f);
-                }
-                else {
-                    this.getAnimationChannel().setSpeed(1f);
-                }
+                animationDelegate.walkingAnimation();
                 this.getPlayerStepsNode(this.isRunning()).play();
             } else if (this.getWalkDirection().length() == 0) {
-                this.getAnimationChannel().setLoopMode(LoopMode.Loop);
-                if (!this.getAnimationChannel().getAnimationName().equals(AnimConstants.IDLE)) {
-                    this.getAnimationChannel().setAnim(AnimConstants.IDLE, 0f);
-                    this.getAnimationChannel().setSpeed(1f);
-                }
+                animationDelegate.idleAnimation();
                 this.getPlayerStepsNode(false).pause();
             }
         } else {
@@ -204,8 +246,7 @@ public class PlayerCharacter extends NinjaCharacter {
                 this.block();
             }
             if(!this.isBlock_pressed() && this.getActionTime() <= 0) {
-                this.getAttackChannel().setAnim(AnimConstants.IDLE, 0f);
-                this.getAttackChannel().setSpeed(1f);
+                animationDelegate.stopAnimation();
                 this.setBlocking(false);
             }
         } else if(this.isAttacking()) {
@@ -213,8 +254,7 @@ public class PlayerCharacter extends NinjaCharacter {
                 this.attack();
             }
             if(!this.isAttack_pressed() && this.getActionTime() <= 0) {
-                this.getAttackChannel().setAnim(AnimConstants.IDLE, 0f);
-                this.getAttackChannel().setSpeed(1f);
+                animationDelegate.stopAnimation();
                 this.setAttacking(false);
             }
         }
@@ -231,8 +271,84 @@ public class PlayerCharacter extends NinjaCharacter {
             this.getCharacterControl().setViewDirection(this.getWalkDirection());
     }
 
-    private void healthBarUpdate() {
+    public void setPlayerDamaged() {
+        playerDamaged = MAX_DAMAGED_TIME;
+    }
+
+    @Override
+    public void setDamageIndicator(Picture damageIndicator) {
+        this.damageIndicator = damageIndicator;
+    }
+
+    protected void damageIndicatorUpdate(float k) {
+        if (playerDamaged > 0) {
+            gameLogicCore.getRootNode().attachChild(gameLogicCore.getDamageIndicator());
+
+            damageIndicator.getMaterial().setColor("Color",
+                    new ColorRGBA(1f, 0f, 0f, .5f - (MAX_DAMAGED_TIME - playerDamaged) / (2*MAX_DAMAGED_TIME)));
+
+            playerDamaged -= k;
+        } else if (playerDamaged < 0) {
+            gameLogicCore.getRootNode().detachChild(gameLogicCore.getDamageIndicator());
+            playerDamaged = 0;
+        }
+    }
+
+    protected void healthBarUpdate(float k) {
         healthBar.update();
+    }
+
+    @Override
+    public void resetShootCounter() {
+        shootDelay = shootRate;
+    }
+
+    @Override
+    public void resetShootCounterByQuarter() {
+        shootDelay = shootRate / 4;
+    }
+
+    @Override
+    public void shootUpdate(float tpf) {
+        if (shootDelay > 0f) {
+            shootDelay -= tpf;
+        }
+    }
+
+    @Override
+    public boolean isReady() {
+        return shootDelay < 0f;
+    }
+
+    @Override
+    public void removeCharacter() {
+    }
+
+    @Override
+    public void spawn() {
+        gameLogicCore.detachGameOverIndicator();
+
+        gameLogicCore.getRootNode().attachChild(this.getNode());
+
+        if(!initializing) {
+            healthBar.create();
+        }
+
+        dead = false;
+    }
+
+    @Override
+    public void die() {
+        dead = true;
+        animationDelegate.deathAnimation();
+        this.getPlayerStepsNode(false).pause();
+        gameLogicCore.attachGameOverIndicator();
+        healthBar.destroy();
+    }
+
+    @Override
+    public AnimationDelegateInterface getAnimationDelegate() {
+        return animationDelegate;
     }
 
     @Override
@@ -351,5 +467,32 @@ public class PlayerCharacter extends NinjaCharacter {
 
     public void setAirTime(float airTime) {
         this.airTime = airTime;
+    }
+
+    @Override
+    public boolean isInitializing() {
+        return initializing;
+    }
+
+    @Override
+    public void setInitializing(boolean initializing) {
+        this.initializing = initializing;
+    }
+
+    @Override
+    public boolean isDead() {
+        return dead;
+    }
+
+    public void setDead(boolean dead) {
+        this.dead = dead;
+    }
+
+    public void setHealth(float health) {
+        this.health = health;
+    }
+
+    public float getHealth() {
+        return health;
     }
 }

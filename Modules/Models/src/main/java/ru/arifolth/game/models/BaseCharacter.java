@@ -18,26 +18,22 @@
 
 package ru.arifolth.game.models;
 
-import com.jme3.asset.AssetManager;
-import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import ru.arifolth.game.CharacterInterface;
-import ru.arifolth.game.SoundManager;
-import ru.arifolth.game.SoundManagerInterface;
+import ru.arifolth.game.GameLogicCoreInterface;
+import ru.arifolth.game.HealthBarInterface;
 
-public abstract class GameCharacter implements CharacterInterface {
-    protected BulletAppState bulletAppState;
-    protected AssetManager assetManager;
-
+public abstract class BaseCharacter implements CharacterInterface {
+    protected GameLogicCoreInterface gameLogicCore;
     protected CharacterControl characterControl;
     protected Spatial characterModel;
-    protected SoundManagerInterface soundManager;
-    private Node characterNode;
+    protected HealthBarInterface healthBar;
+    private Node characterNode = new Node();
 
-    public GameCharacter() {
+    public BaseCharacter() {
     }
 
     @Override
@@ -55,8 +51,7 @@ public abstract class GameCharacter implements CharacterInterface {
         return characterNode;
     }
 
-    protected void initializeCharacterNode() {
-        characterNode = new Node("Player");
+    protected void setUpCharacterNode() {
         characterNode.addControl(characterControl);
         characterNode.attachChild(characterModel);
     }
@@ -72,29 +67,43 @@ public abstract class GameCharacter implements CharacterInterface {
         CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.5f, 6f, 1);
         characterControl = new CharacterControl(capsuleShape, 0.8f);
         setUpDefaultPhysics();
-        bulletAppState.getPhysicsSpace().add(characterControl);
+        addPhysixControl();
     }
 
-    private void setUpDefaultPhysics() {
+    private void addPhysixControl() {
+        gameLogicCore.getBulletAppState().getPhysicsSpace().add(characterControl);
+    }
+
+    protected void removePhysixControl() {
+        gameLogicCore.getBulletAppState().getPhysicsSpace().remove(characterControl);
+    }
+
+    protected void setUpDefaultPhysics() {
         characterControl.setJumpSpeed(0);
         characterControl.setFallSpeed(0);
         characterControl.setGravity(0);
     }
 
-    protected abstract void initializeHealthBar();
+    protected abstract void initHealthBar();
 
-    public void initialize(BulletAppState bulletAppState, AssetManager assetManager, SoundManagerInterface soundManager) {
-        this.bulletAppState = bulletAppState;
-        this.assetManager = assetManager;
-        this.soundManager = soundManager;
+    public String getName() {
+        return getNode().getName();
+    }
+
+    public void setName(String name) {
+        getNode().setName(name);
+    }
+
+    public void initialize(GameLogicCoreInterface gameLogicCore) {
+        this.gameLogicCore = gameLogicCore;
 
         initializePhysixControl();
 
         initializeCharacterModel();
 
-        initializeCharacterNode();
+        setUpCharacterNode();
 
-        initializeHealthBar();
+        initHealthBar();
 
         initializeSounds();
 
@@ -103,11 +112,26 @@ public abstract class GameCharacter implements CharacterInterface {
         initializeSkeletonDebug();
     }
 
+    public boolean withinRange(float distance, CharacterInterface enemy) {
+        if(enemy.isDead())
+            return false;
+
+        CharacterControl control = enemy.getCharacterControl();
+        float dist = control.getPhysicsLocation().distanceSquared(characterControl.getPhysicsLocation());
+
+        if (dist <= distance * distance) {
+            return true;
+        }
+
+        return false;
+    }
+
     public abstract void initializeSounds();
     protected abstract void initializeAnimation();
     protected abstract void initializeSkeletonDebug();
 
-    public abstract boolean isAttacking();
-    public abstract boolean isBlocking();
-
+    @Override
+    public HealthBarInterface getHealthBar() {
+        return healthBar;
+    }
 }

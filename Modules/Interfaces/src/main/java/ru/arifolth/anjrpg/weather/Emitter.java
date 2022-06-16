@@ -16,11 +16,11 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.game.models.factory;
+package ru.arifolth.anjrpg.weather;
 
+import com.jme3.scene.Spatial;
 
-import ru.arifolth.game.CharacterInterface;
-
-public interface CharacterFactoryInterface<T extends CharacterInterface> {
-    T createCharacter(Class<T> clazz);
+public interface Emitter {
+    void setSpatial(Spatial spatial);
+    void update(float tpf);
 }

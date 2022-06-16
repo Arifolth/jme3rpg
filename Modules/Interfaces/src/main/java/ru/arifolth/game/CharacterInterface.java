@@ -18,15 +18,16 @@
 
 package ru.arifolth.game;
 
-import com.jme3.asset.AssetManager;
-import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.ui.Picture;
 
 public interface CharacterInterface {
-    void simpleUpdate(float tpf);
+    void removeCharacter();
+
+    void update(float tpf);
     Spatial getCharacterModel();
     CharacterControl getCharacterControl();
     Node getNode();
@@ -63,5 +64,33 @@ public interface CharacterInterface {
 
     void setAttack_pressed(boolean pressed);
 
-    void initialize(BulletAppState bulletAppState, AssetManager assetManager, SoundManagerInterface soundManager);
+    void initialize(GameLogicCoreInterface gameLogicCore);
+
+    void setDamageIndicator(Picture damageIndicator);
+
+    void resetShootCounter();
+
+    void resetShootCounterByQuarter();
+
+    void shootUpdate(float tpf);
+
+    boolean isReady();
+
+    void spawn();
+
+    void die();
+
+    AnimationDelegateInterface getAnimationDelegate();
+
+    boolean isAttacking();
+
+    boolean isBlocking();
+
+    HealthBarInterface getHealthBar();
+
+    void setInitializing(boolean initializing);
+
+    boolean isDead();
+
+    boolean isInitializing();
 }

@@ -24,6 +24,7 @@ public class AnimConstants {
     public static final String IDLE = "Idle3";
     public static final String WALK = "Walk";
     public static final String JUMP = "JumpNoHeight";
+    public static final String DEATH = "Death1";
 
     private AnimConstants() {
     }

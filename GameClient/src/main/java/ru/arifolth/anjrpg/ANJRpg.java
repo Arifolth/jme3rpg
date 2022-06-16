@@ -23,16 +23,14 @@ import com.jme3.system.AppSettings;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.style.BaseStyles;
 import de.lessvoid.nifty.Nifty;
-import de.lessvoid.nifty.controls.Controller;
 import de.lessvoid.nifty.controls.Parameters;
 import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.input.NiftyInputEvent;
 import de.lessvoid.nifty.screen.Screen;
-import de.lessvoid.nifty.screen.ScreenController;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import ru.arifolth.game.Constants;
 import ru.arifolth.game.InitStateEnum;
+import ru.arifolth.game.InitializationDelegateInterface;
 import ru.arifolth.game.RolePlayingGameInterface;
 
 import java.awt.*;
@@ -46,7 +44,8 @@ import static com.jme3.niftygui.NiftyJmeDisplay.newNiftyJmeDisplay;
 /*
 * https://ev1lbl0w.github.io/jme-wiki-pt-pt/jme3/advanced/loading_screen.html
 * */
-public class ANJRpg extends RolePlayingGame implements ScreenController, Controller {
+public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
+    public static final int RIGID_BODIES_SIZE = 4;
     private NiftyJmeDisplay niftyDisplay;
     private Nifty nifty;
     private InitStateEnum initialization = InitStateEnum.PENDING;
@@ -76,12 +75,13 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
 
         setupPhysix();
         setupSound();
-        setupGameLogic();
         setupTerrain();
+        setupGameLogic();
     }
 
     @Override
     public void simpleUpdate(float tpf) {
+        InitializationDelegateInterface initializationDelegate = gameLogicCore.getInitializationDelegate();
         switch (initialization) {
             case PENDING: {
                 if(!loadingCompleted) {
@@ -99,9 +99,13 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
             }
             case INITIALIZED: {
                 //wait until land appears in Physics Space
-                if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == 4) {
+                if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == RIGID_BODIES_SIZE) {
                     //put player at the beginning location
-                    getGameLogicCore().getPlayerCharacter().getCharacterControl().setPhysicsLocation(Constants.PLAYER_START_LOCATION);
+                    initializationDelegate.positionPlayer();
+                    initializationDelegate.initPlayerComplete();
+                    //position NPCs around the Player
+                    initializationDelegate.positionNPCs(getGameLogicCore().getCharacterMap());
+                    initializationDelegate.initNPCsComplete();
 
                     //these calls have to be done on the update loop thread,
                     //especially attaching the terrain to the rootNode
@@ -165,6 +169,7 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
     public void init(Parameters prmtrs) {
     }
 
+    @Override
     public void setUpGUI() {
         /* Game stuff */
         niftyDisplay = newNiftyJmeDisplay(assetManager,
@@ -220,16 +225,19 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
         settings.setBitsPerPixel(24); //24
         settings.setSamples(0); //16
         settings.setVSync(true);
-        settings.setResolution(3840,2160);
+        settings.setResolution(1920,1080);
         settings.setRenderer(AppSettings.LWJGL_OPENGL45);
         settings.setFrameRate(30);
+        settings.setFrequency(30);
         settings.setGammaCorrection(false);
     }
 
+    @Override
     public InitStateEnum getInitStatus() {
         return initialization;
     }
 
+    @Override
     public AppSettings getSettings(){
         return this.settings;
     }

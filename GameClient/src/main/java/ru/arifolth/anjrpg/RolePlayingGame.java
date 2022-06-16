@@ -26,18 +26,13 @@ import com.jme3.app.state.ScreenshotAppState;
 import com.jme3.asset.plugins.ClasspathLocator;
 import com.jme3.audio.AudioListenerState;
 import com.jme3.bullet.BulletAppState;
-import com.jme3.bullet.control.CharacterControl;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.*;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
 import com.jme3.shadow.PssmShadowRenderer;
-import com.jme3.terrain.geomipmap.TerrainGrid;
-import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.water.WaterFilter;
 import com.simsilica.lemur.OptionPanelState;
 import com.simsilica.lemur.event.PopupState;
@@ -68,7 +63,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     private SoundManagerInterface soundManager;
     protected BulletAppState bulletAppState;
     private PssmShadowRenderer pssmRenderer;
-    private GameLogicCoreInterface gameLogicCore;
+    protected GameLogicCoreInterface gameLogicCore;
 
     public RolePlayingGame() throws IOException, XmlPullParserException {
         super(new FlyCamAppState(),
@@ -78,7 +73,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
                 new MainMenuState()
         );
 
-        version = new MavenXpp3Reader().read(new FileReader("pom.xml")).getVersion();
+        version = new MavenXpp3Reader().read(new FileReader(Constants.POM_XML)).getVersion();
     }
 
     @Override
@@ -94,12 +89,16 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         setupSky();
         addFilters();
 
-        attachPlayer();
         attachTerrain();
         attachSky();
 
-        enablePhysics();
+        initializeEntities();
     }
+
+    private void initializeEntities() {
+        gameLogicCore.getInitializationDelegate().initialize(false);
+    }
+
 
     protected void createMinimap() {
         // create the minimap
@@ -108,7 +107,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     }
 
     void setupGameLogic() {
-        gameLogicCore = new GameLogicCore(this, cam, flyCam, inputManager, bulletAppState, assetManager, soundManager, getRootNode());
+        gameLogicCore = new GameLogicCore(this, cam, flyCam, inputManager, bulletAppState, assetManager, soundManager, terrainManager, getRootNode());
         gameLogicCore.initialize();
     }
 
@@ -192,7 +191,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
 
         // add an ocean.
         waterFilter = new WaterFilter(getRootNode(), sky.getSunDirection().normalize());
-        waterFilter.setWaterHeight(-70);
+        waterFilter.setWaterHeight(Constants.WATER_LEVEL_HEIGHT);
         fpp.addFilter(waterFilter);
         viewPort.addProcessor(fpp);
 
@@ -223,19 +222,6 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         getRootNode().attachChild(sky);
     }
 
-    protected void enablePhysics() {
-        CharacterInterface playerCharacter = gameLogicCore.getPlayerCharacter();
-        CharacterControl characterControl = playerCharacter.getCharacterControl();
-        characterControl.setJumpSpeed(20);
-        characterControl.setFallSpeed(300);
-        characterControl.setGravity(30);
-        setProgress(new Object() {}.getClass().getEnclosingMethod().getName());
-    }
-
-    protected void attachPlayer() {
-        getRootNode().attachChild(gameLogicCore.getPlayerCharacter().getNode());
-    }
-
     @Override
     public GameLogicCoreInterface getGameLogicCore() {
         return gameLogicCore;
@@ -253,7 +239,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         stateManager.attach(bulletAppState);
         bulletAppState.setEnabled(true);
         //collision capsule shape is visible in debug mode
-        //bulletAppState.setDebugEnabled(true);
+        bulletAppState.setDebugEnabled(true);
 //        setProgress(new Object() {}.getClass().getEnclosingMethod().getName());
     }
 
@@ -303,6 +289,11 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     @Override
     public TerrainManagerInterface getTerrainManager() {
         return terrainManager;
+    }
+
+    @Override
+    public void setTerrainManager(TerrainManagerInterface terrainManager) {
+        this.terrainManager = terrainManager;
     }
 
     @Override

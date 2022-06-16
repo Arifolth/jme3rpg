@@ -25,10 +25,10 @@ import com.jme3.animation.SkeletonControl;
 import com.jme3.audio.AudioNode;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.scene.debug.SkeletonDebugger;
+import ru.arifolth.game.Debug;
 
 /*
 *
@@ -42,11 +42,12 @@ import com.jme3.scene.debug.SkeletonDebugger;
     Number of bones: 28
     Initial facing vector: Vector3::NEGATIVE_UNIT_Z
 */
-public abstract class NinjaCharacter extends GameCharacter implements AnimEventListener {
+public abstract class AnimatedCharacter extends BaseCharacter implements AnimEventListener {
     public static final String SWORD_BLOCK = "swordBlock";
     public static final String SWORD_SWING = "swordSwing";
+    public static final String SWORD_HIT = "swordHit";
     public static final String PLAYER_FOOTSTEPS = "playerFootsteps";
-    public static final String NINJA_MODEL = "Models/Ninja/Ninja.j3o";
+    protected String model;
     private AnimChannel animationChannel;
     private AnimChannel attackChannel;
     private AnimControl animationControl;
@@ -62,7 +63,7 @@ public abstract class NinjaCharacter extends GameCharacter implements AnimEventL
             ex.printStackTrace();
         }
         */
-        characterModel = assetManager.loadModel(NINJA_MODEL);
+        characterModel = gameLogicCore.getAssetManager().loadModel(model);
         //Material playerMaterial = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
         //characterModel.setMaterial(playerMaterial);
         characterModel.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
@@ -79,7 +80,9 @@ public abstract class NinjaCharacter extends GameCharacter implements AnimEventL
 //        characterControl.setPhysicsLocation(characterModel.getLocalTranslation());
         //characterModel.getLocalTranslation().subtractLocal(0f, 50.0f,0f); // model offset fix
 
-        characterModel.getControl(SkeletonControl.class).setHardwareSkinningPreferred(true);
+        SkeletonControl skeletonControl = characterModel.getControl(SkeletonControl.class);
+        if(null != skeletonControl)
+            skeletonControl.setHardwareSkinningPreferred(true);
     }
 
     @Override
@@ -105,12 +108,14 @@ public abstract class NinjaCharacter extends GameCharacter implements AnimEventL
     protected void initializeSkeletonDebug() {
         //debug skeleton
         SkeletonDebugger skeletonDebug = new SkeletonDebugger("skeleton", animationControl.getSkeleton());
-        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        Material mat = new Material(gameLogicCore.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
         mat.getAdditionalRenderState().setWireframe(true);
         mat.setColor("Color", ColorRGBA.Blue);
         mat.getAdditionalRenderState().setDepthTest(false);
         skeletonDebug.setMaterial(mat);
         ((Node)characterModel).attachChild(skeletonDebug);
+
+        Debug.showNodeAxes(gameLogicCore.getAssetManager(), this.getNode(), 5);
     }
 
     @Override
@@ -120,29 +125,35 @@ public abstract class NinjaCharacter extends GameCharacter implements AnimEventL
     public void initializeSounds() {
         getNode().detachChildNamed(PLAYER_FOOTSTEPS);
 
-        AudioNode audioNode = soundManager.getFootStepsNode();
+        AudioNode audioNode = gameLogicCore.getSoundManager().getFootStepsNode();
         audioNode.setName(PLAYER_FOOTSTEPS);
 
         getNode().attachChild(audioNode);
 
-        soundManager.getWindNode().play();
+        gameLogicCore.getSoundManager().getWindNode().play();
     }
 
-    protected void playSwordSound(AudioNode swordSwingNode, String swordSwing) {
-        getNode().attachChild(swordSwingNode);
-        swordSwingNode.play();
-        getNode().detachChildNamed(swordSwing);
+    protected void playSwordSound(AudioNode swordSoundNode) {
+        getNode().attachChild(swordSoundNode);
+        swordSoundNode.play();
+        getNode().detachChildNamed(swordSoundNode.getName());
     }
 
     protected AudioNode getSwordBlockNode() {
-        AudioNode audioNode = soundManager.getSwordBlockNode();
+        AudioNode audioNode = gameLogicCore.getSoundManager().getSwordBlockNode();
         audioNode.setName(SWORD_BLOCK);
         return audioNode;
     }
 
     protected AudioNode getSwordSwingNode() {
-        AudioNode audioNode = soundManager.getSwordSwingNode();
+        AudioNode audioNode = gameLogicCore.getSoundManager().getSwordSwingNode();
         audioNode.setName(SWORD_SWING);
+        return audioNode;
+    }
+
+    protected AudioNode getSwordHitNode() {
+        AudioNode audioNode = gameLogicCore.getSoundManager().getSwordHitNode();
+        audioNode.setName(SWORD_HIT);
         return audioNode;
     }
 
@@ -162,5 +173,13 @@ public abstract class NinjaCharacter extends GameCharacter implements AnimEventL
 
     public AnimChannel getAttackChannel() {
         return attackChannel;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
     }
 }

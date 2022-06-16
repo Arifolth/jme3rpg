@@ -18,15 +18,59 @@
 
 package ru.arifolth.game;
 
-public interface GameLogicCoreInterface {
+import com.jme3.app.Application;
+import com.jme3.asset.AssetManager;
+import com.jme3.bullet.BulletAppState;
+import com.jme3.input.FlyByCamera;
+import com.jme3.input.InputManager;
+import com.jme3.renderer.Camera;
+import com.jme3.scene.Node;
+import com.jme3.ui.Picture;
+import ru.arifolth.anjrpg.weather.Emitter;
 
+import java.util.Map;
+import java.util.Set;
+
+public interface GameLogicCoreInterface {
     CharacterInterface getPlayerCharacter();
 
     void reInitialize();
+
+    Map<Node,CharacterInterface> getCharacterMap();
 
     MovementControllerInterface getMovementController();
 
     void initialize();
 
+    Picture getDamageIndicator();
+
+    void setDamageIndicator(Picture damageIndicator);
+
     void update(float tpf);
+
+    Set<Emitter> getWeatherEffectsSet();
+
+    BulletAppState getBulletAppState();
+
+    Node getRootNode();
+
+    AssetManager getAssetManager();
+
+    SoundManagerInterface getSoundManager();
+
+    Camera getCam();
+
+    FlyByCamera getFlyCam();
+
+    Application getApp();
+
+    InputManager getInputManager();
+
+    Node getEnemies();
+
+    void attachGameOverIndicator();
+
+    void detachGameOverIndicator();
+
+    InitializationDelegateInterface getInitializationDelegate();
 }
