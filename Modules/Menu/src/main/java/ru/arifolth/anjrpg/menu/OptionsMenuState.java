@@ -25,6 +25,8 @@ import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.state.CompositeAppState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.arifolth.anjrpg.ANJRpgInterface;
+import ru.arifolth.game.GameLogicCoreInterface;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.East;
 
@@ -32,13 +34,18 @@ public class OptionsMenuState extends CompositeAppState {
     private final static Logger LOGGER = LoggerFactory.getLogger(OptionsMenuState.class);
     private MainMenuState parent;
     private Container optionsWindow;
+    private ANJRpgInterface application;
+    private GameLogicCoreInterface gameLogicCore;
 
     public OptionsMenuState(MainMenuState parent) {
         this.parent = parent;
     }
 
+
     @Override
-    protected void initialize( Application app ) {
+    protected void initialize(Application app) {
+        application = (ANJRpgInterface) app;
+        gameLogicCore = application.getGameLogicCore();
     }
 
     @Override
@@ -51,14 +58,20 @@ public class OptionsMenuState extends CompositeAppState {
     }
 
     private void video() {
+        gameLogicCore.getSoundManager().getMenuNode().play();
+
         getStateManager().attach(new VideoMenuState(this));
     }
 
     private void audio() {
+        gameLogicCore.getSoundManager().getMenuNode().play();
+
         getStateManager().attach(new AudioMenuState(this));
     }
 
     private void controls() {
+        gameLogicCore.getSoundManager().getMenuNode().play();
+
         getStateManager().attach(new ControlsMenuState(this));
     }
 
@@ -86,6 +99,8 @@ public class OptionsMenuState extends CompositeAppState {
 
     @Override
     protected void onDisable() {
+        gameLogicCore.getSoundManager().getMenuNode().play();
+
         optionsWindow.removeFromParent();
     }
 

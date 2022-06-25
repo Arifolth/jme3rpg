@@ -24,6 +24,8 @@ import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.state.CompositeAppState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.arifolth.anjrpg.ANJRpgInterface;
+import ru.arifolth.game.GameLogicCoreInterface;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.*;
 
@@ -31,6 +33,8 @@ public class ConfirmationMenuState extends CompositeAppState {
     private final static Logger LOGGER = LoggerFactory.getLogger(OptionsMenuState.class);
     private CustomCompositeAppState parent;
     private Container window;
+    private ANJRpgInterface application;
+    private GameLogicCoreInterface gameLogicCore;
 
     public ConfirmationMenuState(CustomCompositeAppState parent) {
         this.parent = parent;
@@ -38,7 +42,9 @@ public class ConfirmationMenuState extends CompositeAppState {
 
 
     @Override
-    protected void initialize( Application app ) {
+    protected void initialize(Application app) {
+        application = (ANJRpgInterface) app;
+        gameLogicCore = application.getGameLogicCore();
     }
 
     @Override
@@ -83,6 +89,8 @@ public class ConfirmationMenuState extends CompositeAppState {
 
     @Override
     protected void onDisable() {
+        gameLogicCore.getSoundManager().getMenuNode().play();
+
         window.removeFromParent();
         parent.getParent().getMainWindow().setAlpha(1.0f);
         parent.getMainWindow().setAlpha(1.0f);

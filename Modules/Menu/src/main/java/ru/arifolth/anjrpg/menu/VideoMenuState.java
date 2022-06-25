@@ -26,6 +26,7 @@ import com.simsilica.lemur.component.SpringGridLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.arifolth.anjrpg.ANJRpgInterface;
+import ru.arifolth.game.GameLogicCoreInterface;
 
 import java.util.Arrays;
 import java.util.List;
@@ -44,16 +45,11 @@ public class VideoMenuState extends CustomCompositeAppState {
     private Checkbox fullscreen = new Checkbox("Fullscreen");
     private Checkbox vsync = new Checkbox("VSync");
     private Checkbox gammaCorrection = new Checkbox("Gamma Correction");
+    private ANJRpgInterface application;
+    private GameLogicCoreInterface gameLogicCore;
 
     public VideoMenuState(OptionsMenuState parent) {
         super(parent);
-
-        AppSettings settings = this.parent.getApplication().getContext().getSettings();
-        resolutionsDropDown.initialize(settings);
-        rendererDropDown.initialize(settings);
-        frameRateDropDown.initialize(settings);
-        bitsPerPixelDropDown.initialize(settings);
-        samplesDropDown.initialize(settings);
     }
 
     public OptionsMenuState getParent() {
@@ -61,7 +57,9 @@ public class VideoMenuState extends CustomCompositeAppState {
     }
 
     private void restartGame() {
-        AppSettings settings = ((ANJRpgInterface) getApplication()).getSettings();
+        gameLogicCore.getSoundManager().getMenuNode().play();
+
+        AppSettings settings = application.getSettings();
         applyRenderer(settings);
         applyResolution(settings);
         applyFrameRate(settings);
@@ -82,6 +80,8 @@ public class VideoMenuState extends CustomCompositeAppState {
     }
 
     private void apply() {
+        gameLogicCore.getSoundManager().getMenuNode().play();
+
         getStateManager().attach(new ConfirmationMenuState(this));
     }
 
@@ -121,7 +121,16 @@ public class VideoMenuState extends CustomCompositeAppState {
     }
 
     @Override
-    protected void initialize( Application app ) {
+    protected void initialize(Application app) {
+        application = (ANJRpgInterface) app;
+        gameLogicCore = application.getGameLogicCore();
+
+        AppSettings settings = application.getContext().getSettings();
+        resolutionsDropDown.initialize(settings);
+        rendererDropDown.initialize(settings);
+        frameRateDropDown.initialize(settings);
+        bitsPerPixelDropDown.initialize(settings);
+        samplesDropDown.initialize(settings);
     }
 
     @Override

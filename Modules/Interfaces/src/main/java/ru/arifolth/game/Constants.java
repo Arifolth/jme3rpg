@@ -24,12 +24,18 @@ public class Constants {
     public static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, 150, 0);
 
     public static final float DAMAGE = 25f;
+
     public static final int NPC_AMOUNT = 3;
     public static final int NPC_LOCATION_RANGE = 500;
+
     public static final int WATER_LEVEL_HEIGHT = -70;
 
     public static final String POM_XML = "pom.xml";
+
     public static final int MODEL_ADJUSTMENT = 3;
+
+    public static final float SOUND_VOLUME = 3f;
+    public static final float SOUND_PITCH = 0.5f;
 
     private Constants() {
     }

@@ -21,6 +21,8 @@ package ru.arifolth.game;
 import com.jme3.audio.AudioNode;
 
 public interface SoundManagerInterface {
+    AudioNode getMenuNode();
+
     void setVolume(float value);
 
     void reInitialize();

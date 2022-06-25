@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.arifolth.anjrpg.ANJRpgInterface;
 import ru.arifolth.game.BindingConstants;
+import ru.arifolth.game.GameLogicCoreInterface;
 import ru.arifolth.game.MovementControllerInterface;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.East;
@@ -34,28 +35,19 @@ import static com.simsilica.lemur.component.BorderLayout.Position.West;
 
 public class ControlsMenuState extends CustomCompositeAppState {
     private final static Logger LOGGER = LoggerFactory.getLogger(ControlsMenuState.class);
-    private final MovementControllerInterface movementController;
-    private final AppSettings settings;
+    private MovementControllerInterface movementController;
+    private AppSettings settings;
     private final Dropdown forwardBindingDropDown = new KeyBindingDropDown(BindingConstants.UP);
     private final Dropdown backwardBindingDropDown = new KeyBindingDropDown(BindingConstants.DOWN);
     private final Dropdown leftBindingDropDown = new KeyBindingDropDown(BindingConstants.LEFT);
     private final Dropdown rightBindingDropDown = new KeyBindingDropDown(BindingConstants.RIGHT);
     private final Dropdown jumpBindingDropDown = new KeyBindingDropDown(BindingConstants.JUMP);
     private final Dropdown runBindingDropDown = new KeyBindingDropDown(BindingConstants.RUN);
+    private ANJRpgInterface application;
+    private GameLogicCoreInterface gameLogicCore;
 
     public ControlsMenuState(OptionsMenuState parent) {
         super(parent);
-
-        settings = this.parent.getApplication().getContext().getSettings();
-
-        this.movementController = ((ANJRpgInterface) parent.getApplication()).getGameLogicCore().getMovementController();
-
-        this.forwardBindingDropDown.initialize(settings);
-        this.backwardBindingDropDown.initialize(settings);
-        this.leftBindingDropDown.initialize(settings);
-        this.rightBindingDropDown.initialize(settings);
-        this.jumpBindingDropDown.initialize(settings);
-        this.runBindingDropDown.initialize(settings);
     }
 
     public OptionsMenuState getParent() {
@@ -63,6 +55,8 @@ public class ControlsMenuState extends CustomCompositeAppState {
     }
 
     private void apply() {
+        gameLogicCore.getSoundManager().getMenuNode().play();
+
         //Apply options here
         try {
             settings.put(BindingConstants.UP.name(), MenuUtils.getKey(forwardBindingDropDown.getSelectedValue()));
@@ -89,7 +83,20 @@ public class ControlsMenuState extends CustomCompositeAppState {
     }
 
     @Override
-    protected void initialize( Application app ) {
+    protected void initialize(Application app) {
+        application = (ANJRpgInterface) app;
+        gameLogicCore = application.getGameLogicCore();
+
+        settings = application.getContext().getSettings();
+
+        this.movementController = gameLogicCore.getMovementController();
+
+        this.forwardBindingDropDown.initialize(settings);
+        this.backwardBindingDropDown.initialize(settings);
+        this.leftBindingDropDown.initialize(settings);
+        this.rightBindingDropDown.initialize(settings);
+        this.jumpBindingDropDown.initialize(settings);
+        this.runBindingDropDown.initialize(settings);
     }
 
     @Override
@@ -154,6 +161,8 @@ public class ControlsMenuState extends CustomCompositeAppState {
 
     @Override
     protected void onDisable() {
+        gameLogicCore.getSoundManager().getMenuNode().play();
+
         window.removeFromParent();
     }
 }

@@ -25,6 +25,8 @@ import com.simsilica.lemur.component.DynamicInsetsComponent;
 import com.simsilica.lemur.component.SpringGridLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.arifolth.anjrpg.ANJRpgInterface;
+import ru.arifolth.game.GameLogicCoreInterface;
 import ru.arifolth.game.RolePlayingGameInterface;
 import ru.arifolth.game.SoundManagerInterface;
 
@@ -37,6 +39,8 @@ public class AudioMenuState extends CustomCompositeAppState {
     public static final int HEIGHT = 1;
     private final SoundManagerInterface soundManager;
     private RangedValueModel volumeModel = new DefaultRangedValueModel(0, 6, 3);
+    private ANJRpgInterface application;
+    private GameLogicCoreInterface gameLogicCore;
 
     public AudioMenuState(OptionsMenuState parent) {
         super(parent);
@@ -44,16 +48,21 @@ public class AudioMenuState extends CustomCompositeAppState {
     }
 
     private void apply() {
+        gameLogicCore.getSoundManager().getMenuNode().play();
+
         soundManager.setVolume((float) volumeModel.getValue());
         soundManager.reInitialize();
-        ((RolePlayingGameInterface) getApplication()).getGameLogicCore().reInitialize();
+
+        gameLogicCore.reInitialize();
 
         setEnabled(false);
         parent.setEnabled(false);
     }
 
     @Override
-    protected void initialize( Application app ) {
+    protected void initialize(Application app) {
+        application = (ANJRpgInterface) app;
+        gameLogicCore = application.getGameLogicCore();
     }
 
     @Override
