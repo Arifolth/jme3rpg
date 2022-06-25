@@ -20,57 +20,6 @@
   </parent>
 
   <build>
-    <!--<plugins>
-      <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
-        <version>2.4</version>
-        <configuration>
-          <encoding>UTF-8</encoding>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>2.3.1</version>
-        <configuration>
-          <archive>
-            <manifest>
-              <mainClass>${java.main.class}</mainClass>
-              <addClasspath>true</addClasspath>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.4.1</version>
-        <configuration>
-          <appendAssemblyId>false</appendAssemblyId>
-          <descriptors>
-            <descriptor>src/main/assembly/dist.xml</descriptor>
-          </descriptors>
-                &lt;!&ndash;<archive>
-                    <manifest>
-                        <mainClass>ru.arifolth.anjrpg.RolePlayingGame</mainClass>
-                        <addClasspath>true</addClasspath>
-                    </manifest>
-                    <manifestEntries>
-                        <Class-Path>/lib/</Class-Path>
-                    </manifestEntries>
-                </archive>&ndash;&gt;
-        </configuration>
-        <executions>
-          <execution>
-            <id>make-assembly</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>-->
       <plugins>
           <plugin>
               <groupId>org.codehaus.mojo</groupId>
@@ -79,14 +28,6 @@
               <configuration>
                   <includePluginDependencies>true</includePluginDependencies>
                   <mainClass>${java.main.class}</mainClass>
-              </configuration>
-          </plugin>
-          <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-compiler-plugin</artifactId>
-              <configuration>
-                  <source>17</source>
-                  <target>17</target>
               </configuration>
           </plugin>
       </plugins>
@@ -136,12 +77,6 @@
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-model</artifactId>
             <version>3.8.5</version>
-        </dependency>
-        <dependency>
-            <groupId>ru.arifolth.game</groupId>
-            <artifactId>Interfaces</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>ru.arifolth.game</groupId>

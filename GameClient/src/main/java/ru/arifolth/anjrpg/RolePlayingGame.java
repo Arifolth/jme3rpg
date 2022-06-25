@@ -50,7 +50,6 @@ import java.util.logging.Logger;
 
 public abstract class RolePlayingGame extends SimpleApplication implements RolePlayingGameInterface {
     public static final SSAOFilter SSAO_FILTER_BASIC = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.9f);
-    public static final SSAOFilter SSAO_FILTER_STRONG = new SSAOFilter(2.9299974f, 25f, 5.8100376f, 0.091000035f);
     protected String version;
     protected Element progressBarElement;
     protected TextRenderer textRenderer;
@@ -180,8 +179,8 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
 
         DepthOfFieldFilter dof=new DepthOfFieldFilter();
         dof.setFocusDistance(0);
-        dof.setFocusRange(50);
-        dof.setBlurScale(1.4f);
+        dof.setFocusRange(40);
+        dof.setBlurScale(1.125f);
         fpp.addFilter(dof);
 
         SSAOFilter ssaoFilter = SSAO_FILTER_BASIC;
