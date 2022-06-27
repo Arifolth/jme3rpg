@@ -27,10 +27,18 @@ import com.jme3.audio.AudioNode;
 import java.util.EnumSet;
 import java.util.logging.Logger;
 
+import static ru.arifolth.game.SoundManager.SoundType.getClone;
+
 public class SoundManager implements SoundManagerInterface {
     final private static Logger LOGGER = Logger.getLogger(SoundManager.class.getName());
 
-    private enum SoundType {
+    private static final Multimap<SoundType, AudioNode> soundMap = ArrayListMultimap.create();
+    private static AssetManager assetManager;
+
+    private static float volume = Constants.SOUND_VOLUME;
+    private static final float pitch = Constants.SOUND_PITCH;
+
+    enum SoundType {
         WIND {
             @Override
             void init() {
@@ -150,13 +158,11 @@ public class SoundManager implements SoundManagerInterface {
         };
 
         abstract void init();
+
+        public static AudioNode getClone(SoundType wind) {
+            return SoundUtils.getRandomObject(soundMap.get(wind)).clone();
+        }
     }
-
-    private static Multimap<SoundType, AudioNode> soundMap = ArrayListMultimap.create();
-    private static AssetManager assetManager;
-
-    private static float volume = Constants.SOUND_VOLUME;
-    private static final float pitch = Constants.SOUND_PITCH;
 
     public SoundManager(AssetManager assetManager) {
         SoundManager.assetManager = assetManager;
@@ -169,28 +175,28 @@ public class SoundManager implements SoundManagerInterface {
     }
 
     public AudioNode getWindNode() {
-        return SoundUtils.getRandomObject(soundMap.get(SoundType.WIND)).clone();
+        return getClone(SoundType.WIND);
     }
 
     public AudioNode getSwordSwingNode() {
-        return SoundUtils.getRandomObject(soundMap.get(SoundType.SWORD_SWING)).clone();
+        return getClone(SoundType.SWORD_SWING);
     }
 
     public AudioNode getSwordHitNode() {
-        return SoundUtils.getRandomObject(soundMap.get(SoundType.SWORD_HIT)).clone();
+        return getClone(SoundType.SWORD_HIT);
     }
 
     public AudioNode getSwordBlockNode() {
-        return SoundUtils.getRandomObject(soundMap.get(SoundType.SWORD_BLOCK)).clone();
+        return getClone(SoundType.SWORD_BLOCK);
     }
 
     public AudioNode getFootStepsNode() {
-        return SoundUtils.getRandomObject(soundMap.get(SoundType.FOOTSTEPS)).clone();
+        return getClone(SoundType.FOOTSTEPS);
     }
 
     @Override
     public AudioNode getMenuNode() {
-        return SoundUtils.getRandomObject(soundMap.get(SoundType.MENU)).clone();
+        return getClone(SoundType.MENU);
     }
 
     public void update(float tpf) {
@@ -198,7 +204,7 @@ public class SoundManager implements SoundManagerInterface {
     }
 
     public void setVolume(float volume) {
-        this.volume = volume;
+        SoundManager.volume = volume;
     }
 
     public void reInitialize() {
