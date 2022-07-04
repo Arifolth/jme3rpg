@@ -26,14 +26,7 @@ import com.jme3.app.state.ScreenshotAppState;
 import com.jme3.asset.plugins.ClasspathLocator;
 import com.jme3.audio.AudioListenerState;
 import com.jme3.bullet.BulletAppState;
-import com.jme3.math.ColorRGBA;
-import com.jme3.post.FilterPostProcessor;
-import com.jme3.post.filters.*;
-import com.jme3.post.ssao.SSAOFilter;
-import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Node;
-import com.jme3.shadow.PssmShadowRenderer;
-import com.jme3.water.WaterFilter;
 import com.simsilica.lemur.OptionPanelState;
 import com.simsilica.lemur.event.PopupState;
 import de.lessvoid.nifty.elements.Element;
@@ -49,19 +42,16 @@ import java.io.IOException;
 import java.util.logging.Logger;
 
 public abstract class RolePlayingGame extends SimpleApplication implements RolePlayingGameInterface {
-    public static final SSAOFilter SSAO_FILTER_BASIC = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.9f);
     protected String version;
     protected Element progressBarElement;
     protected TextRenderer textRenderer;
-    private LightScatteringFilter lsf;
-    private WaterFilter waterFilter;
     private volatile float progress;
     final private static Logger LOGGER = Logger.getLogger(RolePlayingGame.class.getName());
-    private DynamicSky sky;
+    private SkyInterface sky;
     private TerrainManagerInterface terrainManager;
     private SoundManagerInterface soundManager;
+    private FilterManagerInterface filterManager;
     protected BulletAppState bulletAppState;
-    private PssmShadowRenderer pssmRenderer;
     protected GameLogicCoreInterface gameLogicCore;
 
     public RolePlayingGame() throws IOException, XmlPullParserException {
@@ -82,14 +72,11 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     }
 
     protected void loadResources() {
-        setupShadowRenderer();
         setupScreenCapture();
-        addFog();
         setupSky();
-        addFilters();
+        setupFilters();
 
         attachTerrain();
-        attachSky();
 
         initializeEntities();
     }
@@ -127,80 +114,14 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
 
         terrainManager.update(tpf);
 
-        //skydome
-        sky.updateTime();
+        sky.update(tpf);
 
-        //update filters on observer pattern base
-        lsf.setLightPosition(sky.getSunDirection().normalize());
-        pssmRenderer.setDirection(sky.getSunDirection().normalize());
-        waterFilter.setLightDirection(sky.getSunDirection().normalize());
+        filterManager.update(tpf);
     }
 
-    void addFog() {
-        /** Add fog to a scene */
-        FilterPostProcessor fpp=new FilterPostProcessor(assetManager);
-        FogFilter fog=new FogFilter();
-        fog.setFogColor(new ColorRGBA(0.9f, 0.9f, 0.9f, 1.0f));
-        fog.setFogDistance(1000);
-        fog.setFogDensity(0.255f);
-        fpp.addFilter(fog);
-        viewPort.addProcessor(fpp);
-    }
-
-    void setupShadowRenderer() {
-        pssmRenderer = new PssmShadowRenderer(assetManager, 2048, 16);
-        pssmRenderer.setShadowIntensity(0.55f);
-        pssmRenderer.setFilterMode(PssmShadowRenderer.FilterMode.PCF8);
-        pssmRenderer.setCompareMode(PssmShadowRenderer.CompareMode.Hardware);
-        viewPort.addProcessor(pssmRenderer);
-
-        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
-    }
-
-    void addFilters() {
-        FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
-
-        FXAAFilter fxaa = new FXAAFilter();
-        fxaa.setSubPixelShift(5.0f);
-        fxaa.setReduceMul(5.0f);
-        fxaa.setVxOffset(5.0f);
-        fxaa.setEnabled(true);
-        fpp.addFilter(fxaa);
-
-        BloomFilter bloom = new BloomFilter(BloomFilter.GlowMode.SceneAndObjects);
-        bloom.setDownSamplingFactor(2.0f);
-        bloom.setExposurePower(55);
-        bloom.setBloomIntensity(1.0f);
-        fpp.addFilter(bloom);
-
-        lsf = new LightScatteringFilter(sky.getSunDirection().normalize().mult(500));
-        lsf.setLightDensity(1.0f);
-        fpp.addFilter(lsf);
-
-        DepthOfFieldFilter dof=new DepthOfFieldFilter();
-        dof.setFocusDistance(0);
-        dof.setFocusRange(40);
-        dof.setBlurScale(1.125f);
-        fpp.addFilter(dof);
-
-        SSAOFilter ssaoFilter = SSAO_FILTER_BASIC;
-        fpp.addFilter(ssaoFilter);
-
-        fpp.addFilter(new TranslucentBucketFilter());
-
-        // add an ocean.
-        waterFilter = new WaterFilter(getRootNode(), sky.getSunDirection().normalize());
-        waterFilter.setWaterHeight(Constants.WATER_LEVEL_HEIGHT);
-        fpp.addFilter(waterFilter);
-        viewPort.addProcessor(fpp);
-
-        CartoonEdgeFilter toon=new CartoonEdgeFilter();
-        toon.setEdgeWidth(0.5f);
-        toon.setEdgeIntensity(0.09f);
-        toon.setNormalThreshold(0.8f);
-        fpp.addFilter(toon);
-
-        viewPort.addProcessor(fpp);
+    void setupFilters() {
+        filterManager = new FilterManager(assetManager, rootNode, viewPort, sky);
+        filterManager.initialize();
 
         setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
@@ -208,17 +129,12 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     void setupSky() {
         // load sky
         sky = new DynamicSky(assetManager, viewPort, getRootNode());
-        getRootNode().setShadowMode(ShadowMode.Off);
         setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
     protected void attachTerrain() {
         getRootNode().attachChild(terrainManager.getTerrain());
         //terrainManager.generateGrass();
-    }
-
-    protected void attachSky() {
-        getRootNode().attachChild(sky);
     }
 
     @Override

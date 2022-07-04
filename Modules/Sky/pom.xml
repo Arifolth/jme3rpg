@@ -22,4 +22,12 @@
     <finalName>DynamicSky</finalName>
   </build>
 
+  <dependencies>
+    <dependency>
+      <groupId>ru.arifolth.game</groupId>
+      <artifactId>Interfaces</artifactId>
+      <version>1.0-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
 </project>
