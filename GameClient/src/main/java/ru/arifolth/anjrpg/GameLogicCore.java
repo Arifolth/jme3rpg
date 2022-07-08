@@ -19,6 +19,7 @@
 package ru.arifolth.anjrpg;
 
 import com.jme3.app.Application;
+import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.input.FlyByCamera;
@@ -185,12 +186,12 @@ public class GameLogicCore implements GameLogicCoreInterface {
 
     @Override
     public void attachGameOverIndicator() {
-        rootNode.attachChild(gameOverIndicator);
+        ((SimpleApplication) app).getGuiNode().attachChild(gameOverIndicator);
     }
 
     @Override
     public void detachGameOverIndicator() {
-        rootNode.detachChild(gameOverIndicator);
+        ((SimpleApplication) app).getGuiNode().detachChild(gameOverIndicator);
     }
 
     public void setGameOverIndicator(Picture gameOverIndicator) {
