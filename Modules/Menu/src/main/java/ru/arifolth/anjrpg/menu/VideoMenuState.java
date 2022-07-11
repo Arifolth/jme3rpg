@@ -26,6 +26,8 @@ import com.simsilica.lemur.component.SpringGridLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.arifolth.anjrpg.ANJRpgInterface;
+import ru.arifolth.game.Constants;
+import ru.arifolth.game.GameLogicCoreInterface;
 
 import java.util.Arrays;
 import java.util.List;
@@ -44,24 +46,21 @@ public class VideoMenuState extends CustomCompositeAppState {
     private Checkbox fullscreen = new Checkbox("Fullscreen");
     private Checkbox vsync = new Checkbox("VSync");
     private Checkbox gammaCorrection = new Checkbox("Gamma Correction");
+    private ANJRpgInterface application;
+    private GameLogicCoreInterface gameLogicCore;
 
     public VideoMenuState(OptionsMenuState parent) {
         super(parent);
-
-        AppSettings settings = this.parent.getApplication().getContext().getSettings();
-        resolutionsDropDown.initialize(settings);
-        rendererDropDown.initialize(settings);
-        frameRateDropDown.initialize(settings);
-        bitsPerPixelDropDown.initialize(settings);
-        samplesDropDown.initialize(settings);
     }
 
     public OptionsMenuState getParent() {
         return parent;
     }
 
-    private void restartGame() {
-        AppSettings settings = ((ANJRpgInterface) getApplication()).getSettings();
+    private void apply() {
+        gameLogicCore.getSoundManager().getMenuNode().play();
+
+        AppSettings settings = application.getSettings();
         applyRenderer(settings);
         applyResolution(settings);
         applyFrameRate(settings);
@@ -77,12 +76,8 @@ public class VideoMenuState extends CustomCompositeAppState {
 
         MenuUtils.saveSettings(settings);
 
-//        getApplication().getContext().restart();
-        getApplication().stop();
-    }
-
-    private void apply() {
-        getStateManager().attach(new ConfirmationMenuState(this));
+        getApplication().getContext().setSettings(settings);
+        getApplication().getContext().restart();
     }
 
     private void applySamples(AppSettings settings) {
@@ -121,7 +116,20 @@ public class VideoMenuState extends CustomCompositeAppState {
     }
 
     @Override
-    protected void initialize( Application app ) {
+    protected void initialize(Application app) {
+        application = (ANJRpgInterface) app;
+        gameLogicCore = application.getGameLogicCore();
+
+        AppSettings settings = application.getContext().getSettings();
+        resolutionsDropDown.initialize(settings);
+        rendererDropDown.initialize(settings);
+        frameRateDropDown.initialize(settings);
+        bitsPerPixelDropDown.initialize(settings);
+        samplesDropDown.initialize(settings);
+
+        vsync.setChecked(settings.getBoolean("VSync"));
+        gammaCorrection.setChecked(settings.getBoolean("Gamma Correction"));
+        fullscreen.setChecked(settings.getBoolean("Fullscreen"));
     }
 
     @Override
@@ -167,14 +175,11 @@ public class VideoMenuState extends CustomCompositeAppState {
         props.addChild(new Label("Anti Aliasing:"), West);
         props.addChild(samplesDropDown, East);
 
-        Checkbox temp = joinPanel.addChild(fullscreen);
-        temp.setChecked(true);
+        Checkbox checkbox = joinPanel.addChild(fullscreen);
 
-        temp = joinPanel.addChild(gammaCorrection);
-        temp.setChecked(false);
+        checkbox = joinPanel.addChild(gammaCorrection);
 
-        temp = joinPanel.addChild(vsync);
-        temp.setChecked(true);
+        checkbox = joinPanel.addChild(vsync);
 
         props = joinPanel.addChild(new Container(new BorderLayout()));
         props.setBackground(null);

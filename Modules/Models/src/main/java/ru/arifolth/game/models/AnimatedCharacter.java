@@ -28,6 +28,8 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.scene.debug.SkeletonDebugger;
+import com.jme3.system.AppSettings;
+import ru.arifolth.game.Constants;
 import ru.arifolth.game.Debug;
 
 /*
@@ -106,16 +108,20 @@ public abstract class AnimatedCharacter extends BaseCharacter implements AnimEve
 
     @Override
     protected void initializeSkeletonDebug() {
-        //debug skeleton
-        SkeletonDebugger skeletonDebug = new SkeletonDebugger("skeleton", animationControl.getSkeleton());
-        Material mat = new Material(gameLogicCore.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.getAdditionalRenderState().setWireframe(true);
-        mat.setColor("Color", ColorRGBA.Blue);
-        mat.getAdditionalRenderState().setDepthTest(false);
-        skeletonDebug.setMaterial(mat);
-        ((Node)characterModel).attachChild(skeletonDebug);
+        AppSettings settings = gameLogicCore.getApp().getContext().getSettings();
+        boolean debug = settings.getBoolean(Constants.DEBUG);
+        if(debug) {
+            //debug skeleton
+            SkeletonDebugger skeletonDebug = new SkeletonDebugger("skeleton", animationControl.getSkeleton());
+            Material mat = new Material(gameLogicCore.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+            mat.getAdditionalRenderState().setWireframe(true);
+            mat.setColor("Color", ColorRGBA.Blue);
+            mat.getAdditionalRenderState().setDepthTest(false);
+            skeletonDebug.setMaterial(mat);
+            ((Node) characterModel).attachChild(skeletonDebug);
 
-        Debug.showNodeAxes(gameLogicCore.getAssetManager(), this.getNode(), 5);
+            Debug.showNodeAxes(gameLogicCore.getAssetManager(), this.getNode(), 5);
+        }
     }
 
     @Override

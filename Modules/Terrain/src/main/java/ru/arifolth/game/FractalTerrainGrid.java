@@ -24,6 +24,7 @@ import com.jme3.bullet.collision.shapes.HeightfieldCollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.material.Material;
 import com.jme3.math.Vector3f;
+import com.jme3.system.AppSettings;
 import com.jme3.terrain.geomipmap.*;
 import com.jme3.terrain.geomipmap.grid.FractalTileLoader;
 import com.jme3.terrain.geomipmap.lodcalc.DistanceLodCalculator;
@@ -71,6 +72,9 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
     public TerrainGrid generateTerrain() {
         // TERRAIN TEXTURE material
         this.matTerrain = new Material(this.assetManager, "MatDefs/HeightBasedTerrain.j3md");
+
+        AppSettings settings = app.getContext().getSettings();
+        this.matTerrain.getAdditionalRenderState().setWireframe(settings.getBoolean(Constants.DEBUG));
 
         // Parameters to material:
         // regionXColorMap: X = 1..4 the texture that should be appliad to state X

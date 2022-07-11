@@ -4,16 +4,13 @@ import com.idflood.sky.items.DynamicSkyBackground;
 import com.idflood.sky.items.DynamicStars;
 import com.idflood.sky.items.DynamicSun;
 import com.jme3.asset.AssetManager;
-import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.ViewPort;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Node;
+import ru.arifolth.game.SkyInterface;
 
-public class DynamicSky extends Node {
-    private ViewPort viewPort = null;
-    private AssetManager assetManager = null;
-    
+public class DynamicSky extends Node implements SkyInterface {
     private DynamicSun dynamicSun = null;
     private DynamicStars dynamicStars = null;
     private DynamicSkyBackground dynamicBackground = null;
@@ -22,9 +19,7 @@ public class DynamicSky extends Node {
     
     public DynamicSky(AssetManager assetManager, ViewPort viewPort, Node rootNode) {
         super("Sky");
-        this.assetManager = assetManager;
-        this.viewPort = viewPort;
-        
+
         dynamicSun = new DynamicSun(assetManager, viewPort, rootNode, scaling);
         rootNode.attachChild(dynamicSun);
         
@@ -33,14 +28,14 @@ public class DynamicSky extends Node {
         rootNode.attachChild(dynamicStars);
         
         dynamicBackground = new DynamicSkyBackground(assetManager, viewPort, rootNode);
+
+        rootNode.setShadowMode(ShadowMode.Off);
+        rootNode.attachChild(this);
     }
     
+    @Override
     public Vector3f getSunDirection(){
         return dynamicSun.getSunDirection();
-    }
-
-    public DynamicSun getDynamicSun() {
-        return dynamicSun;
     }
 
     public void updateTime(){
@@ -50,8 +45,8 @@ public class DynamicSky extends Node {
         dynamicStars.lookAt(dynamicSun.getSunSystem().getPosition(), Vector3f.ZERO);
     }
 
-    public void update(){
-
+    @Override
+    public void update(float tpf){
+        updateTime();
     }
-    
 }

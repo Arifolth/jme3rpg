@@ -41,17 +41,25 @@ public class MainMenuState extends BaseAppState {
 
     private Container mainWindow;
     private Container menuContainer;
+    private ANJRpgInterface application;
+    private GameLogicCoreInterface gameLogicCore;
+
+    @Override
+    protected void initialize(Application app) {
+        application = (ANJRpgInterface) app;
+        gameLogicCore = application.getGameLogicCore();
+    }
 
     public MainMenuState() {
     }
 
     public float getStandardScale() {
-        return getApplication().getCamera().getHeight() / (getApplication().getCamera().getHeight() / 2f);
+        return application.getCamera().getHeight() / (getApplication().getCamera().getHeight() / 2f);
     }
 
     private void restart() {
-        ANJRpgInterface application = (ANJRpgInterface) getApplication();
-        GameLogicCoreInterface gameLogicCore = application.getGameLogicCore();
+        gameLogicCore.getSoundManager().getMenuNode().play();
+
         InitializationDelegateInterface initializationDelegate = gameLogicCore.getInitializationDelegate();
 
         if(!application.getGameLogicCore().getPlayerCharacter().isDead()) {
@@ -61,7 +69,7 @@ public class MainMenuState extends BaseAppState {
 
         initializationDelegate.initializePlayer(false);
 
-        if(!application.getGameLogicCore().getPlayerCharacter().isDead()) {
+        if(!gameLogicCore.getPlayerCharacter().isDead()) {
             initializationDelegate.initializeNPCs(true);
         }
 
@@ -69,28 +77,32 @@ public class MainMenuState extends BaseAppState {
     }
 
     private void exitGame() {
+        gameLogicCore.getSoundManager().getMenuNode().play();
+
         getStateManager().attach(new ExitMenuState(this));
     }
 
     private void resumeGame() {
+        gameLogicCore.getSoundManager().getMenuNode().play();
+
         setEnabled(false);
     }
 
     private void startNewGame() {
+        gameLogicCore.getSoundManager().getMenuNode().play();
+
         ((ANJRpgInterface) getApplication()).setUpGUI();
         setEnabled(false);
     }
 
     private void options() {
+        gameLogicCore.getSoundManager().getMenuNode().play();
+
         getStateManager().attach(new OptionsMenuState(this));
     }
 
     public Container getMainWindow() {
         return mainWindow;
-    }
-
-    @Override
-    protected void initialize( Application app ) {
     }
 
     @Override

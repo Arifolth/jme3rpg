@@ -19,50 +19,37 @@
 package ru.arifolth.anjrpg.menu;
 
 import com.jme3.app.Application;
+import com.jme3.system.AppSettings;
 import com.simsilica.lemur.*;
 import com.simsilica.lemur.component.BorderLayout;
-import com.simsilica.lemur.component.DynamicInsetsComponent;
 import com.simsilica.lemur.component.SpringGridLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.arifolth.anjrpg.ANJRpgInterface;
+import ru.arifolth.game.Constants;
+import ru.arifolth.game.Debug;
 import ru.arifolth.game.GameLogicCoreInterface;
-import ru.arifolth.game.RolePlayingGameInterface;
-import ru.arifolth.game.SoundManagerInterface;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.East;
 import static com.simsilica.lemur.component.BorderLayout.Position.West;
 
-public class AudioMenuState extends CustomCompositeAppState {
-    private final static Logger LOGGER = LoggerFactory.getLogger(AudioMenuState.class);
-    public static final int WIDTH = 0;
-    public static final int HEIGHT = 1;
-    private final SoundManagerInterface soundManager;
-    private RangedValueModel volumeModel = new DefaultRangedValueModel(0, 6, 3);
+public class GamePlayMenuState extends CustomCompositeAppState {
+    private final static Logger LOGGER = LoggerFactory.getLogger(OptionsMenuState.class);
     private ANJRpgInterface application;
     private GameLogicCoreInterface gameLogicCore;
+    private Checkbox debugCheckbox = new Checkbox(Constants.DEBUG);
 
-    public AudioMenuState(OptionsMenuState parent) {
+    public GamePlayMenuState(OptionsMenuState parent) {
         super(parent);
-        this.soundManager = ((RolePlayingGameInterface) this.parent.getApplication()).getSoundManager();
-    }
-
-    private void apply() {
-        gameLogicCore.getSoundManager().getMenuNode().play();
-
-        soundManager.setVolume((float) volumeModel.getValue());
-        soundManager.reInitialize();
-
-        gameLogicCore.reInitialize();
-
-        setEnabled(false);
-        parent.setEnabled(false);
     }
 
     @Override
     protected void initialize(Application app) {
         application = (ANJRpgInterface) app;
         gameLogicCore = application.getGameLogicCore();
+
+        AppSettings settings = application.getContext().getSettings();
+        debugCheckbox.setChecked(settings.getBoolean(Constants.DEBUG));
     }
 
     @Override
@@ -70,26 +57,40 @@ public class AudioMenuState extends CustomCompositeAppState {
         getState(MainMenuState.class).setEnabled(true);
     }
 
+    private void apply() {
+        gameLogicCore.getSoundManager().getMenuNode().play();
+
+        AppSettings settings = application.getSettings();
+        applySettings(settings);
+        getApplication().setSettings(settings);
+
+        setEnabled(false);
+        parent.setEnabled(false);
+
+        MenuUtils.saveSettings(settings);
+
+        getApplication().getContext().setSettings(settings);
+        getApplication().getContext().restart();
+    }
+
+    private void applySettings(AppSettings settings) {
+        settings.putBoolean(Constants.DEBUG, debugCheckbox.isChecked());
+    }
+
     @Override
     protected void onEnable() {
         window = new Container();
 
         Container menuContainer = window.addChild(new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even)));
-        Label title = menuContainer.addChild(new Label("Audio"));
+        Label title = menuContainer.addChild(new Label("Video"));
         title.setFontSize(24);
         title.setInsets(new Insets3f(10, 10, 0, 10));
 
         Container props;
         Container joinPanel = menuContainer.addChild(new Container());
         joinPanel.setInsets(new Insets3f(10, 10, 10, 10));
-        props = joinPanel.addChild(new Container(new BorderLayout()));
-        props.setBackground(null);
 
-        //Options go here
-        props.addChild(new Label("Audio Volume:"), West);
-        Slider slider = props.addChild(new Slider(volumeModel), East);
-        slider.getDecrementButton().addClickCommands();
-        slider.setInsetsComponent(new DynamicInsetsComponent(0.5f, 0.5f, 0.5f, 0.5f));
+        Checkbox debugChkbx = joinPanel.addChild(debugCheckbox);
 
         props = joinPanel.addChild(new Container(new BorderLayout()));
         props.setBackground(null);
@@ -102,5 +103,9 @@ public class AudioMenuState extends CustomCompositeAppState {
     @Override
     protected void onDisable() {
         window.removeFromParent();
+    }
+
+    public OptionsMenuState getParent() {
+        return this.parent;
     }
 }

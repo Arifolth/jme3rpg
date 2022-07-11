@@ -21,6 +21,7 @@ package ru.arifolth.game.models;
 import com.jme3.animation.AnimChannel;
 import com.jme3.animation.AnimControl;
 import com.jme3.animation.LoopMode;
+import com.jme3.app.SimpleApplication;
 import com.jme3.collision.CollisionResults;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
@@ -160,7 +161,7 @@ public class PlayerCharacter extends AnimatedCharacter {
 
         healthBarUpdate(k);
 
-//        damageIndicatorUpdate(k);
+        damageIndicatorUpdate(k);
 
         movementUpdate(k);
     }
@@ -282,14 +283,14 @@ public class PlayerCharacter extends AnimatedCharacter {
 
     protected void damageIndicatorUpdate(float k) {
         if (playerDamaged > 0) {
-            gameLogicCore.getRootNode().attachChild(gameLogicCore.getDamageIndicator());
+            ((SimpleApplication) gameLogicCore.getApp()).getGuiNode().attachChild(gameLogicCore.getDamageIndicator());
 
             damageIndicator.getMaterial().setColor("Color",
                     new ColorRGBA(1f, 0f, 0f, .5f - (MAX_DAMAGED_TIME - playerDamaged) / (2*MAX_DAMAGED_TIME)));
 
             playerDamaged -= k;
         } else if (playerDamaged < 0) {
-            gameLogicCore.getRootNode().detachChild(gameLogicCore.getDamageIndicator());
+            ((SimpleApplication) gameLogicCore.getApp()).getGuiNode().detachChild(gameLogicCore.getDamageIndicator());
             playerDamaged = 0;
         }
     }

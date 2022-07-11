@@ -24,6 +24,8 @@ import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.state.CompositeAppState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.arifolth.anjrpg.ANJRpgInterface;
+import ru.arifolth.game.GameLogicCoreInterface;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.*;
 
@@ -31,14 +33,17 @@ public class ExitMenuState extends CompositeAppState {
     private final static Logger LOGGER = LoggerFactory.getLogger(OptionsMenuState.class);
     private MainMenuState parent;
     private Container window;
+    private ANJRpgInterface application;
+    private GameLogicCoreInterface gameLogicCore;
 
     public ExitMenuState(MainMenuState parent) {
         this.parent = parent;
     }
 
-
     @Override
-    protected void initialize( Application app ) {
+    protected void initialize(Application app) {
+        application = (ANJRpgInterface) app;
+        gameLogicCore = application.getGameLogicCore();
     }
 
     @Override
@@ -65,7 +70,7 @@ public class ExitMenuState extends CompositeAppState {
 
         Container props = menuContainer.addChild(new Container(new BorderLayout()), South);
         props.setBackground(null);
-        props.addChild(new ActionButton(new CallMethodAction("Yes", getApplication(), "stop")), West);
+        props.addChild(new ActionButton(new CallMethodAction("Yes", this, "stop")), West);
         props.addChild(new ActionButton(new CallMethodAction("No", this, "onDisable")), East);
 
         parent.getMainWindow().addChild(window);
@@ -77,9 +82,16 @@ public class ExitMenuState extends CompositeAppState {
         window.setLocalScale(2.0f / standardScale);
     }
 
+    protected void stop() {
+        gameLogicCore.getSoundManager().getMenuNode().play();
+
+        application.stop();
+    }
 
     @Override
     protected void onDisable() {
+        gameLogicCore.getSoundManager().getMenuNode().play();
+
         window.removeFromParent();
         parent.onEnable();
     }

@@ -28,21 +28,27 @@
 
   <build>
     <plugins>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <source>17</source>
-          <target>17</target>
-          <encoding>UTF-8</encoding>
-        </configuration>
-        <version>3.8.0</version>
-      </plugin>
+      <!--<plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>2.0.0</version>
+        <executions>
+          <execution>
+            <id>aggregate-download-licenses</id>
+            <goals>
+              <goal>aggregate-download-licenses</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>-->
+
         <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.10.1</version>
             <configuration>
-                <source>17</source>
-                <target>17</target>
+                <source>${java.version}</source>
+                <target>${java.version}</target>
             </configuration>
         </plugin>
 
@@ -64,8 +70,8 @@
   </build>
 
   <properties>
-    <maven.compiler.source>17</maven.compiler.source>
-    <maven.compiler.target>17</maven.compiler.target>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
 
     <encoding>UTF-8</encoding>
 
@@ -75,5 +81,30 @@
     <lemur.version>1.16.0</lemur.version>
     <lemur-proto.version>1.13.0</lemur-proto.version>
   </properties>
+
+  <profiles>
+    <profile>
+      <id>jdk1.8</id>
+      <properties>
+        <java.version>1.8</java.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>jdk11</id>
+      <properties>
+        <java.version>11</java.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>jdk17</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <java.version>17</java.version>
+      </properties>
+    </profile>
+  </profiles>
+
 
 </project>

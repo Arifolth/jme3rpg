@@ -18,22 +18,10 @@
 
 package ru.arifolth.game;
 
-import com.jme3.audio.AudioNode;
+import com.jme3.math.Vector3f;
 
-public interface SoundManagerInterface {
-    AudioNode getMenuNode();
+public interface SkyInterface {
+    Vector3f getSunDirection();
 
-    void setVolume(float value);
-
-    void reInitialize();
-
-    AudioNode getFootStepsNode();
-
-    AudioNode getWindNode();
-
-    AudioNode getSwordSwingNode();
-
-    AudioNode getSwordHitNode();
-
-    AudioNode getSwordBlockNode();
+    void update(float tpf);
 }
