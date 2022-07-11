@@ -75,6 +75,12 @@ public class OptionsMenuState extends CompositeAppState {
         getStateManager().attach(new ControlsMenuState(this));
     }
 
+    private void gameplay() {
+        gameLogicCore.getSoundManager().getMenuNode().play();
+
+        getStateManager().attach(new GamePlayMenuState(this));
+    }
+
     @Override
     protected void onEnable() {
         optionsWindow = new Container(new BorderLayout());
@@ -92,6 +98,9 @@ public class OptionsMenuState extends CompositeAppState {
 
         ActionButton controls = menuContainer.addChild(new ActionButton(new CallMethodAction("Controls", this, "controls")));
         controls.setInsets(new Insets3f(10, 10, 10, 10));
+
+        ActionButton gameplay = menuContainer.addChild(new ActionButton(new CallMethodAction("Gameplay", this, "gameplay")));
+        gameplay.setInsets(new Insets3f(10, 10, 10, 10));
 
         parent.getMainWindow().addChild(optionsWindow, East);
         GuiGlobals.getInstance().requestFocus(optionsWindow);

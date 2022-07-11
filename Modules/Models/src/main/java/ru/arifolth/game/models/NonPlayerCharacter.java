@@ -26,6 +26,7 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
+import com.jme3.system.AppSettings;
 import ru.arifolth.game.CharacterInterface;
 import ru.arifolth.game.Constants;
 import ru.arifolth.game.Debug;
@@ -173,7 +174,11 @@ public class NonPlayerCharacter extends PlayerCharacter {
 
     @Override
     protected void initializeSkeletonDebug() {
-        Debug.showNodeAxes(gameLogicCore.getAssetManager(), this.getNode(), 5);
+        AppSettings settings = gameLogicCore.getApp().getContext().getSettings();
+        boolean debug = settings.getBoolean(Constants.DEBUG);
+        if(debug) {
+            Debug.showNodeAxes(gameLogicCore.getAssetManager(), this.getNode(), 5);
+        }
     }
 
     @Override

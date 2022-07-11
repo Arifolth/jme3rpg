@@ -38,8 +38,10 @@ public class Constants {
     public static final float SOUND_VOLUME = 3f;
     public static final float SOUND_PITCH = 0.5f;
     public static final SSAOFilter SSAO_FILTER_BASIC = new SSAOFilter(1f, 1.5f, 5.8f, 0.9f);
+    public static final String DEBUG = "Debug";
 
     private Constants() {
+        //NO OP CTOR
     }
 
 }

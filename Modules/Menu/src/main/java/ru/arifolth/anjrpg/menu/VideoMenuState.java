@@ -26,6 +26,7 @@ import com.simsilica.lemur.component.SpringGridLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.arifolth.anjrpg.ANJRpgInterface;
+import ru.arifolth.game.Constants;
 import ru.arifolth.game.GameLogicCoreInterface;
 
 import java.util.Arrays;
@@ -56,7 +57,7 @@ public class VideoMenuState extends CustomCompositeAppState {
         return parent;
     }
 
-    private void restartGame() {
+    private void apply() {
         gameLogicCore.getSoundManager().getMenuNode().play();
 
         AppSettings settings = application.getSettings();
@@ -75,14 +76,8 @@ public class VideoMenuState extends CustomCompositeAppState {
 
         MenuUtils.saveSettings(settings);
 
-//        getApplication().getContext().restart();
-        getApplication().stop();
-    }
-
-    private void apply() {
-        gameLogicCore.getSoundManager().getMenuNode().play();
-
-        getStateManager().attach(new ConfirmationMenuState(this));
+        getApplication().getContext().setSettings(settings);
+        getApplication().getContext().restart();
     }
 
     private void applySamples(AppSettings settings) {
@@ -131,6 +126,10 @@ public class VideoMenuState extends CustomCompositeAppState {
         frameRateDropDown.initialize(settings);
         bitsPerPixelDropDown.initialize(settings);
         samplesDropDown.initialize(settings);
+
+        vsync.setChecked(settings.getBoolean("VSync"));
+        gammaCorrection.setChecked(settings.getBoolean("Gamma Correction"));
+        fullscreen.setChecked(settings.getBoolean("Fullscreen"));
     }
 
     @Override
@@ -176,14 +175,11 @@ public class VideoMenuState extends CustomCompositeAppState {
         props.addChild(new Label("Anti Aliasing:"), West);
         props.addChild(samplesDropDown, East);
 
-        Checkbox temp = joinPanel.addChild(fullscreen);
-        temp.setChecked(true);
+        Checkbox checkbox = joinPanel.addChild(fullscreen);
 
-        temp = joinPanel.addChild(gammaCorrection);
-        temp.setChecked(false);
+        checkbox = joinPanel.addChild(gammaCorrection);
 
-        temp = joinPanel.addChild(vsync);
-        temp.setChecked(true);
+        checkbox = joinPanel.addChild(vsync);
 
         props = joinPanel.addChild(new Container(new BorderLayout()));
         props.setBackground(null);

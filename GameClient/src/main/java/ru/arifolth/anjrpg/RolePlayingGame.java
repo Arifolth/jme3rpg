@@ -27,6 +27,7 @@ import com.jme3.asset.plugins.ClasspathLocator;
 import com.jme3.audio.AudioListenerState;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.scene.Node;
+import com.jme3.system.AppSettings;
 import com.simsilica.lemur.OptionPanelState;
 import com.simsilica.lemur.event.PopupState;
 import de.lessvoid.nifty.elements.Element;
@@ -154,7 +155,11 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         stateManager.attach(bulletAppState);
         bulletAppState.setEnabled(true);
         //collision capsule shape is visible in debug mode
-        bulletAppState.setDebugEnabled(true);
+        AppSettings settings = this.getContext().getSettings();
+        boolean debug = settings.getBoolean(Constants.DEBUG);
+        if(debug) {
+            bulletAppState.setDebugEnabled(true);
+        }
 //        setProgress(new Object() {}.getClass().getEnclosingMethod().getName());
     }
 

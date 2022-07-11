@@ -73,7 +73,7 @@ public class ConfirmationMenuState extends CompositeAppState {
 
         Container props = menuContainer.addChild(new Container(new BorderLayout()), South);
         props.setBackground(null);
-        props.addChild(new ActionButton(new CallMethodAction("Apply", parent, "restartGame")), West);
+        props.addChild(new ActionButton(new CallMethodAction("Apply", parent, "apply")), West);
         props.addChild(new ActionButton(new CallMethodAction("Cancel", this, "onDisable")), East);
 
 
