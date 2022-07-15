@@ -1,0 +1,9 @@
+Material Maple Tree Trunk : Common/MatDefs/Light/Lighting.j3md {
+
+    MaterialParameters {
+        DiffuseMap : Flip Repeat Textures/Tree/BarkMossy-tiled-c.png
+
+    }
+
+
+}

@@ -23,10 +23,10 @@ import com.jme3.collision.CollisionResults;
 import com.jme3.input.ChaseCamera;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.MouseButtonTrigger;
-import com.jme3.math.ColorRGBA;
-import com.jme3.math.Ray;
-import com.jme3.math.Vector3f;
+import com.jme3.math.*;
 import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
+import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.ui.Picture;
 import ru.arifolth.anjrpg.weather.Emitter;
 import ru.arifolth.anjrpg.weather.RainEmitter;
@@ -142,7 +142,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
         //Uncomment this to enable rotation when the middle mouse button is pressed (like Blender)
         //WARNING : setting this trigger disable the rotation on right and left mouse button click
-        chaseCam.setToggleRotationTrigger(new MouseButtonTrigger(MouseInput.BUTTON_MIDDLE));
+        chaseCam.setToggleRotationTrigger(new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
 
         //chaseCam.setDefaultDistance(40);
         //chaseCam.setDefaultHorizontalRotation(90f);
@@ -155,6 +155,39 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         this.enablePlayerPhysics();
         if(positionCharacters) {
             this.initPlayerComplete();
+        }
+    }
+
+    @Override
+    public void setupTrees() {
+        Spatial treeModel;
+
+        for(int i = 0; i < Utils.getRandomNumberInRange(2000, 2001); i++) {
+            treeModel = gameLogicCore.getAssetManager().loadModel("Models/Fir1/fir1_androlo.j3o");
+            treeModel.scale(1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10));
+
+            gameLogicCore.getForestNode().attachChild(treeModel);
+        }
+    }
+
+    @Override
+    public void positionTrees(TerrainQuad quad) {
+        for(Spatial treeNode: gameLogicCore.getForestNode().getChildren()) {
+            CollisionResults results = new CollisionResults();
+
+            Vector3f start = new Vector3f(gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().x + Utils.getRandomNumberInRange(-1000, 1000), gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().y, gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().z + Utils.getRandomNumberInRange(-1000, 1000));
+            Ray ray = new Ray(start, RAY_DOWN);
+
+            quad.collideWith(ray, results);
+            CollisionResult hit = results.getClosestCollision();
+            if(hit != null) {
+                if(hit.getContactPoint().y <= Constants.WATER_LEVEL_HEIGHT) {
+                    continue;
+                }
+                Vector3f plantLocation = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y, hit.getContactPoint().z);
+                treeNode.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
+                treeNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(-7, 7) * FastMath.DEG_TO_RAD, new Vector3f(1, 0, 1)));
+            }
         }
     }
 

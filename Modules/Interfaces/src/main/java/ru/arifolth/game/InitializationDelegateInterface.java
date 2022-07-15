@@ -19,6 +19,7 @@
 package ru.arifolth.game;
 
 import com.jme3.scene.Node;
+import com.jme3.terrain.geomipmap.TerrainQuad;
 
 import java.util.Map;
 
@@ -28,6 +29,10 @@ public interface InitializationDelegateInterface {
     void setupCamera();
 
     void initializePlayer(boolean positionCharacters);
+
+    void setupTrees();
+
+    void positionTrees(TerrainQuad quad);
 
     void positionPlayer();
 

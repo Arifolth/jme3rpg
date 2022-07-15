@@ -42,6 +42,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
     private LocationTrackerInterface locationTracker = new LocationTracker(this);
     private final InitializationDelegate initializationDelegate = new InitializationDelegate(this);
     private final Node enemies = new Node("enemies");
+    private Node treesForestNode = new Node("Forest Node");
 
     private MovementControllerInterface movementController;
     private TerrainManagerInterface terrainManager;
@@ -83,6 +84,11 @@ public class GameLogicCore implements GameLogicCoreInterface {
 
         movementController.setUpKeys();
 //        initializer.setupWeatherEffects();
+        getRootNode().attachChild(treesForestNode);
+    }
+
+    public Node getForestNode() {
+        return treesForestNode;
     }
 
     public void reInitialize() {

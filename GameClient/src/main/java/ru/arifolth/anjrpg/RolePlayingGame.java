@@ -80,6 +80,8 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         attachTerrain();
 
         initializeEntities();
+
+        gameLogicCore.getInitializationDelegate().setupTrees();
     }
 
     private void initializeEntities() {
