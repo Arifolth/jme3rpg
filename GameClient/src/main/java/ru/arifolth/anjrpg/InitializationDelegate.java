@@ -160,13 +160,13 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
     @Override
     public void setupTrees() {
-        Spatial treeModel;
+        final Spatial treeModel = gameLogicCore.getAssetManager().loadModel("Models/Fir1/fir1_androlo.j3o");
 
         for(int i = 0; i < Utils.getRandomNumberInRange(2000, 2001); i++) {
-            treeModel = gameLogicCore.getAssetManager().loadModel("Models/Fir1/fir1_androlo.j3o");
-            treeModel.scale(1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10));
+            Spatial treeModelCustom = treeModel.clone();
+            treeModelCustom.scale(1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10));
 
-            gameLogicCore.getForestNode().attachChild(treeModel);
+            gameLogicCore.getForestNode().attachChild(treeModelCustom);
         }
     }
 
@@ -186,7 +186,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
                 }
                 Vector3f plantLocation = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y, hit.getContactPoint().z);
                 treeNode.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
-                treeNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(-7, 7) * FastMath.DEG_TO_RAD, new Vector3f(1, 0, 1)));
+                treeNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(-6.5f, 6.5f) * FastMath.DEG_TO_RAD, new Vector3f(1, 0, 1)));
             }
         }
     }
