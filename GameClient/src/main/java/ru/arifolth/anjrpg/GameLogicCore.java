@@ -87,6 +87,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
         getRootNode().attachChild(treesForestNode);
     }
 
+    @Override
     public Node getForestNode() {
         return treesForestNode;
     }

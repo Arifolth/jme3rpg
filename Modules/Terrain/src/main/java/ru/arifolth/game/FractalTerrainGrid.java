@@ -170,7 +170,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
     private void setUpLODControl() {
         /** 5. The LOD (level of detail) depends on were the camera is: */
         TerrainLodControl control = new TerrainGridLodControl(this.terrain, app.getCamera());
-        control.setLodCalculator(new DistanceLodCalculator(65, 2.7f)); // patch size, and a multiplier
+        control.setLodCalculator(new DistanceLodCalculator(257, 2.7f)); // patch size, and a multiplier
         this.terrain.addControl(control);
     }
 

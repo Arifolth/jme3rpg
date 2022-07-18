@@ -107,6 +107,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
                     initializationDelegate.positionNPCs(getGameLogicCore().getCharacterMap());
                     initializationDelegate.initNPCsComplete();
 
+                    initializationDelegate.positionTrees(getTerrainManager().getTerrain());
                     //these calls have to be done on the update loop thread,
                     //especially attaching the terrain to the rootNode
                     //after it is attached, it's managed by the update loop thread

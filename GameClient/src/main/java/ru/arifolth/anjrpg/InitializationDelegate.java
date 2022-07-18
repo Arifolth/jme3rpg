@@ -172,6 +172,9 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
     @Override
     public void positionTrees(TerrainQuad quad) {
+        if(quad.getUserData("quadForest") != null)
+            return;
+
         for(Spatial treeNode: gameLogicCore.getForestNode().getChildren()) {
             CollisionResults results = new CollisionResults();
 
@@ -189,6 +192,8 @@ public class InitializationDelegate implements InitializationDelegateInterface {
                 treeNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(-6.5f, 6.5f) * FastMath.DEG_TO_RAD, new Vector3f(1, 0, 1)));
             }
         }
+
+        quad.setUserData("quadForest", true);
     }
 
     @Override

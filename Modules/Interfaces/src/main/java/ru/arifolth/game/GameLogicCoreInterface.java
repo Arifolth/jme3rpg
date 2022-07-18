@@ -34,6 +34,8 @@ import java.util.Set;
 public interface GameLogicCoreInterface {
     CharacterInterface getPlayerCharacter();
 
+    Node getForestNode();
+
     void reInitialize();
 
     Map<Node,CharacterInterface> getCharacterMap();
