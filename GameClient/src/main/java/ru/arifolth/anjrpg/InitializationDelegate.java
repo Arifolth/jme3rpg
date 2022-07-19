@@ -24,6 +24,7 @@ import com.jme3.input.ChaseCamera;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.math.*;
+import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.terrain.geomipmap.TerrainQuad;
@@ -161,11 +162,11 @@ public class InitializationDelegate implements InitializationDelegateInterface {
     @Override
     public void setupTrees() {
         final Spatial treeModel = gameLogicCore.getAssetManager().loadModel("Models/Fir1/fir1_androlo.j3o");
+        treeModel.setShadowMode(RenderQueue.ShadowMode.Cast);
 
-        for(int i = 0; i < Utils.getRandomNumberInRange(2000, 2001); i++) {
+        for(int i = 0; i < Utils.getRandomNumberInRange(4000, 4001); i++) {
             Spatial treeModelCustom = treeModel.clone();
             treeModelCustom.scale(1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10));
-
             gameLogicCore.getForestNode().attachChild(treeModelCustom);
         }
     }
