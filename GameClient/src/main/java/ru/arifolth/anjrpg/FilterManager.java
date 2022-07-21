@@ -54,6 +54,8 @@ public class FilterManager implements FilterManagerInterface {
     public void initialize() {
         fpp = new FilterPostProcessor(assetManager);
 
+        //addFog();
+
         setupFilterPostProcessor();
         setupLightScatteringFilter();
         setupDepthOfFieldFilter();
@@ -61,9 +63,7 @@ public class FilterManager implements FilterManagerInterface {
         //setupTranslucentBucketFilter();
         setupShadowRenderer();
         setupWaterFilter();
-        //setupCartoonEdgeFilter();
-
-        addFog();
+        setupCartoonEdgeFilter();
 
         viewPort.addProcessor(fpp);
     }
@@ -81,7 +81,6 @@ public class FilterManager implements FilterManagerInterface {
         waterFilter = new WaterFilter(rootNode, sky.getSunDirection().normalize());
         waterFilter.setWaterHeight(Constants.WATER_LEVEL_HEIGHT);
         fpp.addFilter(waterFilter);
-        viewPort.addProcessor(fpp);
     }
 
 
@@ -90,9 +89,8 @@ public class FilterManager implements FilterManagerInterface {
         FogFilter fog=new FogFilter();
         fog.setFogColor(new ColorRGBA(0.9f, 0.9f, 0.9f, 1.0f));
         fog.setFogDistance(1000);
-        fog.setFogDensity(0.255f);
+        fog.setFogDensity(2.255f);
         fpp.addFilter(fog);
-        viewPort.addProcessor(fpp);
     }
 
     private void setupShadowRenderer() {
