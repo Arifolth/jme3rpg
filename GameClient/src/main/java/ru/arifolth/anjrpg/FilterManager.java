@@ -88,7 +88,7 @@ public class FilterManager implements FilterManagerInterface {
         /** Add fog to a scene */
         FogFilter fog=new FogFilter();
         fog.setFogColor(new ColorRGBA(0.9f, 0.9f, 0.9f, 1.0f));
-        fog.setFogDistance(1000);
+        fog.setFogDistance(5000);
         fog.setFogDensity(2.255f);
         fpp.addFilter(fog);
     }
