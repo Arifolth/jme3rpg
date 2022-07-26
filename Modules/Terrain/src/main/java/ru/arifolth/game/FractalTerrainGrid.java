@@ -188,7 +188,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
                 quad.addControl(new RigidBodyControl(new HeightfieldCollisionShape(quad.getHeightMap(), terrain.getLocalScale()), 0));
                 bulletAppState.getPhysicsSpace().add(quad);
                 //plant trees
-                app.getGameLogicCore().getInitializationDelegate().positionTrees(quad);
+                app.getGameLogicCore().getInitializationDelegate().positionTrees(quad, true);
             }
 
             @Override

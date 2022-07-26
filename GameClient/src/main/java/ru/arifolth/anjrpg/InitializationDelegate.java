@@ -40,6 +40,7 @@ import ru.arifolth.game.models.PlayerCharacter;
 
 import java.util.Map;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static ru.arifolth.anjrpg.GameLogicCore.RAY_DOWN;
 
@@ -172,11 +173,12 @@ public class InitializationDelegate implements InitializationDelegateInterface {
     }
 
     @Override
-    public void positionTrees(TerrainQuad quad) {
+    public void positionTrees(TerrainQuad quad, boolean parallel) {
         if(quad.getUserData("quadForest") != null)
             return;
 
-        for(Spatial treeNode: gameLogicCore.getForestNode().getChildren()) {
+        Stream<Spatial> stream = parallel ? gameLogicCore.getForestNode().getChildren().parallelStream() : gameLogicCore.getForestNode().getChildren().stream();
+        stream.forEach(treeNode -> {
             CollisionResults results = new CollisionResults();
 
             Vector3f start = new Vector3f(gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().x + Utils.getRandomNumberInRange(-1000, 1000), gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().y, gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().z + Utils.getRandomNumberInRange(-1000, 1000));
@@ -184,15 +186,14 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
             quad.collideWith(ray, results);
             CollisionResult hit = results.getClosestCollision();
-            if(hit != null) {
-                if(hit.getContactPoint().y <= Constants.WATER_LEVEL_HEIGHT) {
-                    continue;
+            if (hit != null) {
+                if (hit.getContactPoint().y > Constants.WATER_LEVEL_HEIGHT) {
+                    Vector3f plantLocation = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y, hit.getContactPoint().z);
+                    treeNode.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
+                    treeNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(-6.5f, 6.5f) * FastMath.DEG_TO_RAD, new Vector3f(1, 0, 1)));
                 }
-                Vector3f plantLocation = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y, hit.getContactPoint().z);
-                treeNode.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
-                treeNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(-6.5f, 6.5f) * FastMath.DEG_TO_RAD, new Vector3f(1, 0, 1)));
             }
-        }
+        });
 
         quad.setUserData("quadForest", true);
     }

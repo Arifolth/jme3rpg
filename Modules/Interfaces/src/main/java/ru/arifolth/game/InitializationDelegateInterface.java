@@ -32,7 +32,7 @@ public interface InitializationDelegateInterface {
 
     void setupTrees();
 
-    void positionTrees(TerrainQuad quad);
+    void positionTrees(TerrainQuad quad, boolean parallel);
 
     void positionPlayer();
 
