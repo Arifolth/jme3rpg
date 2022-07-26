@@ -143,7 +143,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
         //Uncomment this to enable rotation when the middle mouse button is pressed (like Blender)
         //WARNING : setting this trigger disable the rotation on right and left mouse button click
-        chaseCam.setToggleRotationTrigger(new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
+        chaseCam.setToggleRotationTrigger(new MouseButtonTrigger(MouseInput.BUTTON_MIDDLE));
 
         //chaseCam.setDefaultDistance(40);
         //chaseCam.setDefaultHorizontalRotation(90f);
