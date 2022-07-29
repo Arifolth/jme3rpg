@@ -81,7 +81,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
 
         initializeEntities();
 
-        gameLogicCore.getInitializationDelegate().setupTrees();
+//        gameLogicCore.getInitializationDelegate().setupTrees();
     }
 
     private void initializeEntities() {

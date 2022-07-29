@@ -38,6 +38,8 @@ import ru.arifolth.game.Utils;
 import ru.arifolth.game.models.NonPlayerCharacter;
 import ru.arifolth.game.models.PlayerCharacter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -45,6 +47,7 @@ import java.util.stream.Stream;
 import static ru.arifolth.anjrpg.GameLogicCore.RAY_DOWN;
 
 public class InitializationDelegate implements InitializationDelegateInterface {
+    private Spatial treeModel;
     private final GameLogicCore gameLogicCore;
 
     public InitializationDelegate(GameLogicCore gameLogicCore) {
@@ -99,13 +102,20 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
     @Override
     public void initialize(boolean positionCharacters) {
-        this.setupGameOverIndicator();
+        setupGameOverIndicator();
 
         //put player at the beginning location
-        this.initializePlayer(positionCharacters);
+        initializePlayer(positionCharacters);
 
         //position NPCs around the Player
-        this.initializeNPCs(positionCharacters);
+        initializeNPCs(positionCharacters);
+
+        initializeTreeModel();
+    }
+
+    private void initializeTreeModel() {
+        treeModel = gameLogicCore.getAssetManager().loadModel("Models/Fir1/fir1_androlo.j3o");
+        treeModel.setShadowMode(RenderQueue.ShadowMode.Cast);
     }
 
     @Override
@@ -161,41 +171,63 @@ public class InitializationDelegate implements InitializationDelegateInterface {
     }
 
     @Override
-    public void setupTrees() {
-        final Spatial treeModel = gameLogicCore.getAssetManager().loadModel("Models/Fir1/fir1_androlo.j3o");
-        treeModel.setShadowMode(RenderQueue.ShadowMode.Cast);
-
-        for(int i = 0; i < Utils.getRandomNumberInRange(4000, 4001); i++) {
+    public List<Spatial> setupTrees() {
+        int forestSize = (int) Utils.getRandomNumberInRange(2000, 4000);
+        List<Spatial> quadForest = new ArrayList<>(forestSize);
+        for(int i = 0; i < forestSize; i++) {
             Spatial treeModelCustom = treeModel.clone();
             treeModelCustom.scale(1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10));
-            gameLogicCore.getForestNode().attachChild(treeModelCustom);
+            quadForest.add(treeModelCustom);
         }
+
+        return quadForest;
     }
 
     @Override
     public void positionTrees(TerrainQuad quad, boolean parallel) {
-        if(quad.getUserData("quadForest") != null)
-            return;
+        List<Spatial> quadForest = quad.getUserData("quadForest");
+        if(quadForest == null) {
+            quadForest = setupTrees();
 
-        Stream<Spatial> stream = parallel ? gameLogicCore.getForestNode().getChildren().parallelStream() : gameLogicCore.getForestNode().getChildren().stream();
-        stream.forEach(treeNode -> {
-            CollisionResults results = new CollisionResults();
+            Stream<Spatial> stream = quadForest.stream();
+            stream.forEach(treeNode -> {
+                int generated = -1;
+                while (generated++ < 0) {
+                    CollisionResults results = new CollisionResults();
 
-            Vector3f start = new Vector3f(gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().x + Utils.getRandomNumberInRange(-1000, 1000), gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().y, gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().z + Utils.getRandomNumberInRange(-1000, 1000));
-            Ray ray = new Ray(start, RAY_DOWN);
+                    float y = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().y;
+                    if (y < Constants.WATER_LEVEL_HEIGHT)
+                        y = 0;
 
-            quad.collideWith(ray, results);
-            CollisionResult hit = results.getClosestCollision();
-            if (hit != null) {
-                if (hit.getContactPoint().y > Constants.WATER_LEVEL_HEIGHT) {
-                    Vector3f plantLocation = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y, hit.getContactPoint().z);
-                    treeNode.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
-                    treeNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(-6.5f, 6.5f) * FastMath.DEG_TO_RAD, new Vector3f(1, 0, 1)));
+                    Vector3f start = new Vector3f(gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().x + Utils.getRandomNumberInRange(-1000, 1000), y, gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().z + Utils.getRandomNumberInRange(-1000, 1000));
+                    Ray ray = new Ray(start, RAY_DOWN);
+
+                    quad.collideWith(ray, results);
+                    CollisionResult hit = results.getClosestCollision();
+                    if (hit != null) {
+                        if (hit.getContactPoint().y > Constants.WATER_LEVEL_HEIGHT) {
+                            Vector3f plantLocation = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y, hit.getContactPoint().z);
+                            treeNode.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
+                            treeNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(-6.5f, 6.5f) * FastMath.DEG_TO_RAD, new Vector3f(1, 0, 1)));
+
+                            gameLogicCore.getForestNode().attachChild(treeNode);
+//                            System.out.println("Attached " + treeNode.hashCode() + treeNode.getLocalTranslation().toString());
+                            break;
+                        }
+                    } else {
+//                        System.out.println("Placement MISS " + treeNode.hashCode() + treeNode.getLocalTranslation().toString());
+                    }
                 }
-            }
-        });
+            });
+        } else {
+            Stream<Spatial> stream = quadForest.stream();
+            stream.forEach(treeNode -> {
+//                System.out.println("Attached again " + treeNode.hashCode() + treeNode.getLocalTranslation().toString());
+                gameLogicCore.getForestNode().attachChild(treeNode);
+            });
+        }
 
-        quad.setUserData("quadForest", true);
+        quad.setUserData("quadForest", quadForest);
     }
 
     @Override
