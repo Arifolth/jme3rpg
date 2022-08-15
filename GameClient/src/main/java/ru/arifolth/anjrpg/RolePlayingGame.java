@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2021 Alexander Nilov
+ *     Copyright (C) 2022 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -80,6 +80,8 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         attachTerrain();
 
         initializeEntities();
+
+//        gameLogicCore.getInitializationDelegate().setupTrees();
     }
 
     private void initializeEntities() {

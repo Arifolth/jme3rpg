@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2021 Alexander Nilov
+ *     Copyright (C) 2022 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ import com.jme3.bullet.collision.shapes.HeightfieldCollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.material.Material;
 import com.jme3.math.Vector3f;
+import com.jme3.scene.Spatial;
 import com.jme3.system.AppSettings;
 import com.jme3.terrain.geomipmap.*;
 import com.jme3.terrain.geomipmap.grid.FractalTileLoader;
@@ -38,7 +39,9 @@ import com.jme3.terrain.noise.fractal.FractalSum;
 import com.jme3.terrain.noise.modulator.NoiseModulator;
 import com.jme3.texture.Texture;
 
+import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 public class FractalTerrainGrid implements FractalTerrainGridInterface {
     final private static Logger LOGGER = Logger.getLogger(FractalTerrainGrid.class.getName());
@@ -170,7 +173,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
     private void setUpLODControl() {
         /** 5. The LOD (level of detail) depends on were the camera is: */
         TerrainLodControl control = new TerrainGridLodControl(this.terrain, app.getCamera());
-        control.setLodCalculator(new DistanceLodCalculator(65, 2.7f)); // patch size, and a multiplier
+        control.setLodCalculator(new DistanceLodCalculator(257, 2.7f)); // patch size, and a multiplier
         this.terrain.addControl(control);
     }
 
@@ -187,6 +190,8 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
                 }
                 quad.addControl(new RigidBodyControl(new HeightfieldCollisionShape(quad.getHeightMap(), terrain.getLocalScale()), 0));
                 bulletAppState.getPhysicsSpace().add(quad);
+                //plant trees
+                app.getGameLogicCore().getInitializationDelegate().positionTrees(quad, true);
             }
 
             @Override
@@ -195,6 +200,12 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
                     bulletAppState.getPhysicsSpace().remove(quad);
                     quad.removeControl(RigidBodyControl.class);
                 }*/
+                List<Spatial> quadForest = quad.getUserData("quadForest");
+                Stream<Spatial> stream = quadForest.stream();
+                stream.forEach(treeNode -> {
+//                    System.out.println("Detached " + treeNode.hashCode() + treeNode.getLocalTranslation().toString());
+                    app.getGameLogicCore().getForestNode().detachChild(treeNode);
+                });
             }
 
         });

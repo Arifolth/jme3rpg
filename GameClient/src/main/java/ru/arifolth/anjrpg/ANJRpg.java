@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2021 Alexander Nilov
+ *     Copyright (C) 2022 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -107,6 +107,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
                     initializationDelegate.positionNPCs(getGameLogicCore().getCharacterMap());
                     initializationDelegate.initNPCsComplete();
 
+//                    initializationDelegate.positionTrees(getTerrainManager().getTerrain(), false);
                     //these calls have to be done on the update loop thread,
                     //especially attaching the terrain to the rootNode
                     //after it is attached, it's managed by the update loop thread

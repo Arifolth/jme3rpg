@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2021 Alexander Nilov
+ *     Copyright (C) 2022 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -42,6 +42,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
     private LocationTrackerInterface locationTracker = new LocationTracker(this);
     private final InitializationDelegate initializationDelegate = new InitializationDelegate(this);
     private final Node enemies = new Node("enemies");
+    private Node treesForestNode = new Node("Forest Node");
 
     private MovementControllerInterface movementController;
     private TerrainManagerInterface terrainManager;
@@ -83,6 +84,12 @@ public class GameLogicCore implements GameLogicCoreInterface {
 
         movementController.setUpKeys();
 //        initializer.setupWeatherEffects();
+        getRootNode().attachChild(treesForestNode);
+    }
+
+    @Override
+    public Node getForestNode() {
+        return treesForestNode;
     }
 
     public void reInitialize() {

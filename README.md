@@ -6,7 +6,7 @@ An Open Source Action RPG game written in Java.
 mailto: <arifolth@gmail.com>
 
 #
-![Image](Screenshot_sunset.jpg "icon")
+![Image](Forest.jpg "icon")
 
 ## Build
 
@@ -40,6 +40,7 @@ Features:
 - [Mtnrim_v0.zip](https://sourceforge.net/projects/mountainrim/)
 - https://github.com/rdok/Arcem-Tutari
 - Sounds from https://freesound.org/
+- Tree models from BioMonkey
 - Other resources, credit is given in the code
 
 ## License

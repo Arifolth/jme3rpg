@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2021 Alexander Nilov
+ *     Copyright (C) 2022 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -23,10 +23,11 @@ import com.jme3.collision.CollisionResults;
 import com.jme3.input.ChaseCamera;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.MouseButtonTrigger;
-import com.jme3.math.ColorRGBA;
-import com.jme3.math.Ray;
-import com.jme3.math.Vector3f;
+import com.jme3.math.*;
+import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
+import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.ui.Picture;
 import ru.arifolth.anjrpg.weather.Emitter;
 import ru.arifolth.anjrpg.weather.RainEmitter;
@@ -37,12 +38,16 @@ import ru.arifolth.game.Utils;
 import ru.arifolth.game.models.NonPlayerCharacter;
 import ru.arifolth.game.models.PlayerCharacter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static ru.arifolth.anjrpg.GameLogicCore.RAY_DOWN;
 
 public class InitializationDelegate implements InitializationDelegateInterface {
+    private Spatial treeModel;
     private final GameLogicCore gameLogicCore;
 
     public InitializationDelegate(GameLogicCore gameLogicCore) {
@@ -97,13 +102,20 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
     @Override
     public void initialize(boolean positionCharacters) {
-        this.setupGameOverIndicator();
+        setupGameOverIndicator();
 
         //put player at the beginning location
-        this.initializePlayer(positionCharacters);
+        initializePlayer(positionCharacters);
 
         //position NPCs around the Player
-        this.initializeNPCs(positionCharacters);
+        initializeNPCs(positionCharacters);
+
+        initializeTreeModel();
+    }
+
+    private void initializeTreeModel() {
+        treeModel = gameLogicCore.getAssetManager().loadModel("Models/Fir1/fir1_androlo.j3o");
+        treeModel.setShadowMode(RenderQueue.ShadowMode.Cast);
     }
 
     @Override
@@ -156,6 +168,66 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         if(positionCharacters) {
             this.initPlayerComplete();
         }
+    }
+
+    @Override
+    public List<Spatial> setupTrees() {
+        int forestSize = (int) Utils.getRandomNumberInRange(3999, 4000);
+        List<Spatial> quadForest = new ArrayList<>(forestSize);
+        for(int i = 0; i < forestSize; i++) {
+            Spatial treeModelCustom = treeModel.clone();
+            treeModelCustom.scale(1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10));
+            quadForest.add(treeModelCustom);
+        }
+
+        return quadForest;
+    }
+
+    @Override
+    public void positionTrees(TerrainQuad quad, boolean parallel) {
+        List<Spatial> quadForest = quad.getUserData("quadForest");
+        if(quadForest == null) {
+            quadForest = setupTrees();
+
+            Stream<Spatial> stream = quadForest.stream();
+            stream.forEach(treeNode -> {
+                int generated = -1;
+                while (generated++ < 0) {
+                    CollisionResults results = new CollisionResults();
+
+                    float y = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().y;
+                    if (y < Constants.WATER_LEVEL_HEIGHT)
+                        y = 0;
+
+                    Vector3f start = new Vector3f(gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().x + Utils.getRandomNumberInRange(-1000, 1000), y, gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().z + Utils.getRandomNumberInRange(-1000, 1000));
+                    Ray ray = new Ray(start, RAY_DOWN);
+
+                    quad.collideWith(ray, results);
+                    CollisionResult hit = results.getClosestCollision();
+                    if (hit != null) {
+                        if (hit.getContactPoint().y > Constants.WATER_LEVEL_HEIGHT) {
+                            Vector3f plantLocation = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y, hit.getContactPoint().z);
+                            treeNode.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
+                            treeNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(-6.5f, 6.5f) * FastMath.DEG_TO_RAD, new Vector3f(1, 0, 1)));
+
+                            gameLogicCore.getForestNode().attachChild(treeNode);
+//                            System.out.println("Attached " + treeNode.hashCode() + treeNode.getLocalTranslation().toString());
+                            break;
+                        }
+                    } else {
+//                        System.out.println("Placement MISS " + treeNode.hashCode() + treeNode.getLocalTranslation().toString());
+                    }
+                }
+            });
+        } else {
+            Stream<Spatial> stream = quadForest.stream();
+            stream.forEach(treeNode -> {
+//                System.out.println("Attached again " + treeNode.hashCode() + treeNode.getLocalTranslation().toString());
+                gameLogicCore.getForestNode().attachChild(treeNode);
+            });
+        }
+
+        quad.setUserData("quadForest", quadForest);
     }
 
     @Override

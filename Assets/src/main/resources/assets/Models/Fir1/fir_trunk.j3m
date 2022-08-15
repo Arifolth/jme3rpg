@@ -1,0 +1,9 @@
+Material Fir1 Trunk : Common/MatDefs/Light/PBRLighting.j3md {
+     MaterialParameters {
+        BaseColorMap : Repeat Models/Fir1/fir_bark.png
+        NormalMap : Repeat Models/Fir1/fir_bark_NORM.png
+        //ParallaxMap : Repeat Models/Fir1/fir_bark_NORM.png
+     }
+    AdditionalRenderState {
+    }
+}
