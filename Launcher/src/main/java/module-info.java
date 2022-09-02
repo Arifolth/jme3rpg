@@ -1,0 +1,2 @@
+module ru.arifolth.anjrpg {
+}

@@ -31,7 +31,11 @@ import ru.arifolth.game.CharacterInterface;
 import ru.arifolth.game.Constants;
 import ru.arifolth.game.Debug;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class NonPlayerCharacter extends PlayerCharacter {
+    final private static Logger LOGGER = Logger.getLogger(NonPlayerCharacter.class.getName());
     protected float turnRate;
     protected float firingRange;
     protected float walkingRange;
@@ -101,15 +105,15 @@ public class NonPlayerCharacter extends PlayerCharacter {
     //TODO: Rewrite as a Melee/Ranged class later
     public void useWeapon() {
         animationDelegate.attackAnimation();
-        System.out.println("ATTACK!");
+        LOGGER.log(Level.INFO, "NPC ATTACK!");
         playSwordSound(getSwordSwingNode());
 
         if(!playerCharacter.isBlocking()) {
             playerCharacter.getHealthBar().applyDamage(Constants.DAMAGE);
-            System.out.println("HIT!");
+            LOGGER.log(Level.INFO, "HIT!");
             playSwordSound(getSwordHitNode());
         } else {
-            System.out.println("BLOCKED!");
+            LOGGER.log(Level.INFO, "BLOCKED!");
             playSwordSound(getSwordBlockNode());
         }
     }

@@ -20,12 +20,13 @@
 package ru.arifolth.anjrpg.menu;
 
 import com.jme3.system.AppSettings;
+import ru.arifolth.game.Constants;
 
 import java.util.*;
 import java.util.List;
 
 public class FrameRateDropDown extends Dropdown {
-    public static final int REFRESH_RATES_SIZE = 2;
+    public static final int FRAME_RATES_SIZE = 2;
 
     @Override
     protected void initialize(AppSettings settings) {
@@ -37,14 +38,16 @@ public class FrameRateDropDown extends Dropdown {
 
     protected void setCurrentValue() {
         int frameRate = settings.getFrameRate();
-
+        if(frameRate < Constants.MIN_FRAME_RATE) {
+            frameRate = Constants.MIN_FRAME_RATE;
+        }
         chosenElement.setText(Integer.toString(frameRate));
     }
 
     private java.util.List<String> getRefreshRates() {
-        List<String> refreshRates = new ArrayList<>(REFRESH_RATES_SIZE);
+        List<String> refreshRates = new ArrayList<>(FRAME_RATES_SIZE);
 
-        refreshRates.add(Integer.toString(30));
+        refreshRates.add(Integer.toString(Constants.MIN_FRAME_RATE));
         refreshRates.add(Integer.toString(60));
 
         return refreshRates;

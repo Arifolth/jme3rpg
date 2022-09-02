@@ -21,6 +21,8 @@ package ru.arifolth.game;
 import com.jme3.math.Vector3f;
 import com.jme3.post.ssao.SSAOFilter;
 
+import java.util.logging.Level;
+
 public class Constants {
     public static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, 150, 0);
 
@@ -31,14 +33,18 @@ public class Constants {
 
     public static final int WATER_LEVEL_HEIGHT = -70;
 
-    public static final String POM_XML = "pom.xml";
-
     public static final int MODEL_ADJUSTMENT = 3;
 
     public static final float SOUND_VOLUME = 3f;
     public static final float SOUND_PITCH = 0.5f;
     public static final SSAOFilter SSAO_FILTER_BASIC = new SSAOFilter(1f, 1.5f, 5.8f, 0.9f);
     public static final String DEBUG = "Debug";
+    public static final String POM_XML = "pom.xml";
+    public static final String ROOT_LOGGER = "";
+    public static final Level LOGGING_LEVEL = Level.INFO;
+    public static final int MIN_FRAME_RATE = 30;
+
+    //HKEY_CURRENT_USER\Software\JavaSoft\Prefs\
 
     private Constants() {
         //NO OP CTOR

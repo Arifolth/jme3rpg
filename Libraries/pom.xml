@@ -13,8 +13,10 @@
   <name>Game Libraries</name>
 
     <properties>
+		<log4j-api.version>2.19.0</log4j-api.version>
 		<groovy.version>3.0.10</groovy.version>
 		<sio2.version>1.7.0</sio2.version>
+		<java.main.class>ru.arifolth.anjrpg.ANJRpg</java.main.class>
 	</properties>
 
 	<parent>
@@ -24,6 +26,19 @@
   </parent>
 
     <dependencies>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j-impl</artifactId>
+		</dependency>
+
 		<!-- The core library -->
 		<dependency>
 			<groupId>${jme3.groupId}</groupId>
@@ -117,6 +132,21 @@
   <!-- online dependencies -->
   <dependencyManagement>
     <dependencies>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+			<version>${log4j-api.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>${log4j-api.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j-impl</artifactId>
+			<version>${log4j-api.version}</version>
+		</dependency>
 		<!-- The core library -->
 		<dependency>
 			<groupId>${jme3.groupId}</groupId>

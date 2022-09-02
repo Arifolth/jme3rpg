@@ -34,6 +34,8 @@ import ru.arifolth.game.CharacterInterface;
 import ru.arifolth.game.Constants;
 import ru.arifolth.game.Utils;
 
+import java.util.logging.Logger;
+
 public class PlayerCharacter extends AnimatedCharacter {
     public static final String PLAYER_CHARACTER_MODEL = "Models/Ninja/Ninja.j3o";
     protected static float MELEE_DISTANCE_LIMIT = 15f;

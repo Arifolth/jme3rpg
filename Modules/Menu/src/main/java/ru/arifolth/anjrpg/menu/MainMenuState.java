@@ -24,6 +24,8 @@ import com.jme3.app.state.BaseAppState;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
+import com.jme3.system.AppSettings;
+import com.jme3.system.JmeVersion;
 import com.simsilica.lemur.*;
 import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.IconComponent;
@@ -33,6 +35,8 @@ import org.slf4j.LoggerFactory;
 import ru.arifolth.anjrpg.ANJRpgInterface;
 import ru.arifolth.game.GameLogicCoreInterface;
 import ru.arifolth.game.InitializationDelegateInterface;
+
+import java.util.prefs.BackingStoreException;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.West;
 
@@ -47,6 +51,17 @@ public class MainMenuState extends BaseAppState {
     @Override
     protected void initialize(Application app) {
         application = (ANJRpgInterface) app;
+
+        AppSettings oldSettings = new AppSettings(false);
+        try {
+            oldSettings.load(JmeVersion.FULL_NAME);
+            if(oldSettings.size() == 0) {
+                //Game has been successfully launched. Save current settings.
+                MenuUtils.saveSettings(this.application.getSettings());
+            }
+        } catch (BackingStoreException e) {
+            throw new RuntimeException(e);
+        }
         gameLogicCore = application.getGameLogicCore();
     }
 

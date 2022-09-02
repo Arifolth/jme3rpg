@@ -9,6 +9,7 @@
   <groupId>ru.arifolth.game</groupId>
   <artifactId>GameClient</artifactId>
   <packaging>jar</packaging>
+  <version>1.0-SNAPSHOT</version>
 
   <name>Game Client</name>
 
@@ -30,6 +31,45 @@
                   <mainClass>${java.main.class}</mainClass>
               </configuration>
           </plugin>
+          <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-resources-plugin</artifactId>
+              <version>3.2.0</version>
+              <executions>
+                  <execution>
+                      <id>copy-pom</id>
+                      <phase>generate-sources</phase>
+                      <goals>
+                          <goal>copy-resources</goal>
+                      </goals>
+                      <configuration>
+                          <encoding>${encoding}</encoding>
+                          <outputDirectory>${basedir}/target/classes</outputDirectory>
+                          <resources>
+                              <resource>
+                                  <directory>/</directory>
+                                  <includes>
+                                      <include>pom.xml</include>
+                                  </includes>
+                              </resource>
+                          </resources>
+                      </configuration>
+                  </execution>
+              </executions>
+          </plugin>
+          <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-jar-plugin</artifactId>
+              <configuration>
+                  <archive>
+                      <manifest>
+                          <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                          <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                      </manifest>
+                  </archive>
+              </configuration>
+          </plugin>
+
       </plugins>
   </build>
 
@@ -85,8 +125,4 @@
             <scope>compile</scope>
         </dependency>
     </dependencies>
-
-    <properties>
-        <java.main.class>ru.arifolth.anjrpg.ANJRpg</java.main.class>
-    </properties>
 </project>

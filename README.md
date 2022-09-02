@@ -31,6 +31,23 @@ Features:
 - Environmental and combat sounds
 - UI
 - Loading Screen and Main Menu
+- Native launcher (executable with bundled jre)
+
+## Gameplay Keys
+Default bindings:
+- W - move forward
+- S - move backwards
+- A - move left
+- D - move right
+- SHIFT + W or SHIFT + S - RUN
+- LEFT_MOUSE - attack
+- MIDDLE_MOUSE - hold to move camera around the player
+- RIGHT_MOUSE - block (hold)
+- SPACE - jump
+
+## Hardware requirements
+- Monitor with at least 1920x1080 resolution
+- Decent videocard
 
 ## Repo
 
