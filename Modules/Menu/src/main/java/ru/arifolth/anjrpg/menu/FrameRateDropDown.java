@@ -20,7 +20,7 @@
 package ru.arifolth.anjrpg.menu;
 
 import com.jme3.system.AppSettings;
-import ru.arifolth.game.Constants;
+import ru.arifolth.anjrpg.interfaces.Constants;
 
 import java.util.*;
 import java.util.List;

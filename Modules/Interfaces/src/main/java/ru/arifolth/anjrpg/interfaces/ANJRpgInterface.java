@@ -16,24 +16,18 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.anjrpg;
+package ru.arifolth.anjrpg.interfaces;
 
-import ru.arifolth.anjrpg.interfaces.Constants;
-import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
-import ru.arifolth.anjrpg.interfaces.LocationTrackerInterface;
+import com.jme3.system.AppSettings;
+import de.lessvoid.nifty.controls.Controller;
+import de.lessvoid.nifty.screen.ScreenController;
+import ru.arifolth.anjrpg.interfaces.InitStateEnum;
+import ru.arifolth.anjrpg.interfaces.RolePlayingGameInterface;
 
-public class LocationTracker implements LocationTrackerInterface {
-    private GameLogicCoreInterface gameLogicCore;
+public interface ANJRpgInterface extends RolePlayingGameInterface, ScreenController, Controller {
+    void setUpGUI();
 
-    public LocationTracker(GameLogicCoreInterface gameLogicCore) {
-        this.gameLogicCore = gameLogicCore;
-    }
+    InitStateEnum getInitStatus();
 
-    @Override
-    public void update(float tpf) {
-        if(gameLogicCore.getCharacterMap().size() < Constants.NPC_AMOUNT) {
-            gameLogicCore.getInitializationDelegate().initializeNPCs(true);
-        }
-    }
-
+    AppSettings getSettings();
 }

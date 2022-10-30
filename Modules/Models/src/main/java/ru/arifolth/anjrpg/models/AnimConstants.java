@@ -16,24 +16,16 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.anjrpg;
+package ru.arifolth.anjrpg.models;
 
-import ru.arifolth.anjrpg.interfaces.Constants;
-import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
-import ru.arifolth.anjrpg.interfaces.LocationTrackerInterface;
+public class AnimConstants {
+    public static final String ATTACK = "Attack3";
+    public static final String BLOCK = "Block";
+    public static final String IDLE = "Idle3";
+    public static final String WALK = "Walk";
+    public static final String JUMP = "JumpNoHeight";
+    public static final String DEATH = "Death1";
 
-public class LocationTracker implements LocationTrackerInterface {
-    private GameLogicCoreInterface gameLogicCore;
-
-    public LocationTracker(GameLogicCoreInterface gameLogicCore) {
-        this.gameLogicCore = gameLogicCore;
+    private AnimConstants() {
     }
-
-    @Override
-    public void update(float tpf) {
-        if(gameLogicCore.getCharacterMap().size() < Constants.NPC_AMOUNT) {
-            gameLogicCore.getInitializationDelegate().initializeNPCs(true);
-        }
-    }
-
 }

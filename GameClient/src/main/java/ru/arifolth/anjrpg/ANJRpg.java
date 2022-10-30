@@ -32,10 +32,7 @@ import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.input.NiftyInputEvent;
 import de.lessvoid.nifty.screen.Screen;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import ru.arifolth.game.Constants;
-import ru.arifolth.game.InitStateEnum;
-import ru.arifolth.game.InitializationDelegateInterface;
-import ru.arifolth.game.RolePlayingGameInterface;
+import ru.arifolth.anjrpg.interfaces.*;
 
 import java.awt.*;
 import java.io.IOException;

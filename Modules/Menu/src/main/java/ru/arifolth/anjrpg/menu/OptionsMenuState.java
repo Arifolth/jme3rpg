@@ -25,8 +25,8 @@ import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.state.CompositeAppState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.arifolth.anjrpg.ANJRpgInterface;
-import ru.arifolth.game.GameLogicCoreInterface;
+import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
+import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.East;
 

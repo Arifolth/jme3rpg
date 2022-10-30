@@ -35,8 +35,10 @@ import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.tools.SizeValue;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.menu.MainMenuState;
-import ru.arifolth.game.*;
+import ru.arifolth.sound.SoundManager;
+import ru.arifolth.terrain.TerrainManager;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -27,9 +27,9 @@ import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Node;
 import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.water.WaterFilter;
-import ru.arifolth.game.Constants;
-import ru.arifolth.game.FilterManagerInterface;
-import ru.arifolth.game.SkyInterface;
+import ru.arifolth.anjrpg.interfaces.Constants;
+import ru.arifolth.anjrpg.interfaces.FilterManagerInterface;
+import ru.arifolth.anjrpg.interfaces.SkyInterface;
 
 public class FilterManager implements FilterManagerInterface {
 

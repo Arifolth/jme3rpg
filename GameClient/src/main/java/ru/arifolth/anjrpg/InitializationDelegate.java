@@ -29,14 +29,11 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.ui.Picture;
-import ru.arifolth.anjrpg.weather.Emitter;
+import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.anjrpg.interfaces.weather.EmitterInterface;
 import ru.arifolth.anjrpg.weather.RainEmitter;
-import ru.arifolth.game.CharacterInterface;
-import ru.arifolth.game.Constants;
-import ru.arifolth.game.InitializationDelegateInterface;
-import ru.arifolth.game.Utils;
-import ru.arifolth.game.models.NonPlayerCharacter;
-import ru.arifolth.game.models.PlayerCharacter;
+import ru.arifolth.anjrpg.models.NonPlayerCharacter;
+import ru.arifolth.anjrpg.models.PlayerCharacter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -87,7 +84,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
     }
 
     void setupWeatherEffects() {
-        Emitter emitter = new RainEmitter(gameLogicCore.getRootNode(), gameLogicCore.getAssetManager());
+        EmitterInterface emitter = new RainEmitter(gameLogicCore.getRootNode(), gameLogicCore.getAssetManager());
         emitter.setSpatial(gameLogicCore.getPlayerCharacter().getNode());
         gameLogicCore.getWeatherEffectsSet().add(emitter);
     }

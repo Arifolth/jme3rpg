@@ -16,24 +16,11 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.anjrpg;
+package ru.arifolth.anjrpg.interfaces;
 
-import ru.arifolth.anjrpg.interfaces.Constants;
-import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
-import ru.arifolth.anjrpg.interfaces.LocationTrackerInterface;
+import com.jme3.terrain.geomipmap.TerrainQuad;
 
-public class LocationTracker implements LocationTrackerInterface {
-    private GameLogicCoreInterface gameLogicCore;
-
-    public LocationTracker(GameLogicCoreInterface gameLogicCore) {
-        this.gameLogicCore = gameLogicCore;
-    }
-
-    @Override
-    public void update(float tpf) {
-        if(gameLogicCore.getCharacterMap().size() < Constants.NPC_AMOUNT) {
-            gameLogicCore.getInitializationDelegate().initializeNPCs(true);
-        }
-    }
+public interface TerrainInterface {
+    TerrainQuad generateTerrain();
 
 }

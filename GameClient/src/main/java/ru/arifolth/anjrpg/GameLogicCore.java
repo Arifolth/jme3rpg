@@ -28,8 +28,8 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.ui.Picture;
-import ru.arifolth.anjrpg.weather.Emitter;
-import ru.arifolth.game.*;
+import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.anjrpg.interfaces.weather.EmitterInterface;
 
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -59,7 +59,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
     private CharacterInterface playerCharacter = null;
     private Picture damageIndicator = null;
     private Map<Node, CharacterInterface> characterMap = new ConcurrentHashMap<>();
-    private Set<Emitter> weatherEffectsSet = new LinkedHashSet<>();
+    private Set<EmitterInterface> weatherEffectsSet = new LinkedHashSet<>();
 
     public GameLogicCore(Application app, Camera cam, FlyByCamera flyCam, InputManager inputManager, BulletAppState bulletAppState, AssetManager assetManager, SoundManagerInterface soundManager, TerrainManagerInterface terrainManager, Node rootNode) {
         this.movementController = new MovementController(app, inputManager);
@@ -127,7 +127,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
             character.update(tpf);
         }
 
-        for(Emitter emitter : weatherEffectsSet) {
+        for(EmitterInterface emitter : weatherEffectsSet) {
             emitter.update(tpf);
         }
     }
@@ -142,7 +142,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
     }
 
     @Override
-    public Set<Emitter> getWeatherEffectsSet() {
+    public Set<EmitterInterface> getWeatherEffectsSet() {
         return weatherEffectsSet;
     }
 

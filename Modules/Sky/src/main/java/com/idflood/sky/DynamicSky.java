@@ -8,7 +8,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.ViewPort;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Node;
-import ru.arifolth.game.SkyInterface;
+import ru.arifolth.anjrpg.interfaces.SkyInterface;
 
 public class DynamicSky extends Node implements SkyInterface {
     private DynamicSun dynamicSun = null;

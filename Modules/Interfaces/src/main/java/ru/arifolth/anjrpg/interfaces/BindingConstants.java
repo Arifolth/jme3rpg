@@ -16,24 +16,26 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.anjrpg;
+package ru.arifolth.anjrpg.interfaces;
 
-import ru.arifolth.anjrpg.interfaces.Constants;
-import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
-import ru.arifolth.anjrpg.interfaces.LocationTrackerInterface;
+public enum BindingConstants {
+    ESCAPE("Escape"),
+    UP("W"),
+    DOWN("S"),
+    LEFT("A"),
+    RIGHT("D"),
+    JUMP("SPACE"),
+    RUN("LSHIFT"),
+    BLOCK("Block"),
+    ATTACK("Attack");
 
-public class LocationTracker implements LocationTrackerInterface {
-    private GameLogicCoreInterface gameLogicCore;
+    private String defaultName;
 
-    public LocationTracker(GameLogicCoreInterface gameLogicCore) {
-        this.gameLogicCore = gameLogicCore;
+    public String getDefaultName() {
+        return defaultName;
     }
 
-    @Override
-    public void update(float tpf) {
-        if(gameLogicCore.getCharacterMap().size() < Constants.NPC_AMOUNT) {
-            gameLogicCore.getInitializationDelegate().initializeNPCs(true);
-        }
+    BindingConstants(String defaultName) {
+        this.defaultName = defaultName;
     }
-
 }
