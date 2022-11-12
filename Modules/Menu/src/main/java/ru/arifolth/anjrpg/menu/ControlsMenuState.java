@@ -79,7 +79,7 @@ public class ControlsMenuState extends CustomCompositeAppState {
         setEnabled(false);
         parent.setEnabled(false);
 
-        MenuUtils.saveSettings(settings);
+        SettingsUtils.saveSettings(settings);
     }
 
     @Override

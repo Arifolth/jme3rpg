@@ -66,7 +66,7 @@ public class GamePlayMenuState extends CustomCompositeAppState {
         setEnabled(false);
         parent.setEnabled(false);
 
-        MenuUtils.saveSettings(settings);
+        SettingsUtils.saveSettings(settings);
 
         getApplication().getContext().setSettings(settings);
         getApplication().getContext().restart();

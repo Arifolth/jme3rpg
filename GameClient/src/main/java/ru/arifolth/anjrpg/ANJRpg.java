@@ -22,7 +22,6 @@ import com.jme3.niftygui.NiftyJmeDisplay;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeContext;
 import com.jme3.system.JmeSystem;
-import com.jme3.system.JmeVersion;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.style.BaseStyles;
 import de.lessvoid.nifty.Nifty;
@@ -33,14 +32,13 @@ import de.lessvoid.nifty.input.NiftyInputEvent;
 import de.lessvoid.nifty.screen.Screen;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.anjrpg.menu.SettingsUtils;
 
-import java.awt.*;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
-import java.util.prefs.BackingStoreException;
 
 import static com.jme3.niftygui.NiftyJmeDisplay.newNiftyJmeDisplay;
 
@@ -68,36 +66,12 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
 
     @Override
     public void start() {
-        try {
-            if (settings == null) {
-                settings = new AppSettings(true);
-                AppSettings loadedSettings = new AppSettings(false);
-
-                loadedSettings.load(JmeVersion.FULL_NAME);
-
-                if(loadedSettings.size() != 0) {
-                    //native launcher does not respect merged settings and starts with some weired resolution
-                    //we will show dialog anyway until solution for native launcher bug is found
-//                    showSettings = false;
-                    settings.copyFrom(loadedSettings);
-                } else {
-                    applyDefaultSettings(settings);
-                }
-                setSettings(settings);
-
-                if (showSettings) {
-                    loadedSettings.setSettingsDialogImage(null);
-                    AppSettings defSettings = (AppSettings) loadedSettings.clone();
-                    if (!JmeSystem.showSettingsDialog(defSettings, true)) {
-                        return;
-                    }
-                    settings.copyFrom(defSettings);
-                }
-            }
-
-            setSettings(settings);
-        } catch (BackingStoreException e) {
-            throw new RuntimeException(e);
+        if (settings == null) {
+            AppSettings loadedSettings = SettingsUtils.loadSettings();
+            if(loadedSettings == null)
+                return;
+            setSettings(loadedSettings);
+            SettingsUtils.saveSettings(settings);
         }
 
         start(JmeContext.Type.Display, true);
@@ -238,20 +212,6 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
 
         showLoadingMenu();
         loadingCompleted = true;
-    }
-
-    private void applyDefaultSettings(AppSettings settings) {
-        GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        settings.setFullscreen(device.isFullScreenSupported());
-        settings.setBitsPerPixel(24); //24
-        settings.setSamples(0); //16
-        settings.setVSync(false);
-        settings.setResolution(1920,1080);
-        settings.setRenderer(AppSettings.LWJGL_OPENGL45);
-        settings.setFrameRate(30);
-        settings.setFrequency(30);
-        settings.setGammaCorrection(false);
-        settings.setTitle(JmeVersion.FULL_NAME);
     }
 
     @Override

@@ -18,14 +18,10 @@
 
 package ru.arifolth.anjrpg.menu;
 
-import com.jme3.system.AppSettings;
-import com.jme3.system.JmeVersion;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.prefs.BackingStoreException;
 
 public class MenuUtils {
     private static Class clazz;
@@ -89,13 +85,5 @@ public class MenuUtils {
         keys.remove("KEY_UNKNOWN");
 
         return keys;
-    }
-
-    public static void saveSettings(AppSettings settings) {
-        try {
-            settings.save(JmeVersion.FULL_NAME);
-        } catch (BackingStoreException ex) {
-            ex.printStackTrace();
-        }
     }
 }

@@ -57,7 +57,7 @@ public class MainMenuState extends BaseAppState {
             oldSettings.load(JmeVersion.FULL_NAME);
             if(oldSettings.size() == 0) {
                 //Game has been successfully launched. Save current settings.
-                MenuUtils.saveSettings(this.application.getSettings());
+                SettingsUtils.saveSettings(this.application.getSettings());
             }
         } catch (BackingStoreException e) {
             throw new RuntimeException(e);
