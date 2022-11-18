@@ -43,6 +43,7 @@ public class Constants {
     public static final String ROOT_LOGGER = "";
     public static final Level LOGGING_LEVEL = Level.INFO;
     public static final int MIN_FRAME_RATE = 30;
+    public static final int MOUNTAINS_HEIGHT_OFFSET = -250;
 
     //HKEY_CURRENT_USER\Software\JavaSoft\Prefs\
 

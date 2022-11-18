@@ -33,6 +33,7 @@ public class TerrainManager implements TerrainManagerInterface {
     private TerrainInterface terrainBuilder;
 
     private TerrainQuad terrain;
+    private TerrainQuad mountains;
 
     private AssetManager assetManager;
     private BulletAppState bulletAppState;
@@ -45,12 +46,11 @@ public class TerrainManager implements TerrainManagerInterface {
 
         terrainBuilder = new FractalTerrainGrid(assetManager, bulletAppState, app);
         generateTerrain();
-
-        getTerrain().setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
     }
 
     private void generateTerrain() {
         terrain = terrainBuilder.generateTerrain();
+        mountains = terrainBuilder.generateMountains();
     }
 
     public void generateGrass() {
@@ -61,7 +61,12 @@ public class TerrainManager implements TerrainManagerInterface {
         return terrain;
     }
 
-    public void update(float tpf) {
+    @Override
+    public TerrainQuad getMountains() {
+        return mountains;
+    }
 
+    public void update(float tpf) {
+        terrainBuilder.adjustMountainsPosition();
     }
 }
