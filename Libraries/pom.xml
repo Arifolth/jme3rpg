@@ -13,8 +13,10 @@
   <name>Game Libraries</name>
 
     <properties>
+		<log4j-api.version>2.19.0</log4j-api.version>
 		<groovy.version>3.0.10</groovy.version>
 		<sio2.version>1.7.0</sio2.version>
+		<java.main.class>ru.arifolth.anjrpg.ANJRpg</java.main.class>
 	</properties>
 
 	<parent>
@@ -24,6 +26,19 @@
   </parent>
 
     <dependencies>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j-impl</artifactId>
+		</dependency>
+
 		<!-- The core library -->
 		<dependency>
 			<groupId>${jme3.groupId}</groupId>
@@ -114,93 +129,108 @@
         <activeByDefault>true</activeByDefault>
       </activation>
 
-  <!-- online dependencies -->
-  <dependencyManagement>
-    <dependencies>
-		<!-- The core library -->
-		<dependency>
-			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-core</artifactId>
-			<version>${jmonkey.version}</version>
-		</dependency>		
-		
-		<!-- LWJGL stuff -->
-		<dependency>
-			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-lwjgl</artifactId>
-			<version>${jmonkey.version}</version>
-		</dependency>
-		
-		<!-- Bullet stuff -->
-		<dependency>
-			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-jbullet</artifactId>
-			<version>${jmonkey.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-desktop</artifactId>
-			<version>${jmonkey.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-effects</artifactId>
-			<version>${jmonkey.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-networking</artifactId>
-			<version>${jmonkey.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-plugins</artifactId>
-			<version>${jmonkey.version}</version>
-		</dependency>		
-		<dependency>
-			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-terrain</artifactId>
-			<version>${jmonkey.version}</version>
-		</dependency>	
-		
-		<!-- Ogg audio stuff -->
-		<dependency>
-			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-jogg</artifactId>
-			<version>${jmonkey.version}</version>
-		</dependency>
+	  <!-- online dependencies -->
+	  <dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-api</artifactId>
+				<version>${log4j-api.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-core</artifactId>
+				<version>${log4j-api.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-slf4j-impl</artifactId>
+				<version>${log4j-api.version}</version>
+			</dependency>
+			<!-- The core library -->
+			<dependency>
+				<groupId>${jme3.groupId}</groupId>
+				<artifactId>jme3-core</artifactId>
+				<version>${jmonkey.version}</version>
+			</dependency>
 
-		<!-- Nifty GUI -->
-		<dependency>
-			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-niftygui</artifactId>
-			<version>${jmonkey.version}</version>
-		</dependency>
+			<!-- LWJGL stuff -->
+			<dependency>
+				<groupId>${jme3.groupId}</groupId>
+				<artifactId>jme3-lwjgl</artifactId>
+				<version>${jmonkey.version}</version>
+			</dependency>
 
-		<!-- Lemur -->
-		<dependency>
-			<groupId>com.simsilica</groupId>
-			<artifactId>lemur</artifactId>
-			<version>${lemur.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.simsilica</groupId>
-			<artifactId>lemur-proto</artifactId>
-			<version>${lemur-proto.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.codehaus.groovy</groupId>
-			<artifactId>groovy-jsr223</artifactId>
-			<version>${groovy.version}</version>
-		</dependency>
+			<!-- Bullet stuff -->
+			<dependency>
+				<groupId>${jme3.groupId}</groupId>
+				<artifactId>jme3-jbullet</artifactId>
+				<version>${jmonkey.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${jme3.groupId}</groupId>
+				<artifactId>jme3-desktop</artifactId>
+				<version>${jmonkey.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${jme3.groupId}</groupId>
+				<artifactId>jme3-effects</artifactId>
+				<version>${jmonkey.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${jme3.groupId}</groupId>
+				<artifactId>jme3-networking</artifactId>
+				<version>${jmonkey.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${jme3.groupId}</groupId>
+				<artifactId>jme3-plugins</artifactId>
+				<version>${jmonkey.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${jme3.groupId}</groupId>
+				<artifactId>jme3-terrain</artifactId>
+				<version>${jmonkey.version}</version>
+			</dependency>
 
-		<dependency>
-			<groupId>com.simsilica</groupId>
-			<artifactId>sio2</artifactId>
-			<version>${sio2.version}</version>
-		</dependency>
-    </dependencies>
-  </dependencyManagement>
+			<!-- Ogg audio stuff -->
+			<dependency>
+				<groupId>${jme3.groupId}</groupId>
+				<artifactId>jme3-jogg</artifactId>
+				<version>${jmonkey.version}</version>
+			</dependency>
+
+			<!-- Nifty GUI -->
+			<dependency>
+				<groupId>${jme3.groupId}</groupId>
+				<artifactId>jme3-niftygui</artifactId>
+				<version>${jmonkey.version}</version>
+			</dependency>
+
+			<!-- Lemur -->
+			<dependency>
+				<groupId>com.simsilica</groupId>
+				<artifactId>lemur</artifactId>
+				<version>${lemur.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.simsilica</groupId>
+				<artifactId>lemur-proto</artifactId>
+				<version>${lemur-proto.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.codehaus.groovy</groupId>
+				<artifactId>groovy-jsr223</artifactId>
+				<version>${groovy.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>com.simsilica</groupId>
+				<artifactId>sio2</artifactId>
+				<version>${sio2.version}</version>
+			</dependency>
+		</dependencies>
+	  </dependencyManagement>
     </profile>
   </profiles>
 

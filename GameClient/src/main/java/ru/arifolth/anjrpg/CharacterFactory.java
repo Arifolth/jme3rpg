@@ -18,7 +18,8 @@
 
 package ru.arifolth.anjrpg;
 
-import ru.arifolth.game.CharacterInterface;
+import ru.arifolth.anjrpg.interfaces.CharacterFactoryInterface;
+import ru.arifolth.anjrpg.interfaces.CharacterInterface;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Logger;

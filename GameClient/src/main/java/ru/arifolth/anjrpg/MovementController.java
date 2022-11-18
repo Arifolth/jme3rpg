@@ -25,14 +25,14 @@ import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
-import ru.arifolth.game.InitStateEnum;
+import ru.arifolth.anjrpg.interfaces.InitStateEnum;
 import ru.arifolth.anjrpg.menu.MainMenuState;
 import ru.arifolth.anjrpg.menu.MenuUtils;
-import ru.arifolth.game.BindingConstants;
-import ru.arifolth.game.CharacterInterface;
-import ru.arifolth.game.MovementControllerInterface;
+import ru.arifolth.anjrpg.interfaces.BindingConstants;
+import ru.arifolth.anjrpg.interfaces.CharacterInterface;
+import ru.arifolth.anjrpg.interfaces.MovementControllerInterface;
 
-import static ru.arifolth.game.BindingConstants.*;
+import static ru.arifolth.anjrpg.interfaces.BindingConstants.*;
 
 public class MovementController implements MovementControllerInterface {
     private CharacterInterface playerCharacter;

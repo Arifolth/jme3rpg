@@ -20,6 +20,8 @@ package ru.arifolth.anjrpg;
 
 import com.jme3.niftygui.NiftyJmeDisplay;
 import com.jme3.system.AppSettings;
+import com.jme3.system.JmeContext;
+import com.jme3.system.JmeSystem;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.style.BaseStyles;
 import de.lessvoid.nifty.Nifty;
@@ -29,15 +31,14 @@ import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.input.NiftyInputEvent;
 import de.lessvoid.nifty.screen.Screen;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import ru.arifolth.game.InitStateEnum;
-import ru.arifolth.game.InitializationDelegateInterface;
-import ru.arifolth.game.RolePlayingGameInterface;
+import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.anjrpg.menu.SettingsUtils;
 
-import java.awt.*;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
-import java.util.prefs.BackingStoreException;
 
 import static com.jme3.niftygui.NiftyJmeDisplay.newNiftyJmeDisplay;
 
@@ -54,13 +55,39 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
 
     private static RolePlayingGameInterface app;
 
+    static {
+        Arrays.stream(LogManager.getLogManager().getLogger(Constants.ROOT_LOGGER).getHandlers()).forEach(h -> h.setLevel(Level.INFO));
+    }
     public static void main(String[] args) throws XmlPullParserException, IOException {
         app = new ANJRpg();
         app.start();
     }
 
+
+    @Override
+    public void start() {
+        if (settings == null) {
+            AppSettings loadedSettings = SettingsUtils.loadSettings();
+            if(loadedSettings == null)
+                return;
+            setSettings(loadedSettings);
+            SettingsUtils.saveSettings(settings);
+        }
+
+        start(JmeContext.Type.Display, true);
+    }
+
     public ANJRpg() throws XmlPullParserException, IOException {
-        initializeApplicationSettings();
+        setShowSettings(showSettings);
+
+        //do not output excessive info on console
+        Logger.getLogger(Constants.ROOT_LOGGER).setLevel(Constants.LOGGING_LEVEL);
+
+        // hide FPS HUD
+        setDisplayFps(false);
+
+        //hide statistics HUD
+        setDisplayStatView(false);
     }
 
     @Override
@@ -185,52 +212,6 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
 
         showLoadingMenu();
         loadingCompleted = true;
-    }
-
-    private void initializeApplicationSettings() {
-        if(loadingCompleted) {
-            return;
-        }
-
-        showSettings = false;
-
-        AppSettings settings = new AppSettings(false);
-        try {
-            AppSettings oldSettings = new AppSettings(false);
-            oldSettings.load("ru.arifolth.anjrpg");
-            if(oldSettings.size() == 0) {
-                oldSettings.copyFrom(new AppSettings(true));
-                applyDefaultSettings(settings);
-            }
-            settings.mergeFrom(oldSettings);
-        } catch (BackingStoreException e) {
-            e.printStackTrace();
-        }
-
-        this.setSettings(settings);
-        this.setShowSettings(showSettings);
-
-        //do not output excessive info on console
-        Logger.getLogger("").setLevel(Level.SEVERE);
-
-        // hide FPS HUD
-        setDisplayFps(false);
-
-        //hide statistics HUD
-        setDisplayStatView(false);
-    }
-
-    private void applyDefaultSettings(AppSettings settings) {
-        GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        settings.setFullscreen(device.isFullScreenSupported());
-        settings.setBitsPerPixel(24); //24
-        settings.setSamples(0); //16
-        settings.setVSync(true);
-        settings.setResolution(1920,1080);
-        settings.setRenderer(AppSettings.LWJGL_OPENGL45);
-        settings.setFrameRate(30);
-        settings.setFrequency(30);
-        settings.setGammaCorrection(false);
     }
 
     @Override

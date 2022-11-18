@@ -28,8 +28,9 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import ru.arifolth.anjrpg.interfaces.weather.EmitterInterface;
 
-public class RainEmitter implements Emitter {
+public class RainEmitter implements EmitterInterface {
     ParticleEmitter rain;
     private Spatial spatial;
 

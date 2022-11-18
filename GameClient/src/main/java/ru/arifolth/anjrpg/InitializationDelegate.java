@@ -29,18 +29,17 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.ui.Picture;
-import ru.arifolth.anjrpg.weather.Emitter;
+import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.anjrpg.interfaces.weather.EmitterInterface;
 import ru.arifolth.anjrpg.weather.RainEmitter;
-import ru.arifolth.game.CharacterInterface;
-import ru.arifolth.game.Constants;
-import ru.arifolth.game.InitializationDelegateInterface;
-import ru.arifolth.game.Utils;
-import ru.arifolth.game.models.NonPlayerCharacter;
-import ru.arifolth.game.models.PlayerCharacter;
+import ru.arifolth.anjrpg.models.NonPlayerCharacter;
+import ru.arifolth.anjrpg.models.PlayerCharacter;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -49,6 +48,7 @@ import static ru.arifolth.anjrpg.GameLogicCore.RAY_DOWN;
 public class InitializationDelegate implements InitializationDelegateInterface {
     private Spatial treeModel;
     private final GameLogicCore gameLogicCore;
+    final private static Logger LOGGER = Logger.getLogger(InitializationDelegate.class.getName());
 
     public InitializationDelegate(GameLogicCore gameLogicCore) {
         this.gameLogicCore = gameLogicCore;
@@ -84,7 +84,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
     }
 
     void setupWeatherEffects() {
-        Emitter emitter = new RainEmitter(gameLogicCore.getRootNode(), gameLogicCore.getAssetManager());
+        EmitterInterface emitter = new RainEmitter(gameLogicCore.getRootNode(), gameLogicCore.getAssetManager());
         emitter.setSpatial(gameLogicCore.getPlayerCharacter().getNode());
         gameLogicCore.getWeatherEffectsSet().add(emitter);
     }
@@ -266,14 +266,14 @@ public class InitializationDelegate implements InitializationDelegateInterface {
             if(character.isInitializing()) {
                 CollisionResults results = new CollisionResults();
                 Vector3f adjustedPos = new Vector3f(playerPos.x + Utils.getRandomNumberInRange(-Constants.NPC_LOCATION_RANGE, Constants.NPC_LOCATION_RANGE), playerPos.y + 150, playerPos.z + Utils.getRandomNumberInRange(-Constants.NPC_LOCATION_RANGE, Constants.NPC_LOCATION_RANGE));
-                System.out.println(adjustedPos.normalize());
+                LOGGER.log(Level.INFO, "NPC position:", adjustedPos.normalize());
                 Ray ray = new Ray(adjustedPos, RAY_DOWN);
 
                 gameLogicCore.getTerrainManager().getTerrain().collideWith(ray, results);
                 CollisionResult hit = results.getClosestCollision();
                 if (hit != null) {
                     Vector3f npcStartLoc = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y + Constants.MODEL_ADJUSTMENT, hit.getContactPoint().z);
-                    System.out.println(npcStartLoc.normalize());
+                    LOGGER.log(Level.INFO, "NPC start position:", npcStartLoc.normalize());
                     character.getCharacterControl().setPhysicsLocation(npcStartLoc);
                 }
             }

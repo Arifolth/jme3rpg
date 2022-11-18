@@ -104,6 +104,15 @@
         <java.version>17</java.version>
       </properties>
     </profile>
+    <profile>
+      <id>native</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <modules>
+        <module>Launcher</module>
+      </modules>
+    </profile>
   </profiles>
 
 

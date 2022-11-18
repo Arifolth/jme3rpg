@@ -25,9 +25,8 @@ import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.SpringGridLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.arifolth.anjrpg.ANJRpgInterface;
-import ru.arifolth.game.Constants;
-import ru.arifolth.game.GameLogicCoreInterface;
+import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
+import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
 
 import java.util.Arrays;
 import java.util.List;
@@ -74,7 +73,7 @@ public class VideoMenuState extends CustomCompositeAppState {
         setEnabled(false);
         parent.setEnabled(false);
 
-        MenuUtils.saveSettings(settings);
+        SettingsUtils.saveSettings(settings);
 
         getApplication().getContext().setSettings(settings);
         getApplication().getContext().restart();

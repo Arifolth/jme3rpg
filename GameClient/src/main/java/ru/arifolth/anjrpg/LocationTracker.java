@@ -18,9 +18,9 @@
 
 package ru.arifolth.anjrpg;
 
-import ru.arifolth.game.Constants;
-import ru.arifolth.game.GameLogicCoreInterface;
-import ru.arifolth.game.LocationTrackerInterface;
+import ru.arifolth.anjrpg.interfaces.Constants;
+import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
+import ru.arifolth.anjrpg.interfaces.LocationTrackerInterface;
 
 public class LocationTracker implements LocationTrackerInterface {
     private GameLogicCoreInterface gameLogicCore;

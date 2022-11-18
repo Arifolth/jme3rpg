@@ -25,10 +25,10 @@ import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.SpringGridLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.arifolth.anjrpg.ANJRpgInterface;
-import ru.arifolth.game.BindingConstants;
-import ru.arifolth.game.GameLogicCoreInterface;
-import ru.arifolth.game.MovementControllerInterface;
+import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
+import ru.arifolth.anjrpg.interfaces.BindingConstants;
+import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
+import ru.arifolth.anjrpg.interfaces.MovementControllerInterface;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.East;
 import static com.simsilica.lemur.component.BorderLayout.Position.West;
@@ -79,7 +79,7 @@ public class ControlsMenuState extends CustomCompositeAppState {
         setEnabled(false);
         parent.setEnabled(false);
 
-        MenuUtils.saveSettings(settings);
+        SettingsUtils.saveSettings(settings);
     }
 
     @Override

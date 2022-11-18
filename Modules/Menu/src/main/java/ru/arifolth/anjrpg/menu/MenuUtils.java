@@ -18,17 +18,12 @@
 
 package ru.arifolth.anjrpg.menu;
 
-import com.jme3.system.AppSettings;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.prefs.BackingStoreException;
 
 public class MenuUtils {
-    //HKEY_CURRENT_USER\Software\JavaSoft\Prefs\ru\arifolth\anjrpg
-    public static final String PREFERENCES_KEY = "ru.arifolth.anjrpg";
     private static Class clazz;
 
     static {
@@ -90,13 +85,5 @@ public class MenuUtils {
         keys.remove("KEY_UNKNOWN");
 
         return keys;
-    }
-
-    public static void saveSettings(AppSettings settings) {
-        try {
-            settings.save(PREFERENCES_KEY);
-        } catch (BackingStoreException ex) {
-            ex.printStackTrace();
-        }
     }
 }

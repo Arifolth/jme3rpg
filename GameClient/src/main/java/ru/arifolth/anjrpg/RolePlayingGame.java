@@ -35,11 +35,14 @@ import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.tools.SizeValue;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.menu.MainMenuState;
-import ru.arifolth.game.*;
+import ru.arifolth.sound.SoundManager;
+import ru.arifolth.terrain.TerrainManager;
 
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public abstract class RolePlayingGame extends SimpleApplication implements RolePlayingGameInterface {
@@ -55,7 +58,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     protected BulletAppState bulletAppState;
     protected GameLogicCoreInterface gameLogicCore;
 
-    public RolePlayingGame() throws IOException, XmlPullParserException {
+    public RolePlayingGame() throws XmlPullParserException {
         super(new FlyCamAppState(),
                 new AudioListenerState(),
                 new PopupState(),
@@ -63,7 +66,11 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
                 new MainMenuState()
         );
 
-        version = new MavenXpp3Reader().read(new FileReader(Constants.POM_XML)).getVersion();
+        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(Constants.POM_XML)) {
+            version = new MavenXpp3Reader().read(is).getVersion();
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Unable to read version info!", e);
+        }
     }
 
     @Override
@@ -80,8 +87,6 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         attachTerrain();
 
         initializeEntities();
-
-//        gameLogicCore.getInitializationDelegate().setupTrees();
     }
 
     private void initializeEntities() {
