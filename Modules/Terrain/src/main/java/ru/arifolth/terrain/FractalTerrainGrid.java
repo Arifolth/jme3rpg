@@ -294,7 +294,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
         /** 4. We give the distantTerrain its material, position & scale it, and attach it. */
         distantTerrain.setMaterial(matTerrain);
         distantTerrain.setLocalTranslation(0, Constants.MOUNTAINS_HEIGHT_OFFSET, 0);
-        distantTerrain.setLocalScale(8f, 25f, 8f);
+        distantTerrain.setLocalScale(6f, 19f, 6f);
 
         /** 5. The LOD (level of detail) depends on were the camera is: */
         TerrainLodControl control = new TerrainLodControl(distantTerrain, app.getCamera());
