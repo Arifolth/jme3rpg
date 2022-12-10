@@ -26,6 +26,7 @@ import com.jme3.material.Material;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.control.UpdateControl;
 import com.jme3.system.AppSettings;
 import com.jme3.terrain.geomipmap.*;
 import com.jme3.terrain.geomipmap.grid.FractalTileLoader;
@@ -46,6 +47,8 @@ import ru.arifolth.anjrpg.interfaces.FractalTerrainGridInterface;
 import ru.arifolth.anjrpg.interfaces.RolePlayingGameInterface;
 
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -157,11 +160,141 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
 
         ground.addPreFilter(this.iterate);
 
-        this.terrain = new TerrainGrid("terrain", 65, 1025, new FractalTileLoader(ground, 256f));
+        this.terrain = new TerrainGrid("terrain", 65, 1025, new FractalTileLoader(ground, 256f)) {
+            protected boolean isNeighbour(int quadIndex) {
+                return quadIndex == 0 || quadIndex == 1 || quadIndex == 2 || quadIndex == 3 ||
+                        quadIndex == 4 || quadIndex == 8 ||
+                        quadIndex == 7 || quadIndex == 11 ||
+                        quadIndex == 12 || quadIndex == 13 || quadIndex == 14 || quadIndex == 15;
+            }
+
+            class UpdateQuadCacheRpg extends UpdateQuadCache {
+
+                public UpdateQuadCacheRpg(Vector3f location) {
+                    super(location);
+                }
+
+                @Override
+                public void run() {
+                    for (int i = 0; i < 4; i++) {
+                        for (int j = 0; j < 4; j++) {
+                            int quadIdx = i * 4 + j;
+                            final Vector3f quadCell = location.add(quadIndex[quadIdx]);
+                            TerrainQuad q = cache.get(quadCell);
+                            if (q == null) {
+                                if (getGridTileLoader() != null) {
+                                    q = getGridTileLoader().getTerrainQuadAt(quadCell);
+                                    // only clone the material to the quad if it doesn't have a material of its own
+                                    if(q.getMaterial()==null) q.setMaterial(material.clone());
+                                    log.log(Level.FINE, "Loaded TerrainQuad {0} from TerrainQuadGrid", q.getName());
+                                }
+                            }
+                            cache.put(quadCell, q);
+
+
+                            final int quadrant = getQuadrant(quadIdx);
+                            final TerrainQuad newQuad = q;
+
+                            if (!isNeighbour(quadIdx)) {
+                                if (isCenter(quadIdx)) {
+                                    // if it should be attached as a child right now, attach it
+                                    getControl(UpdateControl.class).enqueue(new Callable<Object>() {
+                                        // back on the OpenGL thread:
+                                        @Override
+                                        public Object call() throws Exception {
+                                            if (newQuad.getParent() != null) {
+                                                attachQuadAt(newQuad, quadrant, quadCell, true);
+                                            }
+                                            else {
+                                                attachQuadAt(newQuad, quadrant, quadCell, false);
+                                            }
+                                            return null;
+                                        }
+                                    });
+                                } else {
+                                    getControl(UpdateControl.class).enqueue(new Callable<Object>() {
+                                        @Override
+                                        public Object call() throws Exception {
+                                            removeQuad(newQuad);
+                                            log.log(Level.SEVERE, "Unloaded TerrainQuad {0} from TerrainQuadGrid", newQuad.getQuadrant());
+                                            return null;
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    getControl(UpdateControl.class).enqueue(new Callable<Object>() {
+                        // back on the OpenGL thread:
+                        @Override
+                        public Object call() throws Exception {
+                            for (Spatial s : getChildren()) {
+                                if (s instanceof TerrainQuad) {
+                                    TerrainQuad tq = (TerrainQuad)s;
+                                    tq.resetCachedNeighbours();
+                                }
+                            }
+                            setNeedToRecalculateNormals();
+                            return null;
+                        }
+                    });
+                }
+            }
+            @Override
+            protected void updateChildren(Vector3f camCell) {
+
+                int dx = 0;
+                int dy = 0;
+                if (currentCamCell != null) {
+                    dx = (int) (camCell.x - currentCamCell.x);
+                    dy = (int) (camCell.z - currentCamCell.z);
+                }
+
+                int xMin = 0;
+                int xMax = 4;
+                int yMin = 0;
+                int yMax = 4;
+                if (dx == -1) { // camera moved to -X direction
+                    xMax = 3;
+                } else if (dx == 1) { // camera moved to +X direction
+                    xMin = 1;
+                }
+
+                if (dy == -1) { // camera moved to -Y direction
+                    yMax = 3;
+                } else if (dy == 1) { // camera moved to +Y direction
+                    yMin = 1;
+                }
+
+                // Touch the items in the cache that we are and will be interested in.
+                // We activate cells in the direction we are moving. If we didn't move
+                // either way in one of the axes (say X or Y axis) then they are all touched.
+                for (int i = yMin; i < yMax; i++) {
+                    for (int j = xMin; j < xMax; j++) {
+                        cache.get(camCell.add(quadIndex[i * 4 + j]));
+                    }
+                }
+
+                // ---------------------------------------------------
+                // ---------------------------------------------------
+
+                if (cacheExecutor == null) {
+                    // use the same executor as the LODControl
+                    cacheExecutor = createExecutorService();
+                }
+
+                cacheExecutor.submit(new UpdateQuadCacheRpg(camCell));
+
+                this.currentCamCell = camCell;
+            }
+        };
 
         this.terrain.setMaterial(matTerrain);
 
         setupPosition();
+
+        setupScale();
 
         setUpLODControl();
 
@@ -172,10 +305,13 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
         return terrain;
     }
 
+    private void setupScale() {
+        terrain.setLocalScale(Constants.TERRAIN_SCALE_X, Constants.TERRAIN_SCALE_Y, Constants.TERRAIN_SCALE_Z);
+    }
+
     private void setupPosition() {
         //terrain postion
         terrain.setLocalTranslation(0, -200, 0);
-        terrain.setLocalScale(2f, 1f, 2f);
     }
 
     private void setUpLODControl() {
@@ -204,10 +340,10 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
 
             @Override
             public void tileDetached(Vector3f cell, TerrainQuad quad) {
-                /*if (quad.getControl(RigidBodyControl.class) != null) {
+                if (quad.getControl(RigidBodyControl.class) != null) {
                     bulletAppState.getPhysicsSpace().remove(quad);
                     quad.removeControl(RigidBodyControl.class);
-                }*/
+                }
                 List<Spatial> quadForest = quad.getUserData("quadForest");
                 Stream<Spatial> stream = quadForest.stream();
                 stream.forEach(treeNode -> {

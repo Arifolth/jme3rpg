@@ -44,6 +44,9 @@ public class Constants {
     public static final Level LOGGING_LEVEL = Level.INFO;
     public static final int MIN_FRAME_RATE = 30;
     public static final int MOUNTAINS_HEIGHT_OFFSET = -250;
+    public static final float TERRAIN_SCALE_X = 2f;
+    public static final float TERRAIN_SCALE_Y = 1f;
+    public static final float TERRAIN_SCALE_Z = 2f;
 
     //HKEY_CURRENT_USER\Software\JavaSoft\Prefs\
 
