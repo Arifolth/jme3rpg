@@ -5,7 +5,7 @@ An Open Source Action RPG game written in Java.
 mailto: <arifolth@gmail.com>
 
 #
-![Image](screenshots/Day.jpg "icon")
+![Image](Screenshots/Day.jpg "icon")
 
 ## Features:
 - Modular Maven build
