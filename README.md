@@ -1,26 +1,13 @@
 # ANJRpg
 Alexander's Nilov Java Role Playing Game (ANJRpg).
-
 An Open Source Action RPG game written in Java.
 
 mailto: <arifolth@gmail.com>
 
 #
-![Image](Forest.jpg "icon")
+![Image](screenshots/Day.jpg "icon")
 
-## Build
-
-Use [Maven](https://maven.apache.org/) to build the ANJRpg.
-
-```bash
-mvn install
-```
-## Run
-```bash
-mvn exec:java -pl GameClient -Djvm.options="-XX:-TieredCompilation -XX:TieredStopAtLevel=3 -server -XX:+UnlockExperimentalVMOptions -XX:+UseZGC"
-```
-## About game
-Features:
+## Features:
 - Modular Maven build
 - Borderless procedurally generated world (Work In Progress)
 - Day and Night Cycle 
@@ -47,10 +34,20 @@ Default bindings:
 
 ## Hardware requirements
 - Monitor with at least 1920x1080 resolution
-- Decent videocard
+- Decent videocard with
+
+## Build
+Use [Maven](https://maven.apache.org/) to build the ANJRpg.
+
+```bash
+mvn install
+```
+## Run
+```bash
+mvn exec:java -pl GameClient -Djvm.options="-XX:-TieredCompilation -XX:TieredStopAtLevel=3 -server -XX:+UnlockExperimentalVMOptions -XX:+UseZGC"
+```
 
 ## Repo
-
 <https://github.com/Arifolth/jme3rpg>
 
 ## Materials used
@@ -60,7 +57,15 @@ Default bindings:
 - Tree models from BioMonkey
 - Other resources, credit is given in the code
 
+## Screenshots
+![Image](Screenshots/ForestWithMountains.jpg "icon")
+![Image](Screenshots/mountains.jpg "icon")
+![Image](Screenshots/Hit.jpg "icon")
+![Image](Screenshots/sunrise.jpg "icon")
+![Image](Screenshots/Underwater.jpg "icon")
+![Image](Screenshots/Night.jpg "icon")
+
 ## License
-[GPLv3](https://www.gnu.org/licenses/gpl-3.0.txt)
+It is released under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.txt)
 
 #### Copyright 2022 &copy; Alexander Nilov
