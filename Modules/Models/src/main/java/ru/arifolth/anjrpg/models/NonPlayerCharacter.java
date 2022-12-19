@@ -58,7 +58,7 @@ public class NonPlayerCharacter extends PlayerCharacter {
         characterModel.rotate(0,3.14159f,0);
         SkeletonControl skeletonControl = characterModel.getControl(SkeletonControl.class);
         if(null != skeletonControl)
-            skeletonControl.setHardwareSkinningPreferred(false);
+            skeletonControl.setHardwareSkinningPreferred(true);
     }
 
     public void setPlayerCharacter(CharacterInterface playerCharacter) {

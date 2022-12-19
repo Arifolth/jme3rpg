@@ -142,7 +142,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
 
     protected void attachTerrain() {
         getRootNode().attachChild(terrainManager.getTerrain());
-        //terrainManager.generateGrass();
+        getRootNode().attachChild(terrainManager.getMountains());
     }
 
     @Override
