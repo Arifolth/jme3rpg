@@ -145,7 +145,7 @@ public class HeightMapTerrain implements HeightMapTerrainInterface {
     }
 
     @Override
-    public void adjustMountainsPosition() {
+    public void update() {
 
     }
 }

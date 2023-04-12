@@ -18,198 +18,100 @@
 
 package ru.arifolth.sound;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import com.jme3.asset.AssetManager;
-import com.jme3.audio.AudioData;
 import com.jme3.audio.AudioNode;
-import ru.arifolth.anjrpg.interfaces.Constants;
-import ru.arifolth.anjrpg.interfaces.SoundManagerInterface;
+import com.jme3.audio.AudioSource;
+import ru.arifolth.anjrpg.interfaces.*;
 
 import java.util.EnumSet;
 import java.util.logging.Logger;
 
-import static ru.arifolth.sound.SoundManager.SoundType.getClone;
-
 public class SoundManager implements SoundManagerInterface {
     final private static Logger LOGGER = Logger.getLogger(SoundManager.class.getName());
+    private float soundVolume = Constants.SOUND_VOLUME;
+    private float musicVolume = Constants.SOUND_VOLUME / Constants.MUSIC_VOLUME_MULTIPLIER;
+    private AudioNode currentMusicNode;
+    private MusicType nextMusicType;
+    private float fadeOut;
 
-    private static final Multimap<SoundType, AudioNode> soundMap = ArrayListMultimap.create();
-    private static AssetManager assetManager;
+    @Override
+    public AudioNode getCurrentMusicNode() {
+        return currentMusicNode;
+    }
 
-    private static float volume = Constants.SOUND_VOLUME;
-    private static final float pitch = Constants.SOUND_PITCH;
-
-    enum SoundType {
-        WIND {
-            @Override
-            void init() {
-                AudioNode audioNode = new AudioNode(assetManager, "Sounds/birds/459977__florianreichelt__soft-wind.ogg", AudioData.DataType.Stream);
-                audioNode.setLooping(true);
-                audioNode.setPositional(false);
-
-                soundMap.put(SoundType.WIND, audioNode);
-            }
-        },
-        WEATHER {
-            @Override
-            void init() {
-
-            }
-        },
-        FOOTSTEPS {
-            @Override
-            void init() {
-                AudioNode audioNode = new AudioNode(assetManager, "Sounds/running.wav", AudioData.DataType.Buffer);
-                audioNode.setLooping(true);
-                audioNode.setVolume(volume);
-                audioNode.setPitch(0.65f);
-
-                soundMap.put(SoundType.FOOTSTEPS, audioNode);
-            }
-        },
-        SWORD_SWING {
-            @Override
-            void init() {
-                {
-                    AudioNode audioNode = new AudioNode(assetManager, "Sounds/swing/209121__lukesharples__sword-swipe11.wav", AudioData.DataType.Buffer);
-                    audioNode.setVolume(volume);
-                    audioNode.setPitch(pitch);
-                    soundMap.put(SoundType.SWORD_SWING, audioNode);
-                }
-                {
-                    AudioNode audioNode = new AudioNode(assetManager, "Sounds/swing/209122__lukesharples__sword-swipe2.wav", AudioData.DataType.Buffer);
-                    audioNode.setVolume(volume);
-                    audioNode.setPitch(pitch);
-                    soundMap.put(SoundType.SWORD_SWING, audioNode);
-                }
-                {
-                    AudioNode audioNode = new AudioNode(assetManager, "Sounds/swing/209123__lukesharples__sword-swipe13.wav", AudioData.DataType.Buffer);
-                    audioNode.setVolume(volume);
-                    audioNode.setPitch(pitch);
-                    soundMap.put(SoundType.SWORD_SWING, audioNode);
-                }
-                {
-                    AudioNode audioNode = new AudioNode(assetManager, "Sounds/swing/209124__lukesharples__sword-swipe4.wav", AudioData.DataType.Buffer);
-                    audioNode.setVolume(volume);
-                    audioNode.setPitch(pitch);
-                    soundMap.put(SoundType.SWORD_SWING, audioNode);
-                }
-                {
-                    AudioNode audioNode = new AudioNode(assetManager, "Sounds/swing/209125__lukesharples__sword-swipe3.wav", AudioData.DataType.Buffer);
-                    audioNode.setVolume(volume);
-                    audioNode.setPitch(pitch);
-                    soundMap.put(SoundType.SWORD_SWING, audioNode);
-                }
-                {
-                    AudioNode audioNode = new AudioNode(assetManager, "Sounds/swing/209126__lukesharples__sword-swipe6.wav", AudioData.DataType.Buffer);
-                    audioNode.setVolume(volume);
-                    audioNode.setPitch(pitch);
-                    soundMap.put(SoundType.SWORD_SWING, audioNode);
-                }
-                {
-                    AudioNode audioNode = new AudioNode(assetManager, "Sounds/swing/209127__lukesharples__sword-swipe5.wav", AudioData.DataType.Buffer);
-                    audioNode.setVolume(volume);
-                    audioNode.setPitch(pitch);
-                    soundMap.put(SoundType.SWORD_SWING, audioNode);
-                }
-            }
-        },
-        SWORD_HIT {
-            @Override
-            void init() {
-                {
-                    AudioNode audioNode = new AudioNode(assetManager, "Sounds/hit/215008__taira-komori__stabbing.ogg", AudioData.DataType.Buffer);
-                    audioNode.setVolume(volume);
-                    audioNode.setPitch(pitch);
-                    soundMap.put(SoundType.SWORD_HIT, audioNode);
-                }
-            }
-        },
-        MENU {
-            @Override
-            void init() {
-                AudioNode audioNode = new AudioNode(assetManager, "Sounds/menu/71469__natharra__blink-4-damped.ogg", AudioData.DataType.Buffer);
-                audioNode.setPositional(false);
-
-                soundMap.put(SoundType.MENU, audioNode);
-            }
-        },
-        SWORD_BLOCK {
-            @Override
-            void init() {
-                {
-                    AudioNode audioNode = new AudioNode(assetManager, "Sounds/block/213696__taira-komori__sword1.ogg", AudioData.DataType.Buffer);
-                    audioNode.setVolume(volume);
-                    audioNode.setPitch(pitch);
-                    soundMap.put(SoundType.SWORD_BLOCK, audioNode);
-                }
-                {
-                    AudioNode audioNode = new AudioNode(assetManager, "Sounds/block/213695__taira-komori__sword2.ogg", AudioData.DataType.Buffer);
-                    audioNode.setVolume(volume);
-                    audioNode.setPitch(pitch);
-                    soundMap.put(SoundType.SWORD_BLOCK, audioNode);
-                }
-                {
-                    AudioNode audioNode = new AudioNode(assetManager, "Sounds/block/213694__taira-komori__sword3.ogg", AudioData.DataType.Buffer);
-                    audioNode.setVolume(volume);
-                    audioNode.setPitch(pitch);
-                    soundMap.put(SoundType.SWORD_BLOCK, audioNode);
-                }
-            }
-        };
-
-        abstract void init();
-
-        public static AudioNode getClone(SoundType wind) {
-            return SoundUtils.getRandomObject(soundMap.get(wind)).clone();
+    @Override
+    public void fadeMusicOut(float tpf, MusicType nextMusicType) {
+        if(fadeOut == 0) {
+            fadeOut = tpf / 2;
         }
+        this.nextMusicType = nextMusicType;
     }
 
     public SoundManager(AssetManager assetManager) {
-        SoundManager.assetManager = assetManager;
+        SoundType.setAssetManager(assetManager);
+        MusicType.setAssetManager(assetManager);
 
         initialize();
     }
 
+    @Override
     public void initialize() {
         EnumSet.allOf(SoundType.class).forEach(SoundType::init);
+        EnumSet.allOf(MusicType.class).forEach(MusicType::init);
     }
 
-    public AudioNode getWindNode() {
-        return getClone(SoundType.WIND);
+    public AudioNode getSoundNode(AudioType musicType) {
+        return SoundType.getClone(musicType);
     }
 
-    public AudioNode getSwordSwingNode() {
-        return getClone(SoundType.SWORD_SWING);
-    }
-
-    public AudioNode getSwordHitNode() {
-        return getClone(SoundType.SWORD_HIT);
-    }
-
-    public AudioNode getSwordBlockNode() {
-        return getClone(SoundType.SWORD_BLOCK);
-    }
-
-    public AudioNode getFootStepsNode() {
-        return getClone(SoundType.FOOTSTEPS);
+    public AudioNode getMusicNode(AudioType musicType) {
+        return MusicType.getOriginal(musicType);
     }
 
     @Override
     public AudioNode getMenuNode() {
-        return getClone(SoundType.MENU);
+        return SoundType.getOriginal(SoundType.MENU);
     }
 
+    @Override
     public void update(float tpf) {
-        //TODO: play area/situation specific music here
+        if((fadeOut > 0) && (currentMusicNode.getVolume() > 0)) {
+            float volume = currentMusicNode.getVolume() - fadeOut;
+            currentMusicNode.setVolume(Math.max(volume, 0f));
+        } else if(nextMusicType != null){
+            fadeOut = 0;
+            currentMusicNode = getMusicNode(nextMusicType);
+            nextMusicType = null;
+            currentMusicNode.setVolume(soundVolume);
+            currentMusicNode.stop();
+            currentMusicNode.play();
+        }
+    }
+
+    @Override
+    public void setNextMusicType(MusicType nextMusicType) {
+        this.nextMusicType = nextMusicType;
     }
 
     public void setVolume(float volume) {
-        SoundManager.volume = volume;
+        this.soundVolume = volume;
+        this.musicVolume = soundVolume / Constants.MUSIC_VOLUME_MULTIPLIER;
     }
 
-    public void reInitialize() {
-        soundMap.values().forEach(audioNode -> audioNode.setVolume(volume));
+    public void reInitialize(GameLogicCoreInterface gameLogicCore) {
+        {
+            //iterate over sound nodes. For now we have only Foot Steps
+            String soundName = SoundType.FOOTSTEPS.name();
+            ((AudioNode) gameLogicCore.getPlayerCharacter().getNode().getChild(soundName)).setVolume(soundVolume);
+            gameLogicCore.getCharacterMap().values().forEach(
+                character -> ((AudioNode) character.getNode().getChild(soundName)).setVolume(soundVolume)
+            );
+
+            SoundType.reInitialize(soundVolume);
+        }
+        {
+            currentMusicNode.setVolume(musicVolume);
+            MusicType.reInitialize(musicVolume);
+        }
     }
 }

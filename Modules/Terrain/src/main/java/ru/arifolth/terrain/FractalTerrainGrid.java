@@ -356,7 +356,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
     }
 
     @Override
-    public void adjustMountainsPosition() {
+    public void update() {
         Vector3f playerLocation = app.getGameLogicCore().getPlayerCharacter().getCharacterControl().getPhysicsLocation();
         playerLocation.y = Constants.MOUNTAINS_HEIGHT_OFFSET;
         distantTerrain.setLocalTranslation(playerLocation);

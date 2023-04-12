@@ -31,6 +31,9 @@ import com.jme3.scene.debug.SkeletonDebugger;
 import com.jme3.system.AppSettings;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.Debug;
+import ru.arifolth.anjrpg.interfaces.SoundType;
+
+import static ru.arifolth.anjrpg.interfaces.Constants.*;
 
 /*
 *
@@ -45,10 +48,6 @@ import ru.arifolth.anjrpg.interfaces.Debug;
     Initial facing vector: Vector3::NEGATIVE_UNIT_Z
 */
 public abstract class AnimatedCharacter extends BaseCharacter implements AnimEventListener {
-    public static final String SWORD_BLOCK = "swordBlock";
-    public static final String SWORD_SWING = "swordSwing";
-    public static final String SWORD_HIT = "swordHit";
-    public static final String PLAYER_FOOTSTEPS = "playerFootsteps";
     protected String model;
     private AnimChannel animationChannel;
     private AnimChannel attackChannel;
@@ -129,14 +128,12 @@ public abstract class AnimatedCharacter extends BaseCharacter implements AnimEve
 
     @Override
     public void initializeSounds() {
-        getNode().detachChildNamed(PLAYER_FOOTSTEPS);
+        getNode().detachChildNamed(SoundType.FOOTSTEPS.name());
 
-        AudioNode audioNode = gameLogicCore.getSoundManager().getFootStepsNode();
-        audioNode.setName(PLAYER_FOOTSTEPS);
+        AudioNode audioNode = gameLogicCore.getSoundManager().getSoundNode(SoundType.FOOTSTEPS);
+        audioNode.setName(SoundType.FOOTSTEPS.name());
 
         getNode().attachChild(audioNode);
-
-        gameLogicCore.getSoundManager().getWindNode().play();
     }
 
     protected void playSwordSound(AudioNode swordSoundNode) {
@@ -146,25 +143,25 @@ public abstract class AnimatedCharacter extends BaseCharacter implements AnimEve
     }
 
     protected AudioNode getSwordBlockNode() {
-        AudioNode audioNode = gameLogicCore.getSoundManager().getSwordBlockNode();
-        audioNode.setName(SWORD_BLOCK);
+        AudioNode audioNode = gameLogicCore.getSoundManager().getSoundNode(SoundType.SWORD_BLOCK);
+        audioNode.setName(SoundType.SWORD_BLOCK.name());
         return audioNode;
     }
 
     protected AudioNode getSwordSwingNode() {
-        AudioNode audioNode = gameLogicCore.getSoundManager().getSwordSwingNode();
-        audioNode.setName(SWORD_SWING);
+        AudioNode audioNode = gameLogicCore.getSoundManager().getSoundNode(SoundType.SWORD_SWING);
+        audioNode.setName(SoundType.SWORD_SWING.name());
         return audioNode;
     }
 
     protected AudioNode getSwordHitNode() {
-        AudioNode audioNode = gameLogicCore.getSoundManager().getSwordHitNode();
-        audioNode.setName(SWORD_HIT);
+        AudioNode audioNode = gameLogicCore.getSoundManager().getSoundNode(SoundType.SWORD_HIT);
+        audioNode.setName(SoundType.SWORD_HIT.name());
         return audioNode;
     }
 
     protected AudioNode getPlayerStepsNode(boolean running) {
-        AudioNode playerStepsNode = (AudioNode) (getNode().getChild(PLAYER_FOOTSTEPS));
+        AudioNode playerStepsNode = (AudioNode) (getNode().getChild(SoundType.FOOTSTEPS.name()));
         if (!running) {
             playerStepsNode.setPitch(0.65f);
         } else {

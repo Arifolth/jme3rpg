@@ -20,7 +20,6 @@ package ru.arifolth.terrain;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
-import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import ru.arifolth.anjrpg.interfaces.RolePlayingGameInterface;
 import ru.arifolth.anjrpg.interfaces.TerrainInterface;
@@ -67,6 +66,6 @@ public class TerrainManager implements TerrainManagerInterface {
     }
 
     public void update(float tpf) {
-        terrainBuilder.adjustMountainsPosition();
+        terrainBuilder.update();
     }
 }

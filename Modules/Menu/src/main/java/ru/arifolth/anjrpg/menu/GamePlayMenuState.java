@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
+import ru.arifolth.anjrpg.interfaces.SoundType;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.East;
 import static com.simsilica.lemur.component.BorderLayout.Position.West;
@@ -57,8 +58,6 @@ public class GamePlayMenuState extends CustomCompositeAppState {
     }
 
     private void apply() {
-        gameLogicCore.getSoundManager().getMenuNode().play();
-
         AppSettings settings = application.getSettings();
         applySettings(settings);
         getApplication().setSettings(settings);

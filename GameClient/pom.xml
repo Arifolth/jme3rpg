@@ -9,7 +9,7 @@
   <groupId>ru.arifolth.game</groupId>
   <artifactId>GameClient</artifactId>
   <packaging>jar</packaging>
-  <version>1.0-SNAPSHOT</version>
+    <version>1.0-SNAPSHOT</version>
 
   <name>Game Client</name>
 
@@ -57,20 +57,23 @@
                   </execution>
               </executions>
           </plugin>
-          <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-jar-plugin</artifactId>
-              <configuration>
-                  <archive>
-                      <manifest>
-                          <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                          <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-                      </manifest>
-                  </archive>
-              </configuration>
-          </plugin>
-
       </plugins>
+      <resources>
+          <resource>
+              <directory>src/main/resources</directory>
+              <filtering>true</filtering>
+              <includes>
+                  <include>**/version.properties</include>
+              </includes>
+          </resource>
+          <resource>
+              <directory>src/main/resources</directory>
+              <filtering>false</filtering>
+              <excludes>
+                  <exclude>**/version.properties</exclude>
+              </excludes>
+          </resource>
+      </resources>
   </build>
 
 
@@ -91,7 +94,7 @@
         </dependency>
         <dependency>
             <groupId>ru.arifolth.game</groupId>
-            <artifactId>Interfaces</artifactId>
+            <artifactId>Common</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>

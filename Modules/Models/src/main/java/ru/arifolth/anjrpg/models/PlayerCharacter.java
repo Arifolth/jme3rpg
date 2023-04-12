@@ -29,18 +29,14 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.*;
 import com.jme3.ui.Picture;
-import ru.arifolth.anjrpg.interfaces.AnimationDelegateInterface;
-import ru.arifolth.anjrpg.interfaces.CharacterInterface;
-import ru.arifolth.anjrpg.interfaces.Constants;
-import ru.arifolth.anjrpg.interfaces.Utils;
+import ru.arifolth.anjrpg.interfaces.*;
 
 public class PlayerCharacter extends AnimatedCharacter {
     public static final String PLAYER_CHARACTER_MODEL = "Models/Ninja/Ninja.j3o";
-    protected static float MELEE_DISTANCE_LIMIT = 15f;
     protected final AnimationDelegateInterface animationDelegate = new AnimationDelegate(this);
     protected float shootDelay;
     protected float shootRate;
-    private float speed = 50f;
+
     private boolean left = false, right = false, up = false, down = false,
         attacking = false, capture_mouse = true, running = false, blocking = false, block_pressed = false,
         jumping = false, jump_pressed = false, attack_pressed = false;
@@ -48,7 +44,7 @@ public class PlayerCharacter extends AnimatedCharacter {
     private float airTime = 0;
     private float actionTime = 0;
     private Camera cam;
-    private static final float MAX_DAMAGED_TIME = 3f;
+    private static final float MAX_DAMAGED_TIME = Constants.SHOOT_DELAY;
     private float playerDamaged = 0f;
     private Picture damageIndicator;
     protected float firingRange;
@@ -60,9 +56,9 @@ public class PlayerCharacter extends AnimatedCharacter {
         this.setModel(PLAYER_CHARACTER_MODEL);
         this.setName(this.getClass().getName());
 
-        this.firingRange = MELEE_DISTANCE_LIMIT;
-        this.shootDelay = 3f;
-        this.shootRate = 3.5f;
+        this.firingRange = Constants.MELEE_DISTANCE_LIMIT;
+        this.shootDelay = Constants.SHOOT_DELAY;
+        this.shootRate = Constants.SHOOT_RATE;
     }
 
     @Override
@@ -89,7 +85,7 @@ public class PlayerCharacter extends AnimatedCharacter {
         Node enemies = gameLogicCore.getEnemies();
 
         Ray ray = new Ray(characterControl.getPhysicsLocation(), characterControl.getViewDirection().negate());
-        ray.setLimit(MELEE_DISTANCE_LIMIT);
+        ray.setLimit(Constants.MELEE_DISTANCE_LIMIT);
         // Results of the collision test are written into this object
         CollisionResults results = new CollisionResults();
 
@@ -105,7 +101,7 @@ public class PlayerCharacter extends AnimatedCharacter {
             Node grandParent = parent.getParent();
             CharacterInterface npc = gameLogicCore.getCharacterMap().get(grandParent);
             if(npc != null) {
-                boolean blocked = Utils.getRandom(50);
+                boolean blocked = Utils.getRandom(Constants.HIT_PROBABILITY);
                 if(!blocked) {
                     npc.getHealthBar().applyDamage(Constants.DAMAGE);
                     playSwordSound(getSwordHitNode());
@@ -158,6 +154,8 @@ public class PlayerCharacter extends AnimatedCharacter {
     public void update(float k) {
         if(dead)
             return;
+
+        combatTracker.update(k);
 
         healthBarUpdate(k);
 
@@ -327,6 +325,9 @@ public class PlayerCharacter extends AnimatedCharacter {
 
     @Override
     public void spawn() {
+        gameLogicCore.getGameStateManager().setGameState(GameState.CALM);
+        gameLogicCore.getGameStateManager().changeState(0.1f);
+
         gameLogicCore.detachGameOverIndicator();
 
         gameLogicCore.getRootNode().attachChild(this.getNode());
@@ -341,9 +342,17 @@ public class PlayerCharacter extends AnimatedCharacter {
     @Override
     public void die() {
         dead = true;
+
+        combatTracker.reset();
+
+        gameLogicCore.getGameStateManager().setGameState(GameState.DEATH);
+
         animationDelegate.deathAnimation();
+
         this.getPlayerStepsNode(false).pause();
+
         gameLogicCore.attachGameOverIndicator();
+
         healthBar.destroy();
     }
 

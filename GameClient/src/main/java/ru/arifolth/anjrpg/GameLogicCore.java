@@ -24,7 +24,6 @@ import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.input.FlyByCamera;
 import com.jme3.input.InputManager;
-import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.ui.Picture;
@@ -34,15 +33,19 @@ import ru.arifolth.anjrpg.interfaces.weather.EmitterInterface;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class GameLogicCore implements GameLogicCoreInterface {
-    public static final Vector3f RAY_DOWN = new Vector3f(0, -1, 0);
+    final private static Logger LOGGER = Logger.getLogger(GameLogicCore.class.getName());
+
     private final CharacterFactory characterFactory = new CharacterFactory(this);
-    private LocationTrackerInterface locationTracker = new LocationTracker(this);
+    private TrackerInterface locationTracker = new LocationTracker(this);
     private final InitializationDelegate initializationDelegate = new InitializationDelegate(this);
     private final Node enemies = new Node("enemies");
-    private Node treesForestNode = new Node("Forest Node");
+    private final Node treesForestNode = new Node("Forest Node");
 
     private MovementControllerInterface movementController;
     private TerrainManagerInterface terrainManager;
@@ -54,12 +57,14 @@ public class GameLogicCore implements GameLogicCoreInterface {
     private AssetManager assetManager;
     private Node rootNode;
     private SoundManagerInterface soundManager;
+    private SkyInterface sky;
     private Picture gameOverIndicator;
 
     private CharacterInterface playerCharacter = null;
     private Picture damageIndicator = null;
     private Map<Node, CharacterInterface> characterMap = new ConcurrentHashMap<>();
     private Set<EmitterInterface> weatherEffectsSet = new LinkedHashSet<>();
+    private GameStateManagerInterface gameStateManager = new GameStateManager(this);
 
     public GameLogicCore(Application app, Camera cam, FlyByCamera flyCam, InputManager inputManager, BulletAppState bulletAppState, AssetManager assetManager, SoundManagerInterface soundManager, TerrainManagerInterface terrainManager, Node rootNode) {
         this.movementController = new MovementController(app, inputManager);
@@ -94,6 +99,10 @@ public class GameLogicCore implements GameLogicCoreInterface {
 
     public void reInitialize() {
         getPlayerCharacter().initializeSounds();
+
+        for(CharacterInterface character: getCharacterMap().values()) {
+            character.initializeSounds();
+        }
     }
 
     public CharacterInterface getPlayerCharacter() {
@@ -130,6 +139,13 @@ public class GameLogicCore implements GameLogicCoreInterface {
         for(EmitterInterface emitter : weatherEffectsSet) {
             emitter.update(tpf);
         }
+
+        gameStateManager.update(tpf);
+    }
+
+    @Override
+    public GameStateManagerInterface getGameStateManager() {
+        return gameStateManager;
     }
 
     @Override
@@ -212,5 +228,15 @@ public class GameLogicCore implements GameLogicCoreInterface {
 
     public TerrainManagerInterface getTerrainManager() {
         return terrainManager;
+    }
+
+    @Override
+    public SkyInterface getSky() {
+        return sky;
+    }
+
+    @Override
+    public void setSky(SkyInterface sky) {
+        this.sky = sky;
     }
 }

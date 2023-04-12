@@ -43,7 +43,7 @@ import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static ru.arifolth.anjrpg.GameLogicCore.RAY_DOWN;
+import static ru.arifolth.anjrpg.interfaces.Constants.RAY_DOWN;
 
 public class InitializationDelegate implements InitializationDelegateInterface {
     private Spatial treeModel;

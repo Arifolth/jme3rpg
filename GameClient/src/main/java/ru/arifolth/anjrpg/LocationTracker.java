@@ -20,9 +20,9 @@ package ru.arifolth.anjrpg;
 
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
-import ru.arifolth.anjrpg.interfaces.LocationTrackerInterface;
+import ru.arifolth.anjrpg.interfaces.TrackerInterface;
 
-public class LocationTracker implements LocationTrackerInterface {
+public class LocationTracker implements TrackerInterface {
     private GameLogicCoreInterface gameLogicCore;
 
     public LocationTracker(GameLogicCoreInterface gameLogicCore) {
@@ -31,9 +31,18 @@ public class LocationTracker implements LocationTrackerInterface {
 
     @Override
     public void update(float tpf) {
+        //TODO: check game state: fight, day/night,
+        checkNPCs();
+
+    }
+
+    private void checkNPCs() {
+        //TODO: decide if we need to inject one more
         if(gameLogicCore.getCharacterMap().size() < Constants.NPC_AMOUNT) {
             gameLogicCore.getInitializationDelegate().initializeNPCs(true);
         }
+        //TODO: freeze if far away from player
+        //TODO: check and remove if out of certain range (too far away)
     }
 
 }

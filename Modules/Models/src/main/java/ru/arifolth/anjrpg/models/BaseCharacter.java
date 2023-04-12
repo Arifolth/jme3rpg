@@ -23,6 +23,7 @@ import com.jme3.bullet.control.CharacterControl;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import ru.arifolth.anjrpg.interfaces.CharacterInterface;
+import ru.arifolth.anjrpg.interfaces.CombatTracker;
 import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
 import ru.arifolth.anjrpg.interfaces.HealthBarInterface;
 
@@ -97,6 +98,8 @@ public abstract class BaseCharacter implements CharacterInterface {
     public void initialize(GameLogicCoreInterface gameLogicCore) {
         this.gameLogicCore = gameLogicCore;
 
+        combatTracker.setGameLogicCore(gameLogicCore);
+
         initializePhysixControl();
 
         initializeCharacterModel();
@@ -133,5 +136,10 @@ public abstract class BaseCharacter implements CharacterInterface {
     @Override
     public HealthBarInterface getHealthBar() {
         return healthBar;
+    }
+
+    @Override
+    public boolean isInCombat() {
+        return combatTracker.isInCombat();
     }
 }

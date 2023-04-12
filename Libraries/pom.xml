@@ -113,7 +113,7 @@
 	<repository>
 		<id>jmonkey engine</id>
 		<name>jmonkey engine</name>
-		<url>http://dl.bintray.com/jmonkeyengine/${jme3.groupId}</url>
+		<url>https://dl.bintray.com/jmonkeyengine/${jme3.groupId}</url>
 	</repository>
 	<repository>
 		<id>jcenter</id>

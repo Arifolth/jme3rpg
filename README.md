@@ -34,7 +34,14 @@ Default bindings:
 
 ## Hardware requirements
 - Monitor with at least 1920x1080 resolution
-- Decent videocard with
+- Decent videocard with 2Gb of Video RAM
+For better performance you may want to switch to dedicated gaming videocard, if you have one. 
+
+## Checkout lfs data
+Install git-lfs if it is not already present on a build host, and download the large files:
+```bash
+git lfs fetch
+```
 
 ## Build
 Use [Maven](https://maven.apache.org/) to build the ANJRpg.

@@ -21,7 +21,6 @@ package ru.arifolth.anjrpg;
 import com.jme3.niftygui.NiftyJmeDisplay;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeContext;
-import com.jme3.system.JmeSystem;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.style.BaseStyles;
 import de.lessvoid.nifty.Nifty;
@@ -73,7 +72,6 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
             setSettings(loadedSettings);
             SettingsUtils.saveSettings(settings);
         }
-
         start(JmeContext.Type.Display, true);
     }
 
@@ -112,6 +110,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
         switch (initialization) {
             case PENDING: {
                 if(!loadingCompleted) {
+                    gameLogicCore.getSoundManager().update(tpf);
                     return;
                 }
 

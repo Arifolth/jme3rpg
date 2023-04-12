@@ -21,7 +21,7 @@
   <dependencies>
       <dependency>
           <groupId>ru.arifolth.game</groupId>
-          <artifactId>Interfaces</artifactId>
+          <artifactId>Common</artifactId>
           <version>1.0-SNAPSHOT</version>
           <scope>compile</scope>
       </dependency>

@@ -25,10 +25,7 @@ import com.simsilica.lemur.component.DynamicInsetsComponent;
 import com.simsilica.lemur.component.SpringGridLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
-import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
-import ru.arifolth.anjrpg.interfaces.RolePlayingGameInterface;
-import ru.arifolth.anjrpg.interfaces.SoundManagerInterface;
+import ru.arifolth.anjrpg.interfaces.*;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.East;
 import static com.simsilica.lemur.component.BorderLayout.Position.West;
@@ -48,10 +45,10 @@ public class AudioMenuState extends CustomCompositeAppState {
     }
 
     private void apply() {
-        gameLogicCore.getSoundManager().getMenuNode().play();
+        gameLogicCore.getSoundManager().getSoundNode(SoundType.MENU).play();
 
         soundManager.setVolume((float) volumeModel.getValue());
-        soundManager.reInitialize();
+        soundManager.reInitialize(gameLogicCore);
 
         gameLogicCore.reInitialize();
 
