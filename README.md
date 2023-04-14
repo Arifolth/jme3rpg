@@ -37,12 +37,6 @@ Default bindings:
 - Decent videocard with 2Gb of Video RAM
 For better performance you may want to switch to dedicated gaming videocard, if you have one. 
 
-## Checkout lfs data
-Install git-lfs if it is not already present on a build host, and download the large files:
-```bash
-git lfs fetch
-```
-
 ## Build
 Use [Maven](https://maven.apache.org/) to build the ANJRpg.
 
@@ -75,4 +69,4 @@ mvn exec:java -pl GameClient -Djvm.options="-XX:-TieredCompilation -XX:TieredSto
 ## License
 It is released under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.txt)
 
-#### Copyright 2022 &copy; Alexander Nilov
+#### Copyright 2014 - 2023 &copy; Alexander Nilov
