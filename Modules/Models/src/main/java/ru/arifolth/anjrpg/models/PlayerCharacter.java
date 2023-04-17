@@ -62,6 +62,11 @@ public class PlayerCharacter extends AnimatedCharacter {
     }
 
     @Override
+    public void initializeModelLod() {
+        LodUtils.setUpCharacterModelLod(characterModel);
+    }
+
+    @Override
     protected void initHealthBar() {
         healthBar = new HealthBar(gameLogicCore.getAssetManager(), this);
         healthBar.create();

@@ -116,6 +116,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
     private void initializeTreeModel() {
         treeModel = gameLogicCore.getAssetManager().loadModel("Models/Fir1/fir1_androlo.j3o");
         treeModel.setShadowMode(RenderQueue.ShadowMode.Cast);
+        LodUtils.setUpTreeModelLod(treeModel);
     }
 
     @Override

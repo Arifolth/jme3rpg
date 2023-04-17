@@ -31,9 +31,8 @@ import com.jme3.scene.debug.SkeletonDebugger;
 import com.jme3.system.AppSettings;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.Debug;
+import ru.arifolth.anjrpg.interfaces.LodUtils;
 import ru.arifolth.anjrpg.interfaces.SoundType;
-
-import static ru.arifolth.anjrpg.interfaces.Constants.*;
 
 /*
 *
@@ -84,6 +83,11 @@ public abstract class AnimatedCharacter extends BaseCharacter implements AnimEve
         SkeletonControl skeletonControl = characterModel.getControl(SkeletonControl.class);
         if(null != skeletonControl)
             skeletonControl.setHardwareSkinningPreferred(true);
+    }
+
+    @Override
+    public void initializeModelLod() {
+        //NO LOD, override if necessary
     }
 
     @Override

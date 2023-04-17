@@ -22,10 +22,7 @@ import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
-import ru.arifolth.anjrpg.interfaces.CharacterInterface;
-import ru.arifolth.anjrpg.interfaces.CombatTracker;
-import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
-import ru.arifolth.anjrpg.interfaces.HealthBarInterface;
+import ru.arifolth.anjrpg.interfaces.*;
 
 public abstract class BaseCharacter implements CharacterInterface {
     protected GameLogicCoreInterface gameLogicCore;
@@ -104,6 +101,8 @@ public abstract class BaseCharacter implements CharacterInterface {
 
         initializeCharacterModel();
 
+        initializeModelLod();
+
         setUpCharacterNode();
 
         initHealthBar();
@@ -130,6 +129,10 @@ public abstract class BaseCharacter implements CharacterInterface {
     }
 
     public abstract void initializeSounds();
+
+    @Override
+    public abstract void initializeModelLod();
+
     protected abstract void initializeAnimation();
     protected abstract void initializeSkeletonDebug();
 

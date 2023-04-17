@@ -92,6 +92,8 @@ public interface CharacterInterface {
         return CharacterInterface.combatTracker;
     }
 
+    void initializeModelLod();
+
     HealthBarInterface getHealthBar();
 
     void setInitializing(boolean initializing);
