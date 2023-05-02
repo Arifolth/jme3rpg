@@ -65,6 +65,7 @@ mvn exec:java -pl GameClient -Djvm.options="-XX:-TieredCompilation -XX:TieredSto
 ![Image](Screenshots/sunrise.jpg "icon")
 ![Image](Screenshots/Underwater.jpg "icon")
 ![Image](Screenshots/Night.jpg "icon")
+![Image](Screenshots/Clouds.jpg "icon")
 
 ## License
 It is released under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.txt)
