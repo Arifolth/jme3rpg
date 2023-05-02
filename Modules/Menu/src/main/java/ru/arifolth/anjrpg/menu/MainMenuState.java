@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2022 Alexander Nilov
+ *     Copyright (C) 2014 - 2023 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -32,9 +32,7 @@ import com.simsilica.lemur.component.IconComponent;
 import com.simsilica.lemur.component.SpringGridLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
-import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
-import ru.arifolth.anjrpg.interfaces.InitializationDelegateInterface;
+import ru.arifolth.anjrpg.interfaces.*;
 
 import java.util.prefs.BackingStoreException;
 
@@ -63,6 +61,8 @@ public class MainMenuState extends BaseAppState {
             throw new RuntimeException(e);
         }
         gameLogicCore = application.getGameLogicCore();
+
+        gameLogicCore.getSoundManager().setNextMusicType(MusicType.MENU);
     }
 
     public MainMenuState() {
@@ -73,7 +73,7 @@ public class MainMenuState extends BaseAppState {
     }
 
     private void restart() {
-        gameLogicCore.getSoundManager().getMenuNode().play();
+        gameLogicCore.getSoundManager().getSoundNode(SoundType.MENU).play();
 
         InitializationDelegateInterface initializationDelegate = gameLogicCore.getInitializationDelegate();
 
@@ -82,7 +82,9 @@ public class MainMenuState extends BaseAppState {
             gameLogicCore.getPlayerCharacter().removeCharacter();
         }
 
-        initializationDelegate.initializePlayer(false);
+        if(gameLogicCore.getPlayerCharacter().isDead()) {
+            initializationDelegate.initializePlayer(false);
+        }
 
         if(!gameLogicCore.getPlayerCharacter().isDead()) {
             initializationDelegate.initializeNPCs(true);
@@ -92,26 +94,26 @@ public class MainMenuState extends BaseAppState {
     }
 
     private void exitGame() {
-        gameLogicCore.getSoundManager().getMenuNode().play();
+        gameLogicCore.getSoundManager().getSoundNode(SoundType.MENU).play();
 
         getStateManager().attach(new ExitMenuState(this));
     }
 
     private void resumeGame() {
-        gameLogicCore.getSoundManager().getMenuNode().play();
+        gameLogicCore.getSoundManager().getSoundNode(SoundType.MENU).play();
 
         setEnabled(false);
     }
 
     private void startNewGame() {
-        gameLogicCore.getSoundManager().getMenuNode().play();
+        gameLogicCore.getSoundManager().getSoundNode(SoundType.MENU).play();
 
         ((ANJRpgInterface) getApplication()).setUpGUI();
         setEnabled(false);
     }
 
     private void options() {
-        gameLogicCore.getSoundManager().getMenuNode().play();
+        gameLogicCore.getSoundManager().getSoundNode(SoundType.MENU).play();
 
         getStateManager().attach(new OptionsMenuState(this));
     }

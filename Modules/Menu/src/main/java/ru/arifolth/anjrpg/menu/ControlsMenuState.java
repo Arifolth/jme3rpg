@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2022 Alexander Nilov
+ *     Copyright (C) 2014 - 2023 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -25,10 +25,7 @@ import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.SpringGridLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
-import ru.arifolth.anjrpg.interfaces.BindingConstants;
-import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
-import ru.arifolth.anjrpg.interfaces.MovementControllerInterface;
+import ru.arifolth.anjrpg.interfaces.*;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.East;
 import static com.simsilica.lemur.component.BorderLayout.Position.West;
@@ -55,7 +52,7 @@ public class ControlsMenuState extends CustomCompositeAppState {
     }
 
     private void apply() {
-        gameLogicCore.getSoundManager().getMenuNode().play();
+        gameLogicCore.getSoundManager().getSoundNode(SoundType.MENU).play();
 
         //Apply options here
         try {
@@ -161,7 +158,7 @@ public class ControlsMenuState extends CustomCompositeAppState {
 
     @Override
     protected void onDisable() {
-        gameLogicCore.getSoundManager().getMenuNode().play();
+        gameLogicCore.getSoundManager().getSoundNode(SoundType.MENU).play();
 
         window.removeFromParent();
     }

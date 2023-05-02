@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2022 Alexander Nilov
+ *     Copyright (C) 2014 - 2023 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -356,7 +356,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
     }
 
     @Override
-    public void adjustMountainsPosition() {
+    public void update() {
         Vector3f playerLocation = app.getGameLogicCore().getPlayerCharacter().getCharacterControl().getPhysicsLocation();
         playerLocation.y = Constants.MOUNTAINS_HEIGHT_OFFSET;
         distantTerrain.setLocalTranslation(playerLocation);

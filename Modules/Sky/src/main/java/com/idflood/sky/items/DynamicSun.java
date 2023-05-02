@@ -78,7 +78,7 @@ public class DynamicSun extends Node {
         // make everything follow the camera
         setLocalTranslation(viewPort.getCamera().getLocation());
         
-        sunSystem.updateSunPosition(0, 0, 100); //30 milliseconds //10 increment by 30 seconds
+        sunSystem.updateSunPosition(0, 0, 50); //30 milliseconds //10 increment by 30 seconds
         updateLightPosition();
         
         sunLight.setDirection(lightDir);

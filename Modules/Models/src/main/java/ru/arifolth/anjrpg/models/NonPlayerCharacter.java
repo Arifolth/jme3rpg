@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2022 Alexander Nilov
+ *     Copyright (C) 2014 - 2023 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 
 package ru.arifolth.anjrpg.models;
 
+import com.google.common.base.Objects;
 import com.jme3.animation.AnimChannel;
 import com.jme3.animation.AnimControl;
 import com.jme3.animation.LoopMode;
@@ -97,6 +98,7 @@ public class NonPlayerCharacter extends PlayerCharacter {
 
     public void attack() {
         if (isReady()) {
+            combatTracker.incCounter(this);
             useWeapon();
             resetShootCounter();
         }
@@ -104,6 +106,7 @@ public class NonPlayerCharacter extends PlayerCharacter {
 
     //TODO: Rewrite as a Melee/Ranged class later
     public void useWeapon() {
+//        gameLogicCore
         animationDelegate.attackAnimation();
         LOGGER.log(Level.INFO, "NPC ATTACK!");
         playSwordSound(getSwordSwingNode());
@@ -220,8 +223,23 @@ public class NonPlayerCharacter extends PlayerCharacter {
 
     @Override
     public void die() {
+        combatTracker.decCounter(this);
+
         animationDelegate.deathAnimation();
 
         setDead(true);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        NonPlayerCharacter that = (NonPlayerCharacter) o;
+        return Float.compare(that.turnRate, turnRate) == 0 && Float.compare(that.firingRange, firingRange) == 0 && Float.compare(that.walkingRange, walkingRange) == 0 && Float.compare(that.walkSpeed, walkSpeed) == 0 && Objects.equal(walkDirection, that.walkDirection) && Objects.equal(viewDirection, that.viewDirection);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(turnRate, firingRange, walkingRange, walkSpeed, walkDirection, viewDirection);
     }
 }

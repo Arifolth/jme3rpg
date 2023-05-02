@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2022 Alexander Nilov
+ *     Copyright (C) 2014 - 2023 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
 import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
+import ru.arifolth.anjrpg.interfaces.SoundType;
 
 import java.util.Arrays;
 import java.util.List;
@@ -57,7 +58,7 @@ public class VideoMenuState extends CustomCompositeAppState {
     }
 
     private void apply() {
-        gameLogicCore.getSoundManager().getMenuNode().play();
+        gameLogicCore.getSoundManager().getSoundNode(SoundType.MENU).play();
 
         AppSettings settings = application.getSettings();
         applyRenderer(settings);

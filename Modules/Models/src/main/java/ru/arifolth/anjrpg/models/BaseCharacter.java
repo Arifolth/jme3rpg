@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2022 Alexander Nilov
+ *     Copyright (C) 2014 - 2023 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -22,9 +22,7 @@ import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
-import ru.arifolth.anjrpg.interfaces.CharacterInterface;
-import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
-import ru.arifolth.anjrpg.interfaces.HealthBarInterface;
+import ru.arifolth.anjrpg.interfaces.*;
 
 public abstract class BaseCharacter implements CharacterInterface {
     protected GameLogicCoreInterface gameLogicCore;
@@ -97,9 +95,13 @@ public abstract class BaseCharacter implements CharacterInterface {
     public void initialize(GameLogicCoreInterface gameLogicCore) {
         this.gameLogicCore = gameLogicCore;
 
+        combatTracker.setGameLogicCore(gameLogicCore);
+
         initializePhysixControl();
 
         initializeCharacterModel();
+
+        initializeModelLod();
 
         setUpCharacterNode();
 
@@ -127,11 +129,20 @@ public abstract class BaseCharacter implements CharacterInterface {
     }
 
     public abstract void initializeSounds();
+
+    @Override
+    public abstract void initializeModelLod();
+
     protected abstract void initializeAnimation();
     protected abstract void initializeSkeletonDebug();
 
     @Override
     public HealthBarInterface getHealthBar() {
         return healthBar;
+    }
+
+    @Override
+    public boolean isInCombat() {
+        return combatTracker.isInCombat();
     }
 }

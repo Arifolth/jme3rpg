@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2022 Alexander Nilov
+ *     Copyright (C) 2014 - 2023 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static ru.arifolth.anjrpg.GameLogicCore.RAY_DOWN;
+import static ru.arifolth.anjrpg.interfaces.Constants.RAY_DOWN;
 
 public class InitializationDelegate implements InitializationDelegateInterface {
     private Spatial treeModel;
@@ -116,6 +116,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
     private void initializeTreeModel() {
         treeModel = gameLogicCore.getAssetManager().loadModel("Models/Fir1/fir1_androlo.j3o");
         treeModel.setShadowMode(RenderQueue.ShadowMode.Cast);
+        LodUtils.setUpTreeModelLod(treeModel);
     }
 
     @Override

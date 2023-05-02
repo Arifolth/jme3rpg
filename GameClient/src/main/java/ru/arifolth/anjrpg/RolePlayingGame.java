@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2022 Alexander Nilov
+ *     Copyright (C) 2014 - 2023 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -33,15 +33,12 @@ import com.simsilica.lemur.event.PopupState;
 import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.tools.SizeValue;
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.menu.MainMenuState;
 import ru.arifolth.sound.SoundManager;
 import ru.arifolth.terrain.TerrainManager;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -51,14 +48,14 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     protected TextRenderer textRenderer;
     private volatile float progress;
     final private static Logger LOGGER = Logger.getLogger(RolePlayingGame.class.getName());
-    private SkyInterface sky;
+    protected SkyInterface sky;
     private TerrainManagerInterface terrainManager;
     private SoundManagerInterface soundManager;
     private FilterManagerInterface filterManager;
     protected BulletAppState bulletAppState;
     protected GameLogicCoreInterface gameLogicCore;
 
-    public RolePlayingGame() throws XmlPullParserException {
+    public RolePlayingGame() {
         super(new FlyCamAppState(),
                 new AudioListenerState(),
                 new PopupState(),
@@ -66,8 +63,9 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
                 new MainMenuState()
         );
 
-        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(Constants.POM_XML)) {
-            version = new MavenXpp3Reader().read(is).getVersion();
+        try {
+            PropertiesReader reader = new PropertiesReader(Constants.VERSION_PROPERTIES);
+            version = reader.getProperty("version");
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Unable to read version info!", e);
         }
@@ -81,12 +79,14 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
 
     protected void loadResources() {
         setupScreenCapture();
-        setupSky();
-        setupFilters();
 
         attachTerrain();
 
         initializeEntities();
+
+        setupSky();
+
+        setupFilters();
     }
 
     private void initializeEntities() {
@@ -125,6 +125,8 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         sky.update(tpf);
 
         filterManager.update(tpf);
+
+        soundManager.update(tpf);
     }
 
     void setupFilters() {
@@ -136,7 +138,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
 
     void setupSky() {
         // load sky
-        sky = new DynamicSky(assetManager, viewPort, getRootNode());
+        sky = new DynamicSky(assetManager, viewPort, gameLogicCore);
         setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
