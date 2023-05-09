@@ -48,9 +48,9 @@
 		<!-- LWJGL stuff -->
 		<dependency>
 			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-lwjgl</artifactId>
+			<artifactId>jme3-lwjgl3</artifactId>
 		</dependency>
-		
+
 		<!-- Bullet stuff -->
 		<dependency>
 			<groupId>${jme3.groupId}</groupId>
@@ -157,7 +157,7 @@
 			<!-- LWJGL stuff -->
 			<dependency>
 				<groupId>${jme3.groupId}</groupId>
-				<artifactId>jme3-lwjgl</artifactId>
+				<artifactId>jme3-lwjgl3</artifactId>
 				<version>${jmonkey.version}</version>
 			</dependency>
 
