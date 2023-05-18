@@ -58,15 +58,15 @@
                 <version>1.0.1</version>
                 <executions>
                     <execution>
-                        <id>enforce-versions</id>
+                        <id>enforce-java</id>
                         <goals>
                             <goal>enforce</goal>
                         </goals>
                         <configuration>
                             <rules>
-                                <requireMavenVersion>
-                                    <version>3.8.6</version>
-                                </requireMavenVersion>
+                                <requireJavaVersion>
+                                    <version>[17,20]</version>
+                                </requireJavaVersion>
                             </rules>
                         </configuration>
                     </execution>
@@ -103,18 +103,6 @@
     </properties>
 
     <profiles>
-        <profile>
-            <id>jdk1.8</id>
-            <properties>
-                <java.version>1.8</java.version>
-            </properties>
-        </profile>
-        <profile>
-            <id>jdk11</id>
-            <properties>
-                <java.version>11</java.version>
-            </properties>
-        </profile>
         <profile>
             <id>jdk17</id>
             <activation>

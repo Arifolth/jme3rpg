@@ -35,15 +35,17 @@ Default bindings:
 ## Hardware requirements
 - Monitor with at least 1920x1080 resolution
 - Decent videocard with 2Gb of Video RAM
-For better performance you may want to switch to dedicated gaming videocard, if you have one. 
+
+For better performance you may want to run the game on a dedicated gaming video card specifically, if you have one.
 
 ## Build
-Use [Maven](https://maven.apache.org/) to build the ANJRpg.
+Use [Maven](https://maven.apache.org/) to build the ANJRpg. 
+JDK 17+ is required to build and run the game.
 
 ```bash
 mvn install
 ```
-## Run
+## Run using Jdk
 ```bash
 mvn exec:java -pl GameClient -Djvm.options="-XX:-TieredCompilation -XX:TieredStopAtLevel=3 -server -XX:+UnlockExperimentalVMOptions -XX:+UseZGC"
 ```
