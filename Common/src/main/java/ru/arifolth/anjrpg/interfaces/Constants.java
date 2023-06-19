@@ -58,6 +58,7 @@ public class Constants {
     public static final int DISTANCE_TO_STARS = 9000;
     public static final String VERSION_PROPERTIES = "version.properties";
     public static final int STENCIL_BITS = 8;
+    public static final int RIGID_BODIES_SIZE = 4;
     public static float MELEE_DISTANCE_LIMIT = 15f;
 
     //HKEY_CURRENT_USER\Software\JavaSoft\Prefs\
