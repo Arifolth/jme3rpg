@@ -21,11 +21,13 @@ package ru.arifolth.anjrpg.menu;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeSystem;
 import com.jme3.system.JmeVersion;
+import ru.arifolth.anjrpg.interfaces.Constants;
 
 import java.awt.*;
 import java.util.prefs.BackingStoreException;
 
 public class SettingsUtils {
+
     private SettingsUtils() {
     }
 
@@ -39,7 +41,7 @@ public class SettingsUtils {
         settings.setRenderer(AppSettings.LWJGL_OPENGL45);
         settings.setFrequency(mode.getRefreshRate());
         settings.setGammaCorrection(false);
-        settings.setStencilBits(8);
+        settings.setStencilBits(Constants.STENCIL_BITS);
         settings.setTitle(JmeVersion.FULL_NAME);
     }
 

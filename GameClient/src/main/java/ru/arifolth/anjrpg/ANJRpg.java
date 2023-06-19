@@ -29,7 +29,6 @@ import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.input.NiftyInputEvent;
 import de.lessvoid.nifty.screen.Screen;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.menu.SettingsUtils;
 
@@ -57,7 +56,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
     static {
         Arrays.stream(LogManager.getLogManager().getLogger(Constants.ROOT_LOGGER).getHandlers()).forEach(h -> h.setLevel(Level.INFO));
     }
-    public static void main(String[] args) throws XmlPullParserException, IOException {
+    public static void main(String[] args) throws IOException {
         app = new ANJRpg();
         app.start();
     }
@@ -75,7 +74,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
         start(JmeContext.Type.Display, true);
     }
 
-    public ANJRpg() throws XmlPullParserException, IOException {
+    public ANJRpg() throws IOException {
         setShowSettings(showSettings);
 
         //do not output excessive info on console
