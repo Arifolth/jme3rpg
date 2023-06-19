@@ -64,8 +64,6 @@ public class SettingsUtils {
         if (!JmeSystem.showSettingsDialog(settings, true)) {
             return null;
         }
-        settings.setRenderer(AppSettings.LWJGL_OPENGL45);
-        settings.setFrameRate(30);
 
         return settings;
     }
