@@ -21,25 +21,27 @@ package ru.arifolth.anjrpg.menu;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeSystem;
 import com.jme3.system.JmeVersion;
+import ru.arifolth.anjrpg.interfaces.Constants;
 
 import java.awt.*;
 import java.util.prefs.BackingStoreException;
 
 public class SettingsUtils {
+
     private SettingsUtils() {
     }
 
     public static void applyDefaultSettings(AppSettings settings) {
         GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         settings.setFullscreen(device.isFullScreenSupported());
-        settings.setBitsPerPixel(24); //24
-        settings.setSamples(0); //16
-        settings.setVSync(false);
-        settings.setResolution(1920,1080);
+        DisplayMode[] modes = device.getDisplayModes();
+        DisplayMode mode = modes[modes.length-1];
+        settings.setDepthBits(mode.getBitDepth());
+        settings.setResolution(mode.getWidth(),mode.getHeight());
         settings.setRenderer(AppSettings.LWJGL_OPENGL45);
-        settings.setFrameRate(30);
-        settings.setFrequency(30);
+        settings.setFrequency(mode.getRefreshRate());
         settings.setGammaCorrection(false);
+        settings.setStencilBits(Constants.STENCIL_BITS);
         settings.setTitle(JmeVersion.FULL_NAME);
     }
 
@@ -62,8 +64,6 @@ public class SettingsUtils {
         if (!JmeSystem.showSettingsDialog(settings, true)) {
             return null;
         }
-        settings.setRenderer(AppSettings.LWJGL_OPENGL45);
-        settings.setFrameRate(30);
 
         return settings;
     }

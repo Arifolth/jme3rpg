@@ -29,7 +29,6 @@ import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.input.NiftyInputEvent;
 import de.lessvoid.nifty.screen.Screen;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.menu.SettingsUtils;
 
@@ -45,7 +44,6 @@ import static com.jme3.niftygui.NiftyJmeDisplay.newNiftyJmeDisplay;
 * https://ev1lbl0w.github.io/jme-wiki-pt-pt/jme3/advanced/loading_screen.html
 * */
 public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
-    public static final int RIGID_BODIES_SIZE = 4;
     private NiftyJmeDisplay niftyDisplay;
     private Nifty nifty;
     private InitStateEnum initialization = InitStateEnum.PENDING;
@@ -57,7 +55,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
     static {
         Arrays.stream(LogManager.getLogManager().getLogger(Constants.ROOT_LOGGER).getHandlers()).forEach(h -> h.setLevel(Level.INFO));
     }
-    public static void main(String[] args) throws XmlPullParserException, IOException {
+    public static void main(String[] args) throws IOException {
         app = new ANJRpg();
         app.start();
     }
@@ -75,7 +73,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
         start(JmeContext.Type.Display, true);
     }
 
-    public ANJRpg() throws XmlPullParserException, IOException {
+    public ANJRpg() throws IOException {
         setShowSettings(showSettings);
 
         //do not output excessive info on console
@@ -125,8 +123,8 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
             }
             case INITIALIZED: {
                 //wait until land appears in Physics Space
-                if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == RIGID_BODIES_SIZE) {
-                    //put player at the beginning location
+                if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == Constants.RIGID_BODIES_SIZE) {
+                    //place player at the start location
                     initializationDelegate.positionPlayer();
                     initializationDelegate.initPlayerComplete();
                     //position NPCs around the Player
