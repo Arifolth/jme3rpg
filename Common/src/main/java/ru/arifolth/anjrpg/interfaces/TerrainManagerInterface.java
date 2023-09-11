@@ -28,4 +28,6 @@ public interface TerrainManagerInterface {
     void update(float tpf);
 
     TerrainQuad getTerrain();
+
+    int getRigidBodiesSize();
 }

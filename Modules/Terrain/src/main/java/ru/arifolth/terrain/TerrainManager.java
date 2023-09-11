@@ -53,11 +53,15 @@ public class TerrainManager implements TerrainManagerInterface {
     }
 
     public void generateGrass() {
-
     }
 
     public TerrainQuad getTerrain() {
         return terrain;
+    }
+
+    @Override
+    public int getRigidBodiesSize() {
+        return terrainBuilder.getRigidBodiesSize();
     }
 
     @Override

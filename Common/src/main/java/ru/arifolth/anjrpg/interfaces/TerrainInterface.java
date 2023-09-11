@@ -26,4 +26,6 @@ public interface TerrainInterface {
     TerrainQuad generateMountains();
 
     void update();
+
+    int getRigidBodiesSize();
 }

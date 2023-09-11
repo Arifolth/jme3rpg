@@ -123,7 +123,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
             }
             case INITIALIZED: {
                 //wait until land appears in Physics Space
-                if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == Constants.RIGID_BODIES_SIZE) {
+                if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == app.getTerrainManager().getRigidBodiesSize()) {
                     //place player at the start location
                     initializationDelegate.positionPlayer();
                     initializationDelegate.initPlayerComplete();
