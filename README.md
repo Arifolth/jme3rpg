@@ -45,6 +45,14 @@ JDK 17+ is required to build and run the game.
 ```bash
 mvn install
 ```
+
+### Native executables
+Native executables could be build only on a Windows box and
+the [WiX Toolset](https://wixtoolset.org/) is a required prerequisite.
+
+To build them enable profile 
+```native``` and perform a [Launcher](Launcher) module build  
+
 ## Run using Jdk
 ```bash
 mvn exec:java -pl GameClient -Djvm.options="-XX:-TieredCompilation -XX:TieredStopAtLevel=3 -server -XX:+UnlockExperimentalVMOptions -XX:+UseZGC"
