@@ -18,6 +18,7 @@
 
 package ru.arifolth.anjrpg.interfaces;
 
+import com.jme3.light.DirectionalLight;
 import com.jme3.math.Vector3f;
 
 public interface SkyInterface {
@@ -26,4 +27,6 @@ public interface SkyInterface {
     int getHours();
 
     void update(float tpf);
+
+    DirectionalLight getSunLight();
 }
