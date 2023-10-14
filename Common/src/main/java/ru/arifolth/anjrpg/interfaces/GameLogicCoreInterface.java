@@ -30,7 +30,6 @@ import ru.arifolth.anjrpg.interfaces.weather.EmitterInterface;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 
 public interface GameLogicCoreInterface {
     CharacterInterface getPlayerCharacter();
@@ -38,6 +37,8 @@ public interface GameLogicCoreInterface {
     GameStateManagerInterface getGameStateManager();
 
     Node getForestNode();
+
+    Node getGrassNode();
 
     void reInitialize();
 

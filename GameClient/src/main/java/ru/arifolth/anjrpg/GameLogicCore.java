@@ -33,9 +33,7 @@ import ru.arifolth.anjrpg.interfaces.weather.EmitterInterface;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class GameLogicCore implements GameLogicCoreInterface {
@@ -46,6 +44,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
     private final InitializationDelegate initializationDelegate = new InitializationDelegate(this);
     private final Node enemies = new Node("enemies");
     private final Node treesForestNode = new Node("Forest Node");
+    private final Node grassNode = new Node("all grass");
 
     private MovementControllerInterface movementController;
     private TerrainManagerInterface terrainManager;
@@ -90,11 +89,17 @@ public class GameLogicCore implements GameLogicCoreInterface {
         movementController.setUpKeys();
 //        initializer.setupWeatherEffects();
         getRootNode().attachChild(treesForestNode);
+        getRootNode().attachChild(grassNode);
     }
 
     @Override
     public Node getForestNode() {
         return treesForestNode;
+    }
+
+    @Override
+    public Node getGrassNode() {
+        return grassNode;
     }
 
     public void reInitialize() {

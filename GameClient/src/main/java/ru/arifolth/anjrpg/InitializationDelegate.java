@@ -23,12 +23,18 @@ import com.jme3.collision.CollisionResults;
 import com.jme3.input.ChaseCamera;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.MouseButtonTrigger;
+import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.math.*;
 import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.shape.Quad;
 import com.jme3.terrain.geomipmap.TerrainQuad;
+import com.jme3.texture.Texture;
 import com.jme3.ui.Picture;
+import jme3tools.optimize.GeometryBatchFactory;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.interfaces.weather.EmitterInterface;
 import ru.arifolth.anjrpg.weather.RainEmitter;
@@ -47,8 +53,13 @@ import static ru.arifolth.anjrpg.interfaces.Constants.RAY_DOWN;
 
 public class InitializationDelegate implements InitializationDelegateInterface {
     private Spatial treeModel;
+    private float elapsedTime = 0;
+
+    private Material grassShader;
+
     private final GameLogicCore gameLogicCore;
     final private static Logger LOGGER = Logger.getLogger(InitializationDelegate.class.getName());
+    private Node grassBladeNode;
 
     public InitializationDelegate(GameLogicCore gameLogicCore) {
         this.gameLogicCore = gameLogicCore;
@@ -182,6 +193,122 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         }
 
         return quadForest;
+    }
+
+    @Override
+    public List<Spatial> setupGrass() {
+        initializeGrass();
+
+        int grassAmount = (int) Utils.getRandomNumberInRange(3000, 4000);
+        List<Spatial> quadGrass = new ArrayList<>(grassAmount);
+        for(int i = 0; i < grassAmount; i++) {
+            Spatial grassInstance = grassBladeNode.clone();
+            grassInstance.rotate(Utils.getRandomNumberInRange(0f, .55f), Utils.getRandomNumberInRange(0f, 3.55f), Utils.getRandomNumberInRange(0f, .55f));
+            grassInstance.setLocalScale(1 + Utils.getRandomNumberInRange(1, 5), 1 + Utils.getRandomNumberInRange(1, 5), 1 + Utils.getRandomNumberInRange(1, 5));
+//            grassInstance.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(-6.5f, 6.5f) * FastMath.DEG_TO_RAD, new Vector3f(1, 0, 1)));
+
+
+            quadGrass.add(grassInstance);
+        }
+
+        return quadGrass;
+    }
+
+    private void initializeGrass() {
+        Vector2f windDirection = new Vector2f();
+        windDirection.x = Utils.nextFloat();
+        windDirection.y = Utils.nextFloat();
+        windDirection.normalize();
+
+        Geometry grassGeom = new Geometry("grass", new Quad(2, 2));
+
+        grassShader = new Material(gameLogicCore.getAssetManager(), "MatDefs/Grass/MovingGrass.j3md");
+        Texture grass = gameLogicCore.getAssetManager().loadTexture("Textures/Grass/grass_3.png");
+        grass.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
+        grassShader.setTexture("Texture", grass);
+        grassShader.setFloat("AlphaDiscardThreshold", -1.2f);
+        grassShader.setTexture("Noise", gameLogicCore.getAssetManager().loadTexture("Textures/Grass/normal.jpg"));
+
+
+        // set wind direction
+        grassShader.setVector2("WindDirection", windDirection);
+        float windStrength = 0.8f;
+        grassShader.setFloat("WindStrength", windStrength);
+
+        grassShader.setTransparent(true);
+        grassShader.getAdditionalRenderState().setDepthTest(true);
+        grassShader.getAdditionalRenderState().setDepthWrite(true);
+        grassShader.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        grassShader.setColor("Color", new ColorRGBA(0.53f, 0.83f, 0.53f, 1f));
+        grassShader.setFloat("Time", 0);
+
+        grassShader.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+        grassGeom.setQueueBucket(RenderQueue.Bucket.Transparent);
+        grassGeom.setCullHint(Spatial.CullHint.Never);
+        grassGeom.setMaterial(grassShader);
+        grassGeom.setShadowMode(RenderQueue.ShadowMode.Receive);
+//        grassGeom.center();
+
+        grassBladeNode = new Node();
+        grassBladeNode.attachChild(grassGeom);
+        //grassBladeNode = GeometryBatchFactory.optimize(grassBladeNode, false);
+//        grassBladeNode.setQueueBucket(RenderQueue.Bucket.Translucent);
+//        grassBladeNode.setCullHint(Spatial.CullHint.Never);
+//        grassBladeNode.setMaterial(grassShader);
+//        grassBladeNode.setShadowMode(RenderQueue.ShadowMode.Receive);
+        grassGeom.updateModelBound();
+    }
+
+    @Override
+    public void update() {
+        elapsedTime += 0.01;
+        grassShader.setFloat("Time", elapsedTime);
+    }
+
+    @Override
+    public void positionGrass(TerrainQuad quad, boolean parallel) {
+        List<Spatial> quadGrass = quad.getUserData("quadGrass");
+        if(quadGrass == null) {
+            quadGrass = setupGrass();
+
+            Stream<Spatial> stream = quadGrass.stream();
+            stream.forEach(grassNode -> {
+                int generated = -1;
+                while (generated++ < 0) {
+                    CollisionResults results = new CollisionResults();
+
+                    float y = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().y;
+                    if (y < Constants.WATER_LEVEL_HEIGHT)
+                        y = 0;
+
+                    Vector3f start = new Vector3f(gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().x + Utils.getRandomNumberInRange(-1000, 1000), y, gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().z + Utils.getRandomNumberInRange(-1000, 1000));
+                    Ray ray = new Ray(start, RAY_DOWN);
+
+                    quad.collideWith(ray, results);
+                    CollisionResult hit = results.getClosestCollision();
+                    if (hit != null) {
+                        if ((hit.getContactPoint().y > Constants.WATER_LEVEL_HEIGHT) && (hit.getContactPoint().y < 70)) {
+                            Vector3f plantLocation = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y, hit.getContactPoint().z);
+                            grassNode.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
+
+                            gameLogicCore.getGrassNode().attachChild(grassNode);
+//                            System.out.println("Attached " + grassNode.hashCode() + grassNode.getLocalTranslation().toString());
+                            break;
+                        }
+                    } else {
+//                        System.out.println("Placement MISS " + grassNode.hashCode() + grassNode.getLocalTranslation().toString());
+                    }
+                }
+            });
+        } else {
+            Stream<Spatial> stream = quadGrass.stream();
+            stream.forEach(grassNode -> {
+//                System.out.println("Attached again " + grassNode.hashCode() + grassNode.getLocalTranslation().toString());
+                gameLogicCore.getGrassNode().attachChild(grassNode);
+            });
+        }
+
+        quad.setUserData("quadGrass", quadGrass);
     }
 
     @Override

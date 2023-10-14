@@ -1,0 +1,36 @@
+
+MaterialDef Grass2 {
+ 
+MaterialParameters {
+// Alpha threshold for fragment discarding
+Float AlphaDiscardThreshold (AlphaTestFallOff)
+Texture2D Texture
+Texture2D Noise
+Vector4 Color
+Float Time
+Float WindStrength
+Vector2 WindDirection
+Boolean Use_VertexColor
+Vector3 CamPos
+}
+ 
+Technique {
+LightMode SinglePass
+VertexShader GLSL120:   MatDefs/Grass/MovingGrass.vert
+FragmentShader GLSL120: MatDefs/Grass/MovingGrass.frag
+ 
+WorldParameters {
+WorldViewProjectionMatrix
+WorldViewMatrix
+}
+ 
+Defines {
+TEXTURE : Texture
+VERTEX_COLOR : Use_VertexColor
+DISCARD_ALPHA : AlphaDiscardThreshold
+}
+ 
+}
+ 
+ 
+}

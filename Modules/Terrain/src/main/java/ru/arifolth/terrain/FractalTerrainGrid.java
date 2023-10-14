@@ -44,6 +44,7 @@ import com.jme3.terrain.noise.modulator.NoiseModulator;
 import com.jme3.texture.Texture;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.FractalTerrainGridInterface;
+import ru.arifolth.anjrpg.interfaces.InitializationDelegateInterface;
 import ru.arifolth.anjrpg.interfaces.RolePlayingGameInterface;
 
 import java.util.List;
@@ -330,8 +331,11 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
                 quad.addControl(new RigidBodyControl(new HeightfieldCollisionShape(quad.getHeightMap(), terrain.getLocalScale()), 0));
                 quad.setLocked(true);
                 bulletAppState.getPhysicsSpace().add(quad);
+                InitializationDelegateInterface initializationDelegate = app.getGameLogicCore().getInitializationDelegate();
                 //plant trees
-                app.getGameLogicCore().getInitializationDelegate().positionTrees(quad, true);
+                initializationDelegate.positionTrees(quad, true);
+                //plant grass
+                initializationDelegate.positionGrass(quad, true);
             }
 
             @Override
@@ -340,22 +344,42 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
                     bulletAppState.getPhysicsSpace().remove(quad);
                     quad.removeControl(RigidBodyControl.class);
                 }
-                List<Spatial> quadForest = quad.getUserData("quadForest");
-                Stream<Spatial> stream = quadForest.stream();
-                stream.forEach(treeNode -> {
-//                    System.out.println("Detached " + treeNode.hashCode() + treeNode.getLocalTranslation().toString());
-                    app.getGameLogicCore().getForestNode().detachChild(treeNode);
-                });
+                detachTrees(quad);
+                detachGrass(quad);
             }
 
         });
     }
 
+    private void detachGrass(TerrainQuad quad) {
+        List<Spatial> quadGrass = quad.getUserData("quadGrass");
+        Stream<Spatial> stream = quadGrass.stream();
+        stream.forEach(grassNode -> {
+//                    System.out.println("Detached " + grassNode.hashCode() + grassNode.getLocalTranslation().toString());
+            app.getGameLogicCore().getGrassNode().detachChild(grassNode);
+        });
+    }
+
+    private void detachTrees(TerrainQuad quad) {
+        List<Spatial> quadForest = quad.getUserData("quadForest");
+        Stream<Spatial> stream = quadForest.stream();
+        stream.forEach(treeNode -> {
+//                    System.out.println("Detached " + treeNode.hashCode() + treeNode.getLocalTranslation().toString());
+            app.getGameLogicCore().getForestNode().detachChild(treeNode);
+        });
+    }
+
     @Override
     public void update() {
+        //TODO: check if clouds are following player as well. Looks like they are not
+        //Update distant mountains location
         Vector3f playerLocation = app.getGameLogicCore().getPlayerCharacter().getCharacterControl().getPhysicsLocation();
         playerLocation.y = Constants.MOUNTAINS_HEIGHT_OFFSET;
         distantTerrain.setLocalTranslation(playerLocation);
+
+        //update grass
+        //TODO: move later into Grass-specific manager class
+        app.getGameLogicCore().getInitializationDelegate().update();
     }
 
     @Override

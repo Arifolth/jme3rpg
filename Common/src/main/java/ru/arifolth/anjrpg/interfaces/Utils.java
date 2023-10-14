@@ -23,7 +23,7 @@ import com.jme3.bullet.control.CharacterControl;
 import java.util.SplittableRandom;
 
 public class Utils {
-    private static SplittableRandom random = new SplittableRandom();
+    private static final SplittableRandom random = new SplittableRandom();
 
     private Utils() {
     }
@@ -50,4 +50,9 @@ public class Utils {
     public static boolean isBetween(int x, int lower, int upper) {
         return lower <= x && x <= upper;
     }
+
+    public static float nextFloat() {
+        return random.nextFloat();
+    }
+
 }

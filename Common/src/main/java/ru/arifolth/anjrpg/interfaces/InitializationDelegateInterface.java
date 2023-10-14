@@ -34,6 +34,12 @@ public interface InitializationDelegateInterface {
 
     List<Spatial> setupTrees();
 
+    List<Spatial> setupGrass();
+
+    void update();
+
+    void positionGrass(TerrainQuad quad, boolean parallel);
+
     void positionTrees(TerrainQuad quad, boolean parallel);
 
     void positionPlayer();

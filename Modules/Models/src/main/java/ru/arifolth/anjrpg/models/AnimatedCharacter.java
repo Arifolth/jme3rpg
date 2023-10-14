@@ -69,7 +69,7 @@ public abstract class AnimatedCharacter extends BaseCharacter implements AnimEve
         characterModel.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
         //characterModel.setLocalScale(1f);
         //characterModel.setLocalScale(0.055f);
-        characterModel.setQueueBucket(RenderQueue.Bucket.Transparent);
+//        characterModel.setQueueBucket(RenderQueue.Bucket.Transparent);
 
         //ninja collision sphere offset fix
         //characterModel.move(0, -5f, 0); //sinbad
