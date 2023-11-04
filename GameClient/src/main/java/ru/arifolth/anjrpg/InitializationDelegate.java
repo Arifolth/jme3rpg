@@ -53,7 +53,6 @@ import static ru.arifolth.anjrpg.interfaces.Constants.RAY_DOWN;
 
 public class InitializationDelegate implements InitializationDelegateInterface {
     private Spatial treeModel;
-    private float elapsedTime = 0;
 
     private Material grassShader;
 
@@ -199,15 +198,13 @@ public class InitializationDelegate implements InitializationDelegateInterface {
     public List<Spatial> setupGrass() {
         initializeGrass();
 
-        int grassAmount = (int) Utils.getRandomNumberInRange(15000, 25000);
+        int grassAmount = (int) Utils.getRandomNumberInRange(45000, 60000);
         List<Spatial> quadGrass = new ArrayList<>(grassAmount);
         for(int i = 0; i < grassAmount; i++) {
             Spatial grassInstance = grassBladeNode.clone();
-            grassInstance.rotate(Utils.getRandomNumberInRange(0f, .55f), Utils.getRandomNumberInRange(0f, 3.55f), Utils.getRandomNumberInRange(0f, .55f));
             grassInstance.setLocalScale(1 + Utils.getRandomNumberInRange(1, 5), 1 + Utils.getRandomNumberInRange(1, 5), 1 + Utils.getRandomNumberInRange(1, 5));
-//            grassInstance.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(-6.5f, 6.5f) * FastMath.DEG_TO_RAD, new Vector3f(1, 0, 1)));
-
-
+            grassInstance.setLocalTranslation(grassInstance.getLocalTranslation().getX(), grassInstance.getLocalTranslation().getY(), grassInstance.getLocalTranslation().getZ() - 10);
+            grassInstance.rotate(Utils.getRandomNumberInRange(-0.65f, 0.65f), Utils.getRandomNumberInRange(-0.65f, 0.65f), 0);
             quadGrass.add(grassInstance);
         }
 
@@ -229,6 +226,8 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         grassShader.setColor("Ambient", ColorRGBA.White);
         grassShader.setTexture("DiffuseMap", grass);
         grassShader.setBoolean("UseMaterialColors", true);
+        grassShader.setBoolean("VertexLighting", true);
+//        grassShader.setBoolean("SteepParallax", true);
         grassShader.setFloat("AlphaDiscardThreshold", 0.5f);
         grassShader.getAdditionalRenderState().setDepthTest(true);
         grassShader.getAdditionalRenderState().setDepthWrite(true);
@@ -238,17 +237,19 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
         grassGeom.setQueueBucket(RenderQueue.Bucket.Transparent);
         grassGeom.setMaterial(grassShader);
-        grassGeom.setShadowMode(RenderQueue.ShadowMode.Receive);
+        grassGeom.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
 
         grassBladeNode = new Node();
         grassBladeNode.attachChild(grassGeom);
+        grassBladeNode = GeometryBatchFactory.optimize(grassBladeNode, true);
+
+//        LodUtils.setUpGrassModelLod(grassBladeNode);
         grassGeom.updateModelBound();
     }
 
     @Override
     public void update() {
-        elapsedTime += 0.01;
-//        grassShader.setFloat("Time", elapsedTime);
+
     }
 
     @Override
