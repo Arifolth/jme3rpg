@@ -1,0 +1,13 @@
+Material Maple Tree Leaves : Common/MatDefs/Light/Lighting.j3md {
+
+    MaterialParameters {
+        // DiffuseMap : Repeat Textures/Tree/leaf-mapple-green-yellow-c.png
+        DiffuseMap : Repeat Textures/Tree/oak-branch-c.png
+        AlphaDiscardThreshold : 0.5
+    }
+
+    AdditionalRenderState {
+        FaceCull Off
+    }
+
+}

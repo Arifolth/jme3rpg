@@ -199,7 +199,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
     public List<Spatial> setupGrass() {
         initializeGrass();
 
-        int grassAmount = (int) Utils.getRandomNumberInRange(3000, 4000);
+        int grassAmount = (int) Utils.getRandomNumberInRange(15000, 25000);
         List<Spatial> quadGrass = new ArrayList<>(grassAmount);
         for(int i = 0; i < grassAmount; i++) {
             Spatial grassInstance = grassBladeNode.clone();
@@ -222,47 +222,33 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
         Geometry grassGeom = new Geometry("grass", new Quad(2, 2));
 
-        grassShader = new Material(gameLogicCore.getAssetManager(), "MatDefs/Grass/MovingGrass.j3md");
+        grassShader = new Material(gameLogicCore.getAssetManager(), "Common/MatDefs/Light/Lighting.j3md");
         Texture grass = gameLogicCore.getAssetManager().loadTexture("Textures/Grass/grass_3.png");
         grass.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
-        grassShader.setTexture("Texture", grass);
-        grassShader.setFloat("AlphaDiscardThreshold", -1.2f);
-        grassShader.setTexture("Noise", gameLogicCore.getAssetManager().loadTexture("Textures/Grass/normal.jpg"));
-
-
-        // set wind direction
-        grassShader.setVector2("WindDirection", windDirection);
-        float windStrength = 0.8f;
-        grassShader.setFloat("WindStrength", windStrength);
-
-        grassShader.setTransparent(true);
+        grassShader.setColor("Diffuse", ColorRGBA.White);
+        grassShader.setColor("Ambient", ColorRGBA.White);
+        grassShader.setTexture("DiffuseMap", grass);
+        grassShader.setBoolean("UseMaterialColors", true);
+        grassShader.setFloat("AlphaDiscardThreshold", 0.5f);
         grassShader.getAdditionalRenderState().setDepthTest(true);
         grassShader.getAdditionalRenderState().setDepthWrite(true);
+        grassShader.getAdditionalRenderState().setColorWrite(true);
         grassShader.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-        grassShader.setColor("Color", new ColorRGBA(0.53f, 0.83f, 0.53f, 1f));
-        grassShader.setFloat("Time", 0);
-
         grassShader.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+
         grassGeom.setQueueBucket(RenderQueue.Bucket.Transparent);
-        grassGeom.setCullHint(Spatial.CullHint.Never);
         grassGeom.setMaterial(grassShader);
         grassGeom.setShadowMode(RenderQueue.ShadowMode.Receive);
-//        grassGeom.center();
 
         grassBladeNode = new Node();
         grassBladeNode.attachChild(grassGeom);
-        //grassBladeNode = GeometryBatchFactory.optimize(grassBladeNode, false);
-//        grassBladeNode.setQueueBucket(RenderQueue.Bucket.Translucent);
-//        grassBladeNode.setCullHint(Spatial.CullHint.Never);
-//        grassBladeNode.setMaterial(grassShader);
-//        grassBladeNode.setShadowMode(RenderQueue.ShadowMode.Receive);
         grassGeom.updateModelBound();
     }
 
     @Override
     public void update() {
         elapsedTime += 0.01;
-        grassShader.setFloat("Time", elapsedTime);
+//        grassShader.setFloat("Time", elapsedTime);
     }
 
     @Override
