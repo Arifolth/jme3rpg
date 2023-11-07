@@ -198,13 +198,13 @@ public class InitializationDelegate implements InitializationDelegateInterface {
     public List<Spatial> setupGrass() {
         initializeGrass();
 
-        int grassAmount = (int) Utils.getRandomNumberInRange(45000, 60000);
+        int grassAmount = (int) Utils.getRandomNumberInRange(5000, 15000);
         List<Spatial> quadGrass = new ArrayList<>(grassAmount);
         for(int i = 0; i < grassAmount; i++) {
             Spatial grassInstance = grassBladeNode.clone();
             grassInstance.setLocalScale(1 + Utils.getRandomNumberInRange(1, 5), 1 + Utils.getRandomNumberInRange(1, 5), 1 + Utils.getRandomNumberInRange(1, 5));
             grassInstance.setLocalTranslation(grassInstance.getLocalTranslation().getX(), grassInstance.getLocalTranslation().getY(), grassInstance.getLocalTranslation().getZ() - 10);
-            grassInstance.rotate(Utils.getRandomNumberInRange(-0.65f, 0.65f), Utils.getRandomNumberInRange(-0.65f, 0.65f), 0);
+            grassInstance.rotate(Utils.getRandomNumberInRange(-0.65f, 0.65f), Utils.getRandomNumberInRange(-1.65f, 1.65f), 0);
             quadGrass.add(grassInstance);
         }
 
@@ -217,7 +217,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         windDirection.y = Utils.nextFloat();
         windDirection.normalize();
 
-        Geometry grassGeom = new Geometry("grass", new Quad(2, 2));
+        Geometry grassInstance = new Geometry("grass", new Quad(2, 2));
 
         grassShader = new Material(gameLogicCore.getAssetManager(), "Common/MatDefs/Light/Lighting.j3md");
         Texture grass = gameLogicCore.getAssetManager().loadTexture("Textures/Grass/grass_3.png");
@@ -227,24 +227,35 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         grassShader.setTexture("DiffuseMap", grass);
         grassShader.setBoolean("UseMaterialColors", true);
         grassShader.setBoolean("VertexLighting", true);
-//        grassShader.setBoolean("SteepParallax", true);
+        grassShader.setBoolean("HardwareShadows", true);
+        grassShader.setBoolean("SteepParallax", true);
+        grassShader.setBoolean("BackfaceShadows", true);
         grassShader.setFloat("AlphaDiscardThreshold", 0.5f);
+        grassShader.setFloat("Shininess", 0f);
         grassShader.getAdditionalRenderState().setDepthTest(true);
         grassShader.getAdditionalRenderState().setDepthWrite(true);
         grassShader.getAdditionalRenderState().setColorWrite(true);
         grassShader.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
         grassShader.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
 
-        grassGeom.setQueueBucket(RenderQueue.Bucket.Transparent);
-        grassGeom.setMaterial(grassShader);
-        grassGeom.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+        grassInstance.setQueueBucket(RenderQueue.Bucket.Transparent);
+        grassInstance.setMaterial(grassShader);
+        grassInstance.setShadowMode(RenderQueue.ShadowMode.Off);
+        grassInstance.rotate(0, 0.58f, 0);
+        grassInstance.center();
 
         grassBladeNode = new Node();
-        grassBladeNode.attachChild(grassGeom);
-        grassBladeNode = GeometryBatchFactory.optimize(grassBladeNode, true);
+        grassBladeNode.attachChild(grassInstance);
 
-//        LodUtils.setUpGrassModelLod(grassBladeNode);
-        grassGeom.updateModelBound();
+        grassInstance = grassInstance.clone();
+        grassInstance.rotate(0, 1.58f, 0);
+        grassInstance.center();
+        grassBladeNode.attachChild(grassInstance);
+
+        grassBladeNode.move(0, 1f, 0);
+
+        grassBladeNode = GeometryBatchFactory.optimize(grassBladeNode, true);
+        grassBladeNode.updateModelBound();
     }
 
     @Override
@@ -274,7 +285,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
                     quad.collideWith(ray, results);
                     CollisionResult hit = results.getClosestCollision();
                     if (hit != null) {
-                        if ((hit.getContactPoint().y > Constants.WATER_LEVEL_HEIGHT) && (hit.getContactPoint().y < 70)) {
+                        if ((hit.getContactPoint().y > Constants.WATER_LEVEL_HEIGHT) && (hit.getContactPoint().y < 70) && (hit.getContactPoint().z <= 200) && (hit.getContactPoint().x <= 200)) {
                             Vector3f plantLocation = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y, hit.getContactPoint().z);
                             grassNode.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
 
