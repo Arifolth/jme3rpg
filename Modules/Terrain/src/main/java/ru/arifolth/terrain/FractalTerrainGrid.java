@@ -25,6 +25,7 @@ import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.material.Material;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.control.UpdateControl;
 import com.jme3.system.AppSettings;
@@ -47,11 +48,9 @@ import ru.arifolth.anjrpg.interfaces.FractalTerrainGridInterface;
 import ru.arifolth.anjrpg.interfaces.InitializationDelegateInterface;
 import ru.arifolth.anjrpg.interfaces.RolePlayingGameInterface;
 
-import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 
 public class FractalTerrainGrid implements FractalTerrainGridInterface {
     final private static Logger LOGGER = Logger.getLogger(FractalTerrainGrid.class.getName());
@@ -352,21 +351,13 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
     }
 
     private void detachGrass(TerrainQuad quad) {
-        List<Spatial> quadGrass = quad.getUserData("quadGrass");
-        Stream<Spatial> stream = quadGrass.stream();
-        stream.forEach(grassNode -> {
-//                    System.out.println("Detached " + grassNode.hashCode() + grassNode.getLocalTranslation().toString());
-            app.getGameLogicCore().getGrassNode().detachChild(grassNode);
-        });
+        Node quadGrass = quad.getUserData(Constants.QUAD_GRASS);
+        app.getGameLogicCore().getGrassNode().detachChild(quadGrass);
     }
 
     private void detachTrees(TerrainQuad quad) {
-        List<Spatial> quadForest = quad.getUserData("quadForest");
-        Stream<Spatial> stream = quadForest.stream();
-        stream.forEach(treeNode -> {
-//                    System.out.println("Detached " + treeNode.hashCode() + treeNode.getLocalTranslation().toString());
-            app.getGameLogicCore().getForestNode().detachChild(treeNode);
-        });
+        Node quadForest = quad.getUserData(Constants.QUAD_FOREST);
+        app.getGameLogicCore().getForestNode().detachChild(quadForest);
     }
 
     @Override
@@ -378,7 +369,6 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
         distantTerrain.setLocalTranslation(playerLocation);
 
         //update grass
-        //TODO: move later into Grass-specific manager class
         app.getGameLogicCore().getInitializationDelegate().update();
     }
 

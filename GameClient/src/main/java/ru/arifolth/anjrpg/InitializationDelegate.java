@@ -44,6 +44,8 @@ import ru.arifolth.anjrpg.models.PlayerCharacter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
@@ -59,6 +61,10 @@ public class InitializationDelegate implements InitializationDelegateInterface {
     private final GameLogicCore gameLogicCore;
     final private static Logger LOGGER = Logger.getLogger(InitializationDelegate.class.getName());
     private Node grassBladeNode;
+
+    private ConcurrentLinkedQueue<Node> grassQueue = new ConcurrentLinkedQueue<>();
+    private ConcurrentLinkedQueue<Node> treesQueue = new ConcurrentLinkedQueue<>();
+
 
     public InitializationDelegate(GameLogicCore gameLogicCore) {
         this.gameLogicCore = gameLogicCore;
@@ -261,100 +267,134 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
     @Override
     public void update() {
+        attachGrassQuad();
 
+        attachTreesQuad();
+    }
+
+    private void attachTreesQuad() {
+        Node treesNode = treesQueue.poll();
+
+        if(treesNode == null)
+            return;
+
+        LOGGER.log(Level.INFO, "attach TREES started");
+        gameLogicCore.getGrassNode().attachChild(treesNode);
+        LOGGER.log(Level.INFO, "attach TREES finished");
+    }
+
+    private void attachGrassQuad() {
+        Node grassNode = grassQueue.poll();
+
+        if(grassNode == null)
+            return;
+
+        LOGGER.log(Level.INFO, "attach GRASS started");
+        gameLogicCore.getGrassNode().attachChild(grassNode);
+        LOGGER.log(Level.INFO, "attach GRASS finished");
     }
 
     @Override
     public void positionGrass(TerrainQuad quad, boolean parallel) {
-        List<Spatial> quadGrass = quad.getUserData("quadGrass");
-        if(quadGrass == null) {
-            quadGrass = setupGrass();
+        var context = new Object() {
+            Node grassNode = quad.getUserData("quadGrass");
+        };
 
-            Stream<Spatial> stream = quadGrass.stream();
-            stream.forEach(grassNode -> {
-                int generated = -1;
-                while (generated++ < 0) {
-                    CollisionResults results = new CollisionResults();
+        Executors.newSingleThreadExecutor().execute(new Runnable() {
+            @Override
+            public void run() {
+                if(context.grassNode == null) {
+                    context.grassNode = new Node();
+                    List<Spatial> quadGrass = setupGrass();
 
-                    float y = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().y;
-                    if (y < Constants.WATER_LEVEL_HEIGHT)
-                        y = 0;
+                    Stream<Spatial> stream = quadGrass.stream();
+                    stream.forEach(grassSpatial -> {
+                        int generated = -1;
+                        while (generated++ < 0) {
+                            CollisionResults results = new CollisionResults();
 
-                    Vector3f start = new Vector3f(gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().x + Utils.getRandomNumberInRange(-1000, 1000), y, gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().z + Utils.getRandomNumberInRange(-1000, 1000));
-                    Ray ray = new Ray(start, RAY_DOWN);
+                            float y = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().y;
+                            if (y < Constants.WATER_LEVEL_HEIGHT)
+                                y = 0;
 
-                    quad.collideWith(ray, results);
-                    CollisionResult hit = results.getClosestCollision();
-                    if (hit != null) {
-                        if ((hit.getContactPoint().y > Constants.WATER_LEVEL_HEIGHT) && (hit.getContactPoint().y < 70) && (hit.getContactPoint().z <= 200) && (hit.getContactPoint().x <= 200)) {
-                            Vector3f plantLocation = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y, hit.getContactPoint().z);
-                            grassNode.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
+                            Vector3f start = new Vector3f(gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().x + Utils.getRandomNumberInRange(-1000, 1000), y, gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().z + Utils.getRandomNumberInRange(-1000, 1000));
+                            Ray ray = new Ray(start, RAY_DOWN);
 
-                            gameLogicCore.getGrassNode().attachChild(grassNode);
-//                            System.out.println("Attached " + grassNode.hashCode() + grassNode.getLocalTranslation().toString());
-                            break;
+                            quad.collideWith(ray, results);
+                            CollisionResult hit = results.getClosestCollision();
+                            if (hit != null) {
+                                if ((hit.getContactPoint().y > Constants.WATER_LEVEL_HEIGHT) && (hit.getContactPoint().y < 70) /*&& (hit.getContactPoint().z <= 200) && (hit.getContactPoint().x <= 200)*/) {
+                                    Vector3f plantLocation = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y, hit.getContactPoint().z);
+                                    grassSpatial.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
+
+                                    context.grassNode.attachChild(grassSpatial);
+//                            System.out.println("Attached " + grassSpatial.hashCode() + grassSpatial.getLocalTranslation().toString());
+                                    break;
+                                }
+                            }
                         }
-                    } else {
-//                        System.out.println("Placement MISS " + grassNode.hashCode() + grassNode.getLocalTranslation().toString());
-                    }
+                    });
                 }
-            });
-        } else {
-            Stream<Spatial> stream = quadGrass.stream();
-            stream.forEach(grassNode -> {
-//                System.out.println("Attached again " + grassNode.hashCode() + grassNode.getLocalTranslation().toString());
-                gameLogicCore.getGrassNode().attachChild(grassNode);
-            });
-        }
 
-        quad.setUserData("quadGrass", quadGrass);
+                LOGGER.log(Level.INFO, "optimize GRASS started");
+                grassQueue.offer(GeometryBatchFactory.optimize(context.grassNode, true));
+                LOGGER.log(Level.INFO, "optimize GRASS finished");
+            }
+        });
+
+        quad.setUserData("quadGrass", context.grassNode);
     }
 
     @Override
     public void positionTrees(TerrainQuad quad, boolean parallel) {
-        List<Spatial> quadForest = quad.getUserData("quadForest");
-        if(quadForest == null) {
-            quadForest = setupTrees();
+        var context = new Object() {
+            Node treesNode = quad.getUserData("quadForest");
+        };
 
-            Stream<Spatial> stream = quadForest.stream();
-            stream.forEach(treeNode -> {
-                int generated = -1;
-                while (generated++ < 0) {
-                    CollisionResults results = new CollisionResults();
+        Executors.newSingleThreadExecutor().execute(new Runnable() {
+            @Override
+            public void run() {
+                if(context.treesNode == null) {
+                    context.treesNode = new Node();
+                    List<Spatial> quadForest = setupTrees();
 
-                    float y = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().y;
-                    if (y < Constants.WATER_LEVEL_HEIGHT)
-                        y = 0;
+                    Stream<Spatial> stream = quadForest.stream();
+                    stream.forEach(treeNode -> {
+                        int generated = -1;
+                        while (generated++ < 0) {
+                            CollisionResults results = new CollisionResults();
 
-                    Vector3f start = new Vector3f(gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().x + Utils.getRandomNumberInRange(-1000, 1000), y, gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().z + Utils.getRandomNumberInRange(-1000, 1000));
-                    Ray ray = new Ray(start, RAY_DOWN);
+                            float y = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().y;
+                            if (y < Constants.WATER_LEVEL_HEIGHT)
+                                y = 0;
 
-                    quad.collideWith(ray, results);
-                    CollisionResult hit = results.getClosestCollision();
-                    if (hit != null) {
-                        if (hit.getContactPoint().y > Constants.WATER_LEVEL_HEIGHT) {
-                            Vector3f plantLocation = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y, hit.getContactPoint().z);
-                            treeNode.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
-                            treeNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(-6.5f, 6.5f) * FastMath.DEG_TO_RAD, new Vector3f(1, 0, 1)));
+                            Vector3f start = new Vector3f(gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().x + Utils.getRandomNumberInRange(-1000, 1000), y, gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().z + Utils.getRandomNumberInRange(-1000, 1000));
+                            Ray ray = new Ray(start, RAY_DOWN);
 
-                            gameLogicCore.getForestNode().attachChild(treeNode);
+                            quad.collideWith(ray, results);
+                            CollisionResult hit = results.getClosestCollision();
+                            if (hit != null) {
+                                if (hit.getContactPoint().y > Constants.WATER_LEVEL_HEIGHT) {
+                                    Vector3f plantLocation = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y, hit.getContactPoint().z);
+                                    treeNode.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
+                                    treeNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(-6.5f, 6.5f) * FastMath.DEG_TO_RAD, new Vector3f(1, 0, 1)));
+
+                                    context.treesNode.attachChild(treeNode);
 //                            System.out.println("Attached " + treeNode.hashCode() + treeNode.getLocalTranslation().toString());
-                            break;
+                                    break;
+                                }
+                            }
                         }
-                    } else {
-//                        System.out.println("Placement MISS " + treeNode.hashCode() + treeNode.getLocalTranslation().toString());
-                    }
+                    });
                 }
-            });
-        } else {
-            Stream<Spatial> stream = quadForest.stream();
-            stream.forEach(treeNode -> {
-//                System.out.println("Attached again " + treeNode.hashCode() + treeNode.getLocalTranslation().toString());
-                gameLogicCore.getForestNode().attachChild(treeNode);
-            });
-        }
 
-        quad.setUserData("quadForest", quadForest);
+                LOGGER.log(Level.INFO, "optimize Trees started");
+                treesQueue.offer(GeometryBatchFactory.optimize(context.treesNode, true));
+                LOGGER.log(Level.INFO, "optimize Trees finished");
+            }
+        });
+
+        quad.setUserData("quadForest", context.treesNode);
     }
 
     @Override
