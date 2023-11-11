@@ -127,6 +127,8 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         initializeNPCs(positionCharacters);
 
         initializeTreeModel();
+
+        initializeGrass();
     }
 
     private void initializeTreeModel() {
@@ -189,7 +191,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
     @Override
     public List<Spatial> setupTrees() {
-        int forestSize = (int) Utils.getRandomNumberInRange(3999, 4000);
+        int forestSize = (int) Utils.getRandomNumberInRange(1500, 5000);
         List<Spatial> quadForest = new ArrayList<>(forestSize);
         for(int i = 0; i < forestSize; i++) {
             Spatial treeModelCustom = treeModel.clone();
@@ -202,9 +204,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
     @Override
     public List<Spatial> setupGrass() {
-        initializeGrass();
-
-        int grassAmount = 50000;
+        final int grassAmount = 200_000;
         List<Spatial> quadGrass = new ArrayList<>(grassAmount);
         for(int i = 0; i < grassAmount; i++) {
             Spatial grassInstance = grassBladeNode.clone();
@@ -223,7 +223,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         windDirection.y = Utils.nextFloat();
         windDirection.normalize();
 
-        Geometry grassInstance = new Geometry("grass", new Quad(2, 2));
+        Geometry grassGeometry = new Geometry("grass", new Quad(2, 2));
 
         grassShader = new Material(gameLogicCore.getAssetManager(), "Common/MatDefs/Light/Lighting.j3md");
         Texture grass = gameLogicCore.getAssetManager().loadTexture("Textures/Grass/grass_3.png");
@@ -245,22 +245,23 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         grassShader.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
         grassShader.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
 
-        grassInstance.setQueueBucket(RenderQueue.Bucket.Transparent);
-        grassInstance.setMaterial(grassShader);
-        grassInstance.setShadowMode(RenderQueue.ShadowMode.Off);
-        grassInstance.rotate(0, 0.58f, 0);
-        grassInstance.center();
+        grassGeometry.setQueueBucket(RenderQueue.Bucket.Transparent);
+        grassGeometry.setMaterial(grassShader);
+        grassGeometry.setShadowMode(RenderQueue.ShadowMode.Off);
+        grassGeometry.rotate(0, 0.58f, 0);
+        grassGeometry.center();
 
         grassBladeNode = new Node();
-        grassBladeNode.attachChild(grassInstance);
+        grassBladeNode.attachChild(grassGeometry);
 
-        grassInstance = grassInstance.clone();
-        grassInstance.rotate(0, 1.58f, 0);
-        grassInstance.center();
-        grassBladeNode.attachChild(grassInstance);
+        grassGeometry = grassGeometry.clone();
+        grassGeometry.rotate(0, 1.58f, 0);
+        grassGeometry.center();
+        grassBladeNode.attachChild(grassGeometry);
 
         grassBladeNode.move(0, 1f, 0);
 
+        LodUtils.setUpGrassModelLod(grassBladeNode);
         grassBladeNode = GeometryBatchFactory.optimize(grassBladeNode, true);
         grassBladeNode.updateModelBound();
     }
@@ -279,7 +280,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
             return;
 
         LOGGER.log(Level.INFO, "attach TREES started");
-        gameLogicCore.getGrassNode().attachChild(treesNode);
+        gameLogicCore.getForestNode().attachChild(treesNode);
         LOGGER.log(Level.INFO, "attach TREES finished");
     }
 
@@ -297,7 +298,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
     @Override
     public void positionGrass(TerrainQuad quad, boolean parallel) {
         var context = new Object() {
-            Node grassNode = quad.getUserData("quadGrass");
+            Node grassNode = quad.getUserData(Constants.QUAD_GRASS);
         };
 
         Executors.newSingleThreadExecutor().execute(new Runnable() {
@@ -309,28 +310,25 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
                     Stream<Spatial> stream = quadGrass.stream();
                     stream.forEach(grassSpatial -> {
-                        int generated = -1;
-                        while (generated++ < 0) {
-                            CollisionResults results = new CollisionResults();
+                        CollisionResults results = new CollisionResults();
+                        final Vector3f playerLocation = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation();
 
-                            float y = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().y;
-                            if (y < Constants.WATER_LEVEL_HEIGHT)
-                                y = 0;
+                        float y = playerLocation.y;
+                        if (y < Constants.WATER_LEVEL_HEIGHT)
+                            y = 0;
 
-                            Vector3f start = new Vector3f(gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().x + Utils.getRandomNumberInRange(-1000, 1000), y, gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().z + Utils.getRandomNumberInRange(-1000, 1000));
-                            Ray ray = new Ray(start, RAY_DOWN);
+                        Vector3f start = new Vector3f(playerLocation.x + Utils.getRandomNumberInRange(-2000, 2000), y + Utils.getRandomNumberInRange(0, 130), playerLocation.z + Utils.getRandomNumberInRange(-2000, 2000));
+                        Ray ray = new Ray(start, RAY_DOWN);
 
-                            quad.collideWith(ray, results);
-                            CollisionResult hit = results.getClosestCollision();
-                            if (hit != null) {
-                                if ((hit.getContactPoint().y > Constants.WATER_LEVEL_HEIGHT) && (hit.getContactPoint().y < 70) /*&& (hit.getContactPoint().z <= 200) && (hit.getContactPoint().x <= 200)*/) {
-                                    Vector3f plantLocation = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y, hit.getContactPoint().z);
-                                    grassSpatial.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
+                        quad.collideWith(ray, results);
+                        CollisionResult hit = results.getClosestCollision();
+                        if (hit != null) {
+                            if ((hit.getContactPoint().y > Constants.WATER_LEVEL_HEIGHT)) {
+                                Vector3f plantLocation = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y, hit.getContactPoint().z);
+                                grassSpatial.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
 
-                                    context.grassNode.attachChild(grassSpatial);
+                                context.grassNode.attachChild(grassSpatial);
 //                            System.out.println("Attached " + grassSpatial.hashCode() + grassSpatial.getLocalTranslation().toString());
-                                    break;
-                                }
                             }
                         }
                     });
@@ -342,13 +340,13 @@ public class InitializationDelegate implements InitializationDelegateInterface {
             }
         });
 
-        quad.setUserData("quadGrass", context.grassNode);
+        quad.setUserData(Constants.QUAD_GRASS, context.grassNode);
     }
 
     @Override
     public void positionTrees(TerrainQuad quad, boolean parallel) {
         var context = new Object() {
-            Node treesNode = quad.getUserData("quadForest");
+            Node treesNode = quad.getUserData(Constants.QUAD_FOREST);
         };
 
         Executors.newSingleThreadExecutor().execute(new Runnable() {
@@ -360,29 +358,26 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
                     Stream<Spatial> stream = quadForest.stream();
                     stream.forEach(treeNode -> {
-                        int generated = -1;
-                        while (generated++ < 0) {
-                            CollisionResults results = new CollisionResults();
+                        CollisionResults results = new CollisionResults();
+                        final Vector3f playerLocation = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation();
 
-                            float y = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().y;
-                            if (y < Constants.WATER_LEVEL_HEIGHT)
-                                y = 0;
+                        float y = playerLocation.y;
+                        if (y < Constants.WATER_LEVEL_HEIGHT)
+                            y = 0;
 
-                            Vector3f start = new Vector3f(gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().x + Utils.getRandomNumberInRange(-1000, 1000), y, gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().z + Utils.getRandomNumberInRange(-1000, 1000));
-                            Ray ray = new Ray(start, RAY_DOWN);
+                        Vector3f start = new Vector3f(playerLocation.x + Utils.getRandomNumberInRange(-2000, 2000), y + Utils.getRandomNumberInRange(0, 70), playerLocation.z + Utils.getRandomNumberInRange(-2000, 2000));
+                        Ray ray = new Ray(start, RAY_DOWN);
 
-                            quad.collideWith(ray, results);
-                            CollisionResult hit = results.getClosestCollision();
-                            if (hit != null) {
-                                if (hit.getContactPoint().y > Constants.WATER_LEVEL_HEIGHT) {
-                                    Vector3f plantLocation = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y, hit.getContactPoint().z);
-                                    treeNode.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
-                                    treeNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(-6.5f, 6.5f) * FastMath.DEG_TO_RAD, new Vector3f(1, 0, 1)));
+                        quad.collideWith(ray, results);
+                        CollisionResult hit = results.getClosestCollision();
+                        if (hit != null) {
+                            if (hit.getContactPoint().y > Constants.WATER_LEVEL_HEIGHT) {
+                                Vector3f plantLocation = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y, hit.getContactPoint().z);
+                                treeNode.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
+                                treeNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(-6.5f, 6.5f) * FastMath.DEG_TO_RAD, new Vector3f(1, 0, 1)));
 
-                                    context.treesNode.attachChild(treeNode);
+                                context.treesNode.attachChild(treeNode);
 //                            System.out.println("Attached " + treeNode.hashCode() + treeNode.getLocalTranslation().toString());
-                                    break;
-                                }
                             }
                         }
                     });
@@ -394,7 +389,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
             }
         });
 
-        quad.setUserData("quadForest", context.treesNode);
+        quad.setUserData(Constants.QUAD_FOREST, context.treesNode);
     }
 
     @Override
