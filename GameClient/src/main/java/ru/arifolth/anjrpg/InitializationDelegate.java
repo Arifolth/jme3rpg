@@ -198,7 +198,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
     public List<Spatial> setupGrass() {
         initializeGrass();
 
-        int grassAmount = (int) Utils.getRandomNumberInRange(5000, 15000);
+        int grassAmount = 50000;
         List<Spatial> quadGrass = new ArrayList<>(grassAmount);
         for(int i = 0; i < grassAmount; i++) {
             Spatial grassInstance = grassBladeNode.clone();
@@ -226,12 +226,13 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         grassShader.setColor("Ambient", ColorRGBA.White);
         grassShader.setTexture("DiffuseMap", grass);
         grassShader.setBoolean("UseMaterialColors", true);
-        grassShader.setBoolean("VertexLighting", true);
+        grassShader.setBoolean("VertexLighting", false);
         grassShader.setBoolean("HardwareShadows", true);
-        grassShader.setBoolean("SteepParallax", true);
-        grassShader.setBoolean("BackfaceShadows", true);
+        grassShader.setBoolean("SteepParallax", false);
+        grassShader.setBoolean("BackfaceShadows", false);
         grassShader.setFloat("AlphaDiscardThreshold", 0.5f);
         grassShader.setFloat("Shininess", 0f);
+        //grassShader.setBoolean("UseInstancing", true);
         grassShader.getAdditionalRenderState().setDepthTest(true);
         grassShader.getAdditionalRenderState().setDepthWrite(true);
         grassShader.getAdditionalRenderState().setColorWrite(true);
