@@ -19,15 +19,13 @@
 package ru.arifolth.anjrpg;
 
 import com.jme3.asset.AssetManager;
-import com.jme3.light.DirectionalLight;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.*;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Node;
-import com.jme3.shadow.*;
+import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.water.WaterFilter;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.FilterManagerInterface;
@@ -38,12 +36,11 @@ public class FilterManager implements FilterManagerInterface {
     private Node rootNode;
     private AssetManager assetManager;
     private LightScatteringFilter lsf;
-    private AbstractShadowRenderer shadowRenderer;
+    private PssmShadowRenderer pssmRenderer;
     private SkyInterface sky;
     private  ViewPort viewPort;
     private WaterFilter waterFilter;
     private FilterPostProcessor fpp;
-    private DirectionalLight directionalLight = new DirectionalLight();
 
 
     public FilterManager(AssetManager assetManager, Node rootNode, ViewPort viewPort, SkyInterface sky) {
@@ -97,13 +94,11 @@ public class FilterManager implements FilterManagerInterface {
     }
 
     private void setupShadowRenderer() {
-        shadowRenderer = new DirectionalLightShadowRenderer(assetManager, 2048, 3);
-        ((DirectionalLightShadowRenderer) shadowRenderer).setLight(directionalLight);
-        shadowRenderer.setShadowIntensity(0.55f);
-        shadowRenderer.setEdgeFilteringMode(EdgeFilteringMode.PCF8);
-        shadowRenderer.setShadowCompareMode(CompareMode.Hardware);
-        shadowRenderer.setRenderBackFacesShadows(true);
-        viewPort.addProcessor(shadowRenderer);
+        pssmRenderer = new PssmShadowRenderer(assetManager, 2048, 16);
+        pssmRenderer.setShadowIntensity(0.55f);
+        pssmRenderer.setFilterMode(PssmShadowRenderer.FilterMode.PCF8);
+        pssmRenderer.setCompareMode(PssmShadowRenderer.CompareMode.Hardware);
+        viewPort.addProcessor(pssmRenderer);
     }
 
     private void setupTranslucentBucketFilter() {
@@ -142,26 +137,12 @@ public class FilterManager implements FilterManagerInterface {
         bloom.setExposurePower(55);
         bloom.setBloomIntensity(1.0f);
         fpp.addFilter(bloom);
-
-        fpp.addFilter(new ToneMapFilter(Vector3f.UNIT_XYZ.mult(1.0f)));
-
-        /*
-        CrossHatchFilter filter = new CrossHatchFilter();
-        filter.setColorInfluenceLine(0.155f);
-        fpp.addFilter(filter);
-
-        fpp.addFilter(new PosterizationFilter());
-        */
     }
 
     @Override
     public void update(float tpf) {
-        Vector3f lightPosition = sky.getSunDirection().normalize().mult(500);
-
-        lsf.setLightPosition(lightPosition);
-        waterFilter.setLightDirection(lightPosition);
-        if (sky.getHours() < 20 && sky.getHours() > 8) {
-            directionalLight.setDirection(lightPosition.negate());
-        }
+        lsf.setLightPosition(sky.getSunDirection().normalize().normalize().mult(500));
+        pssmRenderer.setDirection(sky.getSunDirection().negate().normalize().mult(500));
+        waterFilter.setLightDirection(sky.getSunDirection().normalize().mult(500));
     }
 }

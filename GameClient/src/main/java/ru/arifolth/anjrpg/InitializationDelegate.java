@@ -234,7 +234,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         grassShader.setBoolean("UseMaterialColors", true);
         grassShader.setBoolean("VertexLighting", false);
         grassShader.setBoolean("HardwareShadows", true);
-        grassShader.setBoolean("SteepParallax", false);
+        grassShader.setBoolean("SteepParallax", true);
         grassShader.setBoolean("BackfaceShadows", false);
         grassShader.setFloat("AlphaDiscardThreshold", 0.5f);
         grassShader.setFloat("Shininess", 0f);
@@ -247,7 +247,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
         grassGeometry.setQueueBucket(RenderQueue.Bucket.Transparent);
         grassGeometry.setMaterial(grassShader);
-        grassGeometry.setShadowMode(RenderQueue.ShadowMode.Off);
+        grassGeometry.setShadowMode(RenderQueue.ShadowMode.Receive);
         grassGeometry.rotate(0, 0.58f, 0);
         grassGeometry.center();
 
@@ -335,7 +335,11 @@ public class InitializationDelegate implements InitializationDelegateInterface {
                 }
 
                 LOGGER.log(Level.INFO, "optimize GRASS started");
-                grassQueue.offer(GeometryBatchFactory.optimize(context.grassNode, true));
+                context.grassNode = (Node) GeometryBatchFactory.optimize(context.grassNode);
+                context.grassNode.setShadowMode(RenderQueue.ShadowMode.Receive);
+                context.grassNode.updateModelBound();
+
+                grassQueue.offer(context.grassNode);
                 LOGGER.log(Level.INFO, "optimize GRASS finished");
             }
         });
@@ -384,7 +388,11 @@ public class InitializationDelegate implements InitializationDelegateInterface {
                 }
 
                 LOGGER.log(Level.INFO, "optimize Trees started");
-                treesQueue.offer(GeometryBatchFactory.optimize(context.treesNode, true));
+                context.treesNode = (Node) GeometryBatchFactory.optimize(context.treesNode);
+                context.treesNode.setShadowMode(RenderQueue.ShadowMode.Cast);
+                context.treesNode.updateModelBound();
+
+                treesQueue.offer(context.treesNode);
                 LOGGER.log(Level.INFO, "optimize Trees finished");
             }
         });
