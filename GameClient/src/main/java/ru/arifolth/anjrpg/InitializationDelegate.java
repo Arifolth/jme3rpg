@@ -191,7 +191,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
     @Override
     public List<Spatial> setupTrees() {
-        int forestSize = (int) Utils.getRandomNumberInRange(1500, 5000);
+        int forestSize = (int) Utils.getRandomNumberInRange(5000, 8000);
         List<Spatial> quadForest = new ArrayList<>(forestSize);
         for(int i = 0; i < forestSize; i++) {
             Spatial treeModelCustom = treeModel.clone();
@@ -204,7 +204,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
     @Override
     public List<Spatial> setupGrass() {
-        final int grassAmount = 200_000;
+        final int grassAmount = 250_000;
         List<Spatial> quadGrass = new ArrayList<>(grassAmount);
         for(int i = 0; i < grassAmount; i++) {
             Spatial grassInstance = grassBladeNode.clone();
@@ -235,7 +235,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         grassShader.setBoolean("VertexLighting", false);
         grassShader.setBoolean("HardwareShadows", true);
         grassShader.setBoolean("SteepParallax", true);
-        grassShader.setBoolean("BackfaceShadows", false);
+        grassShader.setBoolean("BackfaceShadows", true);
         grassShader.setFloat("AlphaDiscardThreshold", 0.5f);
         grassShader.setFloat("Shininess", 0f);
         //grassShader.setBoolean("UseInstancing", true);
@@ -337,6 +337,8 @@ public class InitializationDelegate implements InitializationDelegateInterface {
                 LOGGER.log(Level.INFO, "optimize GRASS started");
                 context.grassNode = (Node) GeometryBatchFactory.optimize(context.grassNode);
                 context.grassNode.setShadowMode(RenderQueue.ShadowMode.Receive);
+                context.grassNode.setQueueBucket(RenderQueue.Bucket.Transparent);
+                context.grassNode.setCullHint(Spatial.CullHint.Dynamic);
                 context.grassNode.updateModelBound();
 
                 grassQueue.offer(context.grassNode);
@@ -390,6 +392,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
                 LOGGER.log(Level.INFO, "optimize Trees started");
                 context.treesNode = (Node) GeometryBatchFactory.optimize(context.treesNode);
                 context.treesNode.setShadowMode(RenderQueue.ShadowMode.Cast);
+                context.treesNode.setCullHint(Spatial.CullHint.Dynamic);
                 context.treesNode.updateModelBound();
 
                 treesQueue.offer(context.treesNode);
