@@ -43,6 +43,7 @@ import com.jme3.terrain.noise.filter.SmoothFilter;
 import com.jme3.terrain.noise.fractal.FractalSum;
 import com.jme3.terrain.noise.modulator.NoiseModulator;
 import com.jme3.texture.Texture;
+import com.jme3.util.TangentBinormalGenerator;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.FractalTerrainGridInterface;
 import ru.arifolth.anjrpg.interfaces.InitializationDelegateInterface;
@@ -332,9 +333,11 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
                 bulletAppState.getPhysicsSpace().add(quad);
                 InitializationDelegateInterface initializationDelegate = app.getGameLogicCore().getInitializationDelegate();
                 //plant trees
-                initializationDelegate.positionTrees(quad, true);
+                initializationDelegate.positionTrees(quad);
                 //plant grass
-                initializationDelegate.positionGrass(quad, true);
+                initializationDelegate.positionGrass(quad);
+
+//                TangentBinormalGenerator.generate(quad);
             }
 
             @Override

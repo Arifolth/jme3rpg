@@ -29,6 +29,7 @@ import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.scene.debug.SkeletonDebugger;
 import com.jme3.system.AppSettings;
+import com.jme3.util.TangentBinormalGenerator;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.Debug;
 import ru.arifolth.anjrpg.interfaces.LodUtils;
@@ -64,6 +65,7 @@ public abstract class AnimatedCharacter extends BaseCharacter implements AnimEve
         }
         */
         characterModel = gameLogicCore.getAssetManager().loadModel(model);
+        TangentBinormalGenerator.generate(characterModel);
         //Material playerMaterial = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
         //characterModel.setMaterial(playerMaterial);
         characterModel.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);

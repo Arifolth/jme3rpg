@@ -34,6 +34,7 @@ import com.jme3.scene.shape.Quad;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.texture.Texture;
 import com.jme3.ui.Picture;
+import com.jme3.util.TangentBinormalGenerator;
 import jme3tools.optimize.GeometryBatchFactory;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.interfaces.weather.EmitterInterface;
@@ -135,6 +136,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         treeModel = gameLogicCore.getAssetManager().loadModel("Models/Fir1/fir1_androlo.j3o");
         treeModel.setShadowMode(RenderQueue.ShadowMode.Cast);
         LodUtils.setUpTreeModelLod(treeModel);
+        TangentBinormalGenerator.generate(treeModel);
     }
 
     @Override
@@ -204,7 +206,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
     @Override
     public List<Spatial> setupGrass() {
-        final int grassAmount = 250_000;
+        final int grassAmount = 200_000;
         List<Spatial> quadGrass = new ArrayList<>(grassAmount);
         for(int i = 0; i < grassAmount; i++) {
             Spatial grassInstance = grassBladeNode.clone();
@@ -228,17 +230,22 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         grassShader = new Material(gameLogicCore.getAssetManager(), "Common/MatDefs/Light/Lighting.j3md");
         Texture grass = gameLogicCore.getAssetManager().loadTexture("Textures/Grass/grass_3.png");
         grass.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
+        Texture normalMap = gameLogicCore.getAssetManager().loadTexture("Textures/Grass/grass_3_normal_map_strong.png");
+        normalMap.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
+        Texture specularMap = gameLogicCore.getAssetManager().loadTexture("Textures/Grass/grass_3_specular.png");
+        specularMap.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
         grassShader.setColor("Diffuse", ColorRGBA.White);
         grassShader.setColor("Ambient", ColorRGBA.White);
+        grassShader.setColor("Specular", ColorRGBA.White);
         grassShader.setTexture("DiffuseMap", grass);
+        grassShader.setTexture("NormalMap", normalMap);
+        grassShader.setTexture("SpecularMap", specularMap);
         grassShader.setBoolean("UseMaterialColors", true);
-        grassShader.setBoolean("VertexLighting", false);
         grassShader.setBoolean("HardwareShadows", true);
-        grassShader.setBoolean("SteepParallax", true);
+        grassShader.setBoolean("SteepParallax", false);
         grassShader.setBoolean("BackfaceShadows", true);
         grassShader.setFloat("AlphaDiscardThreshold", 0.5f);
         grassShader.setFloat("Shininess", 0f);
-        //grassShader.setBoolean("UseInstancing", true);
         grassShader.getAdditionalRenderState().setDepthTest(true);
         grassShader.getAdditionalRenderState().setDepthWrite(true);
         grassShader.getAdditionalRenderState().setColorWrite(true);
@@ -263,6 +270,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
         LodUtils.setUpGrassModelLod(grassBladeNode);
         grassBladeNode = GeometryBatchFactory.optimize(grassBladeNode, true);
+        TangentBinormalGenerator.generate(grassBladeNode, true);
         grassBladeNode.updateModelBound();
     }
 
@@ -296,7 +304,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
     }
 
     @Override
-    public void positionGrass(TerrainQuad quad, boolean parallel) {
+    public void positionGrass(TerrainQuad quad) {
         var context = new Object() {
             Node grassNode = quad.getUserData(Constants.QUAD_GRASS);
         };
@@ -350,10 +358,12 @@ public class InitializationDelegate implements InitializationDelegateInterface {
     }
 
     @Override
-    public void positionTrees(TerrainQuad quad, boolean parallel) {
+    public void positionTrees(TerrainQuad quad) {
         var context = new Object() {
             Node treesNode = quad.getUserData(Constants.QUAD_FOREST);
         };
+
+        final Vector3f playerLocation = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation();
 
         Executors.newSingleThreadExecutor().execute(new Runnable() {
             @Override
@@ -362,11 +372,9 @@ public class InitializationDelegate implements InitializationDelegateInterface {
                     context.treesNode = new Node();
                     List<Spatial> quadForest = setupTrees();
 
-                    Stream<Spatial> stream = quadForest.stream();
+                    Stream<Spatial> stream = quadForest.stream().parallel();
                     stream.forEach(treeNode -> {
                         CollisionResults results = new CollisionResults();
-                        final Vector3f playerLocation = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation();
-
                         float y = playerLocation.y;
                         if (y < Constants.WATER_LEVEL_HEIGHT)
                             y = 0;

@@ -38,9 +38,9 @@ public interface InitializationDelegateInterface {
 
     void update();
 
-    void positionGrass(TerrainQuad quad, boolean parallel);
+    void positionGrass(TerrainQuad quad);
 
-    void positionTrees(TerrainQuad quad, boolean parallel);
+    void positionTrees(TerrainQuad quad);
 
     void positionPlayer();
 

@@ -33,7 +33,7 @@ import ru.arifolth.anjrpg.interfaces.weather.EmitterInterface;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.WeakHashMap;
 import java.util.logging.Logger;
 
 public class GameLogicCore implements GameLogicCoreInterface {
@@ -61,7 +61,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
 
     private CharacterInterface playerCharacter = null;
     private Picture damageIndicator = null;
-    private Map<Node, CharacterInterface> characterMap = new ConcurrentHashMap<>();
+    private Map<Node, CharacterInterface> characterMap = new WeakHashMap<>();
     private Set<EmitterInterface> weatherEffectsSet = new LinkedHashSet<>();
     private GameStateManagerInterface gameStateManager = new GameStateManager(this);
 
