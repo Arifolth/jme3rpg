@@ -53,7 +53,7 @@ public class Constants {
     public static final int HIT_PROBABILITY = 50;
     public static final float SHOOT_DELAY = 3f;
     public static final float SHOOT_RATE = 3.5f;
-    public static final MusicType NULL = null;
+    public static final MusicTypeEnum NULL = null;
     public static final int STARS_COUNT = 500;
     public static final int DISTANCE_TO_STARS = 9000;
     public static final String VERSION_PROPERTIES = "version.properties";

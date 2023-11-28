@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
 import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
-import ru.arifolth.anjrpg.interfaces.SoundType;
+import ru.arifolth.anjrpg.interfaces.SoundTypeEnum;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.*;
 
@@ -90,7 +90,7 @@ public class ConfirmationMenuState extends CompositeAppState {
 
     @Override
     protected void onDisable() {
-        gameLogicCore.getSoundManager().getSoundNode(SoundType.MENU).play();
+        gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
 
         window.removeFromParent();
         parent.getParent().getMainWindow().setAlpha(1.0f);

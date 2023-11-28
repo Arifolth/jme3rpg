@@ -62,7 +62,7 @@ public class MainMenuState extends BaseAppState {
         }
         gameLogicCore = application.getGameLogicCore();
 
-        gameLogicCore.getSoundManager().setNextMusicType(MusicType.MENU);
+        gameLogicCore.getSoundManager().setNextMusicType(MusicTypeEnum.MENU);
     }
 
     public MainMenuState() {
@@ -73,7 +73,7 @@ public class MainMenuState extends BaseAppState {
     }
 
     private void restart() {
-        gameLogicCore.getSoundManager().getSoundNode(SoundType.MENU).play();
+        gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
 
         InitializationDelegateInterface initializationDelegate = gameLogicCore.getInitializationDelegate();
 
@@ -94,26 +94,26 @@ public class MainMenuState extends BaseAppState {
     }
 
     private void exitGame() {
-        gameLogicCore.getSoundManager().getSoundNode(SoundType.MENU).play();
+        gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
 
         getStateManager().attach(new ExitMenuState(this));
     }
 
     private void resumeGame() {
-        gameLogicCore.getSoundManager().getSoundNode(SoundType.MENU).play();
+        gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
 
         setEnabled(false);
     }
 
     private void startNewGame() {
-        gameLogicCore.getSoundManager().getSoundNode(SoundType.MENU).play();
+        gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
 
         ((ANJRpgInterface) getApplication()).setUpGUI();
         setEnabled(false);
     }
 
     private void options() {
-        gameLogicCore.getSoundManager().getSoundNode(SoundType.MENU).play();
+        gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
 
         getStateManager().attach(new OptionsMenuState(this));
     }

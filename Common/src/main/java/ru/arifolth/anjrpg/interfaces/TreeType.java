@@ -18,27 +18,9 @@
 
 package ru.arifolth.anjrpg.interfaces;
 
-import com.google.common.collect.Iterables;
-import com.jme3.audio.AudioSource;
+import com.jme3.scene.Node;
 
-import java.util.Collection;
-import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-public class SoundUtils {
-    private static final Random rnd = new Random();
-    final private static Logger LOGGER = Logger.getLogger(SoundUtils.class.getName());
-
-    private SoundUtils() {
-    }
-
-    public static <T> T getRandomObject(Collection<T> from) {
-        int i = rnd.nextInt(from.size());
-        return Iterables.get(from, i);
-    }
-
-    public static <T> T getSingleObject(Collection<T> from) {
-        return Iterables.get(from, 0);
-    }
+public interface TreeType {
+    void init();
+    Node getTree();
 }

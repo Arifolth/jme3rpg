@@ -57,14 +57,13 @@ import static ru.arifolth.anjrpg.interfaces.Constants.RAY_DOWN;
 public class InitializationDelegate implements InitializationDelegateInterface {
     private Spatial treeModel;
 
-    private Material grassShader;
+
 
     private final GameLogicCore gameLogicCore;
     final private static Logger LOGGER = Logger.getLogger(InitializationDelegate.class.getName());
-    private Node grassBladeNode;
 
-    private ConcurrentLinkedQueue<Node> grassQueue = new ConcurrentLinkedQueue<>();
-    private ConcurrentLinkedQueue<Node> treesQueue = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Node> grassQueue = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Node> treesQueue = new ConcurrentLinkedQueue<>();
 
 
     public InitializationDelegate(GameLogicCore gameLogicCore) {
@@ -126,18 +125,8 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
         //position NPCs around the Player
         initializeNPCs(positionCharacters);
-
-        initializeTreeModel();
-
-        initializeGrass();
     }
 
-    private void initializeTreeModel() {
-        treeModel = gameLogicCore.getAssetManager().loadModel("Models/Fir1/fir1_androlo.j3o");
-        treeModel.setShadowMode(RenderQueue.ShadowMode.Cast);
-        LodUtils.setUpTreeModelLod(treeModel);
-        TangentBinormalGenerator.generate(treeModel);
-    }
 
     @Override
     public void setupCamera() {
@@ -196,7 +185,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         int forestSize = (int) Utils.getRandomNumberInRange(5000, 8000);
         List<Spatial> quadForest = new ArrayList<>(forestSize);
         for(int i = 0; i < forestSize; i++) {
-            Spatial treeModelCustom = treeModel.clone();
+            Spatial treeModelCustom = TreeTypeEnum.OAK.getTree();
             treeModelCustom.scale(1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10));
             quadForest.add(treeModelCustom);
         }
@@ -209,7 +198,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         final int grassAmount = 200_000;
         List<Spatial> quadGrass = new ArrayList<>(grassAmount);
         for(int i = 0; i < grassAmount; i++) {
-            Spatial grassInstance = grassBladeNode.clone();
+            Spatial grassInstance = GrassTypeEnum.REGULAR.getGrass();
             grassInstance.setLocalScale(1 + Utils.getRandomNumberInRange(1, 5), 1 + Utils.getRandomNumberInRange(1, 5), 1 + Utils.getRandomNumberInRange(1, 5));
             grassInstance.setLocalTranslation(grassInstance.getLocalTranslation().getX(), grassInstance.getLocalTranslation().getY(), grassInstance.getLocalTranslation().getZ() - 10);
             grassInstance.rotate(Utils.getRandomNumberInRange(-0.65f, 0.65f), Utils.getRandomNumberInRange(-1.65f, 1.65f), 0);
@@ -217,61 +206,6 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         }
 
         return quadGrass;
-    }
-
-    private void initializeGrass() {
-        Vector2f windDirection = new Vector2f();
-        windDirection.x = Utils.nextFloat();
-        windDirection.y = Utils.nextFloat();
-        windDirection.normalize();
-
-        Geometry grassGeometry = new Geometry("grass", new Quad(2, 2));
-
-        grassShader = new Material(gameLogicCore.getAssetManager(), "Common/MatDefs/Light/Lighting.j3md");
-        Texture grass = gameLogicCore.getAssetManager().loadTexture("Textures/Grass/grass_3.png");
-        grass.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
-        Texture normalMap = gameLogicCore.getAssetManager().loadTexture("Textures/Grass/grass_3_normal_map_strong.png");
-        normalMap.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
-        Texture specularMap = gameLogicCore.getAssetManager().loadTexture("Textures/Grass/grass_3_specular.png");
-        specularMap.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
-        grassShader.setColor("Diffuse", ColorRGBA.White);
-        grassShader.setColor("Ambient", ColorRGBA.White);
-        grassShader.setColor("Specular", ColorRGBA.White);
-        grassShader.setTexture("DiffuseMap", grass);
-        grassShader.setTexture("NormalMap", normalMap);
-        grassShader.setTexture("SpecularMap", specularMap);
-        grassShader.setBoolean("UseMaterialColors", true);
-        grassShader.setBoolean("HardwareShadows", true);
-        grassShader.setBoolean("SteepParallax", false);
-        grassShader.setBoolean("BackfaceShadows", true);
-        grassShader.setFloat("AlphaDiscardThreshold", 0.5f);
-        grassShader.setFloat("Shininess", 0f);
-        grassShader.getAdditionalRenderState().setDepthTest(true);
-        grassShader.getAdditionalRenderState().setDepthWrite(true);
-        grassShader.getAdditionalRenderState().setColorWrite(true);
-        grassShader.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-        grassShader.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
-
-        grassGeometry.setQueueBucket(RenderQueue.Bucket.Transparent);
-        grassGeometry.setMaterial(grassShader);
-        grassGeometry.setShadowMode(RenderQueue.ShadowMode.Receive);
-        grassGeometry.rotate(0, 0.58f, 0);
-        grassGeometry.center();
-
-        grassBladeNode = new Node();
-        grassBladeNode.attachChild(grassGeometry);
-
-        grassGeometry = grassGeometry.clone();
-        grassGeometry.rotate(0, 1.58f, 0);
-        grassGeometry.center();
-        grassBladeNode.attachChild(grassGeometry);
-
-        grassBladeNode.move(0, 1f, 0);
-
-        LodUtils.setUpGrassModelLod(grassBladeNode);
-        grassBladeNode = GeometryBatchFactory.optimize(grassBladeNode, true);
-        TangentBinormalGenerator.generate(grassBladeNode, true);
-        grassBladeNode.updateModelBound();
     }
 
     @Override
@@ -372,7 +306,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
                     context.treesNode = new Node();
                     List<Spatial> quadForest = setupTrees();
 
-                    Stream<Spatial> stream = quadForest.stream().parallel();
+                    Stream<Spatial> stream = quadForest.stream();
                     stream.forEach(treeNode -> {
                         CollisionResults results = new CollisionResults();
                         float y = playerLocation.y;

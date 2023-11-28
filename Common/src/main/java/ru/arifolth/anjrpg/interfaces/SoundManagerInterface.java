@@ -19,14 +19,13 @@
 package ru.arifolth.anjrpg.interfaces;
 
 import com.jme3.audio.AudioNode;
-import com.jme3.audio.AudioSource;
 
 public interface SoundManagerInterface {
     AudioNode getMenuNode();
 
     void update(float tpf);
 
-    void setNextMusicType(MusicType nextMusicType);
+    void setNextMusicType(MusicTypeEnum nextMusicType);
 
     void setVolume(float value);
 
@@ -36,7 +35,7 @@ public interface SoundManagerInterface {
 
     AudioNode getCurrentMusicNode();
 
-    void fadeMusicOut(float tpf, MusicType nextMusicType);
+    void fadeMusicOut(float tpf, MusicTypeEnum nextMusicType);
 
     void initialize();
 

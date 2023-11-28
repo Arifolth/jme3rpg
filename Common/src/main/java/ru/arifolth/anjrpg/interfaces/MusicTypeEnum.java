@@ -24,7 +24,7 @@ import com.jme3.asset.AssetManager;
 import com.jme3.audio.AudioData;
 import com.jme3.audio.AudioNode;
 
-public enum MusicType implements AudioType {
+public enum MusicTypeEnum implements AudioType {
     MENU {
         @Override
         public void init() {
@@ -185,15 +185,15 @@ public enum MusicType implements AudioType {
     private static AssetManager assetManager;
 
     public static void setAssetManager(AssetManager assetManager) {
-        MusicType.assetManager = assetManager;
+        MusicTypeEnum.assetManager = assetManager;
     }
 
     public static AudioNode getClone(AudioType musicType) {
-        return SoundUtils.getRandomObject(musicMap.get(musicType)).clone();
+        return Utils.getRandomObject(musicMap.get(musicType)).clone();
     }
 
     public static AudioNode getOriginal(AudioType musicType) {
-        return SoundUtils.getSingleObject(musicMap.get(musicType));
+        return Utils.getSingleObject(musicMap.get(musicType));
     }
 
     public static void createAudioNode(AudioType musicType, String name) {

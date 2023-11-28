@@ -45,7 +45,7 @@ public class AudioMenuState extends CustomCompositeAppState {
     }
 
     private void apply() {
-        gameLogicCore.getSoundManager().getSoundNode(SoundType.MENU).play();
+        gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
 
         soundManager.setVolume((float) volumeModel.getValue());
         soundManager.reInitialize(gameLogicCore);

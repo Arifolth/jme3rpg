@@ -18,8 +18,10 @@
 
 package ru.arifolth.anjrpg.interfaces;
 
+import com.google.common.collect.Iterables;
 import com.jme3.bullet.control.CharacterControl;
 
+import java.util.Collection;
 import java.util.SplittableRandom;
 
 public class Utils {
@@ -55,4 +57,12 @@ public class Utils {
         return random.nextFloat();
     }
 
+    public static <T> T getRandomObject(Collection<T> from) {
+        int i = random.nextInt(from.size());
+        return Iterables.get(from, i);
+    }
+
+    public static <T> T getSingleObject(Collection<T> from) {
+        return Iterables.get(from, 0);
+    }
 }

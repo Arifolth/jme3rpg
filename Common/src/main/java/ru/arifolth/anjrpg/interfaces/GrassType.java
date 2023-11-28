@@ -18,16 +18,9 @@
 
 package ru.arifolth.anjrpg.interfaces;
 
-import com.jme3.terrain.geomipmap.TerrainQuad;
+import com.jme3.scene.Node;
 
-public interface TerrainManagerInterface {
-    void initialize();
-
-    TerrainQuad getMountains();
-
-    void update(float tpf);
-
-    TerrainQuad getTerrain();
-
-    int getRigidBodiesSize();
+public interface GrassType {
+    void init();
+    Node getGrass();
 }

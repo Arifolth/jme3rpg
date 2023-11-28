@@ -52,7 +52,7 @@ public class ControlsMenuState extends CustomCompositeAppState {
     }
 
     private void apply() {
-        gameLogicCore.getSoundManager().getSoundNode(SoundType.MENU).play();
+        gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
 
         //Apply options here
         try {
@@ -158,7 +158,7 @@ public class ControlsMenuState extends CustomCompositeAppState {
 
     @Override
     protected void onDisable() {
-        gameLogicCore.getSoundManager().getSoundNode(SoundType.MENU).play();
+        gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
 
         window.removeFromParent();
     }

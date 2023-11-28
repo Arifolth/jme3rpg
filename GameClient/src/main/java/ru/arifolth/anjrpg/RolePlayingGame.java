@@ -144,7 +144,6 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
 
     protected void attachTerrain() {
         getRootNode().attachChild(terrainManager.getTerrain());
-        getTerrainManager().generateGrass();
         if(terrainManager.getMountains() != null)
             getRootNode().attachChild(terrainManager.getMountains());
     }
@@ -176,11 +175,13 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
 
     void setupTerrain() {
         terrainManager = new TerrainManager(assetManager, bulletAppState, this);
+        terrainManager.initialize();
 //        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
     void setupSound() {
         soundManager = new SoundManager(assetManager);
+        soundManager.initialize();
 //        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 

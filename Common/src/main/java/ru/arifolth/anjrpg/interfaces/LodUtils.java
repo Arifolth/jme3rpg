@@ -24,15 +24,17 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.control.LodControl;
 import jme3tools.optimize.LodGenerator;
 
+import java.util.Collection;
+import java.util.List;
+
 public class LodUtils {
     private LodUtils() {}
 
-    public static void setUpGrassModelLod(Spatial model) {
-        Geometry geometry = (Geometry) ((Node) model).getChild(0);
-        createModelLod(geometry);
+    public static void setUpModelLod(Spatial model) {
+        (((Node) model)).getChildren().forEach(LodUtils::createModelLod);
     }
 
-    public static void setUpTreeModelLod(Spatial model) {
+    public static void setUpFirTreeModelLod(Spatial model) {
         //Structure specific just for "Models/Fir1/fir1_androlo.j3o"!
         ((Node) ((Node) model).getChild(0)).getChildren().forEach(LodUtils::createModelLod);
     }

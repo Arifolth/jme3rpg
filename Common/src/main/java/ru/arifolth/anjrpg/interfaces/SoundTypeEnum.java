@@ -24,7 +24,7 @@ import com.jme3.asset.AssetManager;
 import com.jme3.audio.AudioData;
 import com.jme3.audio.AudioNode;
 
-public enum SoundType implements AudioType {
+public enum SoundTypeEnum implements AudioType {
     WIND {
         private AudioData.DataType stream = AudioData.DataType.Stream;
         private Float pitch = null;
@@ -231,15 +231,15 @@ public enum SoundType implements AudioType {
     private static AssetManager assetManager;
 
     public static void setAssetManager(AssetManager assetManager) {
-        SoundType.assetManager = assetManager;
+        SoundTypeEnum.assetManager = assetManager;
     }
 
     public static AudioNode getClone(AudioType audioType) {
-        return SoundUtils.getRandomObject(soundMap.get(audioType)).clone();
+        return Utils.getRandomObject(soundMap.get(audioType)).clone();
     }
 
     public static AudioNode getOriginal(AudioType audioType) {
-        return SoundUtils.getSingleObject(soundMap.get(audioType));
+        return Utils.getSingleObject(soundMap.get(audioType));
     }
 
     public static void createAudioNode(AudioType audioType, String name, AudioData.DataType dataType, Boolean looping, Boolean positional, Float pitch) {
