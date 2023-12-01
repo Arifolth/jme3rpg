@@ -23,4 +23,6 @@ import com.jme3.scene.Node;
 public interface TreeType {
     void init();
     Node getTree();
+
+    int getProbability();
 }

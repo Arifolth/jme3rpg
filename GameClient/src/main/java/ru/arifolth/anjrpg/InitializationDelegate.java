@@ -182,10 +182,10 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
     @Override
     public List<Spatial> setupTrees() {
-        int forestSize = (int) Utils.getRandomNumberInRange(5000, 8000);
+        int forestSize = (int) Utils.getRandomNumberInRange(1500, 5000);
         List<Spatial> quadForest = new ArrayList<>(forestSize);
         for(int i = 0; i < forestSize; i++) {
-            Spatial treeModelCustom = TreeTypeEnum.OAK.getTree();
+            Spatial treeModelCustom = TreeTypeEnum.getRandomTree();
             treeModelCustom.scale(1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10));
             quadForest.add(treeModelCustom);
         }
@@ -195,7 +195,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
     @Override
     public List<Spatial> setupGrass() {
-        final int grassAmount = 200_000;
+        final int grassAmount = 100_000;
         List<Spatial> quadGrass = new ArrayList<>(grassAmount);
         for(int i = 0; i < grassAmount; i++) {
             Spatial grassInstance = GrassTypeEnum.REGULAR.getGrass();
