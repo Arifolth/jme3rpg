@@ -27,7 +27,7 @@ import com.jme3.util.TangentBinormalGenerator;
 public enum TreeTypeEnum implements TreeType {
     FIR {
         Node tree = null;
-        final int probabiity = 80;
+        final int probability = 80;
         @Override
         public void init() {
             Node firTree = (Node) assetManager.loadModel("Models/Fir1/fir1_androlo.j3o");
@@ -48,12 +48,12 @@ public enum TreeTypeEnum implements TreeType {
 
         @Override
         public int getProbability() {
-            return probabiity;
+            return probability;
         }
     },
     MAPPLE {
         Node tree = null;
-        final int probabiity = 10;
+        final int probability = 10;
         @Override
         public void init() {
             Node mapleTree = (Node) assetManager.loadModel("Models/Maple/tree_maple.j3o");
@@ -75,18 +75,18 @@ public enum TreeTypeEnum implements TreeType {
         @Override
         public Node getTree() {
             Node node = (Node) tree.clone();
-            node.setLocalScale(Utils.getRandomNumberInRange(2, 4), Utils.getRandomNumberInRange(2, 4), Utils.getRandomNumberInRange(2, 5));
+            node.setLocalScale(Utils.getRandomNumberInRange(1, 2), Utils.getRandomNumberInRange(1, 2), Utils.getRandomNumberInRange(1, 3));
             return node;
         }
 
         @Override
         public int getProbability() {
-            return probabiity;
+            return probability;
         }
     },
     OAK {
         Node tree = null;
-        final int probabiity = 70;
+        final int probability = 70;
         @Override
         public void init() {
             Node oakTree = (Node) assetManager.loadModel("Models/Oak/tree_oak.j3o");
@@ -112,7 +112,7 @@ public enum TreeTypeEnum implements TreeType {
 
         @Override
         public int getProbability() {
-            return probabiity;
+            return probability;
         }
     };
 
