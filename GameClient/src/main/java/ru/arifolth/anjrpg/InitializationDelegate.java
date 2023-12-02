@@ -324,6 +324,8 @@ public class InitializationDelegate implements InitializationDelegateInterface {
                                 treeNode.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
                                 treeNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(-6.5f, 6.5f) * FastMath.DEG_TO_RAD, new Vector3f(1, 0, 1)));
 
+                                treeNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(0f, 360f) * FastMath.DEG_TO_RAD, new Vector3f(0, 1, 0)));
+
                                 context.treesNode.attachChild(treeNode);
 //                            System.out.println("Attached " + treeNode.hashCode() + treeNode.getLocalTranslation().toString());
                             }

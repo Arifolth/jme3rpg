@@ -27,7 +27,7 @@ import com.jme3.util.TangentBinormalGenerator;
 public enum TreeTypeEnum implements TreeType {
     FIR {
         Node tree = null;
-        final int probabiity = 65;
+        final int probabiity = 80;
         @Override
         public void init() {
             Node firTree = (Node) assetManager.loadModel("Models/Fir1/fir1_androlo.j3o");
@@ -41,7 +41,9 @@ public enum TreeTypeEnum implements TreeType {
 
         @Override
         public Node getTree() {
-            return (Node) tree.clone();
+            Node node = (Node) tree.clone();
+            node.setLocalScale(Utils.getRandomNumberInRange(1, 2), Utils.getRandomNumberInRange(1, 2), Utils.getRandomNumberInRange(1, 3));
+            return node;
         }
 
         @Override
@@ -61,7 +63,6 @@ public enum TreeTypeEnum implements TreeType {
             Geometry mapleLeaves = (Geometry) mapleTree.getChild("maple leaves");
             mapleLeaves.setMaterial(assetManager.loadMaterial("Models/Maple/Maple_Leaves.j3m"));
 
-            mapleTree.setLocalScale(1 + Utils.getRandomNumberInRange(1, 2), 1 + Utils.getRandomNumberInRange(1, 2), 1 + Utils.getRandomNumberInRange(1, 2));
 
             mapleTree.setShadowMode(RenderQueue.ShadowMode.Cast);
             LodUtils.setUpModelLod(mapleTree);
@@ -73,7 +74,9 @@ public enum TreeTypeEnum implements TreeType {
 
         @Override
         public Node getTree() {
-            return (Node) tree.clone();
+            Node node = (Node) tree.clone();
+            node.setLocalScale(Utils.getRandomNumberInRange(2, 4), Utils.getRandomNumberInRange(2, 4), Utils.getRandomNumberInRange(2, 5));
+            return node;
         }
 
         @Override
@@ -83,7 +86,7 @@ public enum TreeTypeEnum implements TreeType {
     },
     OAK {
         Node tree = null;
-        final int probabiity = 25;
+        final int probabiity = 70;
         @Override
         public void init() {
             Node oakTree = (Node) assetManager.loadModel("Models/Oak/tree_oak.j3o");
@@ -92,8 +95,6 @@ public enum TreeTypeEnum implements TreeType {
 
             Geometry oakLeaves = (Geometry) oakTree.getChild("oak leaves");
             oakLeaves.setMaterial(assetManager.loadMaterial("Models/Oak/Oak_Leaves.j3m"));
-
-            oakTree.setLocalScale(1 + Utils.getRandomNumberInRange(1, 3), 1 + Utils.getRandomNumberInRange(1, 3), 1 + Utils.getRandomNumberInRange(1, 4));
 
             oakTree.setShadowMode(RenderQueue.ShadowMode.Cast);
             LodUtils.setUpModelLod(oakTree);
@@ -104,7 +105,9 @@ public enum TreeTypeEnum implements TreeType {
 
         @Override
         public Node getTree() {
-            return (Node) tree.clone();
+            Node node = (Node) tree.clone();
+            node.setLocalScale(Utils.getRandomNumberInRange(2, 4), Utils.getRandomNumberInRange(2, 4), Utils.getRandomNumberInRange(2, 5));
+            return node;
         }
 
         @Override
