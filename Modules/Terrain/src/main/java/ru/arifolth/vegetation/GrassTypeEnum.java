@@ -16,7 +16,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.anjrpg.interfaces;
+package ru.arifolth.vegetation;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
@@ -30,6 +30,9 @@ import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
 import com.jme3.util.TangentBinormalGenerator;
 import jme3tools.optimize.GeometryBatchFactory;
+import ru.arifolth.anjrpg.interfaces.GrassType;
+import ru.arifolth.anjrpg.interfaces.LodUtils;
+import ru.arifolth.anjrpg.interfaces.Utils;
 
 public enum GrassTypeEnum implements GrassType {
     REGULAR {
@@ -37,11 +40,6 @@ public enum GrassTypeEnum implements GrassType {
 
         @Override
         public void init() {
-            Vector2f windDirection = new Vector2f();
-            windDirection.x = Utils.nextFloat();
-            windDirection.y = Utils.nextFloat();
-            windDirection.normalize();
-
             Geometry grassGeometry = new Geometry("grass", new Quad(2, 2));
 
             Material grassShader = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");

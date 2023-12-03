@@ -16,13 +16,16 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.anjrpg.interfaces;
+package ru.arifolth.vegetation;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.util.TangentBinormalGenerator;
+import ru.arifolth.anjrpg.interfaces.LodUtils;
+import ru.arifolth.anjrpg.interfaces.TreeType;
+import ru.arifolth.anjrpg.interfaces.Utils;
 
 public enum TreeTypeEnum implements TreeType {
     FIR {

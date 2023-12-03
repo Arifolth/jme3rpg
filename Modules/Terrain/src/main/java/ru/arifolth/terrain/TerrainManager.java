@@ -22,6 +22,8 @@ import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.vegetation.GrassTypeEnum;
+import ru.arifolth.vegetation.TreeTypeEnum;
 
 import java.util.EnumSet;
 import java.util.logging.Logger;
