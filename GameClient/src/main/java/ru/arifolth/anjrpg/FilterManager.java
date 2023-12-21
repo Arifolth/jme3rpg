@@ -58,7 +58,7 @@ public class FilterManager implements FilterManagerInterface {
 
         setupFilterPostProcessor();
         setupLightScatteringFilter();
-        setupDepthOfFieldFilter();
+//        setupDepthOfFieldFilter();
         setupSSAOFilter();
         //setupTranslucentBucketFilter();
         setupShadowRenderer();

@@ -48,7 +48,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
     private Nifty nifty;
     private InitStateEnum initialization = InitStateEnum.PENDING;
     final private static Logger LOGGER = Logger.getLogger(ANJRpg.class.getName());
-    private boolean loadingCompleted = false;
+    private boolean startNewGame = false;
 
     private static RolePlayingGameInterface app;
 
@@ -90,11 +90,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
     public void simpleInitApp()  {
         super.simpleInitApp();
 
-        /* Lemur stuff */
-        GuiGlobals.initialize(this);
-        GuiGlobals globals = GuiGlobals.getInstance();
-        BaseStyles.loadGlassStyle();
-        globals.getStyles().setDefaultStyle("glass");
+        setupLemur();
 
         setupPhysix();
         setupSound();
@@ -102,12 +98,20 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
         setupGameLogic();
     }
 
+    private void setupLemur() {
+        /* Lemur stuff */
+        GuiGlobals.initialize(this);
+        GuiGlobals globals = GuiGlobals.getInstance();
+        BaseStyles.loadGlassStyle();
+        globals.getStyles().setDefaultStyle("glass");
+    }
+
     @Override
     public void simpleUpdate(float tpf) {
         InitializationDelegateInterface initializationDelegate = gameLogicCore.getInitializationDelegate();
         switch (initialization) {
             case PENDING: {
-                if(!loadingCompleted) {
+                if(!startNewGame) {
                     gameLogicCore.getSoundManager().update(tpf);
                     return;
                 }
@@ -117,7 +121,6 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
 
                 loadResources();
 
-                setProgress("Loading complete");
                 initialization = InitStateEnum.INITIALIZED;
                 break;
             }
@@ -131,17 +134,19 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
                     initializationDelegate.positionNPCs(getGameLogicCore().getCharacterMap());
                     initializationDelegate.initNPCsComplete();
 
-//                    initializationDelegate.positionTrees(getTerrainManager().getTerrain(), false);
                     //these calls have to be done on the update loop thread,
                     //especially attaching the terrain to the rootNode
                     //after it is attached, it's managed by the update loop thread
                     // and may not be modified from any other thread anymore!
+                    createMinimap();
+
+                    setProgress("Loading complete");
                     nifty.gotoScreen("end");
                     nifty.exit();
-                    guiViewPort.removeProcessor(niftyDisplay);
-                    initialization = InitStateEnum.RUNNING;
 
-                    createMinimap();
+                    guiViewPort.removeProcessor(niftyDisplay);
+
+                    initialization = InitStateEnum.RUNNING;
                 }
                 break;
             }
@@ -208,7 +213,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
         guiViewPort.addProcessor(niftyDisplay);
 
         showLoadingMenu();
-        loadingCompleted = true;
+        startNewGame = true;
     }
 
     @Override

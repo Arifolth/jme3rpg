@@ -117,7 +117,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         initializePlayer(positionCharacters);
 
         //position NPCs around the Player
-        initializeNPCs(positionCharacters);
+        //initializeNPCs(positionCharacters);
     }
 
 
@@ -188,7 +188,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
     @Override
     public List<Spatial> setupGrass() {
-        final int grassAmount = 100_000;
+        final int grassAmount = 350_000;
         List<Spatial> quadGrass = new ArrayList<>(grassAmount);
         for(int i = 0; i < grassAmount; i++) {
             Spatial grassInstance = GrassTypeEnum.REGULAR.getGrass();
