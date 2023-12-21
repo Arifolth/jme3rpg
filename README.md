@@ -5,7 +5,7 @@ An Open Source Action RPG game written in Java.
 mailto: <arifolth@gmail.com>
 
 #
-![Image](Screenshots/Day.jpg "icon")
+![Image](Screenshots/Grass.jpg "icon")
 
 ## Features:
 - Modular Maven build
@@ -69,6 +69,7 @@ mvn exec:java -pl GameClient -Djvm.options="-XX:-TieredCompilation -XX:TieredSto
 - Other resources, credit is given in the code
 
 ## Screenshots
+![grass-pseudo-3d.jpg](Screenshots/grass-pseudo-3d.jpg "icon")
 ![Image](Screenshots/ForestWithMountains.jpg "icon")
 ![Image](Screenshots/mountains.jpg "icon")
 ![Image](Screenshots/Hit.jpg "icon")
