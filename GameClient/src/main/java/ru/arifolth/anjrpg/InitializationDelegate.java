@@ -23,6 +23,7 @@ import com.jme3.collision.CollisionResults;
 import com.jme3.input.ChaseCamera;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.MouseButtonTrigger;
+import com.jme3.material.RenderState;
 import com.jme3.math.*;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
@@ -188,12 +189,12 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
     @Override
     public List<Spatial> setupGrass() {
-        final int grassAmount = 350_000;
+        final int grassAmount = 400_000;
         List<Spatial> quadGrass = new ArrayList<>(grassAmount);
         for(int i = 0; i < grassAmount; i++) {
             Spatial grassInstance = GrassTypeEnum.REGULAR.getGrass();
-            grassInstance.setLocalScale(1 + Utils.getRandomNumberInRange(1, 5), 1 + Utils.getRandomNumberInRange(1, 5), 1 + Utils.getRandomNumberInRange(1, 5));
-            grassInstance.setLocalTranslation(grassInstance.getLocalTranslation().getX(), grassInstance.getLocalTranslation().getY(), grassInstance.getLocalTranslation().getZ() - 10);
+            grassInstance.setLocalScale(1 + Utils.getRandomNumberInRange(1, 3), 1 + Utils.getRandomNumberInRange(1, 3), 1 + Utils.getRandomNumberInRange(1, 3));
+            grassInstance.setLocalTranslation(grassInstance.getLocalTranslation().getX(), grassInstance.getLocalTranslation().getY(), grassInstance.getLocalTranslation().getZ() - 15);
             grassInstance.rotate(Utils.getRandomNumberInRange(-0.65f, 0.65f), Utils.getRandomNumberInRange(-1.65f, 1.65f), 0);
             quadGrass.add(grassInstance);
         }
@@ -214,9 +215,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         if(treesNode == null)
             return;
 
-        LOGGER.log(Level.INFO, "attach TREES started");
         gameLogicCore.getForestNode().attachChild(treesNode);
-        LOGGER.log(Level.INFO, "attach TREES finished");
     }
 
     private void attachGrassQuad() {
@@ -225,9 +224,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         if(grassNode == null)
             return;
 
-        LOGGER.log(Level.INFO, "attach GRASS started");
         gameLogicCore.getGrassNode().attachChild(grassNode);
-        LOGGER.log(Level.INFO, "attach GRASS finished");
     }
 
     @Override
@@ -264,13 +261,11 @@ public class InitializationDelegate implements InitializationDelegateInterface {
                                     grassSpatial.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
 
                                     context.grassNode.attachChild(grassSpatial);
-    //                            System.out.println("Attached " + grassSpatial.hashCode() + grassSpatial.getLocalTranslation().toString());
                                 }
                             }
                         });
                     }
 
-                    LOGGER.log(Level.INFO, "optimize GRASS started");
                     context.grassNode = (Node) GeometryBatchFactory.optimize(context.grassNode);
                     context.grassNode.setShadowMode(RenderQueue.ShadowMode.Receive);
                     context.grassNode.setQueueBucket(RenderQueue.Bucket.Transparent);
@@ -278,7 +273,6 @@ public class InitializationDelegate implements InitializationDelegateInterface {
                     context.grassNode.updateModelBound();
 
                     grassQueue.offer(context.grassNode);
-                    LOGGER.log(Level.INFO, "optimize GRASS finished");
                 }
             });
         }
@@ -323,20 +317,17 @@ public class InitializationDelegate implements InitializationDelegateInterface {
                                     treeNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(0f, 360f) * FastMath.DEG_TO_RAD, new Vector3f(0, 1, 0)));
 
                                     context.treesNode.attachChild(treeNode);
-    //                            System.out.println("Attached " + treeNode.hashCode() + treeNode.getLocalTranslation().toString());
                                 }
                             }
                         });
                     }
 
-                    LOGGER.log(Level.INFO, "optimize Trees started");
                     context.treesNode = (Node) GeometryBatchFactory.optimize(context.treesNode);
                     context.treesNode.setShadowMode(RenderQueue.ShadowMode.Cast);
                     context.treesNode.setCullHint(Spatial.CullHint.Dynamic);
                     context.treesNode.updateModelBound();
 
                     treesQueue.offer(context.treesNode);
-                    LOGGER.log(Level.INFO, "optimize Trees finished");
                 }
             });
         }
@@ -380,14 +371,14 @@ public class InitializationDelegate implements InitializationDelegateInterface {
             if(character.isInitializing()) {
                 CollisionResults results = new CollisionResults();
                 Vector3f adjustedPos = new Vector3f(playerPos.x + Utils.getRandomNumberInRange(-Constants.NPC_LOCATION_RANGE, Constants.NPC_LOCATION_RANGE), playerPos.y + 150, playerPos.z + Utils.getRandomNumberInRange(-Constants.NPC_LOCATION_RANGE, Constants.NPC_LOCATION_RANGE));
-                LOGGER.log(Level.INFO, "NPC position:", adjustedPos.normalize());
+
                 Ray ray = new Ray(adjustedPos, RAY_DOWN);
 
                 gameLogicCore.getTerrainManager().getTerrain().collideWith(ray, results);
                 CollisionResult hit = results.getClosestCollision();
                 if (hit != null) {
                     Vector3f npcStartLoc = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y + Constants.MODEL_ADJUSTMENT, hit.getContactPoint().z);
-                    LOGGER.log(Level.INFO, "NPC start position:", npcStartLoc.normalize());
+
                     character.getCharacterControl().setPhysicsLocation(npcStartLoc);
                 }
             }

@@ -24,9 +24,6 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.control.LodControl;
 import jme3tools.optimize.LodGenerator;
 
-import java.util.Collection;
-import java.util.List;
-
 public class LodUtils {
     private LodUtils() {}
 
@@ -46,7 +43,7 @@ public class LodUtils {
 
     private static void createModelLod(Spatial geometry) {
         LodGenerator lod = new LodGenerator((Geometry) geometry);
-        lod.bakeLods(LodGenerator.TriangleReductionMethod.COLLAPSE_COST, 0.25f, 0.50f, 0.75f, 1.0f);
+        lod.bakeLods(LodGenerator.TriangleReductionMethod.PROPORTIONAL, 0.25f, 0.50f, 0.75f, 1.0f);
         LodControl lc = new LodControl();
         geometry.addControl(lc);
     }

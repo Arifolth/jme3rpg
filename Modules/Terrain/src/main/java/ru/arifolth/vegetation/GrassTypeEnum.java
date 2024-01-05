@@ -82,6 +82,18 @@ public enum GrassTypeEnum implements GrassType {
             grassGeometry.center();
             grassBladeNode.attachChild(grassGeometry);
 
+            //few more textured quads, looks much better but it seems to affect performance
+            grassGeometry = grassGeometry.clone();
+            grassGeometry.rotate(0, 0.78f, 0);
+            grassGeometry.center();
+            grassBladeNode.attachChild(grassGeometry);
+/*
+            grassGeometry = grassGeometry.clone();
+            grassGeometry.rotate(0, 1.58f, 0);
+            grassGeometry.center();
+            grassBladeNode.attachChild(grassGeometry);
+*/
+
             grassBladeNode.move(0, 1f, 0);
 
             LodUtils.setUpModelLod(grassBladeNode);

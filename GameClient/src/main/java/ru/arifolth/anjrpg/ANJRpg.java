@@ -18,6 +18,7 @@
 
 package ru.arifolth.anjrpg;
 
+import com.jme3.app.StatsAppState;
 import com.jme3.niftygui.NiftyJmeDisplay;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeContext;
@@ -79,11 +80,13 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
         //do not output excessive info on console
         Logger.getLogger(Constants.ROOT_LOGGER).setLevel(Constants.LOGGING_LEVEL);
 
-        // hide FPS HUD
-        setDisplayFps(false);
-
-        //hide statistics HUD
-        setDisplayStatView(false);
+//        stateManager.attach(new StatsAppState());
+//
+//        // hide FPS HUD
+//        setDisplayFps(true);
+//
+//        //hide statistics HUD
+//        setDisplayStatView(true);
     }
 
     @Override
