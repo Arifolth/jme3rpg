@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2023 Alexander Nilov
+ *     Copyright (C) 2014 - 2024 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -27,11 +27,13 @@ import jme3tools.optimize.LodGenerator;
 public class LodUtils {
     private LodUtils() {}
 
-    public static void setUpTreeModelLod(Spatial model) {
+    public static void setUpModelLod(Spatial model) {
+        (((Node) model)).getChildren().forEach(LodUtils::createModelLod);
+    }
+
+    public static void setUpFirTreeModelLod(Spatial model) {
         //Structure specific just for "Models/Fir1/fir1_androlo.j3o"!
-        ((Node) ((Node) model).getChild(0)).getChildren().forEach(geometry -> {
-            createModelLod(geometry);
-        });
+        ((Node) ((Node) model).getChild(0)).getChildren().forEach(LodUtils::createModelLod);
     }
 
     public static void setUpCharacterModelLod(Spatial model) {
@@ -41,7 +43,7 @@ public class LodUtils {
 
     private static void createModelLod(Spatial geometry) {
         LodGenerator lod = new LodGenerator((Geometry) geometry);
-        lod.bakeLods(LodGenerator.TriangleReductionMethod.COLLAPSE_COST, 0.25f, 0.5f, 0.75f);
+        lod.bakeLods(LodGenerator.TriangleReductionMethod.PROPORTIONAL, 0.25f, 0.50f, 0.75f, 1.0f);
         LodControl lc = new LodControl();
         geometry.addControl(lc);
     }

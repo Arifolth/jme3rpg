@@ -5,6 +5,7 @@ import com.idflood.sky.items.DynamicStars;
 import com.idflood.sky.items.DynamicSun;
 import com.idflood.sky.utils.CloudsBillboardItem;
 import com.jme3.asset.AssetManager;
+import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.math.Vector3f;
@@ -109,5 +110,10 @@ public class DynamicSky extends Node implements SkyInterface {
     @Override
     public void update(float tpf){
         updateTime();
+    }
+
+    @Override
+    public DirectionalLight getSunLight(){
+        return dynamicSun.getSunLight();
     }
 }

@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2023 Alexander Nilov
+ *     Copyright (C) 2014 - 2024 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -30,7 +30,6 @@ import ru.arifolth.anjrpg.interfaces.weather.EmitterInterface;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 
 public interface GameLogicCoreInterface {
     CharacterInterface getPlayerCharacter();
@@ -38,6 +37,8 @@ public interface GameLogicCoreInterface {
     GameStateManagerInterface getGameStateManager();
 
     Node getForestNode();
+
+    Node getGrassNode();
 
     void reInitialize();
 

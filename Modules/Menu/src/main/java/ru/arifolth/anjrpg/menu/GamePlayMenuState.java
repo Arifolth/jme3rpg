@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2023 Alexander Nilov
+ *     Copyright (C) 2014 - 2024 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
-import ru.arifolth.anjrpg.interfaces.SoundType;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.East;
 import static com.simsilica.lemur.component.BorderLayout.Position.West;

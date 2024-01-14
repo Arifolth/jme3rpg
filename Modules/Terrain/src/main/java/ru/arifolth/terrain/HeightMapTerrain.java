@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2023 Alexander Nilov
+ *     Copyright (C) 2014 - 2024 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -24,12 +24,14 @@ import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.scene.Node;
 import com.jme3.terrain.geomipmap.TerrainLodControl;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.terrain.heightmap.AbstractHeightMap;
 import com.jme3.terrain.heightmap.ImageBasedHeightMap;
 import com.jme3.texture.Texture;
+import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.HeightMapTerrainInterface;
 import ru.arifolth.anjrpg.interfaces.RolePlayingGameInterface;
 
@@ -45,6 +47,7 @@ public class HeightMapTerrain implements HeightMapTerrainInterface {
     private AssetManager assetManager;
     private BulletAppState bulletAppState;
     private RolePlayingGameInterface app;
+    private final int rigidBodiesSize = 1;
 
     public HeightMapTerrain(AssetManager assetManager, BulletAppState bulletAppState, RolePlayingGameInterface app) {
         this.assetManager = assetManager;
@@ -118,8 +121,6 @@ public class HeightMapTerrain implements HeightMapTerrainInterface {
         terrain.setMaterial(matTerrain);
         //terrain.setLocalTranslation(0, -1000, 0);
         //terrain.setLocalScale(2f, 1f, 2f);
-        terrain.setLocalTranslation(0, -1150, 0);
-        terrain.setLocalScale(20f, 10f, 20f);
 
         /** 5. The LOD (level of detail) depends on were the camera is: */
         TerrainLodControl control = new TerrainLodControl(terrain, app.getCamera());
@@ -147,5 +148,10 @@ public class HeightMapTerrain implements HeightMapTerrainInterface {
     @Override
     public void update() {
 
+    }
+
+    @Override
+    public int getRigidBodiesSize() {
+        return rigidBodiesSize;
     }
 }

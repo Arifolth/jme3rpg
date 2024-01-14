@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2023 Alexander Nilov
+ *     Copyright (C) 2014 - 2024 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -29,10 +29,10 @@ import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.scene.debug.SkeletonDebugger;
 import com.jme3.system.AppSettings;
+import com.jme3.util.TangentBinormalGenerator;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.Debug;
-import ru.arifolth.anjrpg.interfaces.LodUtils;
-import ru.arifolth.anjrpg.interfaces.SoundType;
+import ru.arifolth.anjrpg.interfaces.SoundTypeEnum;
 
 /*
 *
@@ -64,12 +64,13 @@ public abstract class AnimatedCharacter extends BaseCharacter implements AnimEve
         }
         */
         characterModel = gameLogicCore.getAssetManager().loadModel(model);
+        TangentBinormalGenerator.generate(characterModel);
         //Material playerMaterial = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
         //characterModel.setMaterial(playerMaterial);
         characterModel.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
         //characterModel.setLocalScale(1f);
         //characterModel.setLocalScale(0.055f);
-        characterModel.setQueueBucket(RenderQueue.Bucket.Transparent);
+//        characterModel.setQueueBucket(RenderQueue.Bucket.Transparent);
 
         //ninja collision sphere offset fix
         //characterModel.move(0, -5f, 0); //sinbad
@@ -132,10 +133,10 @@ public abstract class AnimatedCharacter extends BaseCharacter implements AnimEve
 
     @Override
     public void initializeSounds() {
-        getNode().detachChildNamed(SoundType.FOOTSTEPS.name());
+        getNode().detachChildNamed(SoundTypeEnum.FOOTSTEPS.name());
 
-        AudioNode audioNode = gameLogicCore.getSoundManager().getSoundNode(SoundType.FOOTSTEPS);
-        audioNode.setName(SoundType.FOOTSTEPS.name());
+        AudioNode audioNode = gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.FOOTSTEPS);
+        audioNode.setName(SoundTypeEnum.FOOTSTEPS.name());
 
         getNode().attachChild(audioNode);
     }
@@ -147,25 +148,25 @@ public abstract class AnimatedCharacter extends BaseCharacter implements AnimEve
     }
 
     protected AudioNode getSwordBlockNode() {
-        AudioNode audioNode = gameLogicCore.getSoundManager().getSoundNode(SoundType.SWORD_BLOCK);
-        audioNode.setName(SoundType.SWORD_BLOCK.name());
+        AudioNode audioNode = gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.SWORD_BLOCK);
+        audioNode.setName(SoundTypeEnum.SWORD_BLOCK.name());
         return audioNode;
     }
 
     protected AudioNode getSwordSwingNode() {
-        AudioNode audioNode = gameLogicCore.getSoundManager().getSoundNode(SoundType.SWORD_SWING);
-        audioNode.setName(SoundType.SWORD_SWING.name());
+        AudioNode audioNode = gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.SWORD_SWING);
+        audioNode.setName(SoundTypeEnum.SWORD_SWING.name());
         return audioNode;
     }
 
     protected AudioNode getSwordHitNode() {
-        AudioNode audioNode = gameLogicCore.getSoundManager().getSoundNode(SoundType.SWORD_HIT);
-        audioNode.setName(SoundType.SWORD_HIT.name());
+        AudioNode audioNode = gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.SWORD_HIT);
+        audioNode.setName(SoundTypeEnum.SWORD_HIT.name());
         return audioNode;
     }
 
     protected AudioNode getPlayerStepsNode(boolean running) {
-        AudioNode playerStepsNode = (AudioNode) (getNode().getChild(SoundType.FOOTSTEPS.name()));
+        AudioNode playerStepsNode = (AudioNode) (getNode().getChild(SoundTypeEnum.FOOTSTEPS.name()));
         if (!running) {
             playerStepsNode.setPitch(0.65f);
         } else {

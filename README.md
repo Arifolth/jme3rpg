@@ -5,7 +5,7 @@ An Open Source Action RPG game written in Java.
 mailto: <arifolth@gmail.com>
 
 #
-![Image](Screenshots/Day.jpg "icon")
+![Image](Screenshots/Grass.jpg "icon")
 
 ## Features:
 - Modular Maven build
@@ -45,6 +45,14 @@ JDK 17+ is required to build and run the game.
 ```bash
 mvn install
 ```
+
+### Native executables
+Native executables could be build only on a Windows box and
+the [WiX Toolset](https://wixtoolset.org/) is a required prerequisite.
+
+To build them enable profile 
+```native``` and perform a [Launcher](Launcher) module build  
+
 ## Run using Jdk
 ```bash
 mvn exec:java -pl GameClient -Djvm.options="-XX:-TieredCompilation -XX:TieredStopAtLevel=3 -server -XX:+UnlockExperimentalVMOptions -XX:+UseZGC"
@@ -61,6 +69,7 @@ mvn exec:java -pl GameClient -Djvm.options="-XX:-TieredCompilation -XX:TieredSto
 - Other resources, credit is given in the code
 
 ## Screenshots
+![Image](Screenshots/grass-pseudo-3d.jpg "icon")
 ![Image](Screenshots/ForestWithMountains.jpg "icon")
 ![Image](Screenshots/mountains.jpg "icon")
 ![Image](Screenshots/Hit.jpg "icon")

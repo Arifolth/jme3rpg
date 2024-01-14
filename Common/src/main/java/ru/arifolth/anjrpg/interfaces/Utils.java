@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2023 Alexander Nilov
+ *     Copyright (C) 2014 - 2024 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -18,12 +18,14 @@
 
 package ru.arifolth.anjrpg.interfaces;
 
+import com.google.common.collect.Iterables;
 import com.jme3.bullet.control.CharacterControl;
 
+import java.util.Collection;
 import java.util.SplittableRandom;
 
 public class Utils {
-    private static SplittableRandom random = new SplittableRandom();
+    private static final SplittableRandom random = new SplittableRandom();
 
     private Utils() {
     }
@@ -49,5 +51,18 @@ public class Utils {
 
     public static boolean isBetween(int x, int lower, int upper) {
         return lower <= x && x <= upper;
+    }
+
+    public static float nextFloat() {
+        return random.nextFloat();
+    }
+
+    public static <T> T getRandomObject(Collection<T> from) {
+        int i = random.nextInt(from.size());
+        return Iterables.get(from, i);
+    }
+
+    public static <T> T getSingleObject(Collection<T> from) {
+        return Iterables.get(from, 0);
     }
 }

@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2023 Alexander Nilov
+ *     Copyright (C) 2014 - 2024 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -34,7 +34,13 @@ public interface InitializationDelegateInterface {
 
     List<Spatial> setupTrees();
 
-    void positionTrees(TerrainQuad quad, boolean parallel);
+    List<Spatial> setupGrass();
+
+    void update();
+
+    void positionGrass(TerrainQuad quad);
+
+    void positionTrees(TerrainQuad quad);
 
     void positionPlayer();
 

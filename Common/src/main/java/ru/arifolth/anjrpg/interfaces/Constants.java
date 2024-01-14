@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2023 Alexander Nilov
+ *     Copyright (C) 2014 - 2024 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -53,12 +53,14 @@ public class Constants {
     public static final int HIT_PROBABILITY = 50;
     public static final float SHOOT_DELAY = 3f;
     public static final float SHOOT_RATE = 3.5f;
-    public static final MusicType NULL = null;
+    public static final MusicTypeEnum NULL = null;
     public static final int STARS_COUNT = 500;
     public static final int DISTANCE_TO_STARS = 9000;
     public static final String VERSION_PROPERTIES = "version.properties";
     public static final int STENCIL_BITS = 8;
     public static final int RIGID_BODIES_SIZE = 4;
+    public static final String QUAD_GRASS = "quadGrass";
+    public static final String QUAD_FOREST = "quadForest";
     public static float MELEE_DISTANCE_LIMIT = 15f;
 
     //HKEY_CURRENT_USER\Software\JavaSoft\Prefs\

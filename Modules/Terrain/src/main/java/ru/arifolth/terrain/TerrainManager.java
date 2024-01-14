@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2023 Alexander Nilov
+ *     Copyright (C) 2014 - 2024 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -21,10 +21,11 @@ package ru.arifolth.terrain;
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.terrain.geomipmap.TerrainQuad;
-import ru.arifolth.anjrpg.interfaces.RolePlayingGameInterface;
-import ru.arifolth.anjrpg.interfaces.TerrainInterface;
-import ru.arifolth.anjrpg.interfaces.TerrainManagerInterface;
+import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.vegetation.GrassTypeEnum;
+import ru.arifolth.vegetation.TreeTypeEnum;
 
+import java.util.EnumSet;
 import java.util.logging.Logger;
 
 public class TerrainManager implements TerrainManagerInterface {
@@ -34,9 +35,9 @@ public class TerrainManager implements TerrainManagerInterface {
     private TerrainQuad terrain;
     private TerrainQuad mountains;
 
-    private AssetManager assetManager;
-    private BulletAppState bulletAppState;
-    private RolePlayingGameInterface app;
+    private final AssetManager assetManager;
+    private final BulletAppState bulletAppState;
+    private final RolePlayingGameInterface app;
 
     public TerrainManager(AssetManager assetManager, BulletAppState bulletAppState, RolePlayingGameInterface app) {
         this.assetManager = assetManager;
@@ -44,20 +45,30 @@ public class TerrainManager implements TerrainManagerInterface {
         this.app = app;
 
         terrainBuilder = new FractalTerrainGrid(assetManager, bulletAppState, app);
-        generateTerrain();
+
+        TreeTypeEnum.setAssetManager(assetManager);
+        GrassTypeEnum.setAssetManager(assetManager);
     }
 
+    @Override
+    public void initialize() {
+        EnumSet.allOf(TreeTypeEnum.class).forEach(TreeTypeEnum::init);
+        EnumSet.allOf(GrassTypeEnum.class).forEach(GrassTypeEnum::init);
+
+        generateTerrain();
+    }
     private void generateTerrain() {
         terrain = terrainBuilder.generateTerrain();
         mountains = terrainBuilder.generateMountains();
     }
 
-    public void generateGrass() {
-
-    }
-
     public TerrainQuad getTerrain() {
         return terrain;
+    }
+
+    @Override
+    public int getRigidBodiesSize() {
+        return terrainBuilder.getRigidBodiesSize();
     }
 
     @Override

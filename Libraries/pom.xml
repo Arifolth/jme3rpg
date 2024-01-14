@@ -14,7 +14,7 @@
 
     <properties>
 		<log4j-api.version>2.19.0</log4j-api.version>
-		<groovy.version>3.0.10</groovy.version>
+		<groovy.version>4.0.16</groovy.version>
 		<sio2.version>1.7.0</sio2.version>
 		<java.main.class>ru.arifolth.anjrpg.ANJRpg</java.main.class>
 	</properties>
@@ -99,7 +99,7 @@
 			<artifactId>lemur-proto</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.codehaus.groovy</groupId>
+			<groupId>org.apache.groovy</groupId>
 			<artifactId>groovy-jsr223</artifactId>
 		</dependency>
 
@@ -218,8 +218,9 @@
 				<artifactId>lemur-proto</artifactId>
 				<version>${lemur-proto.version}</version>
 			</dependency>
+
 			<dependency>
-				<groupId>org.codehaus.groovy</groupId>
+				<groupId>org.apache.groovy</groupId>
 				<artifactId>groovy-jsr223</artifactId>
 				<version>${groovy.version}</version>
 			</dependency>

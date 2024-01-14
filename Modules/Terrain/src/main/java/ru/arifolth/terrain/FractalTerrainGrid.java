@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2023 Alexander Nilov
+ *     Copyright (C) 2014 - 2024 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.material.Material;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.control.UpdateControl;
 import com.jme3.system.AppSettings;
@@ -42,26 +43,26 @@ import com.jme3.terrain.noise.filter.SmoothFilter;
 import com.jme3.terrain.noise.fractal.FractalSum;
 import com.jme3.terrain.noise.modulator.NoiseModulator;
 import com.jme3.texture.Texture;
+import com.jme3.util.TangentBinormalGenerator;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.FractalTerrainGridInterface;
+import ru.arifolth.anjrpg.interfaces.InitializationDelegateInterface;
 import ru.arifolth.anjrpg.interfaces.RolePlayingGameInterface;
 
-import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 
 public class FractalTerrainGrid implements FractalTerrainGridInterface {
     final private static Logger LOGGER = Logger.getLogger(FractalTerrainGrid.class.getName());
 
-    private RigidBodyControl landscape;
     private TerrainQuad terrain;
 
-    private AssetManager assetManager;
-    private BulletAppState bulletAppState;
-    private RolePlayingGameInterface app;
+    private final AssetManager assetManager;
+    private final BulletAppState bulletAppState;
+    private final RolePlayingGameInterface app;
 
+    private final int rigidBodiesSize = Constants.RIGID_BODIES_SIZE;
 
     private FractalSum base;
     private PerturbFilter perturb;
@@ -69,9 +70,9 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
     private SmoothFilter smooth;
     private IterativeFilter iterate;
 
-    private float grassScale = 64;
-    private float dirtScale = 16;
-    private float rockScale = 128;
+    private final float grassScale = 64;
+    private final float dirtScale = 16;
+    private final float rockScale = 128;
     private TerrainQuad distantTerrain;
 
     public FractalTerrainGrid(AssetManager assetManager, BulletAppState bulletAppState, RolePlayingGameInterface app) {
@@ -161,7 +162,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
         ground.addPreFilter(this.iterate);
 
         this.terrain = new TerrainGrid("terrain", 65, 1025, new FractalTileLoader(ground, 256f)) {
-            protected boolean isNeighbour(int quadIndex) {
+            private boolean isNeighbour(int quadIndex) {
                 return quadIndex == 0 || quadIndex == 1 || quadIndex == 2 || quadIndex == 3 ||
                         quadIndex == 4 || quadIndex == 8 ||
                         quadIndex == 7 || quadIndex == 11 ||
@@ -202,12 +203,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
                                         // back on the OpenGL thread:
                                         @Override
                                         public Object call() throws Exception {
-                                            if (newQuad.getParent() != null) {
-                                                attachQuadAt(newQuad, quadrant, quadCell, true);
-                                            }
-                                            else {
-                                                attachQuadAt(newQuad, quadrant, quadCell, false);
-                                            }
+                                            attachQuadAt(newQuad, quadrant, quadCell, newQuad.getParent() != null);
                                             return null;
                                         }
                                     });
@@ -230,8 +226,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
                         @Override
                         public Object call() throws Exception {
                             for (Spatial s : getChildren()) {
-                                if (s instanceof TerrainQuad) {
-                                    TerrainQuad tq = (TerrainQuad)s;
+                                if (s instanceof TerrainQuad tq) {
                                     tq.resetCachedNeighbours();
                                 }
                             }
@@ -327,15 +322,22 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
             public void gridMoved(Vector3f newCenter) {
             }
 
+            //TODO rewrite tree gen using thread pool executor and thread safe queue or stack
             @Override
             public void tileAttached(Vector3f cell, TerrainQuad quad) {
                 while(quad.getControl(RigidBodyControl.class)!=null){
                     quad.removeControl(RigidBodyControl.class);
                 }
                 quad.addControl(new RigidBodyControl(new HeightfieldCollisionShape(quad.getHeightMap(), terrain.getLocalScale()), 0));
+                quad.setLocked(true);
                 bulletAppState.getPhysicsSpace().add(quad);
+                InitializationDelegateInterface initializationDelegate = app.getGameLogicCore().getInitializationDelegate();
                 //plant trees
-                app.getGameLogicCore().getInitializationDelegate().positionTrees(quad, true);
+                initializationDelegate.positionTrees(quad);
+                //plant grass
+                initializationDelegate.positionGrass(quad);
+
+//                TangentBinormalGenerator.generate(quad);
             }
 
             @Override
@@ -344,22 +346,33 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
                     bulletAppState.getPhysicsSpace().remove(quad);
                     quad.removeControl(RigidBodyControl.class);
                 }
-                List<Spatial> quadForest = quad.getUserData("quadForest");
-                Stream<Spatial> stream = quadForest.stream();
-                stream.forEach(treeNode -> {
-//                    System.out.println("Detached " + treeNode.hashCode() + treeNode.getLocalTranslation().toString());
-                    app.getGameLogicCore().getForestNode().detachChild(treeNode);
-                });
+                detachTrees(quad);
+                detachGrass(quad);
             }
 
         });
     }
 
+    private void detachGrass(TerrainQuad quad) {
+        Node quadGrass = quad.getUserData(Constants.QUAD_GRASS);
+        app.getGameLogicCore().getGrassNode().detachChild(quadGrass);
+    }
+
+    private void detachTrees(TerrainQuad quad) {
+        Node quadForest = quad.getUserData(Constants.QUAD_FOREST);
+        app.getGameLogicCore().getForestNode().detachChild(quadForest);
+    }
+
     @Override
     public void update() {
+        //TODO: check if clouds are following player as well. Looks like they are not
+        //Update distant mountains location
         Vector3f playerLocation = app.getGameLogicCore().getPlayerCharacter().getCharacterControl().getPhysicsLocation();
         playerLocation.y = Constants.MOUNTAINS_HEIGHT_OFFSET;
         distantTerrain.setLocalTranslation(playerLocation);
+
+        //update grass
+        app.getGameLogicCore().getInitializationDelegate().update();
     }
 
     @Override
@@ -375,6 +388,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
         /** 1.1) Add ALPHA map (for red-blue-green coded splat textures) */
         matTerrain.setTexture("Alpha", assetManager.loadTexture(
                 "Textures/Terrain/splat/alphamap_horizon.png"));
+        matTerrain.setBoolean("useTriPlanarMapping", true);
 
         //matTerrain.setTexture("GrassAlphaMap", assetManager.loadTexture(
         //"Textures/Terrain/grass-map512.png"));
@@ -439,5 +453,10 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
         distantTerrain.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
 
         return distantTerrain;
+    }
+
+    @Override
+    public int getRigidBodiesSize() {
+        return rigidBodiesSize;
     }
 }

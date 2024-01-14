@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2023 Alexander Nilov
+ *     Copyright (C) 2014 - 2024 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -33,9 +33,7 @@ import ru.arifolth.anjrpg.interfaces.weather.EmitterInterface;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
+import java.util.WeakHashMap;
 import java.util.logging.Logger;
 
 public class GameLogicCore implements GameLogicCoreInterface {
@@ -45,7 +43,8 @@ public class GameLogicCore implements GameLogicCoreInterface {
     private TrackerInterface locationTracker = new LocationTracker(this);
     private final InitializationDelegate initializationDelegate = new InitializationDelegate(this);
     private final Node enemies = new Node("enemies");
-    private final Node treesForestNode = new Node("Forest Node");
+    private Node forestNode = new Node("Forest Node");
+    private Node grassNode = new Node("all grass");
 
     private MovementControllerInterface movementController;
     private TerrainManagerInterface terrainManager;
@@ -62,7 +61,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
 
     private CharacterInterface playerCharacter = null;
     private Picture damageIndicator = null;
-    private Map<Node, CharacterInterface> characterMap = new ConcurrentHashMap<>();
+    private Map<Node, CharacterInterface> characterMap = new WeakHashMap<>();
     private Set<EmitterInterface> weatherEffectsSet = new LinkedHashSet<>();
     private GameStateManagerInterface gameStateManager = new GameStateManager(this);
 
@@ -89,12 +88,26 @@ public class GameLogicCore implements GameLogicCoreInterface {
 
         movementController.setUpKeys();
 //        initializer.setupWeatherEffects();
-        getRootNode().attachChild(treesForestNode);
+        getRootNode().attachChild(forestNode);
+        getRootNode().attachChild(grassNode);
     }
 
     @Override
     public Node getForestNode() {
-        return treesForestNode;
+        return forestNode;
+    }
+
+    public void setForestNode(Node treesForestNode) {
+        this.forestNode = treesForestNode;
+    }
+
+    @Override
+    public Node getGrassNode() {
+        return grassNode;
+    }
+
+    public void setGrassNode(Node grassNode) {
+        this.grassNode = grassNode;
     }
 
     public void reInitialize() {

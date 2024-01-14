@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2023 Alexander Nilov
+ *     Copyright (C) 2014 - 2024 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 
 package ru.arifolth.anjrpg;
 
+import com.jme3.app.StatsAppState;
 import com.jme3.niftygui.NiftyJmeDisplay;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeContext;
@@ -48,7 +49,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
     private Nifty nifty;
     private InitStateEnum initialization = InitStateEnum.PENDING;
     final private static Logger LOGGER = Logger.getLogger(ANJRpg.class.getName());
-    private boolean loadingCompleted = false;
+    private boolean startNewGame = false;
 
     private static RolePlayingGameInterface app;
 
@@ -79,22 +80,20 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
         //do not output excessive info on console
         Logger.getLogger(Constants.ROOT_LOGGER).setLevel(Constants.LOGGING_LEVEL);
 
-        // hide FPS HUD
-        setDisplayFps(false);
-
-        //hide statistics HUD
-        setDisplayStatView(false);
+//        stateManager.attach(new StatsAppState());
+//
+//        // hide FPS HUD
+//        setDisplayFps(true);
+//
+//        //hide statistics HUD
+//        setDisplayStatView(true);
     }
 
     @Override
     public void simpleInitApp()  {
         super.simpleInitApp();
 
-        /* Lemur stuff */
-        GuiGlobals.initialize(this);
-        GuiGlobals globals = GuiGlobals.getInstance();
-        BaseStyles.loadGlassStyle();
-        globals.getStyles().setDefaultStyle("glass");
+        setupLemur();
 
         setupPhysix();
         setupSound();
@@ -102,12 +101,20 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
         setupGameLogic();
     }
 
+    private void setupLemur() {
+        /* Lemur stuff */
+        GuiGlobals.initialize(this);
+        GuiGlobals globals = GuiGlobals.getInstance();
+        BaseStyles.loadGlassStyle();
+        globals.getStyles().setDefaultStyle("glass");
+    }
+
     @Override
     public void simpleUpdate(float tpf) {
         InitializationDelegateInterface initializationDelegate = gameLogicCore.getInitializationDelegate();
         switch (initialization) {
             case PENDING: {
-                if(!loadingCompleted) {
+                if(!startNewGame) {
                     gameLogicCore.getSoundManager().update(tpf);
                     return;
                 }
@@ -117,13 +124,12 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
 
                 loadResources();
 
-                setProgress("Loading complete");
                 initialization = InitStateEnum.INITIALIZED;
                 break;
             }
             case INITIALIZED: {
                 //wait until land appears in Physics Space
-                if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == Constants.RIGID_BODIES_SIZE) {
+                if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == app.getTerrainManager().getRigidBodiesSize()) {
                     //place player at the start location
                     initializationDelegate.positionPlayer();
                     initializationDelegate.initPlayerComplete();
@@ -131,17 +137,19 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
                     initializationDelegate.positionNPCs(getGameLogicCore().getCharacterMap());
                     initializationDelegate.initNPCsComplete();
 
-//                    initializationDelegate.positionTrees(getTerrainManager().getTerrain(), false);
                     //these calls have to be done on the update loop thread,
                     //especially attaching the terrain to the rootNode
                     //after it is attached, it's managed by the update loop thread
                     // and may not be modified from any other thread anymore!
+                    createMinimap();
+
+                    setProgress("Loading complete");
                     nifty.gotoScreen("end");
                     nifty.exit();
-                    guiViewPort.removeProcessor(niftyDisplay);
-                    initialization = InitStateEnum.RUNNING;
 
-                    createMinimap();
+                    guiViewPort.removeProcessor(niftyDisplay);
+
+                    initialization = InitStateEnum.RUNNING;
                 }
                 break;
             }
@@ -208,7 +216,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
         guiViewPort.addProcessor(niftyDisplay);
 
         showLoadingMenu();
-        loadingCompleted = true;
+        startNewGame = true;
     }
 
     @Override

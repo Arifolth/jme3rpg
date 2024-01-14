@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2023 Alexander Nilov
+ *     Copyright (C) 2014 - 2024 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -21,87 +21,87 @@ package ru.arifolth.anjrpg.interfaces;
 public enum GameState {
     MENU {
         @Override
-        public MusicType getMusicType() {
-            return MusicType.MENU;
+        public MusicTypeEnum getMusicType() {
+            return MusicTypeEnum.MENU;
         }
     },
     BATTLE {
         @Override
-        public MusicType getMusicType() {
-            return MusicType.BATTLE;
+        public MusicTypeEnum getMusicType() {
+            return MusicTypeEnum.BATTLE;
         }
     },
     EXPLORATION {
         @Override
-        public MusicType getMusicType() {
-            return MusicType.EXPLORATION;
+        public MusicTypeEnum getMusicType() {
+            return MusicTypeEnum.EXPLORATION;
         }
     },
     DAY {
         @Override
-        public MusicType getMusicType() {
-            return MusicType.DAY;
+        public MusicTypeEnum getMusicType() {
+            return MusicTypeEnum.DAY;
         }
     },
     CALM {
         @Override
-        public MusicType getMusicType() {
-            return MusicType.CALM;
+        public MusicTypeEnum getMusicType() {
+            return MusicTypeEnum.CALM;
         }
     },
     MOUNTAINS {
         @Override
-        public MusicType getMusicType() {
-            return MusicType.MOUNTAINS;
+        public MusicTypeEnum getMusicType() {
+            return MusicTypeEnum.MOUNTAINS;
         }
     },
     VILLAGE {
         @Override
-        public MusicType getMusicType() {
-            return MusicType.VILLAGE;
+        public MusicTypeEnum getMusicType() {
+            return MusicTypeEnum.VILLAGE;
         }
     },
     DEATH {
         @Override
-        public MusicType getMusicType() {
-            return MusicType.DEATH;
+        public MusicTypeEnum getMusicType() {
+            return MusicTypeEnum.DEATH;
         }
     },
     NIGHT {
         @Override
-        public MusicType getMusicType() {
-            return MusicType.NIGHT;
+        public MusicTypeEnum getMusicType() {
+            return MusicTypeEnum.NIGHT;
         }
     },
     FEAR {
         @Override
-        public MusicType getMusicType() {
+        public MusicTypeEnum getMusicType() {
             return null;
         }
     },
     SNOW {
         @Override
-        public MusicType getMusicType() {
-            return MusicType.SNOW;
+        public MusicTypeEnum getMusicType() {
+            return MusicTypeEnum.SNOW;
         }
     },
     RAIN {
         @Override
-        public MusicType getMusicType() {
-            return MusicType.SNOW;
+        public MusicTypeEnum getMusicType() {
+            return MusicTypeEnum.SNOW;
         }
     },
     DAWN {
         @Override
-        public MusicType getMusicType() {
-            return MusicType.DAWN;
+        public MusicTypeEnum getMusicType() {
+            return MusicTypeEnum.DAWN;
         }
     },
     DUSK {
         @Override
-        public MusicType getMusicType() {
-            return MusicType.DUSK;
+        public MusicTypeEnum getMusicType() {
+            return MusicTypeEnum.DUSK;
         }
     };
-    public abstract MusicType getMusicType();
+    public abstract MusicTypeEnum getMusicType();
 }
