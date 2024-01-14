@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2021 Alexander Nilov
+ *     Copyright (C) 2014 - 2024 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -27,8 +27,9 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import ru.arifolth.anjrpg.interfaces.weather.EmitterInterface;
 
-public class SnowEmitter implements Emitter {
+public class SnowEmitter implements EmitterInterface {
     ParticleEmitter snow;
     private Spatial spatial;
 
@@ -60,7 +61,7 @@ public class SnowEmitter implements Emitter {
         this.spatial = spatial;
     }
 
-    public void simpleUpdate(float tpf) {
+    public void update(float tpf) {
         snow.setLocalTranslation(spatial.getLocalTranslation());
         snow.emitAllParticles();
     }

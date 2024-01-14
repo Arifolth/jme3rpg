@@ -9,6 +9,7 @@
   <groupId>ru.arifolth.game</groupId>
   <artifactId>GameClient</artifactId>
   <packaging>jar</packaging>
+    <version>1.0-SNAPSHOT</version>
 
   <name>Game Client</name>
 
@@ -20,67 +21,59 @@
   </parent>
 
   <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
-        <version>2.4</version>
-        <configuration>
-          <encoding>UTF-8</encoding>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>2.3.1</version>
-        <configuration>
-          <archive>
-            <manifest>
-              <mainClass>${java.main.class}</mainClass>
-              <addClasspath>true</addClasspath>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.4.1</version>
-        <configuration>
-          <appendAssemblyId>false</appendAssemblyId>
-          <descriptors>
-            <descriptor>src/main/assembly/dist.xml</descriptor>
-          </descriptors>
-                <!--<archive>
-                    <manifest>
-                        <mainClass>ru.arifolth.anjrpg.RolePlayingGame</mainClass>
-                        <addClasspath>true</addClasspath>
-                    </manifest>
-                    <manifestEntries>
-                        <Class-Path>/lib/</Class-Path>
-                    </manifestEntries>
-                </archive>-->
-        </configuration>
-        <executions>
-          <execution>
-            <id>make-assembly</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-        <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <version>1.2.1</version>
-            <configuration>
-                <includePluginDependencies>true</includePluginDependencies>
-                <mainClass>${java.main.class}</mainClass>
-            </configuration>
-        </plugin>
-    </plugins>
+      <plugins>
+          <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>exec-maven-plugin</artifactId>
+              <version>1.2.1</version>
+              <configuration>
+                  <includePluginDependencies>true</includePluginDependencies>
+                  <mainClass>${java.main.class}</mainClass>
+              </configuration>
+          </plugin>
+          <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-resources-plugin</artifactId>
+              <version>3.2.0</version>
+              <executions>
+                  <execution>
+                      <id>copy-pom</id>
+                      <phase>generate-sources</phase>
+                      <goals>
+                          <goal>copy-resources</goal>
+                      </goals>
+                      <configuration>
+                          <encoding>${encoding}</encoding>
+                          <outputDirectory>${basedir}/target/classes</outputDirectory>
+                          <resources>
+                              <resource>
+                                  <directory>/</directory>
+                                  <includes>
+                                      <include>pom.xml</include>
+                                  </includes>
+                              </resource>
+                          </resources>
+                      </configuration>
+                  </execution>
+              </executions>
+          </plugin>
+      </plugins>
+      <resources>
+          <resource>
+              <directory>src/main/resources</directory>
+              <filtering>true</filtering>
+              <includes>
+                  <include>**/version.properties</include>
+              </includes>
+          </resource>
+          <resource>
+              <directory>src/main/resources</directory>
+              <filtering>false</filtering>
+              <excludes>
+                  <exclude>**/version.properties</exclude>
+              </excludes>
+          </resource>
+      </resources>
   </build>
 
 
@@ -96,6 +89,12 @@
         <dependency>
             <groupId>ru.arifolth.game</groupId>
             <artifactId>Terrain</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>ru.arifolth.game</groupId>
+            <artifactId>Common</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
@@ -117,9 +116,11 @@
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>ru.arifolth.game</groupId>
+            <artifactId>Menu</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
-
-    <properties>
-        <java.main.class>ru.arifolth.anjrpg.RolePlayingGame</java.main.class>
-    </properties>
 </project>

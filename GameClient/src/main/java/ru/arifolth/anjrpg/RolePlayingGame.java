@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2021 Alexander Nilov
+ *     Copyright (C) 2014 - 2024 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -20,51 +20,40 @@ package ru.arifolth.anjrpg;
 
 import com.idflood.sky.DynamicSky;
 import com.jayfella.minimap.MiniMapState;
-import com.jme3.app.*;
-import com.jme3.app.state.ConstantVerifierState;
+import com.jme3.app.FlyCamAppState;
+import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.ScreenshotAppState;
 import com.jme3.asset.plugins.ClasspathLocator;
 import com.jme3.audio.AudioListenerState;
 import com.jme3.bullet.BulletAppState;
-import com.jme3.bullet.control.CharacterControl;
-import com.jme3.math.ColorRGBA;
-import com.jme3.post.FilterPostProcessor;
-import com.jme3.post.filters.*;
-import com.jme3.post.ssao.SSAOFilter;
-import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Node;
-import com.jme3.shadow.PssmShadowRenderer;
-import com.jme3.water.WaterFilter;
+import com.jme3.system.AppSettings;
 import com.simsilica.lemur.OptionPanelState;
 import com.simsilica.lemur.event.PopupState;
 import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.tools.SizeValue;
+import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.menu.MainMenuState;
-import ru.arifolth.game.SoundManager;
-import ru.arifolth.game.TerrainManager;
-import ru.arifolth.game.models.PlayerCharacter;
+import ru.arifolth.sound.SoundManager;
+import ru.arifolth.terrain.TerrainManager;
 
+import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public abstract class RolePlayingGame extends SimpleApplication {
-    public static final SSAOFilter SSAO_FILTER_BASIC = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.9f);
-    public static final SSAOFilter SSAO_FILTER_STRONG = new SSAOFilter(2.9299974f, 25f, 5.8100376f, 0.091000035f);
+public abstract class RolePlayingGame extends SimpleApplication implements RolePlayingGameInterface {
+    protected String version;
     protected Element progressBarElement;
     protected TextRenderer textRenderer;
-    private LightScatteringFilter lsf;
-    private WaterFilter waterFilter;
     private volatile float progress;
     final private static Logger LOGGER = Logger.getLogger(RolePlayingGame.class.getName());
-
-    protected static Application app;
-
-    private DynamicSky sky;
-    private TerrainManager terrainManager;
-    private SoundManager soundManager;
+    protected SkyInterface sky;
+    private TerrainManagerInterface terrainManager;
+    private SoundManagerInterface soundManager;
+    private FilterManagerInterface filterManager;
     protected BulletAppState bulletAppState;
-    private PssmShadowRenderer pssmRenderer;
-    private GameLogicCore gameLogicCore;
+    protected GameLogicCoreInterface gameLogicCore;
 
     public RolePlayingGame() {
         super(new FlyCamAppState(),
@@ -73,10 +62,13 @@ public abstract class RolePlayingGame extends SimpleApplication {
                 new OptionPanelState(),
                 new MainMenuState()
         );
-    }
 
-    public GameLogicCore getGameLogicCore() {
-        return gameLogicCore;
+        try {
+            PropertiesReader reader = new PropertiesReader(Constants.VERSION_PROPERTIES);
+            version = reader.getProperty("version");
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Unable to read version info!", e);
+        }
     }
 
     @Override
@@ -86,18 +78,21 @@ public abstract class RolePlayingGame extends SimpleApplication {
     }
 
     protected void loadResources() {
-        setupShadowRenderer();
         setupScreenCapture();
-        addFog();
-        setupSky();
-        addFilters();
 
-        attachPlayer();
         attachTerrain();
-        attachSky();
 
-        enablePhysics();
+        initializeEntities();
+
+        setupSky();
+
+        setupFilters();
     }
+
+    private void initializeEntities() {
+        gameLogicCore.getInitializationDelegate().initialize(false);
+    }
+
 
     protected void createMinimap() {
         // create the minimap
@@ -106,7 +101,7 @@ public abstract class RolePlayingGame extends SimpleApplication {
     }
 
     void setupGameLogic() {
-        gameLogicCore = new GameLogicCore(app, cam, flyCam, inputManager, bulletAppState, assetManager, soundManager, getRootNode());
+        gameLogicCore = new GameLogicCore(this, cam, flyCam, inputManager, bulletAppState, assetManager, soundManager, terrainManager, getRootNode());
         gameLogicCore.initialize();
     }
 
@@ -127,110 +122,35 @@ public abstract class RolePlayingGame extends SimpleApplication {
 
         terrainManager.update(tpf);
 
-        //skydome
-        sky.updateTime();
+        sky.update(tpf);
 
-        //update filters on observer pattern base
-        lsf.setLightPosition(sky.getSunDirection().normalize());
-        pssmRenderer.setDirection(sky.getSunDirection().normalize());
-        waterFilter.setLightDirection(sky.getSunDirection().normalize());
+        filterManager.update(tpf);
+
+        soundManager.update(tpf);
     }
 
-    void addFog() {
-        /** Add fog to a scene */
-        FilterPostProcessor fpp=new FilterPostProcessor(assetManager);
-        FogFilter fog=new FogFilter();
-        fog.setFogColor(new ColorRGBA(0.9f, 0.9f, 0.9f, 1.0f));
-        fog.setFogDistance(1000);
-        fog.setFogDensity(0.255f);
-        fpp.addFilter(fog);
-        viewPort.addProcessor(fpp);
-    }
-
-    void setupShadowRenderer() {
-        pssmRenderer = new PssmShadowRenderer(assetManager, 2048, 16);
-        pssmRenderer.setShadowIntensity(0.55f);
-        pssmRenderer.setFilterMode(PssmShadowRenderer.FilterMode.PCF8);
-        pssmRenderer.setCompareMode(PssmShadowRenderer.CompareMode.Hardware);
-        viewPort.addProcessor(pssmRenderer);
-
-        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
-    }
-
-    void addFilters() {
-        FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
-
-        FXAAFilter fxaa = new FXAAFilter();
-        fxaa.setSubPixelShift(5.0f);
-        fxaa.setReduceMul(5.0f);
-        fxaa.setVxOffset(5.0f);
-        fxaa.setEnabled(true);
-        fpp.addFilter(fxaa);
-
-        BloomFilter bloom = new BloomFilter(BloomFilter.GlowMode.SceneAndObjects);
-        bloom.setDownSamplingFactor(2.0f);
-        bloom.setExposurePower(55);
-        bloom.setBloomIntensity(1.0f);
-        fpp.addFilter(bloom);
-
-        lsf = new LightScatteringFilter(sky.getSunDirection().normalize().mult(500));
-        lsf.setLightDensity(1.0f);
-        fpp.addFilter(lsf);
-
-        DepthOfFieldFilter dof=new DepthOfFieldFilter();
-        dof.setFocusDistance(0);
-        dof.setFocusRange(50);
-        dof.setBlurScale(1.4f);
-        fpp.addFilter(dof);
-
-        SSAOFilter ssaoFilter = SSAO_FILTER_BASIC;
-        fpp.addFilter(ssaoFilter);
-
-        fpp.addFilter(new TranslucentBucketFilter());
-
-        // add an ocean.
-        waterFilter = new WaterFilter(getRootNode(), sky.getSunDirection().normalize());
-        waterFilter.setWaterHeight(-70);
-        fpp.addFilter(waterFilter);
-        viewPort.addProcessor(fpp);
-
-        CartoonEdgeFilter toon=new CartoonEdgeFilter();
-        toon.setEdgeWidth(0.5f);
-        toon.setEdgeIntensity(0.09f);
-        toon.setNormalThreshold(0.8f);
-        fpp.addFilter(toon);
-
-        viewPort.addProcessor(fpp);
+    void setupFilters() {
+        filterManager = new FilterManager(assetManager, rootNode, viewPort, sky);
+        filterManager.initialize();
 
         setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
     void setupSky() {
         // load sky
-        sky = new DynamicSky(assetManager, viewPort, getRootNode());
-        getRootNode().setShadowMode(ShadowMode.Off);
+        sky = new DynamicSky(assetManager, viewPort, gameLogicCore);
         setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
     protected void attachTerrain() {
         getRootNode().attachChild(terrainManager.getTerrain());
+        if(terrainManager.getMountains() != null)
+            getRootNode().attachChild(terrainManager.getMountains());
     }
 
-    protected void attachSky() {
-        getRootNode().attachChild(sky);
-    }
-
-    protected void enablePhysics() {
-        PlayerCharacter playerCharacter = gameLogicCore.getPlayerCharacter();
-        CharacterControl characterControl = playerCharacter.getCharacterControl();
-        characterControl.setJumpSpeed(20);
-        characterControl.setFallSpeed(300);
-        characterControl.setGravity(30);
-        setProgress(new Object() {}.getClass().getEnclosingMethod().getName());
-    }
-
-    protected void attachPlayer() {
-        getRootNode().attachChild(gameLogicCore.getPlayerCharacter().getNode());
+    @Override
+    public GameLogicCoreInterface getGameLogicCore() {
+        return gameLogicCore;
     }
 
     @Override
@@ -245,17 +165,23 @@ public abstract class RolePlayingGame extends SimpleApplication {
         stateManager.attach(bulletAppState);
         bulletAppState.setEnabled(true);
         //collision capsule shape is visible in debug mode
-        //bulletAppState.setDebugEnabled(true);
+        AppSettings settings = this.getContext().getSettings();
+        boolean debug = settings.getBoolean(Constants.DEBUG);
+        if(debug) {
+            bulletAppState.setDebugEnabled(true);
+        }
 //        setProgress(new Object() {}.getClass().getEnclosingMethod().getName());
     }
 
     void setupTerrain() {
         terrainManager = new TerrainManager(assetManager, bulletAppState, this);
+        terrainManager.initialize();
 //        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
     void setupSound() {
         soundManager = new SoundManager(assetManager);
+        soundManager.initialize();
 //        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
@@ -287,11 +213,23 @@ public abstract class RolePlayingGame extends SimpleApplication {
         });
     }
 
-    public SoundManager getSoundManager() {
+    @Override
+    public SoundManagerInterface getSoundManager() {
         return soundManager;
     }
 
-    public TerrainManager getTerrainManager() {
+    @Override
+    public TerrainManagerInterface getTerrainManager() {
         return terrainManager;
+    }
+
+    @Override
+    public void setTerrainManager(TerrainManagerInterface terrainManager) {
+        this.terrainManager = terrainManager;
+    }
+
+    @Override
+    public String getVersion() {
+        return version;
     }
 }

@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2021 Alexander Nilov
+ *     Copyright (C) 2014 - 2024 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -22,24 +22,32 @@ import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
-import com.jme3.input.*;
-import com.jme3.input.controls.KeyTrigger;
-import com.jme3.input.controls.MouseButtonTrigger;
-import com.jme3.math.Vector3f;
+import com.jme3.input.FlyByCamera;
+import com.jme3.input.InputManager;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
-import ru.arifolth.game.SoundManager;
-import ru.arifolth.game.models.Character;
-import ru.arifolth.game.models.PlayerCharacter;
-import ru.arifolth.game.models.factory.CharacterFactory;
-import ru.arifolth.anjrpg.weather.Emitter;
-import ru.arifolth.anjrpg.weather.RainEmitter;
+import com.jme3.ui.Picture;
+import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.anjrpg.interfaces.weather.EmitterInterface;
 
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
+import java.util.logging.Logger;
 
-public class GameLogicCore {
-    private MovementController movementController;
+public class GameLogicCore implements GameLogicCoreInterface {
+    final private static Logger LOGGER = Logger.getLogger(GameLogicCore.class.getName());
+
+    private final CharacterFactory characterFactory = new CharacterFactory(this);
+    private TrackerInterface locationTracker = new LocationTracker(this);
+    private final InitializationDelegate initializationDelegate = new InitializationDelegate(this);
+    private final Node enemies = new Node("enemies");
+    private Node forestNode = new Node("Forest Node");
+    private Node grassNode = new Node("all grass");
+
+    private MovementControllerInterface movementController;
+    private TerrainManagerInterface terrainManager;
     private Application app;
     private Camera cam;
     private FlyByCamera flyCam;
@@ -47,110 +55,201 @@ public class GameLogicCore {
     private BulletAppState bulletAppState;
     private AssetManager assetManager;
     private Node rootNode;
-    private CharacterFactory characterFactory;
-    private SoundManager soundManager;
+    private SoundManagerInterface soundManager;
+    private SkyInterface sky;
+    private Picture gameOverIndicator;
 
-    private PlayerCharacter playerCharacter = null;
-    private Set<Character> characterSet = new LinkedHashSet<Character>();
-    private Set<Emitter> weatherEffectsSet = new LinkedHashSet<Emitter>();
-    
-    public GameLogicCore(Application app, Camera cam, FlyByCamera flyCam, InputManager inputManager, BulletAppState bulletAppState, AssetManager assetManager, SoundManager soundManager, Node rootNode) {
+    private CharacterInterface playerCharacter = null;
+    private Picture damageIndicator = null;
+    private Map<Node, CharacterInterface> characterMap = new WeakHashMap<>();
+    private Set<EmitterInterface> weatherEffectsSet = new LinkedHashSet<>();
+    private GameStateManagerInterface gameStateManager = new GameStateManager(this);
+
+    public GameLogicCore(Application app, Camera cam, FlyByCamera flyCam, InputManager inputManager, BulletAppState bulletAppState, AssetManager assetManager, SoundManagerInterface soundManager, TerrainManagerInterface terrainManager, Node rootNode) {
         this.movementController = new MovementController(app, inputManager);
+        this.app = app;
         this.cam = cam;
         this.flyCam = flyCam;
         this.inputManager = inputManager;
         this.bulletAppState = bulletAppState;
         this.assetManager = assetManager;
         this.soundManager = soundManager;
+        this.terrainManager = terrainManager;
         this.rootNode = rootNode;
     }
 
     public void initialize() {
-        characterFactory = new CharacterFactory(bulletAppState, assetManager, soundManager);
-
-        setupPlayer();
-
-        setupCamera();
+        /*
+        * Initialization order is important: first we create Player Entity and Camera, later we initialize other stuff
+        * */
+        initializationDelegate.setupDamageIndicator();
+        initializationDelegate.setupPlayer();
+        initializationDelegate.setupCamera();
 
         movementController.setUpKeys();
-        //setupWeatherEffects();
+//        initializer.setupWeatherEffects();
+        getRootNode().attachChild(forestNode);
+        getRootNode().attachChild(grassNode);
+    }
+
+    @Override
+    public Node getForestNode() {
+        return forestNode;
+    }
+
+    public void setForestNode(Node treesForestNode) {
+        this.forestNode = treesForestNode;
+    }
+
+    @Override
+    public Node getGrassNode() {
+        return grassNode;
+    }
+
+    public void setGrassNode(Node grassNode) {
+        this.grassNode = grassNode;
     }
 
     public void reInitialize() {
         getPlayerCharacter().initializeSounds();
+
+        for(CharacterInterface character: getCharacterMap().values()) {
+            character.initializeSounds();
+        }
     }
 
-    private void setupWeatherEffects() {
-        Emitter snowEmitter = new RainEmitter(rootNode, assetManager);
-        snowEmitter.setSpatial(playerCharacter.getNode());
-        weatherEffectsSet.add(snowEmitter);
-    }
-
-    public PlayerCharacter getPlayerCharacter() {
+    public CharacterInterface getPlayerCharacter() {
         return playerCharacter;
     }
 
-    private void setupPlayer() {
-        //create player
-        playerCharacter = (PlayerCharacter)characterFactory.createCharacter(PlayerCharacter.class);
-        playerCharacter.setCam(cam);
-        characterSet.add(playerCharacter);
-        movementController.setPlayerCharacter(playerCharacter);
+    @Override
+    public Picture getDamageIndicator() {
+        return damageIndicator;
     }
 
-    public void setupCamera() {
-        // We re-use the flyby camera for rotation, while positioning is handled by physics
-        //flyCam.setMoveSpeed(10);
-        flyCam.setMoveSpeed(100);
-        //change (increase) view distance
-        cam.setFrustumFar(10000);
-        cam.onFrameChange();
+    @Override
+    public void setDamageIndicator(Picture damageIndicator) {
+        this.damageIndicator = damageIndicator;
+    }
 
-        /**/
-        // Disable the default first-person cam!
-        flyCam.setEnabled(false);
+    public CharacterFactory getCharacterFactory() {
+        return characterFactory;
+    }
 
-        // Enable a chase cam
-        ChaseCamera chaseCam = new ChaseCamera(cam, playerCharacter.getCharacterModel(), inputManager);
-
-        //Uncomment this to invert the camera's vertical rotation Axis
-        chaseCam.setInvertVerticalAxis(true);
-
-        //Uncomment this to invert the camera's horizontal rotation Axis
-        //chaseCam.setInvertHorizontalAxis(true);
-
-        //Comment this to disable smooth camera motion
-        chaseCam.setSmoothMotion(true);
-
-        //Uncomment this to disable trailing of the camera
-        //WARNING, trailing only works with smooth motion enabled. It is true by default.
-        //chaseCam.setTrailingEnabled(false);
-
-        //Uncomment this to look 3 world units above the target
-        //chaseCam.setLookAtOffset(Vector3f.UNIT_Y.mult(3));
-        //chaseCam.setLookAtOffset(new Vector3f(0, 1, -1).mult(3));
-        chaseCam.setLookAtOffset(new Vector3f(0, 3.5f, 1.5f).mult(3));
-
-        //Uncomment this to enable rotation when the middle mouse button is pressed (like Blender)
-        //WARNING : setting this trigger disable the rotation on right and left mouse button click
-        chaseCam.setToggleRotationTrigger(new MouseButtonTrigger(MouseInput.BUTTON_MIDDLE));
-
-        //chaseCam.setDefaultDistance(40);
-        //chaseCam.setDefaultHorizontalRotation(90f);
-        //chaseCam.setDefaultVerticalRotation(90f);
+    public void setPlayerCharacter(CharacterInterface playerCharacter) {
+        this.playerCharacter = playerCharacter;
     }
 
     public void update(float tpf) {
-        for(Character character : characterSet) {
-            character.simpleUpdate(tpf);
+        playerCharacter.update(tpf);
+
+        locationTracker.update(tpf);
+
+        for(CharacterInterface character : characterMap.values()) {
+            character.update(tpf);
         }
 
-        for(Emitter emitter : weatherEffectsSet) {
-            emitter.simpleUpdate(tpf);
+        for(EmitterInterface emitter : weatherEffectsSet) {
+            emitter.update(tpf);
         }
+
+        gameStateManager.update(tpf);
     }
 
-    public MovementController getMovementController() {
+    @Override
+    public GameStateManagerInterface getGameStateManager() {
+        return gameStateManager;
+    }
+
+    @Override
+    public Map<Node,CharacterInterface> getCharacterMap() {
+        return characterMap;
+    }
+
+    public MovementControllerInterface getMovementController() {
         return movementController;
+    }
+
+    @Override
+    public Set<EmitterInterface> getWeatherEffectsSet() {
+        return weatherEffectsSet;
+    }
+
+    @Override
+    public BulletAppState getBulletAppState() {
+        return bulletAppState;
+    }
+
+    @Override
+    public Node getRootNode() {
+        return rootNode;
+    }
+
+    @Override
+    public AssetManager getAssetManager() {
+        return assetManager;
+    }
+
+    @Override
+    public SoundManagerInterface getSoundManager() {
+        return soundManager;
+    }
+
+    @Override
+    public Camera getCam() {
+        return cam;
+    }
+
+    @Override
+    public FlyByCamera getFlyCam() {
+        return flyCam;
+    }
+
+    @Override
+    public Application getApp() {
+        return app;
+    }
+
+    @Override
+    public InputManager getInputManager() {
+        return inputManager;
+    }
+
+    @Override
+    public Node getEnemies() {
+        return enemies;
+    }
+
+    @Override
+    public void attachGameOverIndicator() {
+        ((SimpleApplication) app).getGuiNode().attachChild(gameOverIndicator);
+    }
+
+    @Override
+    public void detachGameOverIndicator() {
+        ((SimpleApplication) app).getGuiNode().detachChild(gameOverIndicator);
+    }
+
+    public void setGameOverIndicator(Picture gameOverIndicator) {
+        this.gameOverIndicator = gameOverIndicator;
+    }
+
+    @Override
+    public InitializationDelegateInterface getInitializationDelegate() {
+        return initializationDelegate;
+    }
+
+    public TerrainManagerInterface getTerrainManager() {
+        return terrainManager;
+    }
+
+    @Override
+    public SkyInterface getSky() {
+        return sky;
+    }
+
+    @Override
+    public void setSky(SkyInterface sky) {
+        this.sky = sky;
     }
 }

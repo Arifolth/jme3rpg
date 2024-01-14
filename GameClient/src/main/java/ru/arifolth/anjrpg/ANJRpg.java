@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2021 Alexander Nilov
+ *     Copyright (C) 2014 - 2024 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -18,69 +18,104 @@
 
 package ru.arifolth.anjrpg;
 
-import com.jme3.math.Vector3f;
+import com.jme3.app.StatsAppState;
 import com.jme3.niftygui.NiftyJmeDisplay;
 import com.jme3.system.AppSettings;
+import com.jme3.system.JmeContext;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.style.BaseStyles;
 import de.lessvoid.nifty.Nifty;
-import de.lessvoid.nifty.controls.Controller;
 import de.lessvoid.nifty.controls.Parameters;
 import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.input.NiftyInputEvent;
 import de.lessvoid.nifty.screen.Screen;
-import de.lessvoid.nifty.screen.ScreenController;
-import ru.arifolth.anjrpg.menu.InitStateEnum;
+import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.anjrpg.menu.SettingsUtils;
 
-import java.awt.*;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
-import java.util.prefs.BackingStoreException;
 
 import static com.jme3.niftygui.NiftyJmeDisplay.newNiftyJmeDisplay;
 
 /*
 * https://ev1lbl0w.github.io/jme-wiki-pt-pt/jme3/advanced/loading_screen.html
 * */
-public class ANJRpg extends RolePlayingGame implements ScreenController, Controller {
-    public static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, -15, 0);
+public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
     private NiftyJmeDisplay niftyDisplay;
     private Nifty nifty;
     private InitStateEnum initialization = InitStateEnum.PENDING;
     final private static Logger LOGGER = Logger.getLogger(ANJRpg.class.getName());
-    private boolean loadingCompleted = false;
+    private boolean startNewGame = false;
 
-    public static void main(String[] args) {
+    private static RolePlayingGameInterface app;
+
+    static {
+        Arrays.stream(LogManager.getLogManager().getLogger(Constants.ROOT_LOGGER).getHandlers()).forEach(h -> h.setLevel(Level.INFO));
+    }
+    public static void main(String[] args) throws IOException {
         app = new ANJRpg();
         app.start();
     }
 
-    public ANJRpg() {
-        initializeApplicationSettings();
+
+    @Override
+    public void start() {
+        if (settings == null) {
+            AppSettings loadedSettings = SettingsUtils.loadSettings();
+            if(loadedSettings == null)
+                return;
+            setSettings(loadedSettings);
+            SettingsUtils.saveSettings(settings);
+        }
+        start(JmeContext.Type.Display, true);
+    }
+
+    public ANJRpg() throws IOException {
+        setShowSettings(showSettings);
+
+        //do not output excessive info on console
+        Logger.getLogger(Constants.ROOT_LOGGER).setLevel(Constants.LOGGING_LEVEL);
+
+//        stateManager.attach(new StatsAppState());
+//
+//        // hide FPS HUD
+//        setDisplayFps(true);
+//
+//        //hide statistics HUD
+//        setDisplayStatView(true);
     }
 
     @Override
     public void simpleInitApp()  {
         super.simpleInitApp();
 
+        setupLemur();
+
+        setupPhysix();
+        setupSound();
+        setupTerrain();
+        setupGameLogic();
+    }
+
+    private void setupLemur() {
         /* Lemur stuff */
         GuiGlobals.initialize(this);
         GuiGlobals globals = GuiGlobals.getInstance();
         BaseStyles.loadGlassStyle();
         globals.getStyles().setDefaultStyle("glass");
-
-        setupPhysix();
-        setupSound();
-        setupGameLogic();
-        setupTerrain();
     }
 
     @Override
     public void simpleUpdate(float tpf) {
+        InitializationDelegateInterface initializationDelegate = gameLogicCore.getInitializationDelegate();
         switch (initialization) {
             case PENDING: {
-                if(!loadingCompleted) {
+                if(!startNewGame) {
+                    gameLogicCore.getSoundManager().update(tpf);
                     return;
                 }
 
@@ -89,26 +124,32 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
 
                 loadResources();
 
-                setProgress("Loading complete");
                 initialization = InitStateEnum.INITIALIZED;
                 break;
             }
             case INITIALIZED: {
                 //wait until land appears in Physics Space
-                if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == 4) {
-                    //put player at the beginning location
-                    getGameLogicCore().getPlayerCharacter().getCharacterControl().setPhysicsLocation(PLAYER_START_LOCATION);
+                if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == app.getTerrainManager().getRigidBodiesSize()) {
+                    //place player at the start location
+                    initializationDelegate.positionPlayer();
+                    initializationDelegate.initPlayerComplete();
+                    //position NPCs around the Player
+                    initializationDelegate.positionNPCs(getGameLogicCore().getCharacterMap());
+                    initializationDelegate.initNPCsComplete();
 
                     //these calls have to be done on the update loop thread,
                     //especially attaching the terrain to the rootNode
                     //after it is attached, it's managed by the update loop thread
                     // and may not be modified from any other thread anymore!
+                    createMinimap();
+
+                    setProgress("Loading complete");
                     nifty.gotoScreen("end");
                     nifty.exit();
-                    guiViewPort.removeProcessor(niftyDisplay);
-                    initialization = InitStateEnum.RUNNING;
 
-                    createMinimap();
+                    guiViewPort.removeProcessor(niftyDisplay);
+
+                    initialization = InitStateEnum.RUNNING;
                 }
                 break;
             }
@@ -161,6 +202,7 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
     public void init(Parameters prmtrs) {
     }
 
+    @Override
     public void setUpGUI() {
         /* Game stuff */
         niftyDisplay = newNiftyJmeDisplay(assetManager,
@@ -174,62 +216,15 @@ public class ANJRpg extends RolePlayingGame implements ScreenController, Control
         guiViewPort.addProcessor(niftyDisplay);
 
         showLoadingMenu();
-        loadingCompleted = true;
+        startNewGame = true;
     }
 
-    private void initializeApplicationSettings() {
-        if(loadingCompleted) {
-            return;
-        }
-
-        showSettings = false;
-
-        AppSettings settings = new AppSettings(false);
-        try {
-            AppSettings oldSettings = new AppSettings(false);
-            oldSettings.load("ru.arifolth.anjrpg");
-            if(oldSettings.size() == 0) {
-                oldSettings.copyFrom(new AppSettings(true));
-                applyDefaultSettings(settings);
-            }
-            settings.mergeFrom(oldSettings);
-        } catch (BackingStoreException e) {
-            e.printStackTrace();
-        }
-
-        //setDisplayFps(true);
-        //setDisplayStatView(false);
-
-        this.setSettings(settings);
-        this.setShowSettings(showSettings);
-
-        //do not output excessive info on console
-        Logger.getLogger("").setLevel(Level.SEVERE);
-
-        // hide FPS HUD
-        setDisplayFps(false);
-
-        //hide statistics HUD
-        setDisplayStatView(false);
-    }
-
-    private void applyDefaultSettings(AppSettings settings) {
-        settings.setTitle("Alexander's Nilov Java RPG");
-        GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        settings.setFullscreen(device.isFullScreenSupported());
-        settings.setBitsPerPixel(32); //24
-        settings.setSamples(1); //16
-        settings.setVSync(true);
-        settings.setResolution(3840,2160);
-        settings.setRenderer(AppSettings.LWJGL_OPENGL45);
-        settings.setFrameRate(60);
-        settings.setGammaCorrection(false);
-    }
-
+    @Override
     public InitStateEnum getInitStatus() {
         return initialization;
     }
 
+    @Override
     public AppSettings getSettings(){
         return this.settings;
     }

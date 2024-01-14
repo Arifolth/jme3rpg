@@ -1,0 +1,9 @@
+Material Oak Tree Trunk : Common/MatDefs/Light/Lighting.j3md {
+
+    MaterialParameters {
+        DiffuseMap : Flip Repeat Textures/Tree/bark-oldbrown-c.png
+
+    }
+
+
+}
