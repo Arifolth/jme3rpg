@@ -36,7 +36,7 @@ public enum TreeTypeEnum implements TreeType {
             Node firTree = (Node) assetManager.loadModel("Models/Fir1/fir1_androlo.j3o");
             firTree.setShadowMode(RenderQueue.ShadowMode.Cast);
 
-            LodUtils.setUpFirTreeModelLod(firTree);
+            LodUtils.setUpModelLod(firTree);
             TangentBinormalGenerator.generate(firTree);
 
             tree = firTree;

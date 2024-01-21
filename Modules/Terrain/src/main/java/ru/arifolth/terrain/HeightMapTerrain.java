@@ -141,11 +141,6 @@ public class HeightMapTerrain implements HeightMapTerrainInterface {
     }
 
     @Override
-    public TerrainQuad generateMountains() {
-        return null;
-    }
-
-    @Override
     public void update() {
 
     }

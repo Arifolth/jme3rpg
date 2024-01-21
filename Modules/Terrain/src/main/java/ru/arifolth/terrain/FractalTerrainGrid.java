@@ -23,6 +23,7 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.HeightfieldCollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
@@ -32,8 +33,6 @@ import com.jme3.system.AppSettings;
 import com.jme3.terrain.geomipmap.*;
 import com.jme3.terrain.geomipmap.grid.FractalTileLoader;
 import com.jme3.terrain.geomipmap.lodcalc.DistanceLodCalculator;
-import com.jme3.terrain.heightmap.AbstractHeightMap;
-import com.jme3.terrain.heightmap.ImageBasedHeightMap;
 import com.jme3.terrain.noise.ShaderUtils;
 import com.jme3.terrain.noise.basis.FilteredBasis;
 import com.jme3.terrain.noise.filter.IterativeFilter;
@@ -43,7 +42,6 @@ import com.jme3.terrain.noise.filter.SmoothFilter;
 import com.jme3.terrain.noise.fractal.FractalSum;
 import com.jme3.terrain.noise.modulator.NoiseModulator;
 import com.jme3.texture.Texture;
-import com.jme3.util.TangentBinormalGenerator;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.FractalTerrainGridInterface;
 import ru.arifolth.anjrpg.interfaces.InitializationDelegateInterface;
@@ -73,7 +71,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
     private final float grassScale = 64;
     private final float dirtScale = 16;
     private final float rockScale = 128;
-    private TerrainQuad distantTerrain;
+    private Node horizon;
 
     public FractalTerrainGrid(AssetManager assetManager, BulletAppState bulletAppState, RolePlayingGameInterface app) {
         this.assetManager = assetManager;
@@ -296,6 +294,9 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
         setUpCollision();
 
         terrain.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+        terrain.setQueueBucket(RenderQueue.Bucket.Transparent);
+        matTerrain.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Back);
+        terrain.setCullHint(Spatial.CullHint.Dynamic);
 
         return terrain;
     }
@@ -336,8 +337,6 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
                 initializationDelegate.positionTrees(quad);
                 //plant grass
                 initializationDelegate.positionGrass(quad);
-
-//                TangentBinormalGenerator.generate(quad);
             }
 
             @Override
@@ -355,104 +354,22 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
 
     private void detachGrass(TerrainQuad quad) {
         Node quadGrass = quad.getUserData(Constants.QUAD_GRASS);
-        app.getGameLogicCore().getGrassNode().detachChild(quadGrass);
+        if(quadGrass != null)
+            app.enqueue(() -> {
+                app.getGameLogicCore().getGrassNode().detachChild(quadGrass);
+            });
     }
 
     private void detachTrees(TerrainQuad quad) {
         Node quadForest = quad.getUserData(Constants.QUAD_FOREST);
-        app.getGameLogicCore().getForestNode().detachChild(quadForest);
+        if(quadForest != null)
+            app.enqueue(() -> {
+                app.getGameLogicCore().getForestNode().detachChild(quadForest);
+            });
     }
 
     @Override
     public void update() {
-        //TODO: check if clouds are following player as well. Looks like they are not
-        //Update distant mountains location
-        Vector3f playerLocation = app.getGameLogicCore().getPlayerCharacter().getCharacterControl().getPhysicsLocation();
-        playerLocation.y = Constants.MOUNTAINS_HEIGHT_OFFSET;
-        distantTerrain.setLocalTranslation(playerLocation);
-
-        //update grass
-        app.getGameLogicCore().getInitializationDelegate().update();
-    }
-
-    @Override
-    public TerrainQuad generateMountains() {
-        Material matTerrain;
-
-        /** 1. Create distantTerrain material and load four textures into it. */
-        /*matTerrain = new Material(assetManager, "Common/MatDefs/Terrain/TerrainLighting.j3md");
-        matTerrain.setBoolean("useTriPlanarMapping", false);
-        matTerrain.setFloat("Shininess", 0.0f);*/
-        matTerrain = new Material(assetManager, "Common/MatDefs/Terrain/Terrain.j3md");
-
-        /** 1.1) Add ALPHA map (for red-blue-green coded splat textures) */
-        matTerrain.setTexture("Alpha", assetManager.loadTexture(
-                "Textures/Terrain/splat/alphamap_horizon.png"));
-        matTerrain.setBoolean("useTriPlanarMapping", true);
-
-        //matTerrain.setTexture("GrassAlphaMap", assetManager.loadTexture(
-        //"Textures/Terrain/grass-map512.png"));
-
-        /** 1.2) Add GRASS texture into the red layer (Tex1). */
-        Texture grass = assetManager.loadTexture(
-                "Textures/Terrain/splat/grass.jpg");
-        grass.setWrap(Texture.WrapMode.Repeat);
-        matTerrain.setTexture("Tex1", grass);
-        matTerrain.setFloat("Tex1Scale", 64f);
-
-        /** 1.3) Add DIRT texture into the green layer (Tex2) */
-        Texture dirt = assetManager.loadTexture(
-                "Textures/Terrain/splat/snow.jpg");
-        dirt.setWrap(Texture.WrapMode.Repeat);
-        matTerrain.setTexture("Tex2", dirt);
-        matTerrain.setFloat("Tex2Scale", 64f);
-
-        /** 1.4) Add ROAD texture into the blue layer (Tex3) */
-        Texture rock = assetManager.loadTexture(
-                "Textures/Terrain/splat/rock.jpg");
-        rock.setWrap(Texture.WrapMode.Repeat);
-        matTerrain.setTexture("Tex3", rock);
-        matTerrain.setFloat("Tex3Scale", 64f);
-
-
-        /** 2. Create the height map */
-
-        AbstractHeightMap heightmap = null;
-        Texture heightMapImage = assetManager.loadTexture(
-                "Textures/Terrain/splat/horizon.png");
-        heightmap = new ImageBasedHeightMap(heightMapImage.getImage());
-        heightmap.load();
-        heightmap.smooth(0.65f, 1);
-        heightmap.flatten((byte) 2);
-
-        /** 3. We have prepared material and heightmap.
-         * Now we createCharacter the actual distantTerrain:
-         * 3.1) Create a TerrainQuad and name it "my distantTerrain".
-         * 3.2) A good value for distantTerrain tiles is 64x64 -- so we supply 64+1=65.
-         * 3.3) We prepared a heightmap of size 512x512 -- so we supply 512+1=513.
-         * 3.4) As LOD step scale we supply Vector3f(1,1,1).
-         * 3.5) We supply the prepared heightmap itself.
-         */
-
-        int patchSize = 65;
-        distantTerrain = new TerrainQuad(
-                "Distant Terrain",
-                patchSize,
-                2049,
-                heightmap.getHeightMap());
-
-        /** 4. We give the distantTerrain its material, position & scale it, and attach it. */
-        distantTerrain.setMaterial(matTerrain);
-        distantTerrain.setLocalTranslation(0, Constants.MOUNTAINS_HEIGHT_OFFSET, 0);
-        distantTerrain.setLocalScale(6f, 19f, 6f);
-
-        /** 5. The LOD (level of detail) depends on were the camera is: */
-        TerrainLodControl control = new TerrainLodControl(distantTerrain, app.getCamera());
-        distantTerrain.addControl(control);
-
-        distantTerrain.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
-
-        return distantTerrain;
     }
 
     @Override

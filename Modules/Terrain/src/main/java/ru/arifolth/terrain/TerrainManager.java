@@ -20,6 +20,7 @@ package ru.arifolth.terrain;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
+import com.jme3.scene.Node;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.vegetation.GrassTypeEnum;
@@ -33,8 +34,6 @@ public class TerrainManager implements TerrainManagerInterface {
     private TerrainInterface terrainBuilder;
 
     private TerrainQuad terrain;
-    private TerrainQuad mountains;
-
     private final AssetManager assetManager;
     private final BulletAppState bulletAppState;
     private final RolePlayingGameInterface app;
@@ -59,7 +58,6 @@ public class TerrainManager implements TerrainManagerInterface {
     }
     private void generateTerrain() {
         terrain = terrainBuilder.generateTerrain();
-        mountains = terrainBuilder.generateMountains();
     }
 
     public TerrainQuad getTerrain() {
@@ -71,10 +69,6 @@ public class TerrainManager implements TerrainManagerInterface {
         return terrainBuilder.getRigidBodiesSize();
     }
 
-    @Override
-    public TerrainQuad getMountains() {
-        return mountains;
-    }
 
     public void update(float tpf) {
         terrainBuilder.update();

@@ -154,6 +154,8 @@ public class GameLogicCore implements GameLogicCoreInterface {
         }
 
         gameStateManager.update(tpf);
+
+//        this.getCam().onFrameChange();
     }
 
     @Override

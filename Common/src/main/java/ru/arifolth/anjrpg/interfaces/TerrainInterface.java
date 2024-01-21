@@ -18,12 +18,11 @@
 
 package ru.arifolth.anjrpg.interfaces;
 
+import com.jme3.scene.Node;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 
 public interface TerrainInterface {
     TerrainQuad generateTerrain();
-
-    TerrainQuad generateMountains();
 
     void update();
 

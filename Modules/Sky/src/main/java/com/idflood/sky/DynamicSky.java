@@ -4,6 +4,7 @@ import com.idflood.sky.items.DynamicSkyBackground;
 import com.idflood.sky.items.DynamicStars;
 import com.idflood.sky.items.DynamicSun;
 import com.idflood.sky.utils.CloudsBillboardItem;
+import com.idflood.sky.utils.HorizonBillboardItem;
 import com.jme3.asset.AssetManager;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
@@ -13,13 +14,16 @@ import com.jme3.renderer.ViewPort;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Node;
-import ru.arifolth.anjrpg.interfaces.Constants;
-import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
-import ru.arifolth.anjrpg.interfaces.SkyInterface;
-import ru.arifolth.anjrpg.interfaces.Utils;
+import com.jme3.util.TangentBinormalGenerator;
+import jme3tools.optimize.GeometryBatchFactory;
+import ru.arifolth.anjrpg.interfaces.*;
+
+import static ru.arifolth.anjrpg.interfaces.Constants.INITIAL_MOUNTAINS_OFFSET;
 
 public class DynamicSky extends Node implements SkyInterface {
     private final CloudsBillboardItem clouds;
+    private final HorizonBillboardItem horizon;
+
     private DynamicSun dynamicSun = null;
     private DynamicStars dynamicStars = null;
     private DynamicSkyBackground dynamicBackground = null;
@@ -36,7 +40,6 @@ public class DynamicSky extends Node implements SkyInterface {
         Node rootNode = gameLogicCore.getRootNode();
 
         dynamicSun = new DynamicSun(assetManager, viewPort, rootNode, scaling);
-        rootNode.attachChild(dynamicSun);
 
         dynamicStars = new DynamicStars(assetManager, viewPort, scaling);
         dynamicStars.setShadowMode(ShadowMode.Off);
@@ -46,16 +49,18 @@ public class DynamicSky extends Node implements SkyInterface {
         rootNode.setShadowMode(ShadowMode.Off);
         rootNode.attachChild(this);
 
-        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.setTexture("ColorMap", assetManager.loadTexture("Textures/Clouds_L.png"));
-        float factor = -1.0f;
-        float units = -1.0f;
-        mat.getAdditionalRenderState().setPolyOffset(factor, units);
-        mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.AlphaAdditive);
-        mat.getAdditionalRenderState().setDepthWrite(false);
 
-        clouds = new CloudsBillboardItem("clouds", 1f);
-        clouds.setMaterial(mat);
+        Node mountainNode = new Node();
+        horizon = new HorizonBillboardItem(assetManager, "Mountain", 1f);
+        mountainNode.attachChild(horizon);
+        LodUtils.setUpModelLod(mountainNode);
+        mountainNode = GeometryBatchFactory.optimize(mountainNode, true);
+        TangentBinormalGenerator.generate(mountainNode, true);
+        mountainNode.updateModelBound();
+        mountainNode.setLocalTranslation(INITIAL_MOUNTAINS_OFFSET);
+        gameLogicCore.getRootNode().attachChild(mountainNode);
+
+        clouds = new CloudsBillboardItem(assetManager, "Clouds", 1f);
         gameLogicCore.getRootNode().attachChild(clouds);
 
         setQueueBucket(RenderQueue.Bucket.Sky);
@@ -65,12 +70,20 @@ public class DynamicSky extends Node implements SkyInterface {
     }
 
     public void attachStars() {
-        gameLogicCore.getRootNode().attachChild(dynamicStars);
+        gameLogicCore.getApp().enqueue(() -> {
+            gameLogicCore.getRootNode().attachChild(dynamicStars);
+            gameLogicCore.getRootNode().detachChild(dynamicSun);
+        });
+
         dynamicStars.setAttached(true);
     }
 
     public void detachStars() {
-        gameLogicCore.getRootNode().detachChild(dynamicStars);
+        gameLogicCore.getApp().enqueue(() -> {
+            gameLogicCore.getRootNode().detachChild(dynamicStars);
+            gameLogicCore.getRootNode().attachChild(dynamicSun);
+        });
+
         dynamicStars.setAttached(false);
     }
 
@@ -102,9 +115,14 @@ public class DynamicSky extends Node implements SkyInterface {
         dynamicStars.update(dynamicSun.getSunSystem().getDirection());
         dynamicStars.lookAt(dynamicSun.getSunSystem().getPosition(), Vector3f.ZERO);
 
-        Vector3f playerLocation = gameLogicCore.getPlayerCharacter().getNode().getLocalTranslation();
-        playerLocation.x += Constants.MOUNTAINS_HEIGHT_OFFSET;
+        Vector3f playerLocation = gameLogicCore.getPlayerCharacter().getNode().getLocalTranslation().clone();
+        playerLocation.x += Constants.HEIGHT_OFFSET;
+        playerLocation.y += Constants.HEIGHT_OFFSET;
         clouds.setLocalTranslation(playerLocation);
+
+        playerLocation = gameLogicCore.getPlayerCharacter().getNode().getLocalTranslation().clone();
+        playerLocation.addLocal(INITIAL_MOUNTAINS_OFFSET);
+        horizon.setLocalTranslation(playerLocation);
     }
 
     @Override
