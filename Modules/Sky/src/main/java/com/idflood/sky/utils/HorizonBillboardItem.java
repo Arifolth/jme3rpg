@@ -36,7 +36,7 @@ public class HorizonBillboardItem extends Geometry {
     public HorizonBillboardItem(AssetManager assetManager, String name, Float scale) {
         super(name);
 
-        box = new Quad(16_000, 9_000);
+        box = new Quad(8_000, 4_500);
         setMesh(box);
 
         Material mountainShader = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");

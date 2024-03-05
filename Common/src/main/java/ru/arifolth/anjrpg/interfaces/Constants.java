@@ -28,7 +28,7 @@ public class Constants {
 
     public static final float DAMAGE = 25f;
 
-    public static final int NPC_AMOUNT = 0;
+    public static final int NPC_AMOUNT = 1;
     public static final int NPC_LOCATION_RANGE = 250;
 
     public static final int WATER_LEVEL_HEIGHT = -70;

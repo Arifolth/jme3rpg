@@ -121,7 +121,8 @@ public class DynamicSky extends Node implements SkyInterface {
         clouds.setLocalTranslation(playerLocation);
 
         playerLocation = gameLogicCore.getPlayerCharacter().getNode().getLocalTranslation().clone();
-        playerLocation.addLocal(INITIAL_MOUNTAINS_OFFSET);
+        playerLocation.x += Constants.MOUNTAINS_HEIGHT_OFFSET;
+        playerLocation.y += Constants.HEIGHT_OFFSET;
         horizon.setLocalTranslation(playerLocation);
     }
 

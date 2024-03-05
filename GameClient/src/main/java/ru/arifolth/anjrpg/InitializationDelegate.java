@@ -128,7 +128,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         //flyCam.setMoveSpeed(10);
         gameLogicCore.getFlyCam().setMoveSpeed(100);
         //change (increase) view distance
-        gameLogicCore.getCam().setFrustumFar(10000);
+        gameLogicCore.getCam().setFrustumFar(20000);
 
         /**/
         // Disable the default first-person cam!
@@ -175,7 +175,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
     @Override
     public List<Spatial> setupTrees() {
-        int forestSize = (int) Utils.getRandomNumberInRange(187, 718);
+        int forestSize = (int) Utils.getRandomNumberInRange(25, 100);
         List<Spatial> quadForest = new ArrayList<>(forestSize);
         for(int i = 0; i < forestSize; i++) {
             Spatial treeModelCustom = TreeTypeEnum.getRandomTree();
@@ -188,7 +188,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
     @Override
     public List<Spatial> setupGrass() {
-        final int grassAmount = 15_500;
+        final int grassAmount = 5_000;
         List<Spatial> quadGrass = new ArrayList<>(grassAmount);
         for(int i = 0; i < grassAmount; i++) {
             Spatial grassInstance = GrassTypeEnum.REGULAR.getGrass();
@@ -208,7 +208,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
     @Override
     public void positionGrass(TerrainQuad quad) {
-        for(int i = 0; i < 15; i++)
+        for(int i = 0; i < 30; i++)
             internalPositionGrass(quad);
     }
 
@@ -217,14 +217,13 @@ public class InitializationDelegate implements InitializationDelegateInterface {
             Node grassNode = quad.getUserData(Constants.QUAD_GRASS);
         };
 
-        final Vector3f quadLocation = quad.getLocalTranslation();
+        final Vector3f quadLocation = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation();
+        if (context.grassNode == null)
+            context.grassNode = new Node();
 
         grassExecutorService.execute(new Runnable() {
             @Override
             public void run() {
-                if (context.grassNode == null)
-                    context.grassNode = new Node();
-
                 List<Spatial> quadGrass = setupGrass();
 
                 Stream<Spatial> stream = quadGrass.stream();
@@ -252,18 +251,18 @@ public class InitializationDelegate implements InitializationDelegateInterface {
                 context.grassNode.setCullHint(Spatial.CullHint.Dynamic);
                 context.grassNode.updateModelBound();
 
+                quad.setUserData(Constants.QUAD_GRASS, context.grassNode);
+
                 gameLogicCore.getApp().enqueue(() -> {
                     gameLogicCore.getGrassNode().attachChild(context.grassNode);
                 });
             }
         });
-
-        quad.setUserData(Constants.QUAD_GRASS, context.grassNode);
     }
 
     @Override
     public void positionTrees(TerrainQuad quad) {
-        for(int i = 0; i < 15; i++)
+        for(int i = 0; i < 30; i++)
             intrernalPositionTrees(quad);
     }
 
@@ -272,15 +271,13 @@ public class InitializationDelegate implements InitializationDelegateInterface {
             Node treesNode = quad.getUserData(Constants.QUAD_FOREST);
         };
 
-        final Vector3f quadLocation = quad.getLocalTranslation();
-
+        final Vector3f quadLocation = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation();
+        if (context.treesNode == null)
+            context.treesNode = new Node();
 
         treesExecutorService.execute(new Runnable() {
             @Override
             public void run() {
-                if (context.treesNode == null)
-                    context.treesNode = new Node();
-
                 List<Spatial> quadForest = setupTrees();
 
                 Stream<Spatial> stream = quadForest.stream();
@@ -305,19 +302,18 @@ public class InitializationDelegate implements InitializationDelegateInterface {
                     }
                 });
 
-
                 context.treesNode = (Node) GeometryBatchFactory.optimize(context.treesNode);
                 context.treesNode.setShadowMode(RenderQueue.ShadowMode.Cast);
                 context.treesNode.setCullHint(Spatial.CullHint.Dynamic);
                 context.treesNode.updateModelBound();
+
+                quad.setUserData(Constants.QUAD_FOREST, context.treesNode);
 
                 gameLogicCore.getApp().enqueue(() -> {
                     gameLogicCore.getGrassNode().attachChild(context.treesNode);
                 });
             }
         });
-
-        quad.setUserData(Constants.QUAD_FOREST, context.treesNode);
     }
 
     @Override
