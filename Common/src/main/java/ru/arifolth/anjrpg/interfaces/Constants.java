@@ -35,13 +35,12 @@ public class Constants {
 
     public static final int MODEL_ADJUSTMENT = 3;
 
-    public static final float SOUND_VOLUME = 1.5f;
-    public static final int MUSIC_VOLUME_MULTIPLIER = 6;
+    public static final float SOUND_VOLUME = 0.5f;
+    public static final float MUSIC_VOLUME_MULTIPLIER = 0.25f;
 
     public static final float SOUND_PITCH = 0.5f;
     public static final SSAOFilter SSAO_FILTER_BASIC = new SSAOFilter(1f, 1.5f, 5.8f, 0.9f);
     public static final String DEBUG = "Debug";
-    public static final String POM_XML = "pom.xml";
     public static final String ROOT_LOGGER = "";
     public static final Level LOGGING_LEVEL = Level.INFO;
     public static final int MIN_FRAME_RATE = 30;

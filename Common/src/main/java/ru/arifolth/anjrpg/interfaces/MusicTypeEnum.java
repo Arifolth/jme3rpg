@@ -198,7 +198,7 @@ public enum MusicTypeEnum implements AudioType {
 
     public static void createAudioNode(AudioType musicType, String name) {
         AudioNode audioNode = new AudioNode(assetManager, name, AudioData.DataType.Stream);
-        audioNode.setVolume(Constants.SOUND_VOLUME / 6);
+        audioNode.setVolume(Constants.SOUND_VOLUME * Constants.MUSIC_VOLUME_MULTIPLIER);
         audioNode.setPositional(false);
         musicMap.put(musicType, audioNode);
     }

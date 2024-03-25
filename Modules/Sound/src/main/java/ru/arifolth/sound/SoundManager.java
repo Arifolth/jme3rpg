@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 public class SoundManager implements SoundManagerInterface {
     final private static Logger LOGGER = Logger.getLogger(SoundManager.class.getName());
     private float soundVolume = Constants.SOUND_VOLUME;
-    private float musicVolume = Constants.SOUND_VOLUME / Constants.MUSIC_VOLUME_MULTIPLIER;
+    private float musicVolume = soundVolume * Constants.MUSIC_VOLUME_MULTIPLIER;
     private AudioNode currentMusicNode;
     private MusicTypeEnum nextMusicType;
     private float fadeOut;
@@ -79,7 +79,7 @@ public class SoundManager implements SoundManagerInterface {
             fadeOut = 0;
             currentMusicNode = getMusicNode(nextMusicType);
             nextMusicType = null;
-            currentMusicNode.setVolume(soundVolume);
+            currentMusicNode.setVolume(musicVolume);
             currentMusicNode.stop();
             currentMusicNode.play();
         }
@@ -92,7 +92,7 @@ public class SoundManager implements SoundManagerInterface {
 
     public void setVolume(float volume) {
         this.soundVolume = volume;
-        this.musicVolume = soundVolume / Constants.MUSIC_VOLUME_MULTIPLIER;
+        this.musicVolume = soundVolume * Constants.MUSIC_VOLUME_MULTIPLIER;
     }
 
     public void reInitialize(GameLogicCoreInterface gameLogicCore) {
