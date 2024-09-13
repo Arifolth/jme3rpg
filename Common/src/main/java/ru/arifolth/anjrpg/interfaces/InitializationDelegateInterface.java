@@ -32,15 +32,7 @@ public interface InitializationDelegateInterface {
 
     void initializePlayer(boolean positionCharacters);
 
-    List<Spatial> setupTrees();
-
-    List<Spatial> setupGrass();
-
     void update();
-
-    void positionGrass(TerrainQuad quad);
-
-    void positionTrees(TerrainQuad quad);
 
     void positionPlayer();
 

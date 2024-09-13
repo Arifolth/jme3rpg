@@ -30,6 +30,7 @@ import com.jme3.scene.Node;
 import com.jme3.scene.debug.SkeletonDebugger;
 import com.jme3.system.AppSettings;
 import com.jme3.util.TangentBinormalGenerator;
+import com.jme3.util.mikktspace.MikktspaceTangentGenerator;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.Debug;
 import ru.arifolth.anjrpg.interfaces.SoundTypeEnum;
@@ -64,7 +65,7 @@ public abstract class AnimatedCharacter extends BaseCharacter implements AnimEve
         }
         */
         characterModel = gameLogicCore.getAssetManager().loadModel(model);
-        TangentBinormalGenerator.generate(characterModel);
+        MikktspaceTangentGenerator.generate(characterModel);
         //Material playerMaterial = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
         //characterModel.setMaterial(playerMaterial);
         characterModel.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
@@ -141,7 +142,7 @@ public abstract class AnimatedCharacter extends BaseCharacter implements AnimEve
         getNode().attachChild(audioNode);
     }
 
-    protected void playSwordSound(AudioNode swordSoundNode) {
+    protected void playSound(AudioNode swordSoundNode) {
         getNode().attachChild(swordSoundNode);
         swordSoundNode.play();
         getNode().detachChildNamed(swordSoundNode.getName());
@@ -156,6 +157,12 @@ public abstract class AnimatedCharacter extends BaseCharacter implements AnimEve
     protected AudioNode getSwordSwingNode() {
         AudioNode audioNode = gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.SWORD_SWING);
         audioNode.setName(SoundTypeEnum.SWORD_SWING.name());
+        return audioNode;
+    }
+
+    protected AudioNode getJumpNode() {
+        AudioNode audioNode = gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.JUMP);
+        audioNode.setName(SoundTypeEnum.JUMP.name());
         return audioNode;
     }
 

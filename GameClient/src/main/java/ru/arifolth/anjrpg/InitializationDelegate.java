@@ -23,7 +23,6 @@ import com.jme3.collision.CollisionResults;
 import com.jme3.input.ChaseCamera;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.MouseButtonTrigger;
-import com.jme3.material.RenderState;
 import com.jme3.math.*;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
@@ -33,19 +32,17 @@ import com.jme3.ui.Picture;
 import jme3tools.optimize.GeometryBatchFactory;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.interfaces.weather.EmitterInterface;
-import ru.arifolth.anjrpg.weather.RainEmitter;
 import ru.arifolth.anjrpg.models.NonPlayerCharacter;
 import ru.arifolth.anjrpg.models.PlayerCharacter;
+import ru.arifolth.anjrpg.weather.RainEmitter;
 import ru.arifolth.vegetation.GrassTypeEnum;
 import ru.arifolth.vegetation.TreeTypeEnum;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -55,10 +52,6 @@ import static ru.arifolth.anjrpg.interfaces.Constants.RAY_DOWN;
 public class InitializationDelegate implements InitializationDelegateInterface {
     private final GameLogicCore gameLogicCore;
     final private static Logger LOGGER = Logger.getLogger(InitializationDelegate.class.getName());
-
-    private final ConcurrentLinkedQueue<Node> grassQueue = new ConcurrentLinkedQueue<>();
-    private final ConcurrentLinkedQueue<Node> treesQueue = new ConcurrentLinkedQueue<>();
-
 
     public InitializationDelegate(GameLogicCore gameLogicCore) {
         this.gameLogicCore = gameLogicCore;
@@ -128,8 +121,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         //flyCam.setMoveSpeed(10);
         gameLogicCore.getFlyCam().setMoveSpeed(100);
         //change (increase) view distance
-        gameLogicCore.getCam().setFrustumFar(10000);
-        gameLogicCore.getCam().onFrameChange();
+        gameLogicCore.getCam().setFrustumFar(20000);
 
         /**/
         // Disable the default first-person cam!
@@ -175,164 +167,8 @@ public class InitializationDelegate implements InitializationDelegateInterface {
     }
 
     @Override
-    public List<Spatial> setupTrees() {
-        int forestSize = (int) Utils.getRandomNumberInRange(1500, 5000);
-        List<Spatial> quadForest = new ArrayList<>(forestSize);
-        for(int i = 0; i < forestSize; i++) {
-            Spatial treeModelCustom = TreeTypeEnum.getRandomTree();
-            treeModelCustom.scale(1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10));
-            quadForest.add(treeModelCustom);
-        }
-
-        return quadForest;
-    }
-
-    @Override
-    public List<Spatial> setupGrass() {
-        final int grassAmount = 400_000;
-        List<Spatial> quadGrass = new ArrayList<>(grassAmount);
-        for(int i = 0; i < grassAmount; i++) {
-            Spatial grassInstance = GrassTypeEnum.REGULAR.getGrass();
-            grassInstance.setLocalScale(1 + Utils.getRandomNumberInRange(1, 3), 1 + Utils.getRandomNumberInRange(1, 3), 1 + Utils.getRandomNumberInRange(1, 3));
-            grassInstance.setLocalTranslation(grassInstance.getLocalTranslation().getX(), grassInstance.getLocalTranslation().getY(), grassInstance.getLocalTranslation().getZ() - 15);
-            grassInstance.rotate(Utils.getRandomNumberInRange(-0.65f, 0.65f), Utils.getRandomNumberInRange(-1.65f, 1.65f), 0);
-            quadGrass.add(grassInstance);
-        }
-
-        return quadGrass;
-    }
-
-    @Override
     public void update() {
-        attachGrassQuad();
 
-        attachTreesQuad();
-    }
-
-    private void attachTreesQuad() {
-        Node treesNode = treesQueue.poll();
-
-        if(treesNode == null)
-            return;
-
-        gameLogicCore.getForestNode().attachChild(treesNode);
-    }
-
-    private void attachGrassQuad() {
-        Node grassNode = grassQueue.poll();
-
-        if(grassNode == null)
-            return;
-
-        gameLogicCore.getGrassNode().attachChild(grassNode);
-    }
-
-    @Override
-    public void positionGrass(TerrainQuad quad) {
-        var context = new Object() {
-            Node grassNode = quad.getUserData(Constants.QUAD_GRASS);
-        };
-
-        try (ExecutorService executorService = Executors.newSingleThreadExecutor()) {
-            executorService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    if (context.grassNode == null) {
-                        context.grassNode = new Node();
-                        List<Spatial> quadGrass = setupGrass();
-
-                        Stream<Spatial> stream = quadGrass.stream();
-                        stream.forEach(grassSpatial -> {
-                            CollisionResults results = new CollisionResults();
-                            final Vector3f playerLocation = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation();
-
-                            float y = playerLocation.y;
-                            if (y < Constants.WATER_LEVEL_HEIGHT)
-                                y = 0;
-
-                            Vector3f start = new Vector3f(playerLocation.x + Utils.getRandomNumberInRange(-2000, 2000), y + Utils.getRandomNumberInRange(0, 130), playerLocation.z + Utils.getRandomNumberInRange(-2000, 2000));
-                            Ray ray = new Ray(start, RAY_DOWN);
-
-                            quad.collideWith(ray, results);
-                            CollisionResult hit = results.getClosestCollision();
-                            if (hit != null) {
-                                if ((hit.getContactPoint().y > Constants.WATER_LEVEL_HEIGHT)) {
-                                    Vector3f plantLocation = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y, hit.getContactPoint().z);
-                                    grassSpatial.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
-
-                                    context.grassNode.attachChild(grassSpatial);
-                                }
-                            }
-                        });
-                    }
-
-                    context.grassNode = (Node) GeometryBatchFactory.optimize(context.grassNode);
-                    context.grassNode.setShadowMode(RenderQueue.ShadowMode.Receive);
-                    context.grassNode.setQueueBucket(RenderQueue.Bucket.Transparent);
-                    context.grassNode.setCullHint(Spatial.CullHint.Dynamic);
-                    context.grassNode.updateModelBound();
-
-                    grassQueue.offer(context.grassNode);
-                }
-            });
-        }
-
-        quad.setUserData(Constants.QUAD_GRASS, context.grassNode);
-    }
-
-    @Override
-    public void positionTrees(TerrainQuad quad) {
-        var context = new Object() {
-            Node treesNode = quad.getUserData(Constants.QUAD_FOREST);
-        };
-
-        final Vector3f playerLocation = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation();
-
-        try (ExecutorService executorService = Executors.newSingleThreadExecutor()) {
-            executorService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    if (context.treesNode == null) {
-                        context.treesNode = new Node();
-                        List<Spatial> quadForest = setupTrees();
-
-                        Stream<Spatial> stream = quadForest.stream();
-                        stream.forEach(treeNode -> {
-                            CollisionResults results = new CollisionResults();
-                            float y = playerLocation.y;
-                            if (y < Constants.WATER_LEVEL_HEIGHT)
-                                y = 0;
-
-                            Vector3f start = new Vector3f(playerLocation.x + Utils.getRandomNumberInRange(-2000, 2000), y + Utils.getRandomNumberInRange(0, 70), playerLocation.z + Utils.getRandomNumberInRange(-2000, 2000));
-                            Ray ray = new Ray(start, RAY_DOWN);
-
-                            quad.collideWith(ray, results);
-                            CollisionResult hit = results.getClosestCollision();
-                            if (hit != null) {
-                                if (hit.getContactPoint().y > Constants.WATER_LEVEL_HEIGHT) {
-                                    Vector3f plantLocation = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y, hit.getContactPoint().z);
-                                    treeNode.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
-                                    treeNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(-6.5f, 6.5f) * FastMath.DEG_TO_RAD, new Vector3f(1, 0, 1)));
-
-                                    treeNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(0f, 360f) * FastMath.DEG_TO_RAD, new Vector3f(0, 1, 0)));
-
-                                    context.treesNode.attachChild(treeNode);
-                                }
-                            }
-                        });
-                    }
-
-                    context.treesNode = (Node) GeometryBatchFactory.optimize(context.treesNode);
-                    context.treesNode.setShadowMode(RenderQueue.ShadowMode.Cast);
-                    context.treesNode.setCullHint(Spatial.CullHint.Dynamic);
-                    context.treesNode.updateModelBound();
-
-                    treesQueue.offer(context.treesNode);
-                }
-            });
-        }
-
-        quad.setUserData(Constants.QUAD_FOREST, context.treesNode);
     }
 
     @Override
@@ -407,8 +243,9 @@ public class InitializationDelegate implements InitializationDelegateInterface {
     @Override
     public void detachNPCs() {
         Node enemies = gameLogicCore.getEnemies();
-        gameLogicCore.getRootNode().detachChild(enemies);
-
+        gameLogicCore.getApp().enqueue(() -> {
+            gameLogicCore.getRootNode().detachChild(enemies);
+        });
         for(CharacterInterface character: gameLogicCore.getCharacterMap().values()) {
             character.removeCharacter();
         }
@@ -416,8 +253,9 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
     public void attachInitialNPCs() {
         Node enemies = gameLogicCore.getEnemies();
-        gameLogicCore.getRootNode().attachChild(enemies);
-
+        gameLogicCore.getApp().enqueue(() -> {
+            gameLogicCore.getRootNode().attachChild(enemies);
+        });
         attachNPCs();
     }
 
@@ -442,5 +280,4 @@ public class InitializationDelegate implements InitializationDelegateInterface {
             }
         }
     }
-
 }

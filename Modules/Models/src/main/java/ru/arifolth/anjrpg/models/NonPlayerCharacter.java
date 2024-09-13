@@ -18,7 +18,6 @@
 
 package ru.arifolth.anjrpg.models;
 
-import com.google.common.base.Objects;
 import com.jme3.animation.AnimChannel;
 import com.jme3.animation.AnimControl;
 import com.jme3.animation.LoopMode;
@@ -37,21 +36,22 @@ import java.util.logging.Logger;
 
 public class NonPlayerCharacter extends PlayerCharacter {
     final private static Logger LOGGER = Logger.getLogger(NonPlayerCharacter.class.getName());
-    protected float turnRate;
     protected float firingRange;
     protected float walkingRange;
     protected float walkSpeed;
-    protected Vector3f walkDirection, viewDirection;
+    protected Vector3f walkDirection;
     protected CharacterInterface playerCharacter;
 
     public NonPlayerCharacter() {
         super();
         this.setName(this.getClass().getName());
 
-        this.turnRate = FastMath.QUARTER_PI / 5f;
-        this.walkingRange = 1000000f;
-        this.firingRange = 5f;
-        this.walkSpeed = .3f;
+        this.walkingRange = Constants.WALKING_RANGE;
+        this.firingRange = Constants.FIRING_RANGE;
+        this.walkSpeed = Constants.WALK_SPEED;
+
+        this.turnRate = FastMath.QUARTER_PI / Constants.FIRING_RANGE;
+
     }
 
     protected void initializeCharacterModel() {
@@ -109,15 +109,15 @@ public class NonPlayerCharacter extends PlayerCharacter {
 //        gameLogicCore
         animationDelegate.attackAnimation();
         LOGGER.log(Level.INFO, "NPC ATTACK!");
-        playSwordSound(getSwordSwingNode());
+        playSound(getSwordSwingNode());
 
         if(!playerCharacter.isBlocking()) {
             playerCharacter.getHealthBar().applyDamage(Constants.DAMAGE);
             LOGGER.log(Level.INFO, "HIT!");
-            playSwordSound(getSwordHitNode());
+            playSound(getSwordHitNode());
         } else {
             LOGGER.log(Level.INFO, "BLOCKED!");
-            playSwordSound(getSwordBlockNode());
+            playSound(getSwordBlockNode());
         }
     }
 
@@ -161,24 +161,6 @@ public class NonPlayerCharacter extends PlayerCharacter {
         animationDelegate.idleAnimation();
     }
 
-    public void turnLeft() {
-        viewDirection = characterControl.getViewDirection();
-        Vector3f temp = viewDirection.normalize();
-        Quaternion turn = new Quaternion();
-        turn.fromAngleAxis(turnRate, Vector3f.UNIT_Y);
-        temp = turn.mult(temp);
-        characterControl.setViewDirection(temp);
-    }
-
-    public void turnRight() {
-        viewDirection = characterControl.getViewDirection();
-        Vector3f temp = viewDirection.normalize();
-        Quaternion turn = new Quaternion();
-        turn.fromAngleAxis(-turnRate, Vector3f.UNIT_Y);
-        temp = turn.mult(temp);
-        characterControl.setViewDirection(temp);
-    }
-
     @Override
     protected void initializeSkeletonDebug() {
         AppSettings settings = gameLogicCore.getApp().getContext().getSettings();
@@ -214,7 +196,10 @@ public class NonPlayerCharacter extends PlayerCharacter {
 
         this.getPlayerStepsNode(false).pause();
 
-        gameLogicCore.getRootNode().detachChild(this.getNode());
+        gameLogicCore.getApp().enqueue(() -> {
+            gameLogicCore.getRootNode().detachChild(this.getNode());
+        });
+
         gameLogicCore.getCharacterMap().remove(this.getNode());
         this.getHealthBar().destroy();
 
@@ -228,18 +213,5 @@ public class NonPlayerCharacter extends PlayerCharacter {
         animationDelegate.deathAnimation();
 
         setDead(true);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        NonPlayerCharacter that = (NonPlayerCharacter) o;
-        return Float.compare(that.turnRate, turnRate) == 0 && Float.compare(that.firingRange, firingRange) == 0 && Float.compare(that.walkingRange, walkingRange) == 0 && Float.compare(that.walkSpeed, walkSpeed) == 0 && Objects.equal(walkDirection, that.walkDirection) && Objects.equal(viewDirection, that.viewDirection);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(turnRate, firingRange, walkingRange, walkSpeed, walkDirection, viewDirection);
     }
 }

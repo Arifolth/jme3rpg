@@ -20,6 +20,12 @@
         </dependency>
         <dependency>
             <groupId>ru.arifolth.game</groupId>
+            <artifactId>Common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>ru.arifolth.game</groupId>
             <artifactId>Menu</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>

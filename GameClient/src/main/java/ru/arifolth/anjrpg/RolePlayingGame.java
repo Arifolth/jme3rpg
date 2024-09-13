@@ -130,7 +130,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     }
 
     void setupFilters() {
-        filterManager = new FilterManager(assetManager, rootNode, viewPort, sky);
+        filterManager = new FilterManager(assetManager, rootNode, viewPort, sky, renderer);
         filterManager.initialize();
 
         setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
@@ -143,9 +143,10 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     }
 
     protected void attachTerrain() {
-        getRootNode().attachChild(terrainManager.getTerrain());
-        if(terrainManager.getMountains() != null)
-            getRootNode().attachChild(terrainManager.getMountains());
+        enqueue(() -> {
+            // execute in the jME3 rendering thread.
+            getRootNode().attachChild(terrainManager.getTerrain());
+        });
     }
 
     @Override
@@ -221,11 +222,6 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     @Override
     public TerrainManagerInterface getTerrainManager() {
         return terrainManager;
-    }
-
-    @Override
-    public void setTerrainManager(TerrainManagerInterface terrainManager) {
-        this.terrainManager = terrainManager;
     }
 
     @Override

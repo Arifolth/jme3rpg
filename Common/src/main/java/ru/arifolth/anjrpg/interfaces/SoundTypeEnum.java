@@ -38,7 +38,7 @@ public enum SoundTypeEnum implements AudioType {
                     stream,
                     looping,
                     positional,
-                    pitch);
+                    pitch, volumeMultiplier);
         }
 
     },
@@ -57,7 +57,7 @@ public enum SoundTypeEnum implements AudioType {
         @Override
         public void init() {
             createAudioNode(this,
-                    "Sounds/running.wav",
+                    "Sounds/steps/439514__martian__180904-woodland04-run-steps-skip-jump-clip.ogg",
                     buffer,
                     looping,
                     positional,
@@ -67,7 +67,6 @@ public enum SoundTypeEnum implements AudioType {
 
         public static void createAudioNode(AudioType audioType, String name, AudioData.DataType dataType, Boolean looping, Boolean positional, Float pitch) {
             AudioNode audioNode = new AudioNode(assetManager, name, dataType);
-            audioNode.setVolume(Constants.SOUND_VOLUME / 6);
             audioNode.setMaxDistance(15);
 
             if(looping != null)
@@ -78,6 +77,24 @@ public enum SoundTypeEnum implements AudioType {
                 audioNode.setPitch(pitch);
 
             soundMap.put(audioType, audioNode);
+        }
+    },
+    JUMP {
+        private AudioData.DataType buffer = AudioData.DataType.Buffer;
+        private float pitch = Constants.SOUND_PITCH;
+        private Boolean positional = null;
+        private boolean looping = false;
+        private static float volumeMultiplier = 64;
+
+        @Override
+        public void init() {
+            createAudioNode(this,
+                    "Sounds/jump/407957__judith136__28.ogg",
+                    buffer,
+                    looping,
+                    positional,
+                    pitch,
+                    volumeMultiplier);
         }
     },
     SWORD_SWING {
@@ -95,8 +112,8 @@ public enum SoundTypeEnum implements AudioType {
                         buffer,
                         looping,
                         positional,
-                        pitch
-                );
+                        pitch,
+                        volumeMultiplier);
             }
             {
                 createAudioNode(this,
@@ -104,8 +121,8 @@ public enum SoundTypeEnum implements AudioType {
                         buffer,
                         looping,
                         positional,
-                        pitch
-                );
+                        pitch,
+                        volumeMultiplier);
             }
             {
                 createAudioNode(this,
@@ -113,8 +130,8 @@ public enum SoundTypeEnum implements AudioType {
                         buffer,
                         looping,
                         positional,
-                        pitch
-                );
+                        pitch,
+                        volumeMultiplier);
             }
             {
                 createAudioNode(this,
@@ -122,8 +139,8 @@ public enum SoundTypeEnum implements AudioType {
                         buffer,
                         looping,
                         positional,
-                        pitch
-                );
+                        pitch,
+                        volumeMultiplier);
             }
             {
                 createAudioNode(this,
@@ -131,8 +148,8 @@ public enum SoundTypeEnum implements AudioType {
                         buffer,
                         looping,
                         positional,
-                        pitch
-                );
+                        pitch,
+                        volumeMultiplier);
             }
             {
                 createAudioNode(this,
@@ -140,8 +157,8 @@ public enum SoundTypeEnum implements AudioType {
                         buffer,
                         looping,
                         positional,
-                        pitch
-                );
+                        pitch,
+                        volumeMultiplier);
             }
             {
                 createAudioNode(this,
@@ -149,7 +166,8 @@ public enum SoundTypeEnum implements AudioType {
                         buffer,
                         looping,
                         positional,
-                        pitch
+                        pitch,
+                        volumeMultiplier
                 );
             }
         }
@@ -168,8 +186,8 @@ public enum SoundTypeEnum implements AudioType {
                         buffer,
                         looping,
                         positional,
-                        pitch
-                );
+                        pitch,
+                        volumeMultiplier);
             }
         }
     },
@@ -186,8 +204,8 @@ public enum SoundTypeEnum implements AudioType {
                     buffer,
                     looping,
                     positional,
-                    pitch
-            );
+                    pitch,
+                    volumeMultiplier);
         }
     },
     SWORD_BLOCK {
@@ -204,8 +222,8 @@ public enum SoundTypeEnum implements AudioType {
                         buffer,
                         looping,
                         positional,
-                        pitch
-                );
+                        pitch,
+                        volumeMultiplier);
             }
             {
                 createAudioNode(this,
@@ -213,8 +231,8 @@ public enum SoundTypeEnum implements AudioType {
                         buffer,
                         looping,
                         positional,
-                        pitch
-                );
+                        pitch,
+                        volumeMultiplier);
             }
             {
                 createAudioNode(this,
@@ -222,13 +240,15 @@ public enum SoundTypeEnum implements AudioType {
                         buffer,
                         looping,
                         positional,
-                        pitch
-                );
+                        pitch,
+                        volumeMultiplier);
             }
         }
     };
 
     private static AssetManager assetManager;
+    private static float volumeMultiplier = 2;
+
 
     public static void setAssetManager(AssetManager assetManager) {
         SoundTypeEnum.assetManager = assetManager;
@@ -242,9 +262,10 @@ public enum SoundTypeEnum implements AudioType {
         return Utils.getSingleObject(soundMap.get(audioType));
     }
 
-    public static void createAudioNode(AudioType audioType, String name, AudioData.DataType dataType, Boolean looping, Boolean positional, Float pitch) {
+    public static void createAudioNode(AudioType audioType, String name, AudioData.DataType dataType, Boolean looping, Boolean positional, Float pitch, Float volumeMultiplier) {
         AudioNode audioNode = new AudioNode(assetManager, name, dataType);
-        audioNode.setVolume(Constants.SOUND_VOLUME);
+        float soundVolume = volumeMultiplier != null ? Constants.SOUND_VOLUME * volumeMultiplier : Constants.SOUND_VOLUME;
+        audioNode.setVolume(soundVolume);
 
         if(looping != null)
             audioNode.setLooping(looping);
@@ -259,5 +280,5 @@ public enum SoundTypeEnum implements AudioType {
     public static void reInitialize(float volume) {
         soundMap.values().forEach(audioNode -> audioNode.setVolume(volume));
     }
-    private static final Multimap<AudioType, AudioNode> soundMap = ArrayListMultimap.create();
+    private static final Multimap<AudioType, AudioNode> soundMap = ArrayListMultimap.create(20, 7);
 }

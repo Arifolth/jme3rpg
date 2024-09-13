@@ -53,6 +53,11 @@ public class MovementController implements MovementControllerInterface {
 
     public void keyPressed(String binding, boolean pressed) {
         switch (BindingConstants.valueOf(binding)) {
+            case LOCK:
+                if(pressed) {
+                    playerCharacter.lockOnTarget();
+                }
+                break;
             case ESCAPE:
                 MainMenuState mainMenuState = app.getStateManager().getState(MainMenuState.class);
                 if(((ANJRpg) app).getInitStatus().equals(InitStateEnum.RUNNING)) {
@@ -80,7 +85,12 @@ public class MovementController implements MovementControllerInterface {
                 playerCharacter.setDown(pressed);
                 break;
             case JUMP:
-                playerCharacter.setJump_pressed(true);
+                if(!playerCharacter.isJumping()) {
+                    playerCharacter.setJump_pressed(pressed);
+                    if(playerCharacter.isJump_pressed()) {
+                        playerCharacter.setJumping(true);
+                    }
+                }
                 break;
             case RUN:
                 playerCharacter.setRunning(pressed);
@@ -113,6 +123,7 @@ public class MovementController implements MovementControllerInterface {
         inputManager.deleteMapping(SimpleApplication.INPUT_MAPPING_EXIT);
         addInputMapping(ESCAPE, KeyInput.KEY_ESCAPE);
 
+        addDefaultInputMapping(LOCK);
         addDefaultInputMapping(UP);
         addDefaultInputMapping(DOWN);
         addDefaultInputMapping(LEFT);

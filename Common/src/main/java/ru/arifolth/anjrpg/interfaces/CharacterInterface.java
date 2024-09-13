@@ -48,11 +48,15 @@ public interface CharacterInterface {
 
     void setJump_pressed(boolean b);
 
+    boolean isJump_pressed();
+
     void setRunning(boolean pressed);
 
     boolean isCapture_mouse();
 
     boolean isJumping();
+
+    void setJumping(boolean jumping);
 
     void setBlock_pressed(boolean pressed);
 
@@ -103,4 +107,6 @@ public interface CharacterInterface {
     boolean isInitializing();
 
     boolean isInCombat();
+
+    void lockOnTarget();
 }

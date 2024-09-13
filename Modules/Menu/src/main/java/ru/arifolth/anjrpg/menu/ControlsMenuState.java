@@ -34,6 +34,8 @@ public class ControlsMenuState extends CustomCompositeAppState {
     private final static Logger LOGGER = LoggerFactory.getLogger(ControlsMenuState.class);
     private MovementControllerInterface movementController;
     private AppSettings settings;
+    private final Dropdown targetLockBindingDropDown = new KeyBindingDropDown(BindingConstants.LOCK);
+
     private final Dropdown forwardBindingDropDown = new KeyBindingDropDown(BindingConstants.UP);
     private final Dropdown backwardBindingDropDown = new KeyBindingDropDown(BindingConstants.DOWN);
     private final Dropdown leftBindingDropDown = new KeyBindingDropDown(BindingConstants.LEFT);
@@ -88,6 +90,7 @@ public class ControlsMenuState extends CustomCompositeAppState {
 
         this.movementController = gameLogicCore.getMovementController();
 
+        this.targetLockBindingDropDown.initialize(settings);
         this.forwardBindingDropDown.initialize(settings);
         this.backwardBindingDropDown.initialize(settings);
         this.leftBindingDropDown.initialize(settings);
@@ -115,6 +118,12 @@ public class ControlsMenuState extends CustomCompositeAppState {
         joinPanel.setInsets(new Insets3f(10, 10, 10, 10));
         props = joinPanel.addChild(new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Last)));
         props.setBackground(null);
+
+        //Options go here
+        props = joinPanel.addChild(new Container(new BorderLayout()));
+        props.setBackground(null);
+        props.addChild(new Label("Lock on target:"), West);
+        props.addChild(targetLockBindingDropDown, East);
 
         //Options go here
         props = joinPanel.addChild(new Container(new BorderLayout()));

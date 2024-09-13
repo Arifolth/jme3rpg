@@ -5,8 +5,7 @@ An Open Source Action RPG game written in Java.
 mailto: <arifolth@gmail.com>
 
 #
-![Image](Screenshots/Grass.jpg "icon")
-
+![1-BlueMountain.jpg](Screenshots/1-BlueMountain.jpg)
 ## Features:
 - Modular Maven build
 - Borderless procedurally generated world (Work In Progress)
@@ -47,15 +46,14 @@ mvn install
 ```
 
 ### Native executables
-Native executables could be build only on a Windows box and
-the [WiX Toolset](https://wixtoolset.org/) is a required prerequisite.
+Native executables ware tested to build and run successfully on a Windows box.
 
 To build them enable profile 
 ```native``` and perform a [Launcher](Launcher) module build  
 
 ## Run using Jdk
 ```bash
-mvn exec:java -pl GameClient -Djvm.options="-XX:-TieredCompilation -XX:TieredStopAtLevel=3 -server -XX:+UnlockExperimentalVMOptions -XX:+UseZGC"
+mvn exec:java -pl GameClient -Djvm.options="-XX:-TieredCompilation -XX:TieredStopAtLevel=3 -server -XX:+UnlockExperimentalVMOptions -XX:+UseZGC -XX:+UseStringDeduplication -XX:+UseLargePages"
 ```
 
 ## Repo
@@ -65,20 +63,19 @@ mvn exec:java -pl GameClient -Djvm.options="-XX:-TieredCompilation -XX:TieredSto
 - [Mtnrim_v0.zip](https://sourceforge.net/projects/mountainrim/)
 - https://github.com/rdok/Arcem-Tutari
 - Sounds from https://freesound.org/
-- Tree models from BioMonkey
+- Tree models and Grass textures from BioMonkey
 - Other resources, credit is given in the code
 
 ## Screenshots
-![Image](Screenshots/grass-pseudo-3d.jpg "icon")
-![Image](Screenshots/ForestWithMountains.jpg "icon")
-![Image](Screenshots/mountains.jpg "icon")
-![Image](Screenshots/Hit.jpg "icon")
-![Image](Screenshots/sunrise.jpg "icon")
+![Image](Screenshots/Dawn.jpg "icon")
+![Image](Screenshots/Lake.jpg "icon")
 ![Image](Screenshots/Underwater.jpg "icon")
 ![Image](Screenshots/Night.jpg "icon")
 ![Image](Screenshots/Clouds.jpg "icon")
+![Image](Screenshots/Fog2.jpg "icon")
+![Image](Screenshots/Grass.jpg "icon")
 
 ## License
 It is released under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.txt)
 
-#### Copyright 2014 - 2023 &copy; Alexander Nilov
+#### Copyright 2014 - 2024 &copy; Alexander Nilov

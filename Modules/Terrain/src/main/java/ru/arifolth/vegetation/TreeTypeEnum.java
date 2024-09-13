@@ -23,11 +23,38 @@ import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.util.TangentBinormalGenerator;
+import com.jme3.util.mikktspace.MikktspaceTangentGenerator;
 import ru.arifolth.anjrpg.interfaces.LodUtils;
 import ru.arifolth.anjrpg.interfaces.TreeType;
 import ru.arifolth.anjrpg.interfaces.Utils;
 
 public enum TreeTypeEnum implements TreeType {
+    BOULDER {
+        Node tree = null;
+        final int probability = 5;
+        @Override
+        public void init() {
+            Node rockNode = (Node) assetManager.loadModel("Models/Rock1/rock1_nobiax.j3o");
+            rockNode.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+
+            //LodUtils.setUpModelLod(rockNode);
+            MikktspaceTangentGenerator.generate(rockNode);
+
+            tree = rockNode;
+        }
+
+        @Override
+        public Node getTree() {
+            Node node = (Node) tree.clone();
+            node.setLocalScale(Utils.getRandomNumberInRange(-3, 3), Utils.getRandomNumberInRange(-3, 3), Utils.getRandomNumberInRange(-3, 3));
+            return node;
+        }
+
+        @Override
+        public int getProbability() {
+            return probability;
+        }
+    },
     FIR {
         Node tree = null;
         final int probability = 80;
@@ -36,8 +63,8 @@ public enum TreeTypeEnum implements TreeType {
             Node firTree = (Node) assetManager.loadModel("Models/Fir1/fir1_androlo.j3o");
             firTree.setShadowMode(RenderQueue.ShadowMode.Cast);
 
-            LodUtils.setUpFirTreeModelLod(firTree);
-            TangentBinormalGenerator.generate(firTree);
+            LodUtils.setUpModelLod(firTree);
+            MikktspaceTangentGenerator.generate(firTree);
 
             tree = firTree;
         }
@@ -69,7 +96,7 @@ public enum TreeTypeEnum implements TreeType {
 
             mapleTree.setShadowMode(RenderQueue.ShadowMode.Cast);
             LodUtils.setUpModelLod(mapleTree);
-            TangentBinormalGenerator.generate(mapleTree);
+            MikktspaceTangentGenerator.generate(mapleTree);
 
 
             tree = mapleTree;
@@ -101,7 +128,7 @@ public enum TreeTypeEnum implements TreeType {
 
             oakTree.setShadowMode(RenderQueue.ShadowMode.Cast);
             LodUtils.setUpModelLod(oakTree);
-            TangentBinormalGenerator.generate(oakTree);
+            MikktspaceTangentGenerator.generate(oakTree);
 
             tree = oakTree;
         }
@@ -132,6 +159,8 @@ public enum TreeTypeEnum implements TreeType {
             tree = FIR.getTree();
         } else if (Utils.getRandom(OAK.getProbability())) {
             tree = OAK.getTree();
+        } else if (Utils.getRandom(BOULDER.getProbability())) {
+            tree = BOULDER.getTree();
         } else { //other 10%
             tree = MAPPLE.getTree();
         }

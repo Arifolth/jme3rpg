@@ -42,9 +42,9 @@ public class GameLogicCore implements GameLogicCoreInterface {
     private final CharacterFactory characterFactory = new CharacterFactory(this);
     private TrackerInterface locationTracker = new LocationTracker(this);
     private final InitializationDelegate initializationDelegate = new InitializationDelegate(this);
-    private final Node enemies = new Node("enemies");
-    private Node forestNode = new Node("Forest Node");
-    private Node grassNode = new Node("all grass");
+    private final Node enemies = new Node(Constants.ENEMIES_NODE);
+    private Node forestNode = new Node(Constants.FOREST_NODE);
+    private Node grassNode = new Node(Constants.GRASS_NODE);
 
     private MovementControllerInterface movementController;
     private TerrainManagerInterface terrainManager;
@@ -88,8 +88,12 @@ public class GameLogicCore implements GameLogicCoreInterface {
 
         movementController.setUpKeys();
 //        initializer.setupWeatherEffects();
-        getRootNode().attachChild(forestNode);
-        getRootNode().attachChild(grassNode);
+        app.enqueue(() -> {
+            getRootNode().attachChild(forestNode);
+        });
+        app.enqueue(() -> {
+            getRootNode().attachChild(grassNode);
+        });
     }
 
     @Override
@@ -154,6 +158,8 @@ public class GameLogicCore implements GameLogicCoreInterface {
         }
 
         gameStateManager.update(tpf);
+
+//        this.getCam().onFrameChange();
     }
 
     @Override

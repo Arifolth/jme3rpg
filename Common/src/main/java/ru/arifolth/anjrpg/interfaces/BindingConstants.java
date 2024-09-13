@@ -19,6 +19,7 @@
 package ru.arifolth.anjrpg.interfaces;
 
 public enum BindingConstants {
+    LOCK("X"),
     ESCAPE("Escape"),
     UP("W"),
     DOWN("S"),

@@ -23,4 +23,6 @@ import com.jme3.scene.Node;
 public interface GrassType {
     void init();
     Node getGrass();
+
+    int getProbability();
 }

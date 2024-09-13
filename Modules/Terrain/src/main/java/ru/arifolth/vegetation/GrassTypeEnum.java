@@ -22,13 +22,13 @@ import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.Vector2f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
 import com.jme3.util.TangentBinormalGenerator;
+import com.jme3.util.mikktspace.MikktspaceTangentGenerator;
 import jme3tools.optimize.GeometryBatchFactory;
 import ru.arifolth.anjrpg.interfaces.GrassType;
 import ru.arifolth.anjrpg.interfaces.LodUtils;
@@ -37,7 +37,7 @@ import ru.arifolth.anjrpg.interfaces.Utils;
 public enum GrassTypeEnum implements GrassType {
     REGULAR {
         Node grassNode = null;
-
+        final int probability = 80;
         @Override
         public void init() {
             Geometry grassGeometry = new Geometry("grass", new Quad(2, 2));
@@ -87,18 +87,17 @@ public enum GrassTypeEnum implements GrassType {
             grassGeometry.rotate(0, 0.78f, 0);
             grassGeometry.center();
             grassBladeNode.attachChild(grassGeometry);
-/*
+
             grassGeometry = grassGeometry.clone();
             grassGeometry.rotate(0, 1.58f, 0);
             grassGeometry.center();
             grassBladeNode.attachChild(grassGeometry);
-*/
 
             grassBladeNode.move(0, 1f, 0);
 
             LodUtils.setUpModelLod(grassBladeNode);
             grassBladeNode = GeometryBatchFactory.optimize(grassBladeNode, true);
-            TangentBinormalGenerator.generate(grassBladeNode, true);
+            MikktspaceTangentGenerator.generate(grassBladeNode);
             grassBladeNode.updateModelBound();
 
             grassNode = grassBladeNode;
@@ -108,7 +107,262 @@ public enum GrassTypeEnum implements GrassType {
         public Node getGrass() {
             return (Node) grassNode.clone();
         }
+
+        @Override
+        public int getProbability() {
+            return probability;
+        }
+    },
+    GRASS2 {
+        Node grassNode = null;
+        final int probability = 50;
+        @Override
+        public void init() {
+            Geometry grassGeometry = new Geometry("grass", new Quad(2, 2));
+
+            Material grassShader = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+            Texture grass = assetManager.loadTexture("Textures/Grass/grass2.png");
+            grass.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
+            Texture normalMap = assetManager.loadTexture("Textures/Grass/grass2_NORM.png");
+            normalMap.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
+            Texture specularMap = assetManager.loadTexture("Textures/Grass/grass2_SPECULAR.png");
+            specularMap.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
+            grassShader.setColor("Diffuse", ColorRGBA.White);
+            grassShader.setColor("Ambient", ColorRGBA.White);
+            grassShader.setColor("Specular", ColorRGBA.White);
+            grassShader.setTexture("DiffuseMap", grass);
+            grassShader.setTexture("NormalMap", normalMap);
+            grassShader.setTexture("ParallaxMap", specularMap);
+            grassShader.setTexture("SpecularMap", specularMap);
+            grassShader.setBoolean("UseMaterialColors", true);
+            grassShader.setBoolean("HardwareShadows", true);
+            grassShader.setBoolean("SteepParallax", true);
+            grassShader.setBoolean("BackfaceShadows", true);
+            grassShader.setFloat("AlphaDiscardThreshold", 0.5f);
+            grassShader.setFloat("Shininess", 0f);
+            grassShader.getAdditionalRenderState().setDepthTest(true);
+            grassShader.getAdditionalRenderState().setDepthWrite(true);
+            grassShader.getAdditionalRenderState().setColorWrite(true);
+            grassShader.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+            grassShader.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+
+            grassGeometry.setQueueBucket(RenderQueue.Bucket.Transparent);
+            grassGeometry.setMaterial(grassShader);
+            grassGeometry.setShadowMode(RenderQueue.ShadowMode.Receive);
+            grassGeometry.rotate(0, 0.58f, 0);
+            grassGeometry.center();
+
+            Node grassBladeNode = new Node();
+            grassBladeNode.attachChild(grassGeometry);
+
+            grassGeometry = grassGeometry.clone();
+            grassGeometry.rotate(0, 1.58f, 0);
+            grassGeometry.center();
+            grassBladeNode.attachChild(grassGeometry);
+
+            //few more textured quads, looks much better but it seems to affect performance
+            grassGeometry = grassGeometry.clone();
+            grassGeometry.rotate(0, 0.78f, 0);
+            grassGeometry.center();
+            grassBladeNode.attachChild(grassGeometry);
+
+            grassGeometry = grassGeometry.clone();
+            grassGeometry.rotate(0, 1.58f, 0);
+            grassGeometry.center();
+            grassBladeNode.attachChild(grassGeometry);
+
+            grassBladeNode.move(0, 1f, 0);
+
+            LodUtils.setUpModelLod(grassBladeNode);
+            grassBladeNode = GeometryBatchFactory.optimize(grassBladeNode, true);
+            MikktspaceTangentGenerator.generate(grassBladeNode);
+            grassBladeNode.updateModelBound();
+
+            grassNode = grassBladeNode;
+        }
+
+        @Override
+        public Node getGrass() {
+            return (Node) grassNode.clone();
+        }
+
+        @Override
+        public int getProbability() {
+            return probability;
+        }
+    },
+    TISTEL {
+        Node grassNode = null;
+        final int probability = 50;
+        @Override
+        public void init() {
+            Geometry grassGeometry = new Geometry("grass", new Quad(2, 2));
+
+            Material grassShader = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+            Texture grass = assetManager.loadTexture("Textures/Grass/tistel.png");
+            grass.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
+            Texture normalMap = assetManager.loadTexture("Textures/Grass/tistel_NORM.png");
+            normalMap.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
+            Texture specularMap = assetManager.loadTexture("Textures/Grass/tistel_SPECULAR.png");
+            specularMap.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
+            grassShader.setColor("Diffuse", ColorRGBA.White);
+            grassShader.setColor("Ambient", ColorRGBA.White);
+            grassShader.setColor("Specular", ColorRGBA.White);
+            grassShader.setTexture("DiffuseMap", grass);
+            grassShader.setTexture("NormalMap", normalMap);
+            grassShader.setTexture("ParallaxMap", specularMap);
+            grassShader.setTexture("SpecularMap", specularMap);
+            grassShader.setBoolean("UseMaterialColors", true);
+            grassShader.setBoolean("HardwareShadows", true);
+            grassShader.setBoolean("SteepParallax", true);
+            grassShader.setBoolean("BackfaceShadows", true);
+            grassShader.setFloat("AlphaDiscardThreshold", 0.5f);
+            grassShader.setFloat("Shininess", 0f);
+            grassShader.getAdditionalRenderState().setDepthTest(true);
+            grassShader.getAdditionalRenderState().setDepthWrite(true);
+            grassShader.getAdditionalRenderState().setColorWrite(true);
+            grassShader.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+            grassShader.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+
+            grassGeometry.setQueueBucket(RenderQueue.Bucket.Transparent);
+            grassGeometry.setMaterial(grassShader);
+            grassGeometry.setShadowMode(RenderQueue.ShadowMode.Receive);
+            grassGeometry.rotate(0, 0.58f, 0);
+            grassGeometry.center();
+
+            Node grassBladeNode = new Node();
+            grassBladeNode.attachChild(grassGeometry);
+
+            grassGeometry = grassGeometry.clone();
+            grassGeometry.rotate(0, 1.58f, 0);
+            grassGeometry.center();
+            grassBladeNode.attachChild(grassGeometry);
+
+            //few more textured quads, looks much better but it seems to affect performance
+            grassGeometry = grassGeometry.clone();
+            grassGeometry.rotate(0, 0.78f, 0);
+            grassGeometry.center();
+            grassBladeNode.attachChild(grassGeometry);
+
+            grassGeometry = grassGeometry.clone();
+            grassGeometry.rotate(0, 1.58f, 0);
+            grassGeometry.center();
+            grassBladeNode.attachChild(grassGeometry);
+
+            grassBladeNode.move(0, 1f, 0);
+
+            LodUtils.setUpModelLod(grassBladeNode);
+            grassBladeNode = GeometryBatchFactory.optimize(grassBladeNode, true);
+            MikktspaceTangentGenerator.generate(grassBladeNode);
+            grassBladeNode.updateModelBound();
+
+            grassNode = grassBladeNode;
+        }
+
+        @Override
+        public Node getGrass() {
+            return (Node) grassNode.clone();
+        }
+
+        @Override
+        public int getProbability() {
+            return probability;
+        }
+    },
+    FLOWERS {
+        Node grassNode = null;
+        final int probability = 60;
+        @Override
+        public void init() {
+            Geometry grassGeometry = new Geometry("grass", new Quad(4, 2));
+
+            Material grassShader = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+            Texture grass = assetManager.loadTexture("Textures/Grass/flowers1.png");
+            grass.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
+            Texture normalMap = assetManager.loadTexture("Textures/Grass/flowers1_NORM.png");
+            normalMap.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
+            Texture specularMap = assetManager.loadTexture("Textures/Grass/flowers1_SPECULAR.png");
+            specularMap.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
+            grassShader.setColor("Diffuse", ColorRGBA.White);
+            grassShader.setColor("Ambient", ColorRGBA.White);
+            grassShader.setColor("Specular", ColorRGBA.White);
+            grassShader.setTexture("DiffuseMap", grass);
+            grassShader.setTexture("NormalMap", normalMap);
+            grassShader.setTexture("ParallaxMap", specularMap);
+            grassShader.setTexture("SpecularMap", specularMap);
+            grassShader.setBoolean("UseMaterialColors", true);
+            grassShader.setBoolean("HardwareShadows", true);
+            grassShader.setBoolean("SteepParallax", true);
+            grassShader.setBoolean("BackfaceShadows", true);
+            grassShader.setFloat("AlphaDiscardThreshold", 0.5f);
+            grassShader.setFloat("Shininess", 0f);
+            grassShader.getAdditionalRenderState().setDepthTest(true);
+            grassShader.getAdditionalRenderState().setDepthWrite(true);
+            grassShader.getAdditionalRenderState().setColorWrite(true);
+            grassShader.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+            grassShader.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+
+            grassGeometry.setQueueBucket(RenderQueue.Bucket.Transparent);
+            grassGeometry.setMaterial(grassShader);
+            grassGeometry.setShadowMode(RenderQueue.ShadowMode.Receive);
+            grassGeometry.rotate(0, 0.58f, 0);
+            grassGeometry.center();
+
+            Node grassBladeNode = new Node();
+            grassBladeNode.attachChild(grassGeometry);
+
+            grassGeometry = grassGeometry.clone();
+            grassGeometry.rotate(0, 1.58f, 0);
+            grassGeometry.center();
+            grassBladeNode.attachChild(grassGeometry);
+
+            //few more textured quads, looks much better but it seems to affect performance
+            grassGeometry = grassGeometry.clone();
+            grassGeometry.rotate(0, 0.78f, 0);
+            grassGeometry.center();
+            grassBladeNode.attachChild(grassGeometry);
+
+            grassGeometry = grassGeometry.clone();
+            grassGeometry.rotate(0, 1.58f, 0);
+            grassGeometry.center();
+            grassBladeNode.attachChild(grassGeometry);
+
+            grassBladeNode.move(0, 1f, 0);
+
+            LodUtils.setUpModelLod(grassBladeNode);
+            grassBladeNode = GeometryBatchFactory.optimize(grassBladeNode, true);
+            MikktspaceTangentGenerator.generate(grassBladeNode);
+            grassBladeNode.updateModelBound();
+
+            grassNode = grassBladeNode;
+        }
+
+        @Override
+        public Node getGrass() {
+            return (Node) grassNode.clone();
+        }
+
+        @Override
+        public int getProbability() {
+            return probability;
+        }
     };
+
+    public static Node getRandomGrass() {
+        Node grass = null;
+
+        if(Utils.getRandom(REGULAR.getProbability())) {
+            grass = REGULAR.getGrass();
+        } else if (Utils.getRandom(TISTEL.getProbability())) {
+            grass = TISTEL.getGrass();
+        } else if (Utils.getRandom(FLOWERS.getProbability())) {
+            grass = FLOWERS.getGrass();
+        } else {
+            grass = GRASS2.getGrass();
+        }
+
+        return grass;
+    }
 
     private static AssetManager assetManager;
 

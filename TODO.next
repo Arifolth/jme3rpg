@@ -1,32 +1,14 @@
-Links
-*****
-https://www.blendswap.com/search?keyword=viking
-https://www.mixamo.com/#/?page=2&type=Motion%2CMotionPack
-http://skullstonegame.com
-
-https://github.com/Simsilica/SimArboreal
-https://stackoverflow.com/questions/11806002/how-to-make-my-character-walk-properly
-https://store.jmonkeyengine.org/39b754f7-b919-4996-9cd8-e1a9db9e05d7 position plotters
-https://store.jmonkeyengine.org/994b4082-8191-4622-9c44-ffc49c31a67d world demo
-
-http://jmonkeyengine.ru/wiki/jme3/advanced/animation-2
-http://jmonkeyengine.ru/wiki/jme3/external/3dsmax
-
-https://github.com/implicit-invocation/jwalkable
-https://anyconv.com/fbx-to-gltf-converter/
-******
-TODO
-LoadingScreen
-Trees/Grass
-Enemies
--models
-Combat System
-In Game Menu
-Gui HUD
 Loading Screen with Fade in filter
 Sound
 -ambient
--music
--combat
+-speech
 Weather changes
 Support new animation system in 3.3
+Lock-on target
+Graphics preset Low-Med-High
+HUD
+Rework healthbar
+Support Crouch anim
+Bugfix:
+- jump: force landing in 1 s
+-

@@ -14,8 +14,9 @@
 
     <properties>
 		<log4j-api.version>2.19.0</log4j-api.version>
-		<groovy.version>4.0.16</groovy.version>
-		<sio2.version>1.7.0</sio2.version>
+		<groovy.version>4.0.21</groovy.version>
+		<sio2.version>1.8.0</sio2.version>
+		<guava.version>33.2.1-jre</guava.version>
 		<java.main.class>ru.arifolth.anjrpg.ANJRpg</java.main.class>
 	</properties>
 
@@ -212,11 +213,23 @@
 				<groupId>com.simsilica</groupId>
 				<artifactId>lemur</artifactId>
 				<version>${lemur.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>com.google.guava</groupId>
+						<artifactId>guava</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>com.simsilica</groupId>
 				<artifactId>lemur-proto</artifactId>
 				<version>${lemur-proto.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>com.google.guava</groupId>
+						<artifactId>guava</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 
 			<dependency>
@@ -229,6 +242,16 @@
 				<groupId>com.simsilica</groupId>
 				<artifactId>sio2</artifactId>
 				<version>${sio2.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>org.codehaus.groovy</groupId>
+						<artifactId>groovy-all</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>com.google.guava</groupId>
+						<artifactId>guava</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 		</dependencies>
 	  </dependencyManagement>

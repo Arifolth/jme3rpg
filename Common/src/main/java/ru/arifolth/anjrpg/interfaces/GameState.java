@@ -104,4 +104,8 @@ public enum GameState {
         }
     };
     public abstract MusicTypeEnum getMusicType();
+
+    public boolean isNextAcceptable() {
+        return (this.equals(GameState.CALM) || !this.equals(GameState.DEATH));
+    }
 }

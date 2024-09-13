@@ -23,6 +23,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.*;
 import com.jme3.post.ssao.SSAOFilter;
+import com.jme3.renderer.Renderer;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Node;
 import com.jme3.shadow.PssmShadowRenderer;
@@ -42,25 +43,28 @@ public class FilterManager implements FilterManagerInterface {
     private WaterFilter waterFilter;
     private FilterPostProcessor fpp;
 
+    private Renderer renderer;
 
-    public FilterManager(AssetManager assetManager, Node rootNode, ViewPort viewPort, SkyInterface sky) {
+    public FilterManager(AssetManager assetManager, Node rootNode, ViewPort viewPort, SkyInterface sky, Renderer renderer) {
         this.assetManager = assetManager;
         this.rootNode = rootNode;
         this.viewPort = viewPort;
         this.sky = sky;
+        this.renderer = renderer;
     }
 
     @Override
     public void initialize() {
         fpp = new FilterPostProcessor(assetManager);
 
-        //addFog();
+        renderer.setDefaultAnisotropicFilter(1);
+//        addFog();
 
         setupFilterPostProcessor();
         setupLightScatteringFilter();
-//        setupDepthOfFieldFilter();
+        setupDepthOfFieldFilter();
         setupSSAOFilter();
-        //setupTranslucentBucketFilter();
+        setupTranslucentBucketFilter();
         setupShadowRenderer();
         setupWaterFilter();
         setupCartoonEdgeFilter();
@@ -113,13 +117,13 @@ public class FilterManager implements FilterManagerInterface {
     private void setupDepthOfFieldFilter() {
         DepthOfFieldFilter dof=new DepthOfFieldFilter();
         dof.setFocusDistance(0);
-        dof.setFocusRange(40);
-        dof.setBlurScale(1.125f);
+        dof.setFocusRange(20);
+        dof.setBlurScale(0.325f);
         fpp.addFilter(dof);
     }
 
     private void setupLightScatteringFilter() {
-        lsf = new LightScatteringFilter(sky.getSunDirection().normalize().mult(500));
+        lsf = new LightScatteringFilter(sky.getSunDirection().negate().normalizeLocal().mult(500));
         lsf.setLightDensity(1.0f);
         fpp.addFilter(lsf);
     }

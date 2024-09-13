@@ -18,6 +18,9 @@
 
 package com.idflood.sky.utils;
 
+import com.jme3.asset.AssetManager;
+import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
@@ -30,11 +33,21 @@ public class CloudsBillboardItem extends Geometry {
     private Mesh box;
 
 
-    public CloudsBillboardItem(String name, Float scale) {
+    public CloudsBillboardItem(AssetManager assetManager, String name, Float scale) {
         super(name);
         box = new Dome(Vector3f.ZERO, 2, 32, 1000f,true);
 
         setMesh(box);
+
+        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setTexture("ColorMap", assetManager.loadTexture("Textures/Clouds_L.png"));
+        float factor = -1.0f;
+        float units = -1.0f;
+        mat.getAdditionalRenderState().setPolyOffset(factor, units);
+        mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.AlphaAdditive);
+        mat.getAdditionalRenderState().setDepthWrite(false);
+
+        setMaterial(mat);
 
         setQueueBucket(RenderQueue.Bucket.Transparent);
         setCullHint(CullHint.Never);

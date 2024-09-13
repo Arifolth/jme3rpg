@@ -87,6 +87,8 @@ public class ExitMenuState extends CompositeAppState {
         gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
 
         application.stop();
+
+        System.exit(0);
     }
 
     @Override

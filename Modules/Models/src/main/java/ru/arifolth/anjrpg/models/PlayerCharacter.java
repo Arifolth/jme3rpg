@@ -23,47 +23,61 @@ import com.jme3.animation.AnimControl;
 import com.jme3.animation.LoopMode;
 import com.jme3.app.SimpleApplication;
 import com.jme3.collision.CollisionResults;
-import com.jme3.math.ColorRGBA;
-import com.jme3.math.Ray;
-import com.jme3.math.Vector3f;
+import com.jme3.math.*;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.*;
 import com.jme3.ui.Picture;
 import ru.arifolth.anjrpg.interfaces.*;
 
+import java.util.AbstractMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class PlayerCharacter extends AnimatedCharacter {
+    final private static Logger LOGGER = Logger.getLogger(PlayerCharacter.class.getName());
+
     public static final String PLAYER_CHARACTER_MODEL = "Models/Ninja/Ninja.j3o";
     protected final AnimationDelegateInterface animationDelegate = new AnimationDelegate(this);
+    private final float walkingRange;
     protected float shootDelay;
     protected float shootRate;
+    protected float turnRate;
+    protected Vector3f viewDirection;
 
     private boolean left = false, right = false, up = false, down = false,
         attacking = false, capture_mouse = true, running = false, blocking = false, block_pressed = false,
         jumping = false, jump_pressed = false, attack_pressed = false;
-    private final Vector3f walkDirection = new Vector3f();
+    private Vector3f walkDirection = Constants.ZERO_VECTOR3F;
     private float airTime = 0;
     private float actionTime = 0;
     private Camera cam;
     private static final float MAX_DAMAGED_TIME = Constants.SHOOT_DELAY;
     private float playerDamaged = 0f;
+    private float jumpCooldown = 0f;
     private Picture damageIndicator;
     protected float firingRange;
     protected boolean dead = false;
     protected boolean initializing = true;
     private float health;
 
+    private Map.Entry<Iterator<CharacterInterface>, CharacterInterface> lockedOnCharacter = null;
+    private boolean lock_pressed;
+
     public PlayerCharacter() {
         this.setModel(PLAYER_CHARACTER_MODEL);
         this.setName(this.getClass().getName());
-
+        this.walkingRange = Constants.WALKING_RANGE;
         this.firingRange = Constants.MELEE_DISTANCE_LIMIT;
         this.shootDelay = Constants.SHOOT_DELAY;
         this.shootRate = Constants.SHOOT_RATE;
+        this.turnRate = FastMath.QUARTER_PI / 2.5f;
     }
 
     @Override
     public void initializeModelLod() {
-        LodUtils.setUpCharacterModelLod(characterModel);
+        LodUtils.setUpModelLod(characterModel);
     }
 
     @Override
@@ -79,13 +93,13 @@ public class PlayerCharacter extends AnimatedCharacter {
     public void block() {
         animationDelegate.blockAnimation();
 
-        playSwordSound(getSwordSwingNode());
+        playSound(getSwordSwingNode());
     }
 
     public void attack() {
         animationDelegate.attackAnimation();
 
-        playSwordSound(getSwordSwingNode());
+        playSound(getSwordSwingNode());
 
         Node enemies = gameLogicCore.getEnemies();
 
@@ -109,11 +123,11 @@ public class PlayerCharacter extends AnimatedCharacter {
                 boolean blocked = Utils.getRandom(Constants.HIT_PROBABILITY);
                 if(!blocked) {
                     npc.getHealthBar().applyDamage(Constants.DAMAGE);
-                    playSwordSound(getSwordHitNode());
+                    playSound(getSwordHitNode());
                 } else {
                     npc.getAnimationDelegate().blockAnimation();
                     npc.resetShootCounterByQuarter();
-                    playSwordSound(getSwordBlockNode());
+                    playSound(getSwordBlockNode());
                 }
             }
         }
@@ -144,7 +158,10 @@ public class PlayerCharacter extends AnimatedCharacter {
                 ch.setSpeed(0f);
                 setActionTime(getAttackChannel().getAnimMaxTime());
             }
-            gameLogicCore.getRootNode().detachChild(this.getNode());
+
+            gameLogicCore.getApp().enqueue(() -> {
+                gameLogicCore.getRootNode().detachChild(this.getNode());
+            });
         }
     }
 
@@ -169,9 +186,18 @@ public class PlayerCharacter extends AnimatedCharacter {
         movementUpdate(k);
     }
 
+    public void stop() {
+        if(walkDirection != null) {
+            walkDirection.set(0f, 0f, 0f);
+            characterControl.setWalkDirection(walkDirection);
+        }
+        this.getPlayerStepsNode(this.isRunning()).pause();
+        animationDelegate.idleAnimation();
+    }
+
     public void movementUpdate(float k) {
         float movement_amount = 0.3f;
-        if(this.isRunning()) {
+        if (this.isRunning()) {
             movement_amount *= 1.75;
         }
 
@@ -186,50 +212,88 @@ public class PlayerCharacter extends AnimatedCharacter {
 
         this.getWalkDirection().set(0, 0, 0); // The walk direction is initially null
 
-        if(this.isUp()) {
+        if (lockedOnCharacter != null) {
+            CharacterInterface targetCharacter = lockedOnCharacter.getValue();
+            if(withinRange(walkingRange, targetCharacter)) {
+                turningTo(targetCharacter.getCharacterControl().getPhysicsLocation());
+
+                if (withinRange(firingRange, targetCharacter)) {
+                    stop();
+                    this.getWalkDirection().set(walkDirection.getX(), 0, 0);
+                 }
+            } else {
+                lockedOnCharacter = null;
+            }
+        }
+
+
+        if (this.isUp()) {
             this.getWalkDirection().addLocal(camDir);
 
-            if(this.isLeft()) {
+            if (this.isLeft()) {
                 this.getWalkDirection().addLocal(camLeft);
-            } else if(this.isRight()) {
+            } else if (this.isRight()) {
                 this.getWalkDirection().addLocal(camLeft.negate());
             }
-        } else if(this.isDown()) {
+        } else if (this.isDown()) {
             this.getWalkDirection().addLocal(camDir.negate());
 
-            if(this.isLeft()) {
+            if (this.isLeft()) {
                 this.getWalkDirection().addLocal(camLeft);
-            } else if(this.isRight()) {
+            } else if (this.isRight()) {
                 this.getWalkDirection().addLocal(camLeft.negate());
             }
-        } else if(this.isLeft()) {
+        } else if (this.isLeft()) {
             this.getWalkDirection().addLocal(camLeft);
-        } else if(this.isRight()) {
+        } else if (this.isRight()) {
             this.getWalkDirection().addLocal(camLeft.negate());
         }
 
-        if(!this.getCharacterControl().onGround()) {
-            this.setAirTime(this.getAirTime() + k);
-        } else {
-            this.setAirTime(0);
-            this.setJumping(false);
-        }
+        if(this.isJumping()) {
+            LOGGER.log(Level.INFO, "JUMP PRESSED");
 
-        if (this.getAirTime() > 0.1f || this.isJump_pressed()) {
-            this.setJumping(true);
-            // Stop movement if jumping while walking
-            if(this.isJump_pressed() && this.getAnimationChannel().getAnimationName().equals(AnimConstants.WALK))
-                if (!this.getAnimationChannel().getAnimationName().equals(AnimConstants.JUMP)) {
-                    this.getAnimationChannel().setAnim(AnimConstants.JUMP);
-                    this.getAnimationChannel().setSpeed(1f);
-                    this.getAnimationChannel().setLoopMode(LoopMode.DontLoop);
-                }
-            if(this.getAnimationChannel().getTime() >= 0.32f) { // Delay jump to make the animation look decent
+            if (this.getCharacterControl().onGround() && !this.getAnimationChannel().getAnimationName().equals(AnimConstants.JUMP)) {
+                LOGGER.log(Level.INFO, "JUMP ANIMATION");
+
+                this.getAttackChannel().setAnim("JumpNoHeight");
+                this.getAttackChannel().setSpeed(1f);
+                this.getAttackChannel().setLoopMode(LoopMode.DontLoop);
+
+                this.getAnimationChannel().setAnim(AnimConstants.JUMP);
+                this.getAnimationChannel().setSpeed(1f);
+                this.getAnimationChannel().setLoopMode(LoopMode.DontLoop);
+            }
+
+            if (this.getAnimationChannel().getAnimationName().equals(AnimConstants.JUMP)) {
+                LOGGER.log(Level.INFO, "JUMPING");
+
+                characterControl.getControllerId().setJumpSpeed(15f);
                 this.getCharacterControl().jump();
+            }
+
+            if(this.getAirTime() > 1f ) {
+                LOGGER.log(Level.INFO, "GROUNDING");
+
+                this.setJumping(false);
+                characterControl.getControllerId().setJumpSpeed(-1f);
+                characterControl.setWalkDirection(Constants.RAY_DOWN);
+            } else {
+                this.setAirTime(this.getAirTime() + k);
+
+                LOGGER.log(Level.INFO, "IN AIR: " + k);
             }
         }
 
-        if(!this.isJumping()) {
+        if(this.getCharacterControl().onGround() && jumpCooldown > 0)
+            jumpCooldown -= k;
+
+        if (!this.isJumping() && this.getCharacterControl().onGround()) {
+            if(this.getAirTime() > 0) {
+                this.setAirTime(0);
+                jumpCooldown = Constants.JUMP_COOLDOWN;
+                playSound(getJumpNode());
+            }
+
             if ((this.isUp() || this.isDown() || this.isLeft() || this.isRight())) {
                 animationDelegate.walkingAnimation();
                 this.getPlayerStepsNode(this.isRunning()).play();
@@ -241,38 +305,41 @@ public class PlayerCharacter extends AnimatedCharacter {
             this.getPlayerStepsNode(false).pause();
         }
 
-        if(this.getActionTime() > 0) {
+        if (this.getActionTime() > 0) {
             this.setActionTime(this.getActionTime() - k);
         }
 
-        if(this.isBlocking()) {
+        if (this.isBlocking()) {
             if (this.getActionTime() <= 0 && !this.getAttackChannel().getAnimationName().equals(AnimConstants.BLOCK)) {
                 this.block();
             }
-            if(!this.isBlock_pressed() && this.getActionTime() <= 0) {
+            if (!this.isBlock_pressed() && this.getActionTime() <= 0) {
                 animationDelegate.stopAnimation();
                 this.setBlocking(false);
             }
-        } else if(this.isAttacking()) {
+        } else if (this.isAttacking()) {
             if (this.getActionTime() <= 0 && !this.getAttackChannel().getAnimationName().equals(AnimConstants.ATTACK)) {
                 this.attack();
             }
-            if(!this.isAttack_pressed() && this.getActionTime() <= 0) {
+            if (!this.isAttack_pressed() && this.getActionTime() <= 0) {
                 animationDelegate.stopAnimation();
                 this.setAttacking(false);
             }
         }
 
-        this.getCharacterControl().setWalkDirection(this.getWalkDirection());
 
-        // Rotate model to point walk direction if moving
-        if((this.getWalkDirection().length() != 0) && (this.isUp() || this.isLeft() || this.isRight()))
-            this.getCharacterControl().setViewDirection(this.getWalkDirection().negate());
-        // negating cause the model is flipped
+        //free behaviour block
+        characterControl.setWalkDirection(this.getWalkDirection());
 
-        //walk backwards
-        if((this.getWalkDirection().length() != 0) && this.isDown())
-            this.getCharacterControl().setViewDirection(this.getWalkDirection());
+        if (lockedOnCharacter == null) {
+            // Rotate model to point walk direction if moving
+            if ((this.getWalkDirection().length() != 0) && (this.isUp() || this.isLeft() || this.isRight()))
+                characterControl.setViewDirection(this.getWalkDirection().negate());
+
+            //walk backwards
+            if ((this.getWalkDirection().length() != 0) && this.isDown())
+                characterControl.setViewDirection(this.getWalkDirection());
+        }
     }
 
     public void setPlayerDamaged() {
@@ -328,6 +395,49 @@ public class PlayerCharacter extends AnimatedCharacter {
     public void removeCharacter() {
     }
 
+    public void turningTo(Vector3f target) {
+        Quaternion diff1 = new Quaternion();
+        Quaternion diff2 = new Quaternion();
+
+        Vector3f newOrient = target.subtract(characterControl.getPhysicsLocation()).negate();
+        newOrient.setY(0f);
+        Vector3f curOrient = characterControl.getViewDirection();
+
+        diff1.lookAt(newOrient, Vector3f.UNIT_Y);
+        diff2.lookAt(curOrient, Vector3f.UNIT_Y);
+        Quaternion diff3 = diff1.subtract(diff2);
+
+        float ydiff = diff3.getY();
+
+        if (FastMath.abs(ydiff) > turnRate) {
+            if (ydiff < 0) {
+                turnRight();
+            } else {
+                turnLeft();
+            }
+        } else {
+            characterControl.setViewDirection(newOrient);
+        }
+    }
+
+    public void turnLeft() {
+        viewDirection = characterControl.getViewDirection();
+        Vector3f temp = viewDirection.normalize();
+        Quaternion turn = new Quaternion();
+        turn.fromAngleAxis(turnRate, Vector3f.UNIT_Y);
+        temp = turn.mult(temp);
+        characterControl.setViewDirection(temp);
+    }
+
+    public void turnRight() {
+        viewDirection = characterControl.getViewDirection();
+        Vector3f temp = viewDirection.normalize();
+        Quaternion turn = new Quaternion();
+        turn.fromAngleAxis(-turnRate, Vector3f.UNIT_Y);
+        temp = turn.mult(temp);
+        characterControl.setViewDirection(temp);
+    }
+
     @Override
     public void spawn() {
         gameLogicCore.getGameStateManager().setGameState(GameState.CALM);
@@ -335,7 +445,9 @@ public class PlayerCharacter extends AnimatedCharacter {
 
         gameLogicCore.detachGameOverIndicator();
 
-        gameLogicCore.getRootNode().attachChild(this.getNode());
+        gameLogicCore.getApp().enqueue(() -> {
+            gameLogicCore.getRootNode().attachChild(this.getNode());
+        });
 
         if(!initializing) {
             healthBar.create();
@@ -359,6 +471,8 @@ public class PlayerCharacter extends AnimatedCharacter {
         gameLogicCore.attachGameOverIndicator();
 
         healthBar.destroy();
+
+        lockedOnCharacter = null;
     }
 
     @Override
@@ -469,7 +583,7 @@ public class PlayerCharacter extends AnimatedCharacter {
     }
 
     public void setJump_pressed(boolean jump_pressed) {
-        this.jump_pressed = jump_pressed;
+        this.jump_pressed = ((jumpCooldown <= 0) && jump_pressed);
     }
 
     public void setRunning(boolean running) {
@@ -509,5 +623,30 @@ public class PlayerCharacter extends AnimatedCharacter {
 
     public float getHealth() {
         return health;
+    }
+
+    @Override
+    public void lockOnTarget() {
+        if(lockedOnCharacter == null) {  //start all over
+            for (Iterator<CharacterInterface> iterator = gameLogicCore.getCharacterMap().values().iterator(); iterator.hasNext(); ) {
+                CharacterInterface character = iterator.next();
+                if (withinRange(walkingRange, character)) {
+                    lockedOnCharacter = new AbstractMap.SimpleEntry<>(iterator,character);
+                    return;
+                }
+            }
+        } else {
+            Iterator<CharacterInterface> iterator = lockedOnCharacter.getKey();
+            if(!iterator.hasNext()) {
+                lockedOnCharacter = null;
+            }
+            while(iterator.hasNext()) {
+                CharacterInterface character = iterator.next();
+                if (withinRange(walkingRange, character)) {
+                    lockedOnCharacter = new AbstractMap.SimpleEntry<>(iterator,character);
+                    return; //fast exit
+                }
+            }
+        }
     }
 }

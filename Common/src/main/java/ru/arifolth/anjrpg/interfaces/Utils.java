@@ -39,14 +39,18 @@ public class Utils {
     }
 
     public static float getRandomNumberInRange(float min, float max) {
-        return (float) random.doubles(min, max).findAny().getAsDouble();
+        if (min >= max) {
+            throw new IllegalArgumentException("max must be greater than min");
+        }
+        return random.nextFloat(max - min) + min;
     }
 
     public static void enableEntityPhysics(CharacterInterface character) {
         CharacterControl characterControl = character.getCharacterControl();
-        characterControl.setJumpSpeed(20);
-        characterControl.setFallSpeed(300);
-        characterControl.setGravity(30);
+        characterControl.getControllerId().setMaxJumpHeight(10f);
+//        characterControl.setJumpSpeed(10);
+        characterControl.setFallSpeed(55);
+        characterControl.setGravity(9.8f * 3);
     }
 
     public static boolean isBetween(int x, int lower, int upper) {

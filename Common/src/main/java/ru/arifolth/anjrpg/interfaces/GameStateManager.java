@@ -42,7 +42,7 @@ public class GameStateManager implements GameStateManagerInterface {
             switch (nextGameState) {
                 case CALM: {
                     checkTime();
-                    changeState(0.3f);
+                    changeState(Constants.CHANGE_GAME_STATE_TPF);
                     break;
                 }
                 case NIGHT:
@@ -51,24 +51,24 @@ public class GameStateManager implements GameStateManagerInterface {
                 case DUSK:
                 case DEATH:
                 {
-                    changeState(0.3f);
+                    changeState(Constants.CHANGE_GAME_STATE_TPF);
                     break;
                 }
                 case BATTLE: {
-                    changeState(0.3f);
+                    changeState(Constants.CHANGE_GAME_STATE_TPF);
                     break;
                 }
                 default: {
                     if(AudioSource.Status.Stopped.equals(gameLogicCore.getSoundManager().getCurrentMusicNode().getStatus())) {
                         checkTime();
-                        changeState(0.3f);
+                        changeState(Constants.CHANGE_GAME_STATE_TPF);
                     }
                 }
             }
         } else {
             if(AudioSource.Status.Stopped.equals(gameLogicCore.getSoundManager().getCurrentMusicNode().getStatus())) {
                 checkTime();
-                changeState(0.3f);
+                changeState(Constants.CHANGE_GAME_STATE_TPF);
             }
         }
     }
@@ -76,10 +76,8 @@ public class GameStateManager implements GameStateManagerInterface {
     @Override
     public void setGameState(GameState gameState) {
         if(!gameState.equals(nextGameState) && !gameState.equals(currentGameState)) {
-//            implement isNextAcceptable()
-            if (gameState.equals(GameState.CALM) || !currentGameState.equals(GameState.DEATH)) {
+            if(gameState.isNextAcceptable())
                 this.nextGameState = gameState;
-            }
         }
     }
 
@@ -102,17 +100,16 @@ public class GameStateManager implements GameStateManagerInterface {
     public void checkTime() {
         int hours = gameLogicCore.getSky().getHours();
 
-        GameStateManagerInterface gameStateManager = gameLogicCore.getGameStateManager();
         if (Utils.isBetween(hours, 0, 6)) {
-            gameStateManager.setGameState(GameState.NIGHT);
+            this.setGameState(GameState.NIGHT);
         } else if (Utils.isBetween(hours, 7, 8)) {
-            gameStateManager.setGameState(GameState.DAWN);
+            this.setGameState(GameState.DAWN);
         } else if (Utils.isBetween(hours, 9, 18)) {
-            gameStateManager.setGameState(GameState.DAY);
+            this.setGameState(GameState.DAY);
         } else if (Utils.isBetween(hours, 19, 21)) {
-            gameStateManager.setGameState(GameState.DUSK);
+            this.setGameState(GameState.DUSK);
         } else if (Utils.isBetween(hours, 22, 23)) {
-            gameStateManager.setGameState(GameState.NIGHT);
+            this.setGameState(GameState.NIGHT);
         } else {
             throw new RuntimeException("checkTime");
         }

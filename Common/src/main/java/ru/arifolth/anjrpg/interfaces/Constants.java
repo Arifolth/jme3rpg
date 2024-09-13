@@ -35,17 +35,18 @@ public class Constants {
 
     public static final int MODEL_ADJUSTMENT = 3;
 
-    public static final float SOUND_VOLUME = 3f;
-    public static final int MUSIC_VOLUME_MULTIPLIER = 6;
+    public static final float SOUND_VOLUME = 0.5f;
+    public static final float MUSIC_VOLUME_MULTIPLIER = 0.25f;
 
     public static final float SOUND_PITCH = 0.5f;
     public static final SSAOFilter SSAO_FILTER_BASIC = new SSAOFilter(1f, 1.5f, 5.8f, 0.9f);
     public static final String DEBUG = "Debug";
-    public static final String POM_XML = "pom.xml";
     public static final String ROOT_LOGGER = "";
     public static final Level LOGGING_LEVEL = Level.INFO;
     public static final int MIN_FRAME_RATE = 30;
-    public static final int MOUNTAINS_HEIGHT_OFFSET = -250;
+    public static final int HEIGHT_OFFSET = -250;
+    public static final int MOUNTAINS_HEIGHT_OFFSET = -4000;
+    public static final Vector3f INITIAL_MOUNTAINS_OFFSET = new Vector3f(MOUNTAINS_HEIGHT_OFFSET, 0f, 0f);
     public static final float TERRAIN_SCALE_X = 2f;
     public static final float TERRAIN_SCALE_Y = 1f;
     public static final float TERRAIN_SCALE_Z = 2f;
@@ -61,7 +62,18 @@ public class Constants {
     public static final int RIGID_BODIES_SIZE = 4;
     public static final String QUAD_GRASS = "quadGrass";
     public static final String QUAD_FOREST = "quadForest";
-    public static float MELEE_DISTANCE_LIMIT = 15f;
+    public static final float FIRING_RANGE = 5f;
+    public static final float WALKING_RANGE = 500f;
+    public static final float WALK_SPEED = .3f;
+    public static final String GRASS_NODE = "Grass";
+    public static final String FOREST_NODE = "Forest";
+    public static final String ENEMIES_NODE = "Enemies";
+    public static final float CHANGE_GAME_STATE_TPF = 0.3f;
+    public static final Vector3f ZERO_VECTOR3F = new Vector3f();
+    public static final float JUMP_COOLDOWN = 1.0f;
+    public static final int TREE_PLANTING_RANGE = 1500;
+    public static final int TREE_PLANTING_HEIGHT = 70;
+    public static float MELEE_DISTANCE_LIMIT = 5.5f;
 
     //HKEY_CURRENT_USER\Software\JavaSoft\Prefs\
 
