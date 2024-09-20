@@ -135,7 +135,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
         FilteredBasis ground = new FilteredBasis(this.base);
 
         this.perturb = new PerturbFilter();
-        this.perturb.setMagnitude(0.419f);
+        this.perturb.setMagnitude(0.219f);
 
         this.therm = new OptimizedErode();
         this.therm.setRadius(1);

@@ -64,9 +64,10 @@ public class VegetationInitialization implements VegetationInitializationInterfa
             context.getNode().setShadowMode(RenderQueue.ShadowMode.Cast);
             context.getNode().setCullHint(Spatial.CullHint.Dynamic);
 
-            for(int i = 0; i < 7; i++) {
-                executorService.execute(new TreesBuilder(gameLogicCore, quadLocation, quad, context));
-            }
+            executorService.execute(new TreesBuilder(gameLogicCore, quadLocation, quad, context));
+            executorService.execute(new TreesBuilder(gameLogicCore, quadLocation, quad, context));
+            executorService.execute(new TreesBuilder(gameLogicCore, quadLocation, quad, context));
+            executorService.execute(new TreesBuilder(gameLogicCore, quadLocation, quad, context));
         } else {
             gameLogicCore.getApp().enqueue(() -> {
                 gameLogicCore.getForestNode().attachChild(context.getNode());
@@ -86,8 +87,6 @@ public class VegetationInitialization implements VegetationInitializationInterfa
             context.getNode().setCullHint(Spatial.CullHint.Dynamic);
 
             executorService.execute(new GrassBuilder(gameLogicCore, quadLocation, quad, context));
-            executorService.execute(new GrassBuilder(gameLogicCore, quadLocation, quad, context));
-
         } else {
             gameLogicCore.getApp().enqueue(() -> {
                 gameLogicCore.getGrassNode().attachChild(context.getNode());

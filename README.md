@@ -53,7 +53,7 @@ To build them enable profile
 
 ## Run using Jdk
 ```bash
-mvn exec:java -pl GameClient -Djvm.options="-XX:-TieredCompilation -XX:TieredStopAtLevel=3 -server -XX:+UnlockExperimentalVMOptions -XX:+UseZGC -XX:+UseStringDeduplication -XX:+UseLargePages"
+mvn exec:java -pl GameClient -Djvm.options="-Xmx8G -server -XX:+UseZGC -XX:+ZProactive -XX:+UseStringDeduplication -XX:+UseLargePages"
 ```
 
 ## Repo
@@ -71,7 +71,6 @@ mvn exec:java -pl GameClient -Djvm.options="-XX:-TieredCompilation -XX:TieredSto
 ![Image](Screenshots/Lake.jpg "icon")
 ![Image](Screenshots/Underwater.jpg "icon")
 ![Image](Screenshots/Night.jpg "icon")
-![Image](Screenshots/Clouds.jpg "icon")
 ![Image](Screenshots/Fog2.jpg "icon")
 ![Image](Screenshots/Grass.jpg "icon")
 

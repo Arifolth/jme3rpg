@@ -131,6 +131,8 @@
                         <argument>ru.arifolth.anjrpg.ANJRpg</argument>
                         <argument>--type</argument>
                         <argument>app-image</argument>
+                        <argument>--java-options</argument>
+                        <argument>-Xmx6G -server -XX:+UseZGC -XX:+ZProactive -XX:+UseStringDeduplication -XX:+UseLargePages</argument>
                     </arguments>
                 </configuration>
             </plugin>
