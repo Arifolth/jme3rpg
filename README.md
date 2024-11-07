@@ -67,11 +67,12 @@ mvn exec:java -pl GameClient -Djvm.options="-Xmx8G -server -XX:+UseZGC -XX:+ZPro
 - Other resources, credit is given in the code
 
 ## Screenshots
+![Image](Screenshots/Combat.jpg "icon")
+![Image](Screenshots/Rain.jpg "icon")
 ![Image](Screenshots/Dawn.jpg "icon")
 ![Image](Screenshots/Lake.jpg "icon")
 ![Image](Screenshots/Underwater.jpg "icon")
 ![Image](Screenshots/Night.jpg "icon")
-![Image](Screenshots/Fog2.jpg "icon")
 ![Image](Screenshots/Grass.jpg "icon")
 
 ## License

@@ -58,7 +58,7 @@ public class FilterManager implements FilterManagerInterface {
         fpp = new FilterPostProcessor(assetManager);
 
         renderer.setDefaultAnisotropicFilter(1);
-//        addFog();
+        addFog();
 
         setupFilterPostProcessor();
         setupLightScatteringFilter();

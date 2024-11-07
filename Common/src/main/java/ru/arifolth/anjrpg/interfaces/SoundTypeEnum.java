@@ -34,7 +34,7 @@ public enum SoundTypeEnum implements AudioType {
         @Override
         public void init() {
             createAudioNode(this,
-                    "Sounds/birds/459977__florianreichelt__soft-wind.ogg",
+                    "Sounds/ambient/wind/wind-blowing-trees-in-woods-ivo-vicic-1-02-49.ogg",
                     stream,
                     looping,
                     positional,
@@ -42,10 +42,22 @@ public enum SoundTypeEnum implements AudioType {
         }
 
     },
-    WEATHER {
+    RAIN {
+        private AudioData.DataType stream = AudioData.DataType.Stream;
+        private Float pitch = null;
+        private boolean positional = false;
+        private boolean looping = true;
+
+        private static float volumeMultiplier = 1;
+
         @Override
         public void init() {
-
+            createAudioNode(this,
+                    "Sounds/ambient/rain/heavy-rain-shower-ftus-1-00-59.ogg",
+                    stream,
+                    looping,
+                    positional,
+                    pitch, volumeMultiplier);
         }
     },
     FOOTSTEPS {

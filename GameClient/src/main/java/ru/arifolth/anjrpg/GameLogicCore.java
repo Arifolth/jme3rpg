@@ -29,6 +29,7 @@ import com.jme3.scene.Node;
 import com.jme3.ui.Picture;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.interfaces.weather.EmitterInterface;
+import ru.arifolth.anjrpg.weather.WeatherManager;
 
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -58,11 +59,11 @@ public class GameLogicCore implements GameLogicCoreInterface {
     private SoundManagerInterface soundManager;
     private SkyInterface sky;
     private Picture gameOverIndicator;
+    private WeatherManagerInterface weatherManager;
 
     private CharacterInterface playerCharacter = null;
     private Picture damageIndicator = null;
     private Map<Node, CharacterInterface> characterMap = new WeakHashMap<>();
-    private Set<EmitterInterface> weatherEffectsSet = new LinkedHashSet<>();
     private GameStateManagerInterface gameStateManager = new GameStateManager(this);
 
     public GameLogicCore(Application app, Camera cam, FlyByCamera flyCam, InputManager inputManager, BulletAppState bulletAppState, AssetManager assetManager, SoundManagerInterface soundManager, TerrainManagerInterface terrainManager, Node rootNode) {
@@ -79,6 +80,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
     }
 
     public void initialize() {
+        weatherManager = new WeatherManager(this);
         /*
         * Initialization order is important: first we create Player Entity and Camera, later we initialize other stuff
         * */
@@ -87,7 +89,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
         initializationDelegate.setupCamera();
 
         movementController.setUpKeys();
-//        initializer.setupWeatherEffects();
+
         app.enqueue(() -> {
             getRootNode().attachChild(forestNode);
         });
@@ -153,13 +155,9 @@ public class GameLogicCore implements GameLogicCoreInterface {
             character.update(tpf);
         }
 
-        for(EmitterInterface emitter : weatherEffectsSet) {
-            emitter.update(tpf);
-        }
+        weatherManager.update(tpf);
 
         gameStateManager.update(tpf);
-
-//        this.getCam().onFrameChange();
     }
 
     @Override
@@ -174,11 +172,6 @@ public class GameLogicCore implements GameLogicCoreInterface {
 
     public MovementControllerInterface getMovementController() {
         return movementController;
-    }
-
-    @Override
-    public Set<EmitterInterface> getWeatherEffectsSet() {
-        return weatherEffectsSet;
     }
 
     @Override

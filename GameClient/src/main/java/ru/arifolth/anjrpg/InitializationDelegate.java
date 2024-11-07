@@ -23,29 +23,18 @@ import com.jme3.collision.CollisionResults;
 import com.jme3.input.ChaseCamera;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.MouseButtonTrigger;
-import com.jme3.math.*;
-import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.math.ColorRGBA;
+import com.jme3.math.Ray;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
-import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.ui.Picture;
-import jme3tools.optimize.GeometryBatchFactory;
 import ru.arifolth.anjrpg.interfaces.*;
-import ru.arifolth.anjrpg.interfaces.weather.EmitterInterface;
 import ru.arifolth.anjrpg.models.NonPlayerCharacter;
 import ru.arifolth.anjrpg.models.PlayerCharacter;
-import ru.arifolth.anjrpg.weather.RainEmitter;
-import ru.arifolth.vegetation.GrassTypeEnum;
-import ru.arifolth.vegetation.TreeTypeEnum;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import static ru.arifolth.anjrpg.interfaces.Constants.RAY_DOWN;
 
@@ -84,12 +73,6 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         playerCharacter.setDamageIndicator(gameLogicCore.getDamageIndicator());
         gameLogicCore.setPlayerCharacter(playerCharacter);
         gameLogicCore.getMovementController().setPlayerCharacter(playerCharacter);
-    }
-
-    void setupWeatherEffects() {
-        EmitterInterface emitter = new RainEmitter(gameLogicCore.getRootNode(), gameLogicCore.getAssetManager());
-        emitter.setSpatial(gameLogicCore.getPlayerCharacter().getNode());
-        gameLogicCore.getWeatherEffectsSet().add(emitter);
     }
 
     void setupGameOverIndicator() {
