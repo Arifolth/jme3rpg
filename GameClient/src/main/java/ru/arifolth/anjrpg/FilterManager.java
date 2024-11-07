@@ -44,6 +44,7 @@ public class FilterManager implements FilterManagerInterface {
     private FilterPostProcessor fpp;
 
     private Renderer renderer;
+    private FogFilter fog;
 
     public FilterManager(AssetManager assetManager, Node rootNode, ViewPort viewPort, SkyInterface sky, Renderer renderer) {
         this.assetManager = assetManager;
@@ -58,7 +59,7 @@ public class FilterManager implements FilterManagerInterface {
         fpp = new FilterPostProcessor(assetManager);
 
         renderer.setDefaultAnisotropicFilter(1);
-        addFog();
+        setupFog();
 
         setupFilterPostProcessor();
         setupLightScatteringFilter();
@@ -70,6 +71,14 @@ public class FilterManager implements FilterManagerInterface {
         setupCartoonEdgeFilter();
 
         viewPort.addProcessor(fpp);
+    }
+
+    private void setupFog() {
+        fog = new FogFilter();
+
+        fog.setFogColor(new ColorRGBA(0.9f, 0.9f, 0.9f, 1.0f));
+        fog.setFogDistance(5000);
+        fog.setFogDensity(2.255f);
     }
 
     private void setupCartoonEdgeFilter() {
@@ -88,13 +97,15 @@ public class FilterManager implements FilterManagerInterface {
     }
 
 
-    private void addFog() {
+    @Override
+    public void addFog() {
         /** Add fog to a scene */
-        FogFilter fog=new FogFilter();
-        fog.setFogColor(new ColorRGBA(0.9f, 0.9f, 0.9f, 1.0f));
-        fog.setFogDistance(5000);
-        fog.setFogDensity(2.255f);
         fpp.addFilter(fog);
+    }
+
+    @Override
+    public void removeFog() {
+        fpp.removeFilter(fog);
     }
 
     private void setupShadowRenderer() {

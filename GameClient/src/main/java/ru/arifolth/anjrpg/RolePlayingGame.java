@@ -215,6 +215,11 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     }
 
     @Override
+    public FilterManagerInterface getFilterManager() {
+        return filterManager;
+    }
+
+    @Override
     public SoundManagerInterface getSoundManager() {
         return soundManager;
     }

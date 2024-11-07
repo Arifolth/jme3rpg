@@ -26,6 +26,8 @@ public interface RolePlayingGameInterface extends Application {
 
     Node getRootNode();
 
+    FilterManagerInterface getFilterManager();
+
     SoundManagerInterface getSoundManager();
 
     TerrainManagerInterface getTerrainManager();

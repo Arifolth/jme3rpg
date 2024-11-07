@@ -19,10 +19,7 @@
 package ru.arifolth.anjrpg.weather;
 
 import com.jme3.audio.AudioNode;
-import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
-import ru.arifolth.anjrpg.interfaces.SoundTypeEnum;
-import ru.arifolth.anjrpg.interfaces.Utils;
-import ru.arifolth.anjrpg.interfaces.WeatherManagerInterface;
+import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.interfaces.weather.EmitterInterface;
 
 import java.util.LinkedHashSet;
@@ -86,6 +83,8 @@ public class WeatherManager implements WeatherManagerInterface {
         gameLogicCore.getPlayerCharacter().getNode().attachChild(audioNode);
 
         audioNode.play();
+
+        ((RolePlayingGameInterface) gameLogicCore.getApp()).getFilterManager().addFog();
     }
 
     @Override
@@ -94,6 +93,8 @@ public class WeatherManager implements WeatherManagerInterface {
 
         audioNode.stop();
         gameLogicCore.getPlayerCharacter().getNode().detachChildNamed(SoundTypeEnum.RAIN.name());
+
+        ((RolePlayingGameInterface) gameLogicCore.getApp()).getFilterManager().removeFog();
     }
 
     @Override
