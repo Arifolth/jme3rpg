@@ -65,7 +65,7 @@ public class WeatherManager implements WeatherManagerInterface {
                 LOGGER.log(Level.INFO, "RAIN STOPS");
                 detachRain();
 
-                if (isRoll()) {
+                if (isRoll() && weatherEffectsSet.isEmpty()) {
                     attachRain();
 
                     LOGGER.log(Level.INFO, "ITS RAINING!");

@@ -35,7 +35,7 @@ public class RainEmitter implements EmitterInterface {
     private Spatial spatial;
 
     public RainEmitter(Node rootNode, AssetManager assetManager) {
-        rain = new ParticleEmitter("Rain", ParticleMesh.Type.Point, 90000); //amount of rain flakes
+        rain = new ParticleEmitter("Rain", ParticleMesh.Type.Point, 180000); //amount of rain flakes
         rain.setShape(new EmitterSphereShape(new Vector3f(-1.8f, -1.8f, -1.8f), 50f));
 
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Particle.j3md");
@@ -52,7 +52,7 @@ public class RainEmitter implements EmitterInterface {
         rain.setEndColor(ColorRGBA.Gray);
         rain.setSelectRandomImage(true);
         rain.getParticleInfluencer().setInitialVelocity(new Vector3f(0, -1.65f, 0));
-        rain.setGravity(0, 2, 0);
+        rain.setGravity(0, 3, 0);
         rain.getParticleInfluencer().setVelocityVariation(0.45f);
 
         rootNode.attachChild(rain);
