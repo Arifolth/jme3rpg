@@ -31,6 +31,8 @@ public enum SoundTypeEnum implements AudioType {
         private boolean positional = false;
         private boolean looping = true;
 
+        private static float volumeMultiplier = 0.75f;
+
         @Override
         public void init() {
             createAudioNode(this,
@@ -40,7 +42,24 @@ public enum SoundTypeEnum implements AudioType {
                     positional,
                     pitch, volumeMultiplier);
         }
+    },
+    NIGHT {
+        private AudioData.DataType stream = AudioData.DataType.Stream;
+        private Float pitch = null;
+        private boolean positional = false;
+        private boolean looping = true;
 
+        private static float volumeMultiplier = 0.45f;
+
+        @Override
+        public void init() {
+            createAudioNode(this,
+                    "Sounds/ambient/wind/wind-blowing-trees-in-woods-ivo-vicic-1-02-49.ogg",
+                    stream,
+                    looping,
+                    positional,
+                    pitch, volumeMultiplier);
+        }
     },
     RAIN {
         private AudioData.DataType stream = AudioData.DataType.Stream;

@@ -441,7 +441,6 @@ public class PlayerCharacter extends AnimatedCharacter {
     @Override
     public void spawn() {
         gameLogicCore.getGameStateManager().setGameState(GameState.CALM);
-        gameLogicCore.getGameStateManager().changeState(0.1f);
 
         gameLogicCore.detachGameOverIndicator();
 

@@ -35,7 +35,7 @@ public class AudioMenuState extends CustomCompositeAppState {
     public static final int WIDTH = 0;
     public static final int HEIGHT = 1;
     private final SoundManagerInterface soundManager;
-    private RangedValueModel volumeModel = new DefaultRangedValueModel(0, 6, 3);
+    private RangedValueModel volumeModel = new DefaultRangedValueModel(0, 1, 0.5);
     private ANJRpgInterface application;
     private GameLogicCoreInterface gameLogicCore;
 

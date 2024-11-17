@@ -23,14 +23,21 @@ import com.jme3.audio.AudioNode;
 import ru.arifolth.anjrpg.interfaces.*;
 
 import java.util.EnumSet;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class SoundManager implements SoundManagerInterface {
     final private static Logger LOGGER = Logger.getLogger(SoundManager.class.getName());
     private float soundVolume = Constants.SOUND_VOLUME;
+
     private float musicVolume = soundVolume * Constants.MUSIC_VOLUME_MULTIPLIER;
     private AudioNode currentMusicNode;
+
+    private AudioNode currentAmbientSound;
     private MusicTypeEnum nextMusicType;
+
+    private SoundTypeEnum nextAmbientSoundType;
+
     private float fadeOut;
 
     @Override
@@ -46,6 +53,13 @@ public class SoundManager implements SoundManagerInterface {
         this.nextMusicType = nextMusicType;
     }
 
+    @Override
+    public void changeAmbientSound(float tpf, SoundTypeEnum nextAmbientSound) {
+        if(null != nextAmbientSound) {
+            this.nextAmbientSoundType = nextAmbientSound;
+        }
+    }
+
     public SoundManager(AssetManager assetManager) {
         SoundTypeEnum.setAssetManager(assetManager);
         MusicTypeEnum.setAssetManager(assetManager);
@@ -57,8 +71,8 @@ public class SoundManager implements SoundManagerInterface {
         EnumSet.allOf(MusicTypeEnum.class).forEach(MusicTypeEnum::init);
     }
 
-    public AudioNode getSoundNode(AudioType musicType) {
-        return SoundTypeEnum.getClone(musicType);
+    public AudioNode getSoundNode(AudioType soundType) {
+        return SoundTypeEnum.getClone(soundType);
     }
 
     public AudioNode getMusicNode(AudioType musicType) {
@@ -72,15 +86,33 @@ public class SoundManager implements SoundManagerInterface {
 
     @Override
     public void update(float tpf) {
+        handleMusic();
+        handleAmbientSoundChange();
+    }
+
+    private void handleAmbientSoundChange() {
+        if(nextAmbientSoundType != null) {
+            LOGGER.log(Level.INFO, "nextAmbientSoundType == " + nextAmbientSoundType.name());
+
+            if(currentAmbientSound != null)
+                currentAmbientSound.stop();
+            currentAmbientSound = getSoundNode(nextAmbientSoundType);
+            nextAmbientSoundType = null;
+            currentAmbientSound.play();
+        }
+    }
+
+    private void handleMusic() {
         if((fadeOut > 0) && (currentMusicNode.getVolume() > 0)) {
             float volume = currentMusicNode.getVolume() - fadeOut;
             currentMusicNode.setVolume(Math.max(volume, 0f));
         } else if(nextMusicType != null){
             fadeOut = 0;
+            if(currentMusicNode != null)
+                currentMusicNode.stop();
             currentMusicNode = getMusicNode(nextMusicType);
             nextMusicType = null;
             currentMusicNode.setVolume(musicVolume);
-            currentMusicNode.stop();
             currentMusicNode.play();
         }
     }

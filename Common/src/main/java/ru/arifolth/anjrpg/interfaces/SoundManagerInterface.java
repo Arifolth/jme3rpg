@@ -36,6 +36,7 @@ public interface SoundManagerInterface {
     AudioNode getCurrentMusicNode();
 
     void fadeMusicOut(float tpf, MusicTypeEnum nextMusicType);
+    void changeAmbientSound(float tpf, SoundTypeEnum nextAmbientSound);
 
     void initialize();
 

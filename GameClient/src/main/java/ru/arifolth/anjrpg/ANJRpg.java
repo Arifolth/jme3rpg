@@ -150,6 +150,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
                     guiViewPort.removeProcessor(niftyDisplay);
 
                     initialization = InitStateEnum.RUNNING;
+//                    gameLogicCore.getGameStateManager().setGameState(GameState.CALM);
                 }
                 break;
             }

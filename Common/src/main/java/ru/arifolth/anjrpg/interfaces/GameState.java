@@ -24,11 +24,19 @@ public enum GameState {
         public MusicTypeEnum getMusicType() {
             return MusicTypeEnum.MENU;
         }
+        @Override
+        public SoundTypeEnum getAmbientSound() {
+            return null;
+        }
     },
     BATTLE {
         @Override
         public MusicTypeEnum getMusicType() {
             return MusicTypeEnum.BATTLE;
+        }
+        @Override
+        public SoundTypeEnum getAmbientSound() {
+            return null;
         }
     },
     EXPLORATION {
@@ -36,11 +44,19 @@ public enum GameState {
         public MusicTypeEnum getMusicType() {
             return MusicTypeEnum.EXPLORATION;
         }
+        @Override
+        public SoundTypeEnum getAmbientSound() {
+            return null;
+        }
     },
     DAY {
         @Override
         public MusicTypeEnum getMusicType() {
             return MusicTypeEnum.DAY;
+        }
+        @Override
+        public SoundTypeEnum getAmbientSound() {
+            return SoundTypeEnum.WIND;
         }
     },
     CALM {
@@ -48,11 +64,19 @@ public enum GameState {
         public MusicTypeEnum getMusicType() {
             return MusicTypeEnum.CALM;
         }
+        @Override
+        public SoundTypeEnum getAmbientSound() {
+            return null;
+        }
     },
     MOUNTAINS {
         @Override
         public MusicTypeEnum getMusicType() {
             return MusicTypeEnum.MOUNTAINS;
+        }
+        @Override
+        public SoundTypeEnum getAmbientSound() {
+            return null;
         }
     },
     VILLAGE {
@@ -60,11 +84,19 @@ public enum GameState {
         public MusicTypeEnum getMusicType() {
             return MusicTypeEnum.VILLAGE;
         }
+        @Override
+        public SoundTypeEnum getAmbientSound() {
+            return null;
+        }
     },
     DEATH {
         @Override
         public MusicTypeEnum getMusicType() {
             return MusicTypeEnum.DEATH;
+        }
+        @Override
+        public SoundTypeEnum getAmbientSound() {
+            return null;
         }
     },
     NIGHT {
@@ -72,23 +104,19 @@ public enum GameState {
         public MusicTypeEnum getMusicType() {
             return MusicTypeEnum.NIGHT;
         }
+        @Override
+        public SoundTypeEnum getAmbientSound() {
+            return SoundTypeEnum.NIGHT;
+        }
     },
     FEAR {
         @Override
         public MusicTypeEnum getMusicType() {
             return null;
         }
-    },
-    SNOW {
         @Override
-        public MusicTypeEnum getMusicType() {
-            return MusicTypeEnum.SNOW;
-        }
-    },
-    RAIN {
-        @Override
-        public MusicTypeEnum getMusicType() {
-            return MusicTypeEnum.SNOW;
+        public SoundTypeEnum getAmbientSound() {
+            return null;
         }
     },
     DAWN {
@@ -96,16 +124,75 @@ public enum GameState {
         public MusicTypeEnum getMusicType() {
             return MusicTypeEnum.DAWN;
         }
+        @Override
+        public SoundTypeEnum getAmbientSound() {
+            return SoundTypeEnum.WIND;
+        }
     },
     DUSK {
         @Override
         public MusicTypeEnum getMusicType() {
             return MusicTypeEnum.DUSK;
         }
+        @Override
+        public SoundTypeEnum getAmbientSound() {
+            return SoundTypeEnum.WIND;
+        }
     };
     public abstract MusicTypeEnum getMusicType();
 
-    public boolean isNextAcceptable() {
-        return (this.equals(GameState.CALM) || !this.equals(GameState.DEATH));
+    public boolean isNextAcceptable(GameState gameState) {
+        boolean result = false;
+
+        if(!this.equals(gameState)) {
+            switch (this) {
+                case MENU -> {
+                    result = switch (gameState) {
+                        case CALM, NIGHT, DAY, DAWN, DUSK -> true;
+                        default -> false;
+                    };
+                }
+                case NIGHT -> {
+                    result = switch (gameState) {
+                        case DAWN, BATTLE -> true;
+                        default -> false;
+                    };
+                }
+                case DAY -> {
+                    result = switch (gameState) {
+                        case DUSK, BATTLE -> true;
+                        default -> false;
+                    };
+                }
+                case DAWN -> {
+                    result = switch (gameState) {
+                        case DAY, BATTLE -> true;
+                        default -> false;
+                    };
+                }
+                case DUSK -> {
+                    result = switch (gameState) {
+                        case NIGHT, BATTLE -> true;
+                        default -> false;
+                    };
+                }
+                case CALM -> {
+                    result = switch (gameState) {
+                        case NIGHT, DAY, DAWN, DUSK, BATTLE -> true;
+                        default -> false;
+                    };
+                }
+                case BATTLE -> {
+                    result = gameState.equals(CALM) || gameState.equals(DEATH);
+                }
+                case DEATH -> {
+                    result = gameState.equals(CALM);
+                }
+            }
+        }
+
+        return result;
     }
+
+    public abstract SoundTypeEnum getAmbientSound();
 }
