@@ -18,19 +18,12 @@
 
 package ru.arifolth.anjrpg.interfaces;
 
-import com.jme3.app.Application;
-import com.jme3.scene.Node;
+public interface WeatherManagerInterface {
+    void update(float tpf);
 
-public interface RolePlayingGameInterface extends Application {
-    GameLogicCoreInterface getGameLogicCore();
+    void attachRain();
 
-    Node getRootNode();
+    void detachRain();
 
-    FilterManagerInterface getFilterManager();
-
-    SoundManagerInterface getSoundManager();
-
-    TerrainManagerInterface getTerrainManager();
-
-    String getVersion();
+    boolean isRoll();
 }

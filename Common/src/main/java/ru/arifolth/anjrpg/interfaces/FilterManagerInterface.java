@@ -21,5 +21,9 @@ package ru.arifolth.anjrpg.interfaces;
 public interface FilterManagerInterface {
     void initialize();
 
+    void addFog();
+
+    void removeFog();
+
     void update(float tpf);
 }

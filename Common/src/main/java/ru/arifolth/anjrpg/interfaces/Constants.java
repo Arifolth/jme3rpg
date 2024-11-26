@@ -36,7 +36,7 @@ public class Constants {
     public static final int MODEL_ADJUSTMENT = 3;
 
     public static final float SOUND_VOLUME = 0.5f;
-    public static final float MUSIC_VOLUME_MULTIPLIER = 0.25f;
+    public static final float MUSIC_VOLUME_MULTIPLIER = 0.225f;
 
     public static final float SOUND_PITCH = 0.5f;
     public static final SSAOFilter SSAO_FILTER_BASIC = new SSAOFilter(1f, 1.5f, 5.8f, 0.9f);

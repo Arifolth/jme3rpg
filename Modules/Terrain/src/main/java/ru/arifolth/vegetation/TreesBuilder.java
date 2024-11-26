@@ -86,12 +86,13 @@ public class TreesBuilder implements BuilderInterface {
     }
 
     private List<Spatial> setupTrees() {
-        int forestSize = 200;
+        int forestSize = 350;
         List<Spatial> quadForest = new ArrayList<>(forestSize);
-        IntStream.range(0, forestSize).parallel().mapToObj(i -> TreeTypeEnum.getRandomTree()).forEach(treeModelCustom -> {
+        for (int i = 0; i < forestSize; i++) {
+            Node treeModelCustom = TreeTypeEnum.getRandomTree();
             treeModelCustom.scale(1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10));
             quadForest.add(treeModelCustom);
-        });
+        }
 
         return quadForest;
     }

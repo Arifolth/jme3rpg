@@ -54,8 +54,6 @@ public interface GameLogicCoreInterface {
 
     void update(float tpf);
 
-    Set<EmitterInterface> getWeatherEffectsSet();
-
     BulletAppState getBulletAppState();
 
     Node getRootNode();

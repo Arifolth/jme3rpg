@@ -42,7 +42,11 @@
                 </execution>
               </executions>
             </plugin>-->
-
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>3.4.0.905</version>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -95,7 +99,7 @@
 
         <encoding>UTF-8</encoding>
 
-        <jmonkey.version>3.6.1-stable</jmonkey.version>
+        <jmonkey.version>3.7.0-stable</jmonkey.version>
         <jme3.groupId>org.jmonkeyengine</jme3.groupId>
 
         <lemur.version>1.16.0</lemur.version>

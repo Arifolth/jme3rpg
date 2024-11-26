@@ -27,7 +27,7 @@ public class GameStateManager implements GameStateManagerInterface {
     final private static Logger LOGGER = Logger.getLogger(GameStateManager.class.getName());
 
     private GameLogicCoreInterface gameLogicCore;
-    private GameState currentGameState = GameState.MENU;;
+    private GameState currentGameState = GameState.MENU;
     private GameState nextGameState;
 
     public GameStateManager(GameLogicCoreInterface gameLogicCore) {
@@ -37,47 +37,16 @@ public class GameStateManager implements GameStateManagerInterface {
     @Override
     public void update(float tpf) {
         if(nextGameState != null) {
-            LOGGER.log(Level.INFO, "next GameState:" + nextGameState);
-
-            switch (nextGameState) {
-                case CALM: {
-                    checkTime();
-                    changeState(Constants.CHANGE_GAME_STATE_TPF);
-                    break;
-                }
-                case NIGHT:
-                case DAWN:
-                case DAY:
-                case DUSK:
-                case DEATH:
-                {
-                    changeState(Constants.CHANGE_GAME_STATE_TPF);
-                    break;
-                }
-                case BATTLE: {
-                    changeState(Constants.CHANGE_GAME_STATE_TPF);
-                    break;
-                }
-                default: {
-                    if(AudioSource.Status.Stopped.equals(gameLogicCore.getSoundManager().getCurrentMusicNode().getStatus())) {
-                        checkTime();
-                        changeState(Constants.CHANGE_GAME_STATE_TPF);
-                    }
-                }
-            }
+            changeState(Constants.CHANGE_GAME_STATE_TPF);
         } else {
-            if(AudioSource.Status.Stopped.equals(gameLogicCore.getSoundManager().getCurrentMusicNode().getStatus())) {
-                checkTime();
-                changeState(Constants.CHANGE_GAME_STATE_TPF);
-            }
+            checkTime();
         }
     }
 
     @Override
     public void setGameState(GameState gameState) {
-        if(!gameState.equals(nextGameState) && !gameState.equals(currentGameState)) {
-            if(gameState.isNextAcceptable())
-                this.nextGameState = gameState;
+        if(currentGameState.isNextAcceptable(gameState)) {
+            this.nextGameState = gameState;
         }
     }
 
@@ -91,9 +60,15 @@ public class GameStateManager implements GameStateManagerInterface {
         if(nextGameState == null)
             return;
 
-        gameLogicCore.getSoundManager().fadeMusicOut(tpf, nextGameState.getMusicType());
+        if(AudioSource.Status.Stopped.equals(gameLogicCore.getSoundManager().getCurrentMusicNode().getStatus()) ||
+                nextGameState.equals(GameState.BATTLE) ||
+                nextGameState.equals(GameState.CALM) ||
+                nextGameState.equals(GameState.DEATH)) {
+            gameLogicCore.getSoundManager().fadeMusicOut(tpf, nextGameState.getMusicType());
+        }
+        LOGGER.log(Level.INFO, "Change GameState: " + currentGameState + " to " + nextGameState);
         currentGameState = nextGameState;
-        LOGGER.log(Level.INFO, "change GameState:" + currentGameState);
+        gameLogicCore.getSoundManager().changeAmbientSound(tpf, nextGameState.getAmbientSound());
         nextGameState = null;
     }
     @Override

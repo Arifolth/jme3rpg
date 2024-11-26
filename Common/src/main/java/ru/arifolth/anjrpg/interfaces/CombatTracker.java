@@ -38,13 +38,29 @@ public class CombatTracker implements CombatTrackerInterface {
     public void update(float tpf) {
         inCombat = !enemies.isEmpty();
 
-        if(inCombat && !GameState.BATTLE.equals(gameLogicCore.getGameStateManager().getCurrentGameState())) {
-            gameLogicCore.getGameStateManager().setGameState(GameState.BATTLE);
-        }
+        isNotInBattle();
 
+        isInBattle();
+    }
+
+    private void isInBattle() {
         if(!inCombat && GameState.BATTLE.equals(gameLogicCore.getGameStateManager().getCurrentGameState())) {
-            gameLogicCore.getGameStateManager().setGameState(GameState.CALM);
+            leaveBattle();
         }
+    }
+
+    private void isNotInBattle() {
+        if(inCombat && !GameState.BATTLE.equals(gameLogicCore.getGameStateManager().getCurrentGameState())) {
+            joinBattle();
+        }
+    }
+
+    private void leaveBattle() {
+        gameLogicCore.getGameStateManager().setGameState(GameState.CALM);
+    }
+
+    private void joinBattle() {
+        gameLogicCore.getGameStateManager().setGameState(GameState.BATTLE);
     }
 
     @Override

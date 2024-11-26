@@ -85,14 +85,15 @@ public class GrassBuilder implements BuilderInterface {
         return node;
     }
     private List<Spatial> setupGrass() {
-        final int grassAmount = 125_000;
+        final int grassAmount = 250_000;
         List<Spatial> quadGrass = new ArrayList<>(grassAmount);
-        IntStream.range(0, grassAmount).parallel().mapToObj(i -> GrassTypeEnum.getRandomGrass()).forEach(grassInstance -> {
+        for (int i = 0; i < grassAmount; i++) {
+            Node grassInstance = GrassTypeEnum.getRandomGrass();
             grassInstance.setLocalScale(1 + Utils.getRandomNumberInRange(1, 3), 1 + Utils.getRandomNumberInRange(1, 3), 1 + Utils.getRandomNumberInRange(1, 3));
             grassInstance.setLocalTranslation(grassInstance.getLocalTranslation().getX(), grassInstance.getLocalTranslation().getY(), grassInstance.getLocalTranslation().getZ() - 15);
             grassInstance.rotate(Utils.getRandomNumberInRange(-0.65f, 0.65f), Utils.getRandomNumberInRange(-1.65f, 1.65f), 0);
             quadGrass.add(grassInstance);
-        });
+        }
 
         return quadGrass;
     }

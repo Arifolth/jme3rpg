@@ -117,9 +117,9 @@ public class MiniMapState extends BaseAppState {
         minimap.getMaterial().setTexture("Overlay", app.getAssetManager().loadTexture("Textures/MiniMap/circle-overlay.png"));
 
         minimap.setLocalTranslation(
-                app.getCamera().getWidth() - miniMapSize - 20,
-                app.getCamera().getHeight() - miniMapSize - 20,
-                1
+                app.getCamera().getWidth() - miniMapSize - 20f,
+                app.getCamera().getHeight() - miniMapSize - 20f,
+                1f
         );
 
         guiNode = ((SimpleApplication)app).getGuiNode();

@@ -38,7 +38,7 @@ public class LodUtils {
 
     private static void createModelLod(Spatial geometry) {
         LodGenerator lod = new LodGenerator((Geometry) geometry);
-        lod.bakeLods(LodGenerator.TriangleReductionMethod.PROPORTIONAL, 0.25f, 0.50f, 0.75f, 1.0f);
+        lod.bakeLods(LodGenerator.TriangleReductionMethod.PROPORTIONAL, 0.125f, 1.0f);
         geometry.addControl(new LodControl());
     }
 }

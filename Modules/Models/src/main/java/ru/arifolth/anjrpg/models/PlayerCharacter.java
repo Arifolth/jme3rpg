@@ -72,7 +72,7 @@ public class PlayerCharacter extends AnimatedCharacter {
         this.firingRange = Constants.MELEE_DISTANCE_LIMIT;
         this.shootDelay = Constants.SHOOT_DELAY;
         this.shootRate = Constants.SHOOT_RATE;
-        this.turnRate = FastMath.QUARTER_PI / 2.5f;
+        this.turnRate = FastMath.QUARTER_PI / 1.5f;
     }
 
     @Override
@@ -441,7 +441,6 @@ public class PlayerCharacter extends AnimatedCharacter {
     @Override
     public void spawn() {
         gameLogicCore.getGameStateManager().setGameState(GameState.CALM);
-        gameLogicCore.getGameStateManager().changeState(0.1f);
 
         gameLogicCore.detachGameOverIndicator();
 

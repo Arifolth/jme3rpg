@@ -43,6 +43,7 @@ public class SettingsUtils {
         settings.setGammaCorrection(false);
         settings.setStencilBits(Constants.STENCIL_BITS);
         settings.setTitle(JmeVersion.FULL_NAME);
+        settings.setUseRetinaFrameBuffer(true);
     }
 
     public static AppSettings loadSettings() {
