@@ -24,7 +24,9 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.vegetation.BushBuilder;
 import ru.arifolth.vegetation.GrassBuilder;
+import ru.arifolth.vegetation.MushroomBuilder;
 import ru.arifolth.vegetation.TreesBuilder;
 
 import java.util.concurrent.ExecutorService;
@@ -75,6 +77,25 @@ public class VegetationInitialization implements VegetationInitializationInterfa
         }
     }
 
+    private void internalPositionMushrooms(TerrainQuad quad) {
+        ContextInterface context = new MushroomContext(quad.getUserData(Constants.QUAD_MUSHROOMS));
+
+        final Vector3f quadLocation = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation();
+        if (context.getNode() == null) {
+            context.setNode(new Node());
+
+            context.getNode().setShadowMode(RenderQueue.ShadowMode.Receive);
+            context.getNode().setQueueBucket(RenderQueue.Bucket.Transparent);
+            context.getNode().setCullHint(Spatial.CullHint.Dynamic);
+
+            executorService.execute(new MushroomBuilder(gameLogicCore, quadLocation, quad, context));
+        } else {
+            gameLogicCore.getApp().enqueue(() -> {
+                gameLogicCore.getMushroomsNode().attachChild(context.getNode());
+            });
+        }
+    }
+
     private void internalPositionGrass(TerrainQuad quad) {
         ContextInterface context = new GrassContext(quad.getUserData(Constants.QUAD_GRASS));
 
@@ -90,6 +111,35 @@ public class VegetationInitialization implements VegetationInitializationInterfa
         } else {
             gameLogicCore.getApp().enqueue(() -> {
                 gameLogicCore.getGrassNode().attachChild(context.getNode());
+            });
+        }
+    }
+
+    @Override
+    public void positionBushes(TerrainQuad quad) {
+        internalPositionBushes(quad);
+    }
+
+    @Override
+    public void positionMushrooms(TerrainQuad quad) {
+        internalPositionMushrooms(quad);
+    }
+
+    private void internalPositionBushes(TerrainQuad quad) {
+        ContextInterface context = new BushesContext(quad.getUserData(Constants.QUAD_BUSHES));
+
+        final Vector3f quadLocation = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation();
+        if (context.getNode() == null) {
+            context.setNode(new Node());
+
+            context.getNode().setShadowMode(RenderQueue.ShadowMode.Receive);
+            context.getNode().setQueueBucket(RenderQueue.Bucket.Transparent);
+            context.getNode().setCullHint(Spatial.CullHint.Dynamic);
+
+            executorService.execute(new BushBuilder(gameLogicCore, quadLocation, quad, context));
+        } else {
+            gameLogicCore.getApp().enqueue(() -> {
+                gameLogicCore.getBushesNode().attachChild(context.getNode());
             });
         }
     }

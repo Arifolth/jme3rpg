@@ -1,0 +1,11 @@
+Model Information:
+* title:	Dry Pine
+* source:	https://sketchfab.com/3d-models/dry-pine-f09422dd3f444c82bb512fce48a488c1
+* author:	DreamsOfDecay (https://sketchfab.com/MariDepuis)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Dry Pine" (https://sketchfab.com/3d-models/dry-pine-f09422dd3f444c82bb512fce48a488c1) by DreamsOfDecay (https://sketchfab.com/MariDepuis) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

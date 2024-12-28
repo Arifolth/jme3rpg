@@ -46,13 +46,15 @@ public class GrassBuilder implements BuilderInterface {
     private final Vector3f quadLocation;
     private final TerrainQuad quad;
     private final ContextInterface context;
-    private Node node = new Node();
+    private Node node;
 
     public GrassBuilder(GameLogicCoreInterface gameLogicCore, Vector3f quadLocation, TerrainQuad quad, ContextInterface context) {
         this.gameLogicCore = gameLogicCore;
         this.quadLocation = quadLocation;
         this.quad = quad;
         this.context = context;
+
+        node = new Node(quad.getName() + ":" + this.toString());
     }
 
     @Override

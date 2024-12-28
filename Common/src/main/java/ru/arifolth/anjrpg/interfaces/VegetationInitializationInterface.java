@@ -24,4 +24,8 @@ public interface VegetationInitializationInterface {
     void positionTrees(TerrainQuad quad);
 
     void positionGrass(TerrainQuad quad);
+
+    void positionBushes(TerrainQuad quad);
+
+    void positionMushrooms(TerrainQuad quad);
 }

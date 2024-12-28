@@ -38,6 +38,7 @@ import java.util.logging.Logger;
 public class PlayerCharacter extends AnimatedCharacter {
     final private static Logger LOGGER = Logger.getLogger(PlayerCharacter.class.getName());
 
+
     public static final String PLAYER_CHARACTER_MODEL = "Models/Ninja/Ninja.j3o";
     protected final AnimationDelegateInterface animationDelegate = new AnimationDelegate(this);
     private final float walkingRange;

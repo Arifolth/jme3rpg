@@ -40,6 +40,10 @@ public interface GameLogicCoreInterface {
 
     Node getGrassNode();
 
+    Node getMushroomsNode();
+
+    Node getBushesNode();
+
     void reInitialize();
 
     Map<Node,CharacterInterface> getCharacterMap();

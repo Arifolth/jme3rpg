@@ -28,7 +28,7 @@ public class Constants {
 
     public static final float DAMAGE = 25f;
 
-    public static final int NPC_AMOUNT = 1;
+    public static final int NPC_AMOUNT = 0;
     public static final int NPC_LOCATION_RANGE = 250;
 
     public static final int WATER_LEVEL_HEIGHT = -70;
@@ -61,11 +61,15 @@ public class Constants {
     public static final int STENCIL_BITS = 8;
     public static final int RIGID_BODIES_SIZE = 4;
     public static final String QUAD_GRASS = "quadGrass";
+    public static final String QUAD_BUSHES = "quadBushes";
     public static final String QUAD_FOREST = "quadForest";
+    public static final String QUAD_MUSHROOMS = "quadMushrooms";
     public static final float FIRING_RANGE = 5f;
     public static final float WALKING_RANGE = 500f;
     public static final float WALK_SPEED = .3f;
     public static final String GRASS_NODE = "Grass";
+    public static final String MUSHROOMS_NODE = "Mushrooms";
+    public static final String BUSHES_NODE = "Bushes";
     public static final String FOREST_NODE = "Forest";
     public static final String ENEMIES_NODE = "Enemies";
     public static final float CHANGE_GAME_STATE_TPF = 0.3f;

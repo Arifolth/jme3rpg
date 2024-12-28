@@ -45,13 +45,15 @@ public class TreesBuilder implements BuilderInterface {
     private final TerrainQuad quad;
     private final ContextInterface context;
 
-    private Node node = new Node();
+    private Node node;
 
     public TreesBuilder(GameLogicCoreInterface gameLogicCore, Vector3f quadLocation, TerrainQuad quad, ContextInterface context) {
         this.gameLogicCore = gameLogicCore;
         this.quadLocation = quadLocation;
         this.quad = quad;
         this.context = context;
+
+        node = new Node(quad.getName() + ":" + this.toString());
     }
 
     @Override
@@ -111,7 +113,7 @@ public class TreesBuilder implements BuilderInterface {
         if (hit != null) {
             if (hit.getContactPoint().y > Constants.WATER_LEVEL_HEIGHT) {
                 Vector3f plantLocation = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y, hit.getContactPoint().z);
-                treeNode.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
+                treeNode.setLocalTranslation(plantLocation.x, plantLocation.y - 3f, plantLocation.z);
                 treeNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(-6.5f, 6.5f) * FastMath.DEG_TO_RAD, new Vector3f(1, 0, 1)));
 
                 treeNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(0f, 360f) * FastMath.DEG_TO_RAD, new Vector3f(0, 1, 0)));

@@ -19,16 +19,16 @@
 package ru.arifolth.vegetation;
 
 import com.jme3.asset.AssetManager;
+import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
-import com.jme3.util.TangentBinormalGenerator;
 import com.jme3.util.mikktspace.MikktspaceTangentGenerator;
 import ru.arifolth.anjrpg.interfaces.LodUtils;
-import ru.arifolth.anjrpg.interfaces.TreeType;
+import ru.arifolth.anjrpg.interfaces.BaseVegetationType;
 import ru.arifolth.anjrpg.interfaces.Utils;
 
-public enum TreeTypeEnum implements TreeType {
+public enum TreeTypeEnum implements BaseVegetationType {
     BOULDER {
         Node tree = null;
         final int probability = 5;
@@ -44,7 +44,7 @@ public enum TreeTypeEnum implements TreeType {
         }
 
         @Override
-        public Node getTree() {
+        public Node getNode() {
             Node node = (Node) tree.clone();
             node.setLocalScale(Utils.getRandomNumberInRange(-3, 3), Utils.getRandomNumberInRange(-3, 3), Utils.getRandomNumberInRange(-3, 3));
             return node;
@@ -57,7 +57,7 @@ public enum TreeTypeEnum implements TreeType {
     },
     FIR {
         Node tree = null;
-        final int probability = 80;
+        final int probability = 60;
         @Override
         public void init() {
             Node firTree = (Node) assetManager.loadModel("Models/Fir1/fir1_androlo.j3o");
@@ -70,9 +70,94 @@ public enum TreeTypeEnum implements TreeType {
         }
 
         @Override
-        public Node getTree() {
+        public Node getNode() {
             Node node = (Node) tree.clone();
-            node.setLocalScale(Utils.getRandomNumberInRange(1, 2), Utils.getRandomNumberInRange(1, 2), Utils.getRandomNumberInRange(1, 3));
+            node.setLocalScale(Utils.getRandomNumberInRange(1, 4), Utils.getRandomNumberInRange(1, 2), Utils.getRandomNumberInRange(1, 2));
+            return node;
+        }
+
+        @Override
+        public int getProbability() {
+            return probability;
+        }
+    },
+    TREE {
+        Node tree = null;
+        final int probability = 75;
+        @Override
+        public void init() {
+            Node tree = (Node) assetManager.loadModel("Models/Trees/tree_low-poly/scene.gltf");
+            tree.setShadowMode(RenderQueue.ShadowMode.Cast);
+
+//            LodUtils.setUpModelLod(tree);
+            MikktspaceTangentGenerator.generate(tree);
+
+            this.tree = tree;
+        }
+
+        @Override
+        public Node getNode() {
+            Node node = (Node) tree.clone();
+            float scale = 0.25f;
+            Vector3f scale3f = new Vector3f(scale, scale, scale);
+//            node.setLocalScale(scale3f.x, scale3f.y, scale3f.z);
+            node.setLocalScale(scale3f.x + Utils.getRandomNumberInRange(-0.125f, 0.125f), scale3f.y + Utils.getRandomNumberInRange(-0.125f, 0.125f), scale3f.z + Utils.getRandomNumberInRange(-0.125f, 0.125f));
+            return node;
+        }
+
+        @Override
+        public int getProbability() {
+            return probability;
+        }
+    },
+    TREE2 {
+        Node tree = null;
+        final int probability = 65;
+        @Override
+        public void init() {
+            Node tree2 = (Node) assetManager.loadModel("Models/Trees/tree2/scene.gltf");
+            tree2.setShadowMode(RenderQueue.ShadowMode.Cast);
+
+//            LodUtils.setUpModelLod(tree2);
+            MikktspaceTangentGenerator.generate(tree2);
+
+            tree = tree2;
+        }
+
+        @Override
+        public Node getNode() {
+            Node node = (Node) tree.clone();
+            float scale = 0.0125f;
+            Vector3f scale3f = new Vector3f(scale, scale, scale);
+            node.setLocalScale(scale3f.x + Utils.getRandomNumberInRange(-0.008f, 0.008f), scale3f.y + Utils.getRandomNumberInRange(-0.008f, 0.008f), scale3f.z + Utils.getRandomNumberInRange(-0.008f, 0.008f));
+            return node;
+        }
+
+        @Override
+        public int getProbability() {
+            return probability;
+        }
+    },
+    TREE3 {
+        Node tree = null;
+        final int probability = 5;
+        @Override
+        public void init() {
+            Node tree3 = (Node) assetManager.loadModel("Models/Trees/tree3/scene.gltf");
+            tree3.setShadowMode(RenderQueue.ShadowMode.Cast);
+
+//            LodUtils.setUpModelLod(tree3);
+            MikktspaceTangentGenerator.generate(tree3);
+
+            tree = tree3;
+        }
+
+        @Override
+        public Node getNode() {
+            Node node = (Node) tree.clone();
+            float scale = 0.0125f;
+            Vector3f scale3f = new Vector3f(scale, scale, scale);
+            node.setLocalScale(scale3f.x + Utils.getRandomNumberInRange(-0.008f, 0.008f), scale3f.y + Utils.getRandomNumberInRange(-0.008f, 0.008f), scale3f.z + Utils.getRandomNumberInRange(-0.008f, 0.008f));
             return node;
         }
 
@@ -83,7 +168,7 @@ public enum TreeTypeEnum implements TreeType {
     },
     MAPPLE {
         Node tree = null;
-        final int probability = 10;
+        final int probability = 40;
         @Override
         public void init() {
             Node mapleTree = (Node) assetManager.loadModel("Models/Maple/tree_maple.j3o");
@@ -103,7 +188,7 @@ public enum TreeTypeEnum implements TreeType {
         }
 
         @Override
-        public Node getTree() {
+        public Node getNode() {
             Node node = (Node) tree.clone();
             node.setLocalScale(Utils.getRandomNumberInRange(1, 2), Utils.getRandomNumberInRange(1, 2), Utils.getRandomNumberInRange(1, 3));
             return node;
@@ -134,7 +219,7 @@ public enum TreeTypeEnum implements TreeType {
         }
 
         @Override
-        public Node getTree() {
+        public Node getNode() {
             Node node = (Node) tree.clone();
             node.setLocalScale(Utils.getRandomNumberInRange(2, 4), Utils.getRandomNumberInRange(2, 4), Utils.getRandomNumberInRange(2, 5));
             return node;
@@ -153,18 +238,24 @@ public enum TreeTypeEnum implements TreeType {
     }
 
     public static Node getRandomTree() {
-        Node tree = null;
+        Node node = null;
 
         if(Utils.getRandom(FIR.getProbability())) {
-            tree = FIR.getTree();
+            node = FIR.getNode();
         } else if (Utils.getRandom(OAK.getProbability())) {
-            tree = OAK.getTree();
+            node = OAK.getNode();
         } else if (Utils.getRandom(BOULDER.getProbability())) {
-            tree = BOULDER.getTree();
-        } else { //other 10%
-            tree = MAPPLE.getTree();
+            node = BOULDER.getNode();
+        } else if (Utils.getRandom(MAPPLE.getProbability())) {
+            node = MAPPLE.getNode();
+        } else if (Utils.getRandom(TREE3.getProbability())) {
+            node = TREE3.getNode();
+        } else if (Utils.getRandom(TREE.getProbability())) {
+            node = TREE.getNode();
+        } else {
+            node = TREE2.getNode();
         }
 
-        return tree;
+        return node;
     }
 }

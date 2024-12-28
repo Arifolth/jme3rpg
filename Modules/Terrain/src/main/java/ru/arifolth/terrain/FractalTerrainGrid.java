@@ -135,11 +135,11 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
         FilteredBasis ground = new FilteredBasis(this.base);
 
         this.perturb = new PerturbFilter();
-        this.perturb.setMagnitude(0.419f);
+        this.perturb.setMagnitude(0.219f);
 
         this.therm = new OptimizedErode();
         this.therm.setRadius(1);
-        this.therm.setTalus(0.511f);
+        this.therm.setTalus(0.711f);
 
         this.smooth = new SmoothFilter();
         this.smooth.setRadius(1);
@@ -195,7 +195,6 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
             public void gridMoved(Vector3f newCenter) {
             }
 
-            //TODO rewrite tree gen using thread pool executor and thread safe queue or stack
             @Override
             public void tileAttached(Vector3f cell, TerrainQuad quad) {
                 while(quad.getControl(RigidBodyControl.class)!=null){
@@ -210,6 +209,10 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
                 initializationDelegate.positionTrees(quad);
                 //plant grass
                 initializationDelegate.positionGrass(quad);
+                //plant bushes
+                initializationDelegate.positionBushes(quad);
+                //plant bushes
+                initializationDelegate.positionMushrooms(quad);
             }
 
             @Override
@@ -220,6 +223,8 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
                 }
                 detachTrees(quad);
                 detachGrass(quad);
+                detachBushes(quad);
+                detachMushrooms(quad);
             }
 
         });
@@ -231,7 +236,6 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
             app.enqueue(() -> {
                 app.getGameLogicCore().getGrassNode().detachChild(quadGrass);
             });
-//            quad.setUserData(Constants.QUAD_GRASS, null);
         }
     }
 
@@ -241,7 +245,24 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
             app.enqueue(() -> {
                 app.getGameLogicCore().getForestNode().detachChild(quadForest);
             });
-//            quad.setUserData(Constants.QUAD_FOREST, null);
+        }
+    }
+
+    private void detachMushrooms(TerrainQuad quad) {
+        Node quadMushrooms = quad.getUserData(Constants.QUAD_MUSHROOMS);
+        if(quadMushrooms != null) {
+            app.enqueue(() -> {
+                app.getGameLogicCore().getForestNode().detachChild(quadMushrooms);
+            });
+        }
+    }
+
+    private void detachBushes(TerrainQuad quad) {
+        Node quadBushes = quad.getUserData(Constants.QUAD_BUSHES);
+        if(quadBushes != null) {
+            app.enqueue(() -> {
+                app.getGameLogicCore().getBushesNode().detachChild(quadBushes);
+            });
         }
     }
 

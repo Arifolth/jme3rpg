@@ -1,14 +1,16 @@
 Loading Screen with Fade in filter
 Sound
--ambient
--speech
-Weather changes
+- In water walk/splashes
+- Underwater
+- Speech
 Support new animation system in 3.3
-Lock-on target
 Graphics preset Low-Med-High
 HUD
 Rework healthbar
 Support Crouch anim
-Bugfix:
-- jump: force landing in 1 s
--
+Switch to gltf samurai/knight models w/anim
+Add bushes
+Add mushrooms
+Introduce pickling mechanism (for mushrooms and other things)
+Seaweed
+Introduce

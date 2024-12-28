@@ -27,14 +27,13 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
-import com.jme3.util.TangentBinormalGenerator;
 import com.jme3.util.mikktspace.MikktspaceTangentGenerator;
 import jme3tools.optimize.GeometryBatchFactory;
-import ru.arifolth.anjrpg.interfaces.GrassType;
+import ru.arifolth.anjrpg.interfaces.BaseVegetationType;
 import ru.arifolth.anjrpg.interfaces.LodUtils;
 import ru.arifolth.anjrpg.interfaces.Utils;
 
-public enum GrassTypeEnum implements GrassType {
+public enum GrassTypeEnum implements BaseVegetationType {
     REGULAR {
         Node grassNode = null;
         final int probability = 80;
@@ -71,7 +70,7 @@ public enum GrassTypeEnum implements GrassType {
             grassGeometry.setQueueBucket(RenderQueue.Bucket.Transparent);
             grassGeometry.setMaterial(grassShader);
             grassGeometry.setShadowMode(RenderQueue.ShadowMode.Receive);
-            grassGeometry.rotate(0, 0.58f, 0);
+            grassGeometry.rotate(0, 0f, 0);
             grassGeometry.center();
 
             Node grassBladeNode = new Node();
@@ -104,7 +103,7 @@ public enum GrassTypeEnum implements GrassType {
         }
 
         @Override
-        public Node getGrass() {
+        public Node getNode() {
             return (Node) grassNode.clone();
         }
 
@@ -149,7 +148,7 @@ public enum GrassTypeEnum implements GrassType {
             grassGeometry.setQueueBucket(RenderQueue.Bucket.Transparent);
             grassGeometry.setMaterial(grassShader);
             grassGeometry.setShadowMode(RenderQueue.ShadowMode.Receive);
-            grassGeometry.rotate(0, 0.58f, 0);
+            grassGeometry.rotate(0, 0f, 0);
             grassGeometry.center();
 
             Node grassBladeNode = new Node();
@@ -182,7 +181,7 @@ public enum GrassTypeEnum implements GrassType {
         }
 
         @Override
-        public Node getGrass() {
+        public Node getNode() {
             return (Node) grassNode.clone();
         }
 
@@ -227,7 +226,7 @@ public enum GrassTypeEnum implements GrassType {
             grassGeometry.setQueueBucket(RenderQueue.Bucket.Transparent);
             grassGeometry.setMaterial(grassShader);
             grassGeometry.setShadowMode(RenderQueue.ShadowMode.Receive);
-            grassGeometry.rotate(0, 0.58f, 0);
+            grassGeometry.rotate(0, 0f, 0);
             grassGeometry.center();
 
             Node grassBladeNode = new Node();
@@ -260,7 +259,7 @@ public enum GrassTypeEnum implements GrassType {
         }
 
         @Override
-        public Node getGrass() {
+        public Node getNode() {
             return (Node) grassNode.clone();
         }
 
@@ -305,7 +304,7 @@ public enum GrassTypeEnum implements GrassType {
             grassGeometry.setQueueBucket(RenderQueue.Bucket.Transparent);
             grassGeometry.setMaterial(grassShader);
             grassGeometry.setShadowMode(RenderQueue.ShadowMode.Receive);
-            grassGeometry.rotate(0, 0.58f, 0);
+            grassGeometry.rotate(0, 0f, 0);
             grassGeometry.center();
 
             Node grassBladeNode = new Node();
@@ -338,7 +337,7 @@ public enum GrassTypeEnum implements GrassType {
         }
 
         @Override
-        public Node getGrass() {
+        public Node getNode() {
             return (Node) grassNode.clone();
         }
 
@@ -349,19 +348,19 @@ public enum GrassTypeEnum implements GrassType {
     };
 
     public static Node getRandomGrass() {
-        Node grass = null;
+        Node node = null;
 
         if(Utils.getRandom(REGULAR.getProbability())) {
-            grass = REGULAR.getGrass();
+            node = REGULAR.getNode();
         } else if (Utils.getRandom(TISTEL.getProbability())) {
-            grass = TISTEL.getGrass();
+            node = TISTEL.getNode();
         } else if (Utils.getRandom(FLOWERS.getProbability())) {
-            grass = FLOWERS.getGrass();
+            node = FLOWERS.getNode();
         } else {
-            grass = GRASS2.getGrass();
+            node = GRASS2.getNode();
         }
 
-        return grass;
+        return node;
     }
 
     private static AssetManager assetManager;

@@ -155,7 +155,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     }
 
     @Override
-    public synchronized Node getRootNode() {
+    public Node getRootNode() {
         return this.rootNode;
     }
 

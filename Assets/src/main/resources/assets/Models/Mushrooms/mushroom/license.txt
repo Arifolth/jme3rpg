@@ -1,0 +1,11 @@
+Model Information:
+* title:	Mushroom
+* source:	https://sketchfab.com/3d-models/mushroom-ade09b61de8b4a7d9e850b710d3eb151
+* author:	Evan (https://sketchfab.com/Evanz)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Mushroom" (https://sketchfab.com/3d-models/mushroom-ade09b61de8b4a7d9e850b710d3eb151) by Evan (https://sketchfab.com/Evanz) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

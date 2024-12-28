@@ -28,12 +28,9 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.ui.Picture;
 import ru.arifolth.anjrpg.interfaces.*;
-import ru.arifolth.anjrpg.interfaces.weather.EmitterInterface;
 import ru.arifolth.anjrpg.weather.WeatherManager;
 
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.logging.Logger;
 
@@ -46,6 +43,9 @@ public class GameLogicCore implements GameLogicCoreInterface {
     private final Node enemies = new Node(Constants.ENEMIES_NODE);
     private Node forestNode = new Node(Constants.FOREST_NODE);
     private Node grassNode = new Node(Constants.GRASS_NODE);
+    private Node mushroomsNode = new Node(Constants.MUSHROOMS_NODE);
+
+    private Node bushesNode = new Node(Constants.BUSHES_NODE);
 
     private MovementControllerInterface movementController;
     private TerrainManagerInterface terrainManager;
@@ -91,10 +91,16 @@ public class GameLogicCore implements GameLogicCoreInterface {
         movementController.setUpKeys();
 
         app.enqueue(() -> {
-            getRootNode().attachChild(forestNode);
+            rootNode.attachChild(forestNode);
         });
         app.enqueue(() -> {
-            getRootNode().attachChild(grassNode);
+            rootNode.attachChild(grassNode);
+        });
+        app.enqueue(() -> {
+            rootNode.attachChild(bushesNode);
+        });
+        app.enqueue(() -> {
+            rootNode.attachChild(mushroomsNode);
         });
     }
 
@@ -103,17 +109,19 @@ public class GameLogicCore implements GameLogicCoreInterface {
         return forestNode;
     }
 
-    public void setForestNode(Node treesForestNode) {
-        this.forestNode = treesForestNode;
-    }
-
     @Override
     public Node getGrassNode() {
         return grassNode;
     }
 
-    public void setGrassNode(Node grassNode) {
-        this.grassNode = grassNode;
+    @Override
+    public Node getMushroomsNode() {
+        return mushroomsNode;
+    }
+
+    @Override
+    public Node getBushesNode() {
+        return bushesNode;
     }
 
     public void reInitialize() {
