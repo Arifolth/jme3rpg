@@ -252,7 +252,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
         Node quadMushrooms = quad.getUserData(Constants.QUAD_MUSHROOMS);
         if(quadMushrooms != null) {
             app.enqueue(() -> {
-                app.getGameLogicCore().getForestNode().detachChild(quadMushrooms);
+                app.getGameLogicCore().getMushroomsNode().detachChild(quadMushrooms);
             });
         }
     }

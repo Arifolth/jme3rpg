@@ -23,23 +23,27 @@ import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.terrain.geomipmap.TerrainQuad;
+import jme3tools.optimize.GeometryBatchFactory;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.vegetation.BushBuilder;
 import ru.arifolth.vegetation.GrassBuilder;
 import ru.arifolth.vegetation.MushroomBuilder;
 import ru.arifolth.vegetation.TreesBuilder;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class VegetationInitialization implements VegetationInitializationInterface {
-    private final ExecutorService executorService = Executors.newWorkStealingPool();
+    private final ExecutorService executorService = Executors.newWorkStealingPool(3);
+    private final ExecutorService taskStarterService = Executors.newSingleThreadExecutor();
 
 
     private GameLogicCoreInterface gameLogicCore;
 
     public VegetationInitialization() {
         Runtime.getRuntime().addShutdownHook(new Thread(executorService::shutdownNow));
+        Runtime.getRuntime().addShutdownHook(new Thread(taskStarterService::shutdownNow));
     }
 
     public void setGameLogicCore(GameLogicCoreInterface gameLogicCore) {
@@ -57,62 +61,127 @@ public class VegetationInitialization implements VegetationInitializationInterfa
     }
 
     private void internalPositionTrees(TerrainQuad quad) {
-        ContextInterface context = new TreesContext(quad.getUserData(Constants.QUAD_FOREST));
+        taskStarterService.execute(new Runnable() {
+            @Override
+            public void run() {
+                ContextInterface context = new TreesContext(quad.getUserData(Constants.QUAD_FOREST));
 
-        final Vector3f quadLocation = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation();
-        if (context.getNode() == null) {
-            context.setNode(new Node());
+                final Vector3f quadLocation = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().clone();
+                if (context.getNode() == null) {
+                    CountDownLatch countDownLatch = new CountDownLatch(4);
 
-            context.getNode().setShadowMode(RenderQueue.ShadowMode.Cast);
-            context.getNode().setCullHint(Spatial.CullHint.Dynamic);
+                    context.setNode(new Node());
 
-            executorService.execute(new TreesBuilder(gameLogicCore, quadLocation, quad, context));
-            executorService.execute(new TreesBuilder(gameLogicCore, quadLocation, quad, context));
-            executorService.execute(new TreesBuilder(gameLogicCore, quadLocation, quad, context));
-            executorService.execute(new TreesBuilder(gameLogicCore, quadLocation, quad, context));
-        } else {
-            gameLogicCore.getApp().enqueue(() -> {
-                gameLogicCore.getForestNode().attachChild(context.getNode());
-            });
-        }
+                    context.getNode().setShadowMode(RenderQueue.ShadowMode.Cast);
+                    context.getNode().setCullHint(Spatial.CullHint.Dynamic);
+
+                    executorService.execute(new TreesBuilder(gameLogicCore, quadLocation, quad, context, countDownLatch));
+                    executorService.execute(new TreesBuilder(gameLogicCore, quadLocation, quad, context, countDownLatch));
+                    executorService.execute(new TreesBuilder(gameLogicCore, quadLocation, quad, context, countDownLatch));
+                    executorService.execute(new TreesBuilder(gameLogicCore, quadLocation, quad, context, countDownLatch));
+
+                    try {
+                        countDownLatch.await();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    } finally {
+                        Thread.yield();
+                        context.setNode(GeometryBatchFactory.optimize(context.getNode(), true));
+                        Thread.yield();
+                        context.getNode().updateModelBound();
+                        quad.setUserData(Constants.QUAD_FOREST, context.getNode());
+                        gameLogicCore.getApp().enqueue(() -> {
+                            gameLogicCore.getForestNode().attachChild(context.getNode());
+                        });
+                    }
+                } else {
+                    gameLogicCore.getApp().enqueue(() -> {
+                        gameLogicCore.getForestNode().attachChild(context.getNode());
+                    });
+                }
+            }
+        });
     }
 
     private void internalPositionMushrooms(TerrainQuad quad) {
-        ContextInterface context = new MushroomContext(quad.getUserData(Constants.QUAD_MUSHROOMS));
+        taskStarterService.execute(new Runnable() {
+            @Override
+            public void run() {
+                ContextInterface context = new MushroomContext(quad.getUserData(Constants.QUAD_MUSHROOMS));
 
-        final Vector3f quadLocation = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation();
-        if (context.getNode() == null) {
-            context.setNode(new Node());
+                final Vector3f quadLocation = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().clone();
+                if (context.getNode() == null) {
+                    CountDownLatch countDownLatch = new CountDownLatch(1);
 
-            context.getNode().setShadowMode(RenderQueue.ShadowMode.Receive);
-            context.getNode().setQueueBucket(RenderQueue.Bucket.Transparent);
-            context.getNode().setCullHint(Spatial.CullHint.Dynamic);
+                    context.setNode(new Node());
 
-            executorService.execute(new MushroomBuilder(gameLogicCore, quadLocation, quad, context));
-        } else {
-            gameLogicCore.getApp().enqueue(() -> {
-                gameLogicCore.getMushroomsNode().attachChild(context.getNode());
-            });
-        }
+                    context.getNode().setShadowMode(RenderQueue.ShadowMode.Receive);
+                    context.getNode().setQueueBucket(RenderQueue.Bucket.Transparent);
+                    context.getNode().setCullHint(Spatial.CullHint.Dynamic);
+
+                    executorService.execute(new MushroomBuilder(gameLogicCore, quadLocation, quad, context, countDownLatch));
+
+                    try {
+                        countDownLatch.await();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    } finally {
+                        Thread.yield();
+                        context.setNode(GeometryBatchFactory.optimize(context.getNode(), true));
+                        Thread.yield();
+                        context.getNode().updateModelBound();
+                        quad.setUserData(Constants.QUAD_MUSHROOMS, context.getNode());
+                        gameLogicCore.getApp().enqueue(() -> {
+                            gameLogicCore.getMushroomsNode().attachChild(context.getNode());
+                        });
+                    }
+                } else {
+                    gameLogicCore.getApp().enqueue(() -> {
+                        gameLogicCore.getMushroomsNode().attachChild(context.getNode());
+                    });
+                }
+            }
+        });
     }
 
     private void internalPositionGrass(TerrainQuad quad) {
-        ContextInterface context = new GrassContext(quad.getUserData(Constants.QUAD_GRASS));
+        taskStarterService.execute(new Runnable() {
+            @Override
+            public void run() {
+                ContextInterface context = new GrassContext(quad.getUserData(Constants.QUAD_GRASS));
 
-        final Vector3f quadLocation = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation();
-        if (context.getNode() == null) {
-            context.setNode(new Node());
+                final Vector3f quadLocation = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().clone();
+                if (context.getNode() == null) {
+                    CountDownLatch countDownLatch = new CountDownLatch(1);
 
-            context.getNode().setShadowMode(RenderQueue.ShadowMode.Receive);
-            context.getNode().setQueueBucket(RenderQueue.Bucket.Transparent);
-            context.getNode().setCullHint(Spatial.CullHint.Dynamic);
+                    context.setNode(new Node());
 
-            executorService.execute(new GrassBuilder(gameLogicCore, quadLocation, quad, context));
-        } else {
-            gameLogicCore.getApp().enqueue(() -> {
-                gameLogicCore.getGrassNode().attachChild(context.getNode());
-            });
-        }
+                    context.getNode().setShadowMode(RenderQueue.ShadowMode.Receive);
+                    context.getNode().setQueueBucket(RenderQueue.Bucket.Transparent);
+                    context.getNode().setCullHint(Spatial.CullHint.Dynamic);
+
+                    executorService.execute(new GrassBuilder(gameLogicCore, quadLocation, quad, context, countDownLatch));
+                    try {
+                        countDownLatch.await();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    } finally {
+                        Thread.yield();
+                        context.setNode(GeometryBatchFactory.optimize(context.getNode(), true));
+                        Thread.yield();
+                        context.getNode().updateModelBound();
+                        quad.setUserData(Constants.QUAD_GRASS, context.getNode());
+                        gameLogicCore.getApp().enqueue(() -> {
+                            gameLogicCore.getGrassNode().attachChild(context.getNode());
+                        });
+                    }
+                } else {
+                    gameLogicCore.getApp().enqueue(() -> {
+                        gameLogicCore.getGrassNode().attachChild(context.getNode());
+                    });
+                }
+            }
+        });
     }
 
     @Override
@@ -126,21 +195,43 @@ public class VegetationInitialization implements VegetationInitializationInterfa
     }
 
     private void internalPositionBushes(TerrainQuad quad) {
-        ContextInterface context = new BushesContext(quad.getUserData(Constants.QUAD_BUSHES));
+        taskStarterService.execute(new Runnable() {
+            @Override
+            public void run() {
+                ContextInterface context = new BushesContext(quad.getUserData(Constants.QUAD_BUSHES));
 
-        final Vector3f quadLocation = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation();
-        if (context.getNode() == null) {
-            context.setNode(new Node());
+                final Vector3f quadLocation = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().clone();
+                if (context.getNode() == null) {
+                    CountDownLatch countDownLatch = new CountDownLatch(1);
 
-            context.getNode().setShadowMode(RenderQueue.ShadowMode.Receive);
-            context.getNode().setQueueBucket(RenderQueue.Bucket.Transparent);
-            context.getNode().setCullHint(Spatial.CullHint.Dynamic);
+                    context.setNode(new Node());
 
-            executorService.execute(new BushBuilder(gameLogicCore, quadLocation, quad, context));
-        } else {
-            gameLogicCore.getApp().enqueue(() -> {
-                gameLogicCore.getBushesNode().attachChild(context.getNode());
-            });
-        }
+                    context.getNode().setShadowMode(RenderQueue.ShadowMode.Receive);
+                    context.getNode().setQueueBucket(RenderQueue.Bucket.Transparent);
+                    context.getNode().setCullHint(Spatial.CullHint.Dynamic);
+
+                    executorService.execute(new BushBuilder(gameLogicCore, quadLocation, quad, context, countDownLatch));
+
+                    try {
+                        countDownLatch.await();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    } finally {
+                        Thread.yield();
+                        context.setNode(GeometryBatchFactory.optimize(context.getNode(), true));
+                        Thread.yield();
+                        context.getNode().updateModelBound();
+                        quad.setUserData(Constants.QUAD_BUSHES, context.getNode());
+                        gameLogicCore.getApp().enqueue(() -> {
+                            gameLogicCore.getBushesNode().attachChild(context.getNode());
+                        });
+                    }
+                } else {
+                    gameLogicCore.getApp().enqueue(() -> {
+                        gameLogicCore.getBushesNode().attachChild(context.getNode());
+                    });
+                }
+            }
+        });
     }
 }

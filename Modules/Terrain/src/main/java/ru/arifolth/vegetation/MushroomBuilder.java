@@ -32,6 +32,7 @@ import ru.arifolth.anjrpg.interfaces.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Stream;
 
 import static ru.arifolth.anjrpg.interfaces.Constants.RAY_DOWN;
@@ -44,12 +45,14 @@ public class MushroomBuilder implements BuilderInterface {
     private final ContextInterface context;
 
     private Node node;
+    private CountDownLatch countDownLatch;
 
-    public MushroomBuilder(GameLogicCoreInterface gameLogicCore, Vector3f quadLocation, TerrainQuad quad, ContextInterface context) {
+    public MushroomBuilder(GameLogicCoreInterface gameLogicCore, Vector3f quadLocation, TerrainQuad quad, ContextInterface context, CountDownLatch countDownLatch) {
         this.gameLogicCore = gameLogicCore;
         this.quadLocation = quadLocation;
         this.quad = quad;
         this.context = context;
+        this.countDownLatch = countDownLatch;
 
         node = new Node(quad.getName() + ":" + this.toString());
     }
@@ -59,20 +62,11 @@ public class MushroomBuilder implements BuilderInterface {
         try {
             List<Spatial> quadMushrooms = setupMushrooms();
 
-            Stream<Spatial> stream = quadMushrooms.stream();
-            stream.forEach(this::accept);
+            quadMushrooms.forEach(this::accept);
 
-            setNode(GeometryBatchFactory.optimize(getNode(), true));
-            synchronized (quadLocation) {
-                context.getNode().attachChild(getNode());
-                context.getNode().updateModelBound();
-
-                quad.setUserData(Constants.QUAD_MUSHROOMS, context.getNode());
-            }
+            context.getNode().attachChild(node);
         } finally {
-            gameLogicCore.getApp().enqueue(() -> {
-                gameLogicCore.getMushroomsNode().attachChild(context.getNode());
-            });
+            countDownLatch.countDown();
         }
     }
 
@@ -81,16 +75,15 @@ public class MushroomBuilder implements BuilderInterface {
         this.node = node;
     }
 
-    public Node getNode() {
-        return node;
-    }
-
     private List<Spatial> setupMushrooms() {
         int mushroomsSize = 2_500;
         List<Spatial> quadMushrooms = new ArrayList<>(mushroomsSize);
         for (int i = 0; i < mushroomsSize; i++) {
             Node mushroomModel = MushroomTypeEnum.getRandomMushroom();
             quadMushrooms.add(mushroomModel);
+            if( i % 4 == 0){
+                Thread.yield();
+            }
         }
 
         return quadMushrooms;
@@ -115,7 +108,7 @@ public class MushroomBuilder implements BuilderInterface {
 
                 mushroomNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(0f, 360f) * FastMath.DEG_TO_RAD, new Vector3f(0, 1, 0)));
 
-                getNode().attachChild(mushroomNode);
+                node.attachChild(mushroomNode);
             }
         }
     }

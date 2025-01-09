@@ -24,7 +24,6 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
-import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.terrain.geomipmap.TerrainQuad;
@@ -33,7 +32,7 @@ import ru.arifolth.anjrpg.interfaces.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Stream;
 
 import static ru.arifolth.anjrpg.interfaces.Constants.RAY_DOWN;
@@ -46,12 +45,14 @@ public class TreesBuilder implements BuilderInterface {
     private final ContextInterface context;
 
     private Node node;
+    private CountDownLatch countDownLatch;
 
-    public TreesBuilder(GameLogicCoreInterface gameLogicCore, Vector3f quadLocation, TerrainQuad quad, ContextInterface context) {
+    public TreesBuilder(GameLogicCoreInterface gameLogicCore, Vector3f quadLocation, TerrainQuad quad, ContextInterface context, CountDownLatch countDownLatch) {
         this.gameLogicCore = gameLogicCore;
         this.quadLocation = quadLocation;
         this.quad = quad;
         this.context = context;
+        this.countDownLatch = countDownLatch;
 
         node = new Node(quad.getName() + ":" + this.toString());
     }
@@ -61,30 +62,17 @@ public class TreesBuilder implements BuilderInterface {
         try {
             List<Spatial> quadForest = setupTrees();
 
-            Stream<Spatial> stream = quadForest.stream();
-            stream.forEach(this::accept);
+            quadForest.forEach(this::accept);
 
-            setNode(GeometryBatchFactory.optimize(getNode(), true));
-            synchronized (quadLocation) {
-                context.getNode().attachChild(getNode());
-                context.getNode().updateModelBound();
-
-                quad.setUserData(Constants.QUAD_FOREST, context.getNode());
-            }
+            context.getNode().attachChild(node);
         } finally {
-            gameLogicCore.getApp().enqueue(() -> {
-                gameLogicCore.getForestNode().attachChild(context.getNode());
-            });
+            countDownLatch.countDown();
         }
     }
 
 
     public void setNode(Node node) {
         this.node = node;
-    }
-
-    public Node getNode() {
-        return node;
     }
 
     private List<Spatial> setupTrees() {
@@ -95,7 +83,7 @@ public class TreesBuilder implements BuilderInterface {
             treeModelCustom.scale(1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10));
             quadForest.add(treeModelCustom);
         }
-
+        Thread.yield();
         return quadForest;
     }
 
@@ -118,7 +106,7 @@ public class TreesBuilder implements BuilderInterface {
 
                 treeNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(0f, 360f) * FastMath.DEG_TO_RAD, new Vector3f(0, 1, 0)));
 
-                getNode().attachChild(treeNode);
+                node.attachChild(treeNode);
             }
         }
     }

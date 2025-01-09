@@ -32,6 +32,7 @@ import ru.arifolth.anjrpg.interfaces.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Stream;
 
 import static ru.arifolth.anjrpg.interfaces.Constants.RAY_DOWN;
@@ -43,12 +44,14 @@ public class BushBuilder implements BuilderInterface {
     private final TerrainQuad quad;
     private final ContextInterface context;
     private Node node;
+    private CountDownLatch countDownLatch;
 
-    public BushBuilder(GameLogicCoreInterface gameLogicCore, Vector3f quadLocation, TerrainQuad quad, ContextInterface context) {
+    public BushBuilder(GameLogicCoreInterface gameLogicCore, Vector3f quadLocation, TerrainQuad quad, ContextInterface context, CountDownLatch countDownLatch) {
         this.gameLogicCore = gameLogicCore;
         this.quadLocation = quadLocation;
         this.quad = quad;
         this.context = context;
+        this.countDownLatch = countDownLatch;
 
         node = new Node(quad.getName() + ":" + this.toString());
     }
@@ -58,20 +61,11 @@ public class BushBuilder implements BuilderInterface {
         try {
             List<Spatial> quadBushes = setupBushes();
 
-            Stream<Spatial> stream = quadBushes.stream();
-            stream.forEach(this::accept);
+            quadBushes.forEach(this::accept);
 
-            setNode(GeometryBatchFactory.optimize(getNode(), true));
-            synchronized (quadLocation) {
-                context.getNode().attachChild(getNode());
-                context.getNode().updateModelBound();
-
-                quad.setUserData(Constants.QUAD_BUSHES, context.getNode());
-            }
+            context.getNode().attachChild(node);
         } finally {
-            gameLogicCore.getApp().enqueue(() -> {
-                gameLogicCore.getBushesNode().attachChild(context.getNode());
-            });
+            countDownLatch.countDown();
         }
     }
 
@@ -79,9 +73,6 @@ public class BushBuilder implements BuilderInterface {
         this.node = node;
     }
 
-    public Node getNode() {
-        return node;
-    }
     private List<Spatial> setupBushes() {
         final int bushTreesAmount = 1_500;
         List<Spatial> quadBushTrees = new ArrayList<>(bushTreesAmount);
@@ -91,6 +82,9 @@ public class BushBuilder implements BuilderInterface {
             bushInstance.setLocalTranslation(bushInstance.getLocalTranslation().getX(), bushInstance.getLocalTranslation().getY(), bushInstance.getLocalTranslation().getZ() - 15);
             bushInstance.rotate(Utils.getRandomNumberInRange(-0.65f, 0.65f), Utils.getRandomNumberInRange(-1.65f, 1.65f), 0);
             quadBushTrees.add(bushInstance);
+            if( i % 4 == 0){
+                Thread.yield();
+            }
         }
 
         return quadBushTrees;
@@ -114,7 +108,7 @@ public class BushBuilder implements BuilderInterface {
 
                 bushNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(0f, 360f) * FastMath.DEG_TO_RAD, new Vector3f(0, 1, 0)));
 
-                getNode().attachChild(bushNode);
+                node.attachChild(bushNode);
             }
         }
     }
