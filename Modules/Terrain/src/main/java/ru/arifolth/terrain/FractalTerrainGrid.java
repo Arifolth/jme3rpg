@@ -166,7 +166,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
         setUpCollision();
 
         terrain.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
-        terrain.setQueueBucket(RenderQueue.Bucket.Transparent);
+        terrain.setQueueBucket(RenderQueue.Bucket.Opaque);
         matTerrain.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Back);
         terrain.setCullHint(Spatial.CullHint.Dynamic);
 

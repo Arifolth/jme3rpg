@@ -53,18 +53,14 @@ To build them enable profile
 
 ## Run using Jdk
 ```bash
-mvn exec:java -pl GameClient -Djvm.options="-Xmx8G -server -XX:+UseZGC -XX:+ZProactive -XX:+UseStringDeduplication -XX:+UseLargePages"
+mvn exec:java -pl GameClient -Djvm.options="-Xmx6G -server -XX:+UseZGC -XX:+ZProactive -XX:+UseStringDeduplication -XX:+UseCompressedOops"
 ```
 
 ## Repo
 <https://github.com/Arifolth/jme3rpg>
 
-## Materials used
-- [Mtnrim_v0.zip](https://sourceforge.net/projects/mountainrim/)
-- https://github.com/rdok/Arcem-Tutari
-- Sounds from https://freesound.org/
-- Tree models and Grass textures from BioMonkey
-- Other resources, credit is given in the code
+## Third-party components, libraries and models used
+Please see [CREDITS.md](CREDITS.md) 
 
 ## Screenshots
 ![Image](Screenshots/Combat.jpg "icon")

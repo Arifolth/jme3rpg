@@ -6,7 +6,9 @@ import com.idflood.sky.items.DynamicSun;
 import com.idflood.sky.utils.CloudsBillboardItem;
 import com.idflood.sky.utils.HorizonBillboardItem;
 import com.jme3.asset.AssetManager;
+import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.ViewPort;
 import com.jme3.renderer.queue.RenderQueue;
@@ -21,7 +23,8 @@ import static ru.arifolth.anjrpg.interfaces.Constants.INITIAL_MOUNTAINS_OFFSET;
 public class DynamicSky extends Node implements SkyInterface {
     private final CloudsBillboardItem clouds;
     private final HorizonBillboardItem horizon;
-
+    private float fadeOut;
+    private AmbientLight ambientLight;
     private DynamicSun dynamicSun = null;
     private DynamicStars dynamicStars = null;
     private DynamicSkyBackground dynamicBackground = null;
@@ -36,6 +39,10 @@ public class DynamicSky extends Node implements SkyInterface {
         this.gameLogicCore = gameLogicCore;
 
         Node rootNode = gameLogicCore.getRootNode();
+
+        ambientLight = new AmbientLight();
+        ambientLight.setColor(new ColorRGBA(0.3f, 0.3f, 0.3f, 1.0f));
+        rootNode.addLight(ambientLight);
 
         dynamicSun = new DynamicSun(assetManager, viewPort, rootNode, scaling);
 
@@ -102,7 +109,23 @@ public class DynamicSky extends Node implements SkyInterface {
         return dynamicSun.getSunSystem().getCurrentDate().getHours();
     }
 
-    public void updateTime(){
+    public void fadeLight(float tpf) {
+        if(tpf < 0) {
+            if (fadeOut <= -1.0f) {
+                ambientLight.setColor(new ColorRGBA(0.1f, 0.1f, 0.1f, 1.0f));
+                return;
+            }
+        } else {
+            if (fadeOut >= 0.5f) {
+                ambientLight.setColor(new ColorRGBA(0.3f, 0.3f, 0.3f, 1.0f));
+                return;
+            }
+        }
+        fadeOut += tpf / 16;
+        getSunLight().setColor(ColorRGBA.White.mult(fadeOut));
+    }
+
+    public void updateTime(float tpf){
         dynamicSun.updateTime();
 
         int hours = getHours();
@@ -110,10 +133,12 @@ public class DynamicSky extends Node implements SkyInterface {
             if(!dynamicStars.isAttached()) {
                 attachStars();
             }
+            fadeLight(-tpf);
         } else {
             if(dynamicStars.isAttached()) {
                 detachStars();
             }
+            fadeLight(tpf);
         }
 
         dynamicBackground.updateLightPosition(dynamicSun.getSunSystem().getPosition());
@@ -138,7 +163,7 @@ public class DynamicSky extends Node implements SkyInterface {
 
     @Override
     public void update(float tpf){
-        updateTime();
+        updateTime(tpf);
     }
 
     @Override

@@ -45,7 +45,6 @@ public class VideoMenuState extends CustomCompositeAppState {
     private Dropdown samplesDropDown = new SamplesDropDown();
     private Checkbox fullscreen = new Checkbox("Fullscreen");
     private Checkbox vsync = new Checkbox("VSync");
-    private Checkbox gammaCorrection = new Checkbox("Gamma Correction");
     private ANJRpgInterface application;
     private GameLogicCoreInterface gameLogicCore;
 
@@ -68,7 +67,6 @@ public class VideoMenuState extends CustomCompositeAppState {
         applySamples(settings);
         applyFullScreen(settings);
         applyVSync(settings);
-        applyGammaCorrection(settings);
         getApplication().setSettings(settings);
 
         setEnabled(false);
@@ -86,10 +84,6 @@ public class VideoMenuState extends CustomCompositeAppState {
 
     private void applyRenderer(AppSettings settings) {
         settings.setRenderer(rendererDropDown.getSelectedValue());
-    }
-
-    private void applyGammaCorrection(AppSettings settings) {
-        settings.setGammaCorrection(gammaCorrection.isChecked());
     }
 
     private void applyVSync(AppSettings settings) {
@@ -110,9 +104,11 @@ public class VideoMenuState extends CustomCompositeAppState {
 
     private void applyResolution(AppSettings settings) {
         String selection = resolutionsDropDown.getSelectedValue();
-        List<String> resolution = Arrays.asList(selection.split("x"));
-        resolution.replaceAll(String::trim);
-        settings.setResolution(Integer.parseInt(resolution.get(WIDTH)), Integer.parseInt(resolution.get(HEIGHT)));
+        if(selection != null) {
+            List<String> resolution = Arrays.asList(selection.split("x"));
+            resolution.replaceAll(String::trim);
+            settings.setResolution(Integer.parseInt(resolution.get(WIDTH)), Integer.parseInt(resolution.get(HEIGHT)));
+        }
     }
 
     @Override
@@ -128,7 +124,6 @@ public class VideoMenuState extends CustomCompositeAppState {
         samplesDropDown.initialize(settings);
 
         vsync.setChecked(settings.getBoolean("VSync"));
-        gammaCorrection.setChecked(settings.getBoolean("Gamma Correction"));
         fullscreen.setChecked(settings.getBoolean("Fullscreen"));
     }
 
@@ -176,8 +171,6 @@ public class VideoMenuState extends CustomCompositeAppState {
         props.addChild(samplesDropDown, East);
 
         Checkbox checkbox = joinPanel.addChild(fullscreen);
-
-        checkbox = joinPanel.addChild(gammaCorrection);
 
         checkbox = joinPanel.addChild(vsync);
 

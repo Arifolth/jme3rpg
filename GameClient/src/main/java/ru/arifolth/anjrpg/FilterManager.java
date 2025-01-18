@@ -20,6 +20,7 @@ package ru.arifolth.anjrpg;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.*;
 import com.jme3.post.ssao.SSAOFilter;
@@ -69,8 +70,15 @@ public class FilterManager implements FilterManagerInterface {
         setupShadowRenderer();
         setupWaterFilter();
         setupCartoonEdgeFilter();
+        setupToneMapFilter();
 
         viewPort.addProcessor(fpp);
+    }
+
+    private void setupToneMapFilter() {
+        ToneMapFilter toneMapFilter = new ToneMapFilter();
+        toneMapFilter.setWhitePoint(new Vector3f(8f, 8f, 8f));
+        fpp.addFilter(toneMapFilter);
     }
 
     private void setupFog() {

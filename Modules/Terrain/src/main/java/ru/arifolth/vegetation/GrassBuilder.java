@@ -80,7 +80,7 @@ public class GrassBuilder implements BuilderInterface {
             grassInstance.setLocalTranslation(grassInstance.getLocalTranslation().getX(), grassInstance.getLocalTranslation().getY(), grassInstance.getLocalTranslation().getZ() - 15);
             grassInstance.rotate(Utils.getRandomNumberInRange(-0.65f, 0.65f), Utils.getRandomNumberInRange(-1.65f, 1.65f), 0);
             quadGrass.add(grassInstance);
-            if( i % 4 == 0){
+            if( i % 80 == 0){
                 Thread.yield();
             }
         }

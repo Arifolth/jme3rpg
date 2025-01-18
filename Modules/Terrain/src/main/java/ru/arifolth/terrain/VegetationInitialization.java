@@ -35,7 +35,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class VegetationInitialization implements VegetationInitializationInterface {
-    private final ExecutorService executorService = Executors.newWorkStealingPool(3);
+    private final ExecutorService executorService = Executors.newWorkStealingPool();
     private final ExecutorService taskStarterService = Executors.newSingleThreadExecutor();
 
 

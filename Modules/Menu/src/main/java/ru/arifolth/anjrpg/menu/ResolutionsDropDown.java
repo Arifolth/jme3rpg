@@ -46,10 +46,13 @@ public class ResolutionsDropDown extends Dropdown {
 
     @Override
     public String getSelectedValue() {
+        String result;
         Integer selectionItem = getSelectionModel().getSelection();
-        if (null == selectionItem)
+        if (null == selectionItem) {
             selectionItem = getDefaultSelection(chosenElement.getText());
-        return getModel().get(selectionItem);
+        }
+        result = getModel().size() != selectionItem ? getModel().get(selectionItem) : null;
+        return result;
     }
 
     protected void setCurrentValue() {

@@ -40,7 +40,7 @@ public class SettingsUtils {
         settings.setResolution(mode.getWidth(),mode.getHeight());
         settings.setRenderer(AppSettings.LWJGL_OPENGL45);
         settings.setFrequency(mode.getRefreshRate());
-        settings.setGammaCorrection(false);
+        settings.setGammaCorrection(true);
         settings.setStencilBits(Constants.STENCIL_BITS);
         settings.setTitle(JmeVersion.FULL_NAME);
         settings.setUseRetinaFrameBuffer(true);
