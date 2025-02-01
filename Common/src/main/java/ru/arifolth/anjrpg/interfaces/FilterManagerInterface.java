@@ -18,8 +18,12 @@
 
 package ru.arifolth.anjrpg.interfaces;
 
+import com.jme3.post.filters.GammaCorrectionFilter;
+
 public interface FilterManagerInterface {
     void initialize();
+
+    GammaCorrectionFilter getGammaCorrectionFilter();
 
     void addFog();
 

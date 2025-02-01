@@ -46,6 +46,7 @@ public class FilterManager implements FilterManagerInterface {
 
     private Renderer renderer;
     private FogFilter fog;
+    private GammaCorrectionFilter gammaCorrectionFilter;
 
     public FilterManager(AssetManager assetManager, Node rootNode, ViewPort viewPort, SkyInterface sky, Renderer renderer) {
         this.assetManager = assetManager;
@@ -71,8 +72,21 @@ public class FilterManager implements FilterManagerInterface {
         setupWaterFilter();
         setupCartoonEdgeFilter();
         setupToneMapFilter();
+        setupGammaCorrectionFilter();
 
         viewPort.addProcessor(fpp);
+    }
+
+    private void setupGammaCorrectionFilter() {
+        gammaCorrectionFilter = new GammaCorrectionFilter();
+        gammaCorrectionFilter.setGamma(0.5f); // Default gamma is 1.0; values >1.0 make the scene darker, <1.0 make it brighter
+
+        fpp.addFilter(gammaCorrectionFilter);
+    }
+
+    @Override
+    public GammaCorrectionFilter getGammaCorrectionFilter() {
+        return gammaCorrectionFilter;
     }
 
     private void setupToneMapFilter() {

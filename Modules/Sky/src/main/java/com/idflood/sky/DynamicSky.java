@@ -10,6 +10,7 @@ import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
+import com.jme3.post.filters.GammaCorrectionFilter;
 import com.jme3.renderer.ViewPort;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
@@ -110,16 +111,30 @@ public class DynamicSky extends Node implements SkyInterface {
     }
 
     public void fadeLight(float tpf) {
+        GammaCorrectionFilter gammaCorrectionFilter = ((ANJRpgInterface) gameLogicCore.getApp()).getFilterManager().getGammaCorrectionFilter();
         if(tpf < 0) {
+            if(fadeOut <= -0.5f) {
+                if(!gammaCorrectionFilter.isEnabled()) {
+                    gammaCorrectionFilter.setGamma(0.5f);
+                    gammaCorrectionFilter.setEnabled(true);
+                }
+            }
             if (fadeOut <= -1.0f) {
                 ambientLight.setColor(new ColorRGBA(0.1f, 0.1f, 0.1f, 1.0f));
                 return;
             }
         } else {
+            if(fadeOut >= -0.15) {
+                if(gammaCorrectionFilter.isEnabled()) {
+                    gammaCorrectionFilter.setGamma(1.125f);
+                    gammaCorrectionFilter.setEnabled(false);
+                }
+            }
             if (fadeOut >= 0.5f) {
                 ambientLight.setColor(new ColorRGBA(0.3f, 0.3f, 0.3f, 1.0f));
                 return;
             }
+
         }
         fadeOut += tpf / 16;
         getSunLight().setColor(ColorRGBA.White.mult(fadeOut));
