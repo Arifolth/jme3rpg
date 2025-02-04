@@ -87,6 +87,9 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         setupSky();
 
         setupFilters();
+
+        filterManager.initialize();
+        sky.initialize();
     }
 
     private void initializeEntities() {
@@ -131,7 +134,6 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
 
     void setupFilters() {
         filterManager = new FilterManager(assetManager, rootNode, viewPort, sky, renderer);
-        filterManager.initialize();
 
         setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }

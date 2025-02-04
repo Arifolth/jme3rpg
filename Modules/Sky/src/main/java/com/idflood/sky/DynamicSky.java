@@ -7,7 +7,6 @@ import com.idflood.sky.utils.CloudsBillboardItem;
 import com.idflood.sky.utils.HorizonBillboardItem;
 import com.jme3.asset.AssetManager;
 import com.jme3.light.AmbientLight;
-import com.jme3.light.DirectionalLight;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.post.filters.GammaCorrectionFilter;
@@ -17,13 +16,15 @@ import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Node;
 import com.jme3.util.mikktspace.MikktspaceTangentGenerator;
 import jme3tools.optimize.GeometryBatchFactory;
+import ru.arifolth.anjrpg.processors.FadeGammaProcessor;
+import ru.arifolth.anjrpg.processors.FadeLightProcessor;
 import ru.arifolth.anjrpg.interfaces.*;
 
 import static ru.arifolth.anjrpg.interfaces.Constants.INITIAL_MOUNTAINS_OFFSET;
 
 public class DynamicSky extends Node implements SkyInterface {
-    private final CloudsBillboardItem clouds;
-    private final HorizonBillboardItem horizon;
+    private CloudsBillboardItem clouds;
+    private HorizonBillboardItem horizon;
     private float fadeOut;
     private AmbientLight ambientLight;
     private DynamicSun dynamicSun = null;
@@ -31,6 +32,8 @@ public class DynamicSky extends Node implements SkyInterface {
     private DynamicSkyBackground dynamicBackground = null;
 
     private GameLogicCoreInterface gameLogicCore = null;
+
+    private FadeLightProcessor fadeLightProcessor = null;
 
     private float scaling = 10000;
 
@@ -58,10 +61,15 @@ public class DynamicSky extends Node implements SkyInterface {
             rootNode.attachChild(this);
         });
 
+        gameLogicCore.setSky(this);
+    }
+
+    @Override
+    public void initialize() {
         var lambdaContext = new Object() {
             Node mountainNode = new Node();
         };
-        horizon = new HorizonBillboardItem(assetManager, "Mountain", 1f);
+        horizon = new HorizonBillboardItem(gameLogicCore.getAssetManager(), "Mountain", 1f);
         lambdaContext.mountainNode.attachChild(horizon);
         LodUtils.setUpModelLod(lambdaContext.mountainNode);
         lambdaContext.mountainNode = GeometryBatchFactory.optimize(lambdaContext.mountainNode, true);
@@ -72,14 +80,15 @@ public class DynamicSky extends Node implements SkyInterface {
             gameLogicCore.getRootNode().attachChild(lambdaContext.mountainNode);
         });
 
-        clouds = new CloudsBillboardItem(assetManager, "Clouds", 1f);
+        clouds = new CloudsBillboardItem(gameLogicCore.getAssetManager(), "Clouds", 1f);
         gameLogicCore.getApp().enqueue(() -> {
             gameLogicCore.getRootNode().attachChild(clouds);
         });
         setQueueBucket(RenderQueue.Bucket.Sky);
         setCullHint(CullHint.Never);
 
-        gameLogicCore.setSky(this);
+        GammaCorrectionFilter gammaCorrectionFilter = ((ANJRpgInterface) gameLogicCore.getApp()).getFilterManager().getGammaCorrectionFilter();
+        fadeLightProcessor = new FadeLightProcessor(ambientLight, dynamicSun.getSunLight(), new FadeGammaProcessor(gammaCorrectionFilter));
     }
 
     public void attachStars() {
@@ -110,34 +119,8 @@ public class DynamicSky extends Node implements SkyInterface {
         return dynamicSun.getSunSystem().getCurrentDate().getHours();
     }
 
-    public void fadeLight(float tpf) {
-        GammaCorrectionFilter gammaCorrectionFilter = ((ANJRpgInterface) gameLogicCore.getApp()).getFilterManager().getGammaCorrectionFilter();
-        if(tpf < 0) {
-            if(fadeOut <= -0.5f) {
-                if(!gammaCorrectionFilter.isEnabled()) {
-                    gammaCorrectionFilter.setGamma(0.5f);
-                    gammaCorrectionFilter.setEnabled(true);
-                }
-            }
-            if (fadeOut <= -1.0f) {
-                ambientLight.setColor(new ColorRGBA(0.1f, 0.1f, 0.1f, 1.0f));
-                return;
-            }
-        } else {
-            if(fadeOut >= -0.15) {
-                if(gammaCorrectionFilter.isEnabled()) {
-                    gammaCorrectionFilter.setGamma(1.125f);
-                    gammaCorrectionFilter.setEnabled(false);
-                }
-            }
-            if (fadeOut >= 0.5f) {
-                ambientLight.setColor(new ColorRGBA(0.3f, 0.3f, 0.3f, 1.0f));
-                return;
-            }
-
-        }
-        fadeOut += tpf / 16;
-        getSunLight().setColor(ColorRGBA.White.mult(fadeOut));
+    public void fade(float tpf) {
+        fadeLightProcessor.process(tpf);
     }
 
     public void updateTime(float tpf){
@@ -148,12 +131,12 @@ public class DynamicSky extends Node implements SkyInterface {
             if(!dynamicStars.isAttached()) {
                 attachStars();
             }
-            fadeLight(-tpf);
+            this.fade(-tpf);
         } else {
             if(dynamicStars.isAttached()) {
                 detachStars();
             }
-            fadeLight(tpf);
+            this.fade(tpf);
         }
 
         dynamicBackground.updateLightPosition(dynamicSun.getSunSystem().getPosition());
@@ -179,10 +162,5 @@ public class DynamicSky extends Node implements SkyInterface {
     @Override
     public void update(float tpf){
         updateTime(tpf);
-    }
-
-    @Override
-    public DirectionalLight getSunLight(){
-        return dynamicSun.getSunLight();
     }
 }

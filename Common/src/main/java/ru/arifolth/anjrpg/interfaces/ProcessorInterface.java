@@ -18,15 +18,6 @@
 
 package ru.arifolth.anjrpg.interfaces;
 
-import com.jme3.light.DirectionalLight;
-import com.jme3.math.Vector3f;
-
-public interface SkyInterface {
-    void initialize();
-
-    Vector3f getSunDirection();
-
-    int getHours();
-
-    void update(float tpf);
+public interface ProcessorInterface {
+    void process(float tpf);
 }

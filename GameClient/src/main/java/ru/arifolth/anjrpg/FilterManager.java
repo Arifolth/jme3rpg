@@ -43,8 +43,6 @@ public class FilterManager implements FilterManagerInterface {
     private  ViewPort viewPort;
     private WaterFilter waterFilter;
     private FilterPostProcessor fpp;
-
-    private Renderer renderer;
     private FogFilter fog;
     private GammaCorrectionFilter gammaCorrectionFilter;
 
@@ -53,28 +51,30 @@ public class FilterManager implements FilterManagerInterface {
         this.rootNode = rootNode;
         this.viewPort = viewPort;
         this.sky = sky;
-        this.renderer = renderer;
-    }
 
-    @Override
-    public void initialize() {
         fpp = new FilterPostProcessor(assetManager);
-
         renderer.setDefaultAnisotropicFilter(1);
+
         setupFog();
 
         setupFilterPostProcessor();
-        setupLightScatteringFilter();
         setupDepthOfFieldFilter();
         setupSSAOFilter();
         setupTranslucentBucketFilter();
         setupShadowRenderer();
-        setupWaterFilter();
         setupCartoonEdgeFilter();
         setupToneMapFilter();
-        setupGammaCorrectionFilter();
 
         viewPort.addProcessor(fpp);
+    }
+
+    @Override
+    public void initialize() {
+        setupLightScatteringFilter();
+
+        setupWaterFilter();
+
+        setupGammaCorrectionFilter();
     }
 
     private void setupGammaCorrectionFilter() {
