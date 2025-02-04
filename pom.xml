@@ -11,6 +11,8 @@
 
     <name>Game</name>
 
+    <url>https://github.com/Arifolth/jme3rpg</url>
+
     <developers>
         <developer>
             <id>arifolth</id>
@@ -90,6 +92,43 @@
               </executions>
             </plugin>
             -->
+            <!--mvn project-info-reports:dependencies-->
+
+            <!--mvn license:aggregate-add-third-party-->
+            <!--mvn license:aggregate-third-party-report-->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>2.1.0</version>
+                <configuration>
+                    <!-- Define the output file for the licenses -->
+                    <licensesOutputFile>${project.basedir}/NOTICE</licensesOutputFile>
+
+                    <!-- Specify that you want to include only direct dependencies -->
+                    <includeTransitiveDependencies>false</includeTransitiveDependencies>
+
+                    <!-- Define the format of the output file -->
+                    <licensesOutputFormat>markdown</licensesOutputFormat>
+
+                    <!-- Optionally, you can define a custom header or footer -->
+                    <!--
+                    <header>${project.basedir}/src/license/header.txt</header>
+                    <footer>${project.basedir}/src/license/footer.txt</footer>
+                    -->
+
+                    <!-- Set to true to fail the build if there are warnings -->
+                    <failIfWarning>true</failIfWarning>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>generate-notice</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>aggregate-add-third-party</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
