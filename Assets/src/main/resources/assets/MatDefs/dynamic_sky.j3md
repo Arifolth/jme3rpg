@@ -6,8 +6,8 @@ MaterialDef Dynamic Sky {
     }
 
     Technique {
-        VertexShader GLSL100:   MatDefs/dynamic_sky.vert
-        FragmentShader GLSL100: MatDefs/dynamic_sky.frag
+        VertexShader GLSL120:   MatDefs/dynamic_sky.vert
+        FragmentShader GLSL120: MatDefs/dynamic_sky.frag
 
         RenderState {
             FaceCull Off

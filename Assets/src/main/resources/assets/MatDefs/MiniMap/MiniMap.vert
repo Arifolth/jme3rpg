@@ -1,15 +1,15 @@
 #import "Common/ShaderLib/Instancing.glsllib"
 
-attribute vec3 inPosition;
-attribute vec2 inTexCoord;
+in vec3 inPosition;
+in vec2 inTexCoord;
 
-varying vec2 texCoord;
+out vec2 texCoord;
 
-void main(){
-
+void main()
+{
     texCoord = inTexCoord;
     vec4 modelSpacePos = vec4(inPosition, 1.0);
 
+    // Assuming TransformWorldViewProjection is a function defined in Instancing.glsllib
     gl_Position = TransformWorldViewProjection(modelSpacePos);
-
 }

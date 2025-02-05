@@ -7,25 +7,14 @@ MaterialDef GammaCorrection {
     }
  
     Technique {
-        VertexShader GLSL150:   Common/MatDefs/Post/Post15.vert
-        FragmentShader GLSL150: Common/MatDefs/Post/GammaCorrection15.frag
+        VertexShader    GLSL450 GLSL400 GLSL300 GLSL150 GLSL120: Common/MatDefs/Post/Post15.vert
+        FragmentShader  GLSL450 GLSL400 GLSL300 GLSL150 GLSL120: Common/MatDefs/Post/GammaCorrection15.frag
  
         WorldParameters {
         }
         
         Defines { 
             RESOLVE_MS : NumSamples
-        }
-    }
- 
-    Technique {
-        VertexShader GLSL100:   Common/MatDefs/Post/Post.vert
-        FragmentShader GLSL100: Common/MatDefs/Post/GammaCorrection.frag
- 
-        WorldParameters {
-        }
-        
-         Defines {            
         }
     }
 }

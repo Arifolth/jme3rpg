@@ -76,7 +76,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
     @Override
     public TerrainQuad generateTerrain() {
         // TERRAIN TEXTURE material
-        Material matTerrain = new Material(this.assetManager, "MatDefs/HeightBasedTerrain.j3md");
+        Material matTerrain = new Material(this.assetManager, "Common/MatDefs/Terrain/HeightBasedTerrain.j3md");
 
         AppSettings settings = app.getContext().getSettings();
         matTerrain.getAdditionalRenderState().setWireframe(settings.getBoolean(Constants.DEBUG));
