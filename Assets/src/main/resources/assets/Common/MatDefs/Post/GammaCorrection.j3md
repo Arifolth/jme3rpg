@@ -7,8 +7,8 @@ MaterialDef GammaCorrection {
     }
  
     Technique {
-        VertexShader    GLSL450 GLSL400 GLSL300 GLSL150 GLSL120: Common/MatDefs/Post/Post15.vert
-        FragmentShader  GLSL450 GLSL400 GLSL300 GLSL150 GLSL120: Common/MatDefs/Post/GammaCorrection15.frag
+        VertexShader    GLSL120: Common/MatDefs/Post/Post.vert
+        FragmentShader  GLSL120: Common/MatDefs/Post/GammaCorrection.frag
  
         WorldParameters {
         }
