@@ -113,19 +113,19 @@ public enum BushTypeEnum implements BaseVegetationType {
             return probability;
         }
     },
-    BUSH_TREE {
+    PURPLE_LEAF_PLUM {
         Node bushNode = null;
-        final int probability = 50;
+        final int probability = 75;
         @Override
         public void init() {
-            Geometry bushGeometry = new Geometry("bush0", new Quad(2, 6));
+            Geometry bushGeometry = new Geometry("purple-leaf-plum", new Quad(15, 12));
 
             Material bushShader = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-            Texture texture = assetManager.loadTexture("Textures/Bush/bushtree/tree_PNG92712.png");
+            Texture texture = assetManager.loadTexture("Textures/Bush/purple-leaf-plum/purple-leaf-plum.png");
             texture.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
-            Texture normalMap = assetManager.loadTexture("Textures/Bush/bushtree/tree_PNG92712_normal.png");
+            Texture normalMap = assetManager.loadTexture("Textures/Bush/purple-leaf-plum/purple-leaf-plum-normal.png");
             normalMap.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
-            Texture specularMap = assetManager.loadTexture("Textures/Bush/bushtree/tree_PNG92712_specular.png");
+            Texture specularMap = assetManager.loadTexture("Textures/Bush/purple-leaf-plum/purple-leaf-plum-specular.png");
             specularMap.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
             bushShader.setColor("Diffuse", ColorRGBA.White);
             bushShader.setColor("Ambient", ColorRGBA.White);
@@ -148,7 +148,7 @@ public enum BushTypeEnum implements BaseVegetationType {
 
             bushGeometry.setQueueBucket(RenderQueue.Bucket.Transparent);
             bushGeometry.setMaterial(bushShader);
-            bushGeometry.setShadowMode(RenderQueue.ShadowMode.Receive);
+            bushGeometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
             bushGeometry.rotate(0, 0f, 0);
             bushGeometry.center();
 
@@ -171,7 +171,7 @@ public enum BushTypeEnum implements BaseVegetationType {
             bushGeometry.center();
             bushBladeNode.attachChild(bushGeometry);
 
-            bushBladeNode.move(0, 1f, 0);
+            bushBladeNode.move(0, 1f, 15f);
 
             LodUtils.setUpModelLod(bushBladeNode);
             bushBladeNode = GeometryBatchFactory.optimize(bushBladeNode, true);
@@ -275,8 +275,8 @@ public enum BushTypeEnum implements BaseVegetationType {
 
         if (Utils.getRandom(BUSH0.getProbability())) {
             node = BUSH0.getNode();
-        } else if (Utils.getRandom(BUSH_TREE.getProbability())) {
-            node = BUSH_TREE.getNode();
+        } else if (Utils.getRandom(PURPLE_LEAF_PLUM.getProbability())) {
+            node = PURPLE_LEAF_PLUM.getNode();
         } else {
             node = BUSH.getNode();
         }

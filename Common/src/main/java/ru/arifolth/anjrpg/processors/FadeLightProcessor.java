@@ -41,17 +41,16 @@ public class FadeLightProcessor implements ProcessorInterface {
         try {
             if (tpf < 0) {
                 if (fadeOut <= -1.0f) {
-                    ambientLight.setColor(new ColorRGBA(0.1f, 0.1f, 0.1f, 1.0f));
+                    ambientLight.setColor(new ColorRGBA(0.25f, 0.25f, 0.25f, 1.0f));
                     return;
                 }
             } else {
                 if (fadeOut >= 0.5f) {
-                    ambientLight.setColor(new ColorRGBA(0.3f, 0.3f, 0.3f, 1.0f));
+                    ambientLight.setColor(new ColorRGBA(0.35f, 0.35f, 0.35f, 1.0f));
                     return;
                 }
-
             }
-            fadeOut += tpf / 16;
+            fadeOut += tpf / 32;
             sunLight.setColor(ColorRGBA.White.mult(fadeOut));
         } finally {
             fadeGammaProcessor.process(tpf);
