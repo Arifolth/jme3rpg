@@ -41,7 +41,7 @@ public class FadeLightProcessor implements ProcessorInterface {
         try {
             if (tpf < 0) {
                 if (fadeOut <= -1.0f) {
-                    ambientLight.setColor(new ColorRGBA(0.25f, 0.25f, 0.25f, 1.0f));
+                    ambientLight.setColor(new ColorRGBA(0.295f, 0.295f, 0.295f, 1.0f));
                     return;
                 }
             } else {
