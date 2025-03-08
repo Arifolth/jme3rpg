@@ -75,10 +75,10 @@ public class VegetationInitialization implements VegetationInitializationInterfa
                     context.getNode().setShadowMode(RenderQueue.ShadowMode.Cast);
                     context.getNode().setCullHint(Spatial.CullHint.Dynamic);
 
-                    executorService.execute(new TreesBuilder(gameLogicCore, quadLocation, quad, context, countDownLatch));
-                    executorService.execute(new TreesBuilder(gameLogicCore, quadLocation, quad, context, countDownLatch));
-                    executorService.execute(new TreesBuilder(gameLogicCore, quadLocation, quad, context, countDownLatch));
-                    executorService.execute(new TreesBuilder(gameLogicCore, quadLocation, quad, context, countDownLatch));
+                    executorService.execute(new TreesBuilder(quadLocation, quad, context, countDownLatch));
+                    executorService.execute(new TreesBuilder(quadLocation, quad, context, countDownLatch));
+                    executorService.execute(new TreesBuilder(quadLocation, quad, context, countDownLatch));
+                    executorService.execute(new TreesBuilder(quadLocation, quad, context, countDownLatch));
 
                     try {
                         countDownLatch.await();

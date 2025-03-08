@@ -27,11 +27,14 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
-import com.jme3.util.mikktspace.MikktspaceTangentGenerator;
+import com.jme3.util.TangentBinormalGenerator;
 import jme3tools.optimize.GeometryBatchFactory;
 import ru.arifolth.anjrpg.interfaces.BaseVegetationType;
 import ru.arifolth.anjrpg.interfaces.LodUtils;
 import ru.arifolth.anjrpg.interfaces.Utils;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public enum GrassTypeEnum implements BaseVegetationType {
     REGULAR {
@@ -94,9 +97,9 @@ public enum GrassTypeEnum implements BaseVegetationType {
 
             grassBladeNode.move(0, 1f, 0);
 
+            TangentBinormalGenerator.generate(grassBladeNode, false);
             LodUtils.setUpModelLod(grassBladeNode);
             grassBladeNode = GeometryBatchFactory.optimize(grassBladeNode, true);
-            MikktspaceTangentGenerator.generate(grassBladeNode);
             grassBladeNode.updateModelBound();
 
             grassNode = grassBladeNode;
@@ -172,9 +175,9 @@ public enum GrassTypeEnum implements BaseVegetationType {
 
             grassBladeNode.move(0, 1f, 0);
 
+            TangentBinormalGenerator.generate(grassBladeNode, false);
             LodUtils.setUpModelLod(grassBladeNode);
             grassBladeNode = GeometryBatchFactory.optimize(grassBladeNode, true);
-            MikktspaceTangentGenerator.generate(grassBladeNode);
             grassBladeNode.updateModelBound();
 
             grassNode = grassBladeNode;
@@ -250,9 +253,9 @@ public enum GrassTypeEnum implements BaseVegetationType {
 
             grassBladeNode.move(0, 1f, 0);
 
+            TangentBinormalGenerator.generate(grassBladeNode, false);
             LodUtils.setUpModelLod(grassBladeNode);
             grassBladeNode = GeometryBatchFactory.optimize(grassBladeNode, true);
-            MikktspaceTangentGenerator.generate(grassBladeNode);
             grassBladeNode.updateModelBound();
 
             grassNode = grassBladeNode;
@@ -328,9 +331,9 @@ public enum GrassTypeEnum implements BaseVegetationType {
 
             grassBladeNode.move(0, 1f, 0);
 
+            TangentBinormalGenerator.generate(grassBladeNode, false);
             LodUtils.setUpModelLod(grassBladeNode);
             grassBladeNode = GeometryBatchFactory.optimize(grassBladeNode, true);
-            MikktspaceTangentGenerator.generate(grassBladeNode);
             grassBladeNode.updateModelBound();
 
             grassNode = grassBladeNode;
@@ -363,6 +366,7 @@ public enum GrassTypeEnum implements BaseVegetationType {
         return node;
     }
 
+    private static ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
     private static AssetManager assetManager;
 
     public static void setAssetManager(AssetManager assetManager) {

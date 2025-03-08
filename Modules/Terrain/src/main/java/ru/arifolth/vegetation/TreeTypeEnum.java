@@ -23,10 +23,14 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import com.jme3.util.TangentBinormalGenerator;
 import com.jme3.util.mikktspace.MikktspaceTangentGenerator;
 import ru.arifolth.anjrpg.interfaces.LodUtils;
 import ru.arifolth.anjrpg.interfaces.BaseVegetationType;
 import ru.arifolth.anjrpg.interfaces.Utils;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public enum TreeTypeEnum implements BaseVegetationType {
     BOULDER {
@@ -63,8 +67,8 @@ public enum TreeTypeEnum implements BaseVegetationType {
             Node firTree = (Node) assetManager.loadModel("Models/Fir1/fir1_androlo.j3o");
             firTree.setShadowMode(RenderQueue.ShadowMode.Cast);
 
-            LodUtils.setUpModelLod(firTree);
             MikktspaceTangentGenerator.generate(firTree);
+            LodUtils.setUpModelLod(firTree);
 
             tree = firTree;
         }
@@ -89,7 +93,7 @@ public enum TreeTypeEnum implements BaseVegetationType {
             Node tree = (Node) assetManager.loadModel("Models/Trees/tree_low-poly/scene.gltf");
             tree.setShadowMode(RenderQueue.ShadowMode.Cast);
 
-//            LodUtils.setUpModelLod(tree);
+            LodUtils.setUpModelLod(tree);
             MikktspaceTangentGenerator.generate(tree);
 
             this.tree = tree;
@@ -118,8 +122,8 @@ public enum TreeTypeEnum implements BaseVegetationType {
             Node tree2 = (Node) assetManager.loadModel("Models/Trees/tree2/scene.gltf");
             tree2.setShadowMode(RenderQueue.ShadowMode.Cast);
 
-//            LodUtils.setUpModelLod(tree2);
             MikktspaceTangentGenerator.generate(tree2);
+            LodUtils.setUpModelLod(tree2);
 
             tree = tree2;
         }
@@ -178,11 +182,10 @@ public enum TreeTypeEnum implements BaseVegetationType {
             Geometry mapleLeaves = (Geometry) mapleTree.getChild("maple leaves");
             mapleLeaves.setMaterial(assetManager.loadMaterial("Models/Maple/Maple_Leaves.j3m"));
 
-
             mapleTree.setShadowMode(RenderQueue.ShadowMode.Cast);
-            LodUtils.setUpModelLod(mapleTree);
-            MikktspaceTangentGenerator.generate(mapleTree);
 
+            MikktspaceTangentGenerator.generate(mapleTree);
+            LodUtils.setUpModelLod(mapleTree);
 
             tree = mapleTree;
         }
@@ -210,10 +213,10 @@ public enum TreeTypeEnum implements BaseVegetationType {
 
             Geometry oakLeaves = (Geometry) oakTree.getChild("oak leaves");
             oakLeaves.setMaterial(assetManager.loadMaterial("Models/Oak/Oak_Leaves.j3m"));
-
             oakTree.setShadowMode(RenderQueue.ShadowMode.Cast);
-            LodUtils.setUpModelLod(oakTree);
+
             MikktspaceTangentGenerator.generate(oakTree);
+            LodUtils.setUpModelLod(oakTree);
 
             tree = oakTree;
         }
@@ -230,6 +233,7 @@ public enum TreeTypeEnum implements BaseVegetationType {
             return probability;
         }
     };
+    private static ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
 
     private static AssetManager assetManager;
 

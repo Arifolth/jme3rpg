@@ -38,7 +38,6 @@ import java.util.stream.Stream;
 import static ru.arifolth.anjrpg.interfaces.Constants.RAY_DOWN;
 
 public class TreesBuilder implements BuilderInterface {
-    private final GameLogicCoreInterface gameLogicCore;
 
     private final Vector3f quadLocation;
     private final TerrainQuad quad;
@@ -47,8 +46,7 @@ public class TreesBuilder implements BuilderInterface {
     private Node node;
     private CountDownLatch countDownLatch;
 
-    public TreesBuilder(GameLogicCoreInterface gameLogicCore, Vector3f quadLocation, TerrainQuad quad, ContextInterface context, CountDownLatch countDownLatch) {
-        this.gameLogicCore = gameLogicCore;
+    public TreesBuilder(Vector3f quadLocation, TerrainQuad quad, ContextInterface context, CountDownLatch countDownLatch) {
         this.quadLocation = quadLocation;
         this.quad = quad;
         this.context = context;

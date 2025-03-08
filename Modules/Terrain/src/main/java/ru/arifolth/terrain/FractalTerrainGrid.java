@@ -47,6 +47,8 @@ import java.util.logging.Logger;
 
 public class FractalTerrainGrid implements FractalTerrainGridInterface {
     final private static Logger LOGGER = Logger.getLogger(FractalTerrainGrid.class.getName());
+    public static final int PATCH_SIZE = 33;
+    public static final float LOD_MULTIPLIER = 3.5f;
 
     private TerrainQuad terrain;
 
@@ -153,7 +155,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
 
         ground.addPreFilter(this.iterate);
 
-        this.terrain = new TerrainGrid("Terrain", 65, 1025, new FractalTileLoader(ground, 256f));
+        this.terrain = new TerrainGrid("Terrain", PATCH_SIZE, 1025, new FractalTileLoader(ground, 256f));
 
         this.terrain.setMaterial(matTerrain);
 
@@ -185,7 +187,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
     private void setUpLODControl() {
         /** 5. The LOD (level of detail) depends on were the camera is: */
         TerrainLodControl control = new TerrainGridLodControl(this.terrain, app.getCamera());
-        control.setLodCalculator(new DistanceLodCalculator(257, 2.7f)); // patch size, and a multiplier
+        control.setLodCalculator(new DistanceLodCalculator(PATCH_SIZE, LOD_MULTIPLIER)); // patch size, and a multiplier
         this.terrain.addControl(control);
     }
 
