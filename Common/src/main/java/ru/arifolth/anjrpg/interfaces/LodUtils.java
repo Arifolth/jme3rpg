@@ -52,11 +52,6 @@ public class LodUtils {
     }
 
     private static void createModelLod(Geometry geometry) {
-        // Skip if already has LOD control
-        if (geometry.getControl(LodControl.class) != null) {
-            return;
-        }
-
         // Generate LODs with optimized parameters
         LodGenerator lod = new LodGenerator(geometry);
 
