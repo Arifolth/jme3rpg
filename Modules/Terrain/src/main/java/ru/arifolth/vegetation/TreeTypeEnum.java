@@ -23,14 +23,10 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
-import com.jme3.util.TangentBinormalGenerator;
 import com.jme3.util.mikktspace.MikktspaceTangentGenerator;
-import ru.arifolth.anjrpg.interfaces.LodUtils;
 import ru.arifolth.anjrpg.interfaces.BaseVegetationType;
+import ru.arifolth.anjrpg.interfaces.LodUtils;
 import ru.arifolth.anjrpg.interfaces.Utils;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public enum TreeTypeEnum implements BaseVegetationType {
     BOULDER {
@@ -233,7 +229,6 @@ public enum TreeTypeEnum implements BaseVegetationType {
             return probability;
         }
     };
-    private static ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
 
     private static AssetManager assetManager;
 

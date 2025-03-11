@@ -33,9 +33,6 @@ import ru.arifolth.anjrpg.interfaces.BaseVegetationType;
 import ru.arifolth.anjrpg.interfaces.LodUtils;
 import ru.arifolth.anjrpg.interfaces.Utils;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 public enum GrassTypeEnum implements BaseVegetationType {
     REGULAR {
         Node grassNode = null;
@@ -366,7 +363,6 @@ public enum GrassTypeEnum implements BaseVegetationType {
         return node;
     }
 
-    private static ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
     private static AssetManager assetManager;
 
     public static void setAssetManager(AssetManager assetManager) {
