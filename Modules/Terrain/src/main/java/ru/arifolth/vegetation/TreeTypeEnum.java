@@ -37,8 +37,8 @@ public enum TreeTypeEnum implements BaseVegetationType {
             Node rockNode = (Node) assetManager.loadModel("Models/Rock1/rock1_nobiax.j3o");
             rockNode.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
 
-            //LodUtils.setUpModelLod(rockNode);
             MikktspaceTangentGenerator.generate(rockNode);
+            LodUtils.setUpModelLod(rockNode);
 
             tree = rockNode;
         }
@@ -146,8 +146,8 @@ public enum TreeTypeEnum implements BaseVegetationType {
             Node tree3 = (Node) assetManager.loadModel("Models/Trees/tree3/scene.gltf");
             tree3.setShadowMode(RenderQueue.ShadowMode.Cast);
 
-//            LodUtils.setUpModelLod(tree3);
             MikktspaceTangentGenerator.generate(tree3);
+            LodUtils.setUpModelLod(tree3);
 
             tree = tree3;
         }

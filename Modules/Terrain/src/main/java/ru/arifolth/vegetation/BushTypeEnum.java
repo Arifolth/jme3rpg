@@ -27,14 +27,11 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
-import com.jme3.util.TangentBinormalGenerator;
+import com.jme3.util.mikktspace.MikktspaceTangentGenerator;
 import jme3tools.optimize.GeometryBatchFactory;
 import ru.arifolth.anjrpg.interfaces.BaseVegetationType;
 import ru.arifolth.anjrpg.interfaces.LodUtils;
 import ru.arifolth.anjrpg.interfaces.Utils;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public enum BushTypeEnum implements BaseVegetationType {
 
@@ -98,7 +95,7 @@ public enum BushTypeEnum implements BaseVegetationType {
 
             bushBladeNode.move(0, 1f, 0);
 
-            TangentBinormalGenerator.generate(bushBladeNode, false);
+            MikktspaceTangentGenerator.generate(bushBladeNode);
             LodUtils.setUpModelLod(bushBladeNode);
             bushBladeNode = GeometryBatchFactory.optimize(bushBladeNode, true);
             bushBladeNode.updateModelBound();
@@ -176,7 +173,7 @@ public enum BushTypeEnum implements BaseVegetationType {
 
             bushBladeNode.move(0, 1f, 15f);
 
-            TangentBinormalGenerator.generate(bushBladeNode, false);
+            MikktspaceTangentGenerator.generate(bushBladeNode);
             LodUtils.setUpModelLod(bushBladeNode);
             bushBladeNode = GeometryBatchFactory.optimize(bushBladeNode, true);
             bushBladeNode.updateModelBound();
@@ -254,7 +251,7 @@ public enum BushTypeEnum implements BaseVegetationType {
 
             bushBladeNode.move(0, 1f, 0);
 
-            TangentBinormalGenerator.generate(bushBladeNode, false);
+            MikktspaceTangentGenerator.generate(bushBladeNode);
             LodUtils.setUpModelLod(bushBladeNode);
             bushBladeNode = GeometryBatchFactory.optimize(bushBladeNode, true);
             bushBladeNode.updateModelBound();
@@ -286,7 +283,6 @@ public enum BushTypeEnum implements BaseVegetationType {
 
         return node;
     }
-    private static ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
 
     private static AssetManager assetManager;
 

@@ -27,7 +27,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
-import com.jme3.util.TangentBinormalGenerator;
+import com.jme3.util.mikktspace.MikktspaceTangentGenerator;
 import jme3tools.optimize.GeometryBatchFactory;
 import ru.arifolth.anjrpg.interfaces.BaseVegetationType;
 import ru.arifolth.anjrpg.interfaces.LodUtils;
@@ -94,7 +94,7 @@ public enum GrassTypeEnum implements BaseVegetationType {
 
             grassBladeNode.move(0, 1f, 0);
 
-            TangentBinormalGenerator.generate(grassBladeNode, false);
+            MikktspaceTangentGenerator.generate(grassBladeNode);
             LodUtils.setUpModelLod(grassBladeNode);
             grassBladeNode = GeometryBatchFactory.optimize(grassBladeNode, true);
             grassBladeNode.updateModelBound();
@@ -172,7 +172,7 @@ public enum GrassTypeEnum implements BaseVegetationType {
 
             grassBladeNode.move(0, 1f, 0);
 
-            TangentBinormalGenerator.generate(grassBladeNode, false);
+            MikktspaceTangentGenerator.generate(grassBladeNode);
             LodUtils.setUpModelLod(grassBladeNode);
             grassBladeNode = GeometryBatchFactory.optimize(grassBladeNode, true);
             grassBladeNode.updateModelBound();
@@ -250,7 +250,7 @@ public enum GrassTypeEnum implements BaseVegetationType {
 
             grassBladeNode.move(0, 1f, 0);
 
-            TangentBinormalGenerator.generate(grassBladeNode, false);
+            MikktspaceTangentGenerator.generate(grassBladeNode);
             LodUtils.setUpModelLod(grassBladeNode);
             grassBladeNode = GeometryBatchFactory.optimize(grassBladeNode, true);
             grassBladeNode.updateModelBound();
@@ -328,7 +328,7 @@ public enum GrassTypeEnum implements BaseVegetationType {
 
             grassBladeNode.move(0, 1f, 0);
 
-            TangentBinormalGenerator.generate(grassBladeNode, false);
+            MikktspaceTangentGenerator.generate(grassBladeNode);
             LodUtils.setUpModelLod(grassBladeNode);
             grassBladeNode = GeometryBatchFactory.optimize(grassBladeNode, true);
             grassBladeNode.updateModelBound();

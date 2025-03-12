@@ -47,9 +47,7 @@ import java.util.logging.Logger;
 
 public class FractalTerrainGrid implements FractalTerrainGridInterface {
     final private static Logger LOGGER = Logger.getLogger(FractalTerrainGrid.class.getName());
-    public static final int PATCH_SIZE = 33;
-    public static final float LOD_MULTIPLIER = 3.5f;
-
+    private static GraphicsSettings graphicsSettings = GraphicsSettings.HIGH;
     private TerrainQuad terrain;
 
     private final AssetManager assetManager;
@@ -117,7 +115,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
         matTerrain.setTexture("slopeColorMap", rock);
         matTerrain.setFloat("slopeTileFactor", 32);
 
-        matTerrain.setFloat("terrainSize", 513);
+        matTerrain.setFloat("terrainSize", graphicsSettings.getTerrainSize());
 
         this.base = new FractalSum();
         this.base.setRoughness(0.82f);
@@ -155,7 +153,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
 
         ground.addPreFilter(this.iterate);
 
-        this.terrain = new TerrainGrid("Terrain", PATCH_SIZE, 1025, new FractalTileLoader(ground, 256f));
+        this.terrain = new TerrainGrid("Terrain", graphicsSettings.getPatchSize(), graphicsSettings.getTerrainSize(), new FractalTileLoader(ground, 128f));
 
         this.terrain.setMaterial(matTerrain);
 
@@ -181,13 +179,13 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
 
     private void setupPosition() {
         //terrain postion
-        terrain.setLocalTranslation(0, -200, 0);
+        terrain.setLocalTranslation(0, graphicsSettings.getLocalTranslation(), 0);
     }
 
     private void setUpLODControl() {
         /** 5. The LOD (level of detail) depends on were the camera is: */
-        TerrainLodControl control = new TerrainGridLodControl(this.terrain, app.getCamera());
-        control.setLodCalculator(new DistanceLodCalculator(PATCH_SIZE, LOD_MULTIPLIER)); // patch size, and a multiplier
+        TerrainGridLodControl control = new TerrainGridLodControl(this.terrain, app.getCamera());
+        control.setLodCalculator(new DistanceLodCalculator(graphicsSettings.getPatchSize(), graphicsSettings.getLodMultiplier())); // patch size, and a multiplier
         this.terrain.addControl(control);
     }
 

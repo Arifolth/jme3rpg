@@ -85,9 +85,7 @@ public class VegetationInitialization implements VegetationInitializationInterfa
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     } finally {
-                        Thread.yield();
                         context.setNode(GeometryBatchFactory.optimize(context.getNode(), true));
-                        Thread.yield();
                         context.getNode().updateModelBound();
                         quad.setUserData(Constants.QUAD_FOREST, context.getNode());
                         gameLogicCore.getApp().enqueue(() -> {
@@ -126,9 +124,7 @@ public class VegetationInitialization implements VegetationInitializationInterfa
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     } finally {
-                        Thread.yield();
                         context.setNode(GeometryBatchFactory.optimize(context.getNode(), true));
-                        Thread.yield();
                         context.getNode().updateModelBound();
                         quad.setUserData(Constants.QUAD_MUSHROOMS, context.getNode());
                         gameLogicCore.getApp().enqueue(() -> {
@@ -166,9 +162,7 @@ public class VegetationInitialization implements VegetationInitializationInterfa
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     } finally {
-                        Thread.yield();
                         context.setNode(GeometryBatchFactory.optimize(context.getNode(), true));
-                        Thread.yield();
                         context.getNode().updateModelBound();
                         quad.setUserData(Constants.QUAD_GRASS, context.getNode());
                         gameLogicCore.getApp().enqueue(() -> {
@@ -217,9 +211,7 @@ public class VegetationInitialization implements VegetationInitializationInterfa
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     } finally {
-                        Thread.yield();
                         context.setNode(GeometryBatchFactory.optimize(context.getNode(), true));
-                        Thread.yield();
                         context.getNode().updateModelBound();
                         quad.setUserData(Constants.QUAD_BUSHES, context.getNode());
                         gameLogicCore.getApp().enqueue(() -> {
