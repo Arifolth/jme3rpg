@@ -33,7 +33,7 @@ public enum GraphicsSettings implements GraphicsSettingsInterface {
         int patchSize = 33;
         int terrainSize = 513;
         float lodMultiplier = 3.5f;
-        int localTransalation = -100;
+        int localTranslation = -100;
         @Override
         public int getPatchSize() {
             return patchSize;
@@ -46,7 +46,7 @@ public enum GraphicsSettings implements GraphicsSettingsInterface {
 
         @Override
         public int getLocalTranslation() {
-            return localTransalation;
+            return localTranslation;
         }
 
         @Override
@@ -58,7 +58,7 @@ public enum GraphicsSettings implements GraphicsSettingsInterface {
         int patchSize = 129;
         int terrainSize = 513;
         float lodMultiplier = 2.7f;
-        int localTransalation = -100;
+        int localTranslation = -100;
         @Override
         public int getPatchSize() {
             return patchSize;
@@ -71,7 +71,7 @@ public enum GraphicsSettings implements GraphicsSettingsInterface {
 
         @Override
         public int getLocalTranslation() {
-            return localTransalation;
+            return localTranslation;
         }
 
         @Override
@@ -83,7 +83,7 @@ public enum GraphicsSettings implements GraphicsSettingsInterface {
         int patchSize = 257;
         int terrainSize = 1025;
         float lodMultiplier = 1.5f;
-        int localTransalation = -100;
+        int localTranslation = -100;
         @Override
         public int getPatchSize() {
             return patchSize;
@@ -96,7 +96,7 @@ public enum GraphicsSettings implements GraphicsSettingsInterface {
 
         @Override
         public int getLocalTranslation() {
-            return localTransalation;
+            return localTranslation;
         }
 
         @Override
