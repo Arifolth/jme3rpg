@@ -56,6 +56,8 @@ public class GrassBuilder implements BuilderInterface {
 
     @Override
     public void run() {
+        Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+
         try {
             List<Spatial> quadGrass = setupGrass();
 
@@ -72,7 +74,7 @@ public class GrassBuilder implements BuilderInterface {
     }
 
     private List<Spatial> setupGrass() {
-        final int grassAmount = 200_000;
+        final int grassAmount = 50_000;
         List<Spatial> quadGrass = new ArrayList<>(grassAmount);
         for (int i = 0; i < grassAmount; i++) {
             Node grassInstance = GrassTypeEnum.getRandomGrass();

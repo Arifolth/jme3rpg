@@ -80,9 +80,9 @@ public enum GraphicsSettings implements GraphicsSettingsInterface {
         }
     },
     HIGH {
-        int patchSize = 257;
+        int patchSize = 65;
         int terrainSize = 1025;
-        float lodMultiplier = 1.5f;
+        float lodMultiplier = 2.7f;
         int localTranslation = -100;
         @Override
         public int getPatchSize() {

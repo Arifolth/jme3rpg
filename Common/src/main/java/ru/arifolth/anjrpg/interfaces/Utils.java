@@ -22,27 +22,30 @@ import com.google.common.collect.Iterables;
 import com.jme3.bullet.control.CharacterControl;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.SplittableRandom;
 
 public class Utils {
-    private static final SplittableRandom random = new SplittableRandom();
-
+    private static final ThreadLocal<SplittableRandom> RANDOM = ThreadLocal.withInitial(SplittableRandom::new);
     private Utils() {
     }
 
     public static boolean getRandom(int probability) {
-        return random.nextInt(1, 101) <= probability;
+        if (probability <= 0) {
+            return false;
+        }
+        if (probability >= 100) {
+            return true;
+        }
+        return RANDOM.get().nextInt(100) < probability;
     }
 
-    public static float getRandomNumber() {
-        return random.nextInt(0, 100);
-    }
 
     public static float getRandomNumberInRange(float min, float max) {
         if (min >= max) {
             throw new IllegalArgumentException("max must be greater than min");
         }
-        return random.nextFloat(max - min) + min;
+        return min + (max - min) * RANDOM.get().nextFloat();
     }
 
     public static void enableEntityPhysics(CharacterInterface character) {
@@ -57,13 +60,23 @@ public class Utils {
         return lower <= x && x <= upper;
     }
 
-    public static float nextFloat() {
-        return random.nextFloat();
-    }
-
-    public static <T> T getRandomObject(Collection<T> from) {
-        int i = random.nextInt(from.size());
-        return Iterables.get(from, i);
+    public static <V> V getRandomObject(Collection<V> values) {
+        if (values == null || values.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
+        int size = values.size();
+        int i = RANDOM.get().nextInt(size);
+        if (values instanceof List) {
+            return ((List<V>) values).get(i);
+        } else {
+            int index = 0;
+            for (V item : values) {
+                if (index++ == i) {
+                    return item;
+                }
+            }
+            throw new AssertionError("Index out of bounds");
+        }
     }
 
     public static <T> T getSingleObject(Collection<T> from) {

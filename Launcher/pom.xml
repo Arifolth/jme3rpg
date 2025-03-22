@@ -132,7 +132,7 @@
                         <argument>--type</argument>
                         <argument>app-image</argument>
                         <argument>--java-options</argument>
-                        <argument>-Xmx6G -server -XX:+UseZGC -XX:+ZProactive -XX:+UseStringDeduplication -XX:+UseCompressedOops</argument>
+                        <argument>-Xms8G -Xmx8G -server -XX:UseAVX=2 -XX:+UseZGC -XX:+ZProactive -XX:+UseStringDeduplication -XX:+UseCompressedOops -XX:+UseLargePages -XX:LargePageSizeInBytes=2M</argument>
                     </arguments>
                 </configuration>
             </plugin>

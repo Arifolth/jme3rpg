@@ -188,10 +188,6 @@ public enum MusicTypeEnum implements AudioType {
         MusicTypeEnum.assetManager = assetManager;
     }
 
-    public static AudioNode getClone(AudioType musicType) {
-        return Utils.getRandomObject(musicMap.get(musicType)).clone();
-    }
-
     public static AudioNode getOriginal(AudioType musicType) {
         return Utils.getSingleObject(musicMap.get(musicType));
     }

@@ -57,6 +57,8 @@ public class TreesBuilder implements BuilderInterface {
 
     @Override
     public void run() {
+        Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+
         try {
             List<Spatial> quadForest = setupTrees();
 

@@ -57,11 +57,11 @@ public class LodUtils {
 
         // Fewer LOD levels with aggressive reduction
         lod.bakeLods(
-                // Aggressive LODs: Keep 30% → 10% → 3% → 1% triangles
-                LodGenerator.TriangleReductionMethod.COLLAPSE_COST, 0.3f, 0.1f, 0.03f, 0.01f);
+                // Aggressive LODs: Keep 70% → 30% → 10% → 3% → 1% triangles
+                LodGenerator.TriangleReductionMethod.COLLAPSE_COST, 0.7f, 0.3f, 0.1f, 0.03f, 0.01f);
 
         LodControl control = new LodControl();
-        control.setDistTolerance(calculateObjectSize(geometry) * 5f); // Larger objects switch sooner
+        control.setDistTolerance(calculateObjectSize(geometry) * 10f); // Larger objects switch sooner
         geometry.addControl(control);
     }
 

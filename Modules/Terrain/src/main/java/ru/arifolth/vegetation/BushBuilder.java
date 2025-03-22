@@ -58,6 +58,8 @@ public class BushBuilder implements BuilderInterface {
 
     @Override
     public void run() {
+        Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+
         try {
             List<Spatial> quadBushes = setupBushes();
 

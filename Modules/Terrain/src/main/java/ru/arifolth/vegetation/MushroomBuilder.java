@@ -59,6 +59,8 @@ public class MushroomBuilder implements BuilderInterface {
 
     @Override
     public void run() {
+        Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+
         try {
             List<Spatial> quadMushrooms = setupMushrooms();
 
