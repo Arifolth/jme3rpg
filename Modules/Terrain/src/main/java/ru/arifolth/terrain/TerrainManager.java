@@ -46,6 +46,7 @@ public class TerrainManager implements TerrainManagerInterface {
         this.app = app;
 
         terrainBuilder = new FractalTerrainGrid(assetManager, bulletAppState, app);
+        terrainBuilder.initialize();
 
         TreeTypeEnum.setAssetManager(assetManager);
         GrassTypeEnum.setAssetManager(assetManager);
@@ -62,6 +63,7 @@ public class TerrainManager implements TerrainManagerInterface {
 
         generateTerrain();
     }
+
     private void generateTerrain() {
         terrain = terrainBuilder.generateTerrain();
     }

@@ -22,6 +22,7 @@ import com.jme3.system.AppSettings;
 import com.jme3.system.JmeSystem;
 import com.jme3.system.JmeVersion;
 import ru.arifolth.anjrpg.interfaces.Constants;
+import ru.arifolth.anjrpg.interfaces.ViewDistanceSettings;
 
 import java.awt.*;
 import java.util.prefs.BackingStoreException;
@@ -33,9 +34,8 @@ public class SettingsUtils {
 
     public static void applyDefaultSettings(AppSettings settings) {
         GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        settings.setFullscreen(device.isFullScreenSupported());
-        DisplayMode[] modes = device.getDisplayModes();
-        DisplayMode mode = modes[modes.length-1];
+        settings.setFullscreen(false);
+        DisplayMode mode = device.getDisplayMode();
         settings.setDepthBits(mode.getBitDepth());
         settings.setResolution(mode.getWidth(),mode.getHeight());
         settings.setRenderer(AppSettings.LWJGL_OPENGL45);
@@ -44,6 +44,7 @@ public class SettingsUtils {
         settings.setStencilBits(Constants.STENCIL_BITS);
         settings.setTitle(JmeVersion.FULL_NAME);
         settings.setUseRetinaFrameBuffer(true);
+        settings.put(ViewDistanceSettings.class.getSimpleName(), ViewDistanceSettings.MED.name());
     }
 
     public static AppSettings loadSettings() {

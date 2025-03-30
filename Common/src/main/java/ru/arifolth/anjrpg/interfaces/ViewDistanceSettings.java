@@ -18,9 +18,9 @@
 
 package ru.arifolth.anjrpg.interfaces;
 
-import ru.arifolth.anjrpg.interfaces.graphics.GraphicsSettingsInterface;
+import ru.arifolth.anjrpg.interfaces.graphics.ViewDistanceSettingsInterface;
 
-public enum GraphicsSettings implements GraphicsSettingsInterface {
+public enum ViewDistanceSettings implements ViewDistanceSettingsInterface {
     //smaller
     //17/513/3.5/-125
     //med

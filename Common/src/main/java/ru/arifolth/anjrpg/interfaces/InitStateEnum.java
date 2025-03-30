@@ -19,6 +19,7 @@
 package ru.arifolth.anjrpg.interfaces;
 
 public enum InitStateEnum {
+    STOP,
     PENDING,
     INITIALIZED,
     RUNNING;

@@ -18,7 +18,7 @@
 
 package ru.arifolth.anjrpg.interfaces.graphics;
 
-public interface GraphicsSettingsInterface {
+public interface ViewDistanceSettingsInterface {
     int getPatchSize();
     int getTerrainSize();
     int getLocalTranslation();

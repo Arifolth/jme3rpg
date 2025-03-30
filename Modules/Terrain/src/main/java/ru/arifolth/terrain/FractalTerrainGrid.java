@@ -47,7 +47,7 @@ import java.util.logging.Logger;
 
 public class FractalTerrainGrid implements FractalTerrainGridInterface {
     final private static Logger LOGGER = Logger.getLogger(FractalTerrainGrid.class.getName());
-    private static GraphicsSettings graphicsSettings = GraphicsSettings.HIGH;
+    private ViewDistanceSettings viewDistanceSettings;
     private TerrainQuad terrain;
 
     private final AssetManager assetManager;
@@ -71,6 +71,11 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
         this.assetManager = assetManager;
         this.bulletAppState = bulletAppState;
         this.app = app;
+    }
+
+    @Override
+    public void initialize() {
+        viewDistanceSettings = ViewDistanceSettings.valueOf((String) app.getContext().getSettings().getOrDefault(ViewDistanceSettings.class.getSimpleName(), ViewDistanceSettings.MED.name()));
     }
 
     @Override
@@ -115,7 +120,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
         matTerrain.setTexture("slopeColorMap", rock);
         matTerrain.setFloat("slopeTileFactor", 32);
 
-        matTerrain.setFloat("terrainSize", graphicsSettings.getTerrainSize());
+        matTerrain.setFloat("terrainSize", viewDistanceSettings.getTerrainSize());
 
         this.base = new FractalSum();
         this.base.setRoughness(0.82f);
@@ -153,7 +158,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
 
         ground.addPreFilter(this.iterate);
 
-        this.terrain = new TerrainGrid("Terrain", graphicsSettings.getPatchSize(), graphicsSettings.getTerrainSize(), new FractalTileLoader(ground, 128f));
+        this.terrain = new TerrainGrid("Terrain", viewDistanceSettings.getPatchSize(), viewDistanceSettings.getTerrainSize(), new FractalTileLoader(ground, 128f));
 
         this.terrain.setMaterial(matTerrain);
 
@@ -179,13 +184,13 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
 
     private void setupPosition() {
         //terrain postion
-        terrain.setLocalTranslation(0, graphicsSettings.getLocalTranslation(), 0);
+        terrain.setLocalTranslation(0, viewDistanceSettings.getLocalTranslation(), 0);
     }
 
     private void setUpLODControl() {
         /** 5. The LOD (level of detail) depends on were the camera is: */
         TerrainGridLodControl control = new TerrainGridLodControl(this.terrain, app.getCamera());
-        control.setLodCalculator(new DistanceLodCalculator(graphicsSettings.getPatchSize(), graphicsSettings.getLodMultiplier())); // patch size, and a multiplier
+        control.setLodCalculator(new DistanceLodCalculator(viewDistanceSettings.getPatchSize(), viewDistanceSettings.getLodMultiplier())); // patch size, and a multiplier
         this.terrain.addControl(control);
     }
 

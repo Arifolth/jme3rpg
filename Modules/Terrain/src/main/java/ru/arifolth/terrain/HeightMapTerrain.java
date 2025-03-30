@@ -149,4 +149,9 @@ public class HeightMapTerrain implements HeightMapTerrainInterface {
     public int getRigidBodiesSize() {
         return rigidBodiesSize;
     }
+
+    @Override
+    public void initialize() {
+        //NO OP
+    }
 }

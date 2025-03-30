@@ -54,6 +54,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     private FilterManagerInterface filterManager;
     protected BulletAppState bulletAppState;
     protected GameLogicCoreInterface gameLogicCore;
+    private final Node terrainNode = new Node("Terrain");
 
     public RolePlayingGame() {
         super(new FlyCamAppState(),
@@ -145,10 +146,13 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     }
 
     protected void attachTerrain() {
-        enqueue(() -> {
-            // execute in the jME3 rendering thread.
-            getRootNode().attachChild(terrainManager.getTerrain());
-        });
+        if(getRootNode().getChild(terrainNode.getName()) == null) {
+            terrainNode.attachChild(terrainManager.getTerrain());
+            enqueue(() -> {
+                // execute in the jME3 rendering thread.
+                getRootNode().attachChild(terrainNode);
+            });
+        }
     }
 
     @Override

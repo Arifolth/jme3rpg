@@ -24,19 +24,16 @@ import ru.arifolth.anjrpg.interfaces.ProcessorInterface;
 public class FadeGammaProcessor  implements ProcessorInterface {
     private GammaCorrectionFilter gammaCorrectionFilter;
     private final static float MAX_GAMMA_CAP = 1.0f;
-    private final static float MIN_GAMMA_CAP = 0.5f;
+    private final static float MIN_GAMMA_CAP = 0.60f;
     private float fadeOut = MIN_GAMMA_CAP;
 
     public FadeGammaProcessor(GammaCorrectionFilter gammaCorrectionFilter) {
         this.gammaCorrectionFilter = gammaCorrectionFilter;
-        gammaCorrectionFilter.setGamma(fadeOut);
+        this.gammaCorrectionFilter.setGamma(MIN_GAMMA_CAP); // Default gamma is 1.0; values >1.0 make the scene darker, <1.0 make it brighter
     }
 
     @Override
     public void process(float tpf) {
-        if(!gammaCorrectionFilter.isEnabled())
-            return;
-
         if(tpf < 0) {
             if(fadeOut <= MIN_GAMMA_CAP) {
                 return;
@@ -47,7 +44,7 @@ public class FadeGammaProcessor  implements ProcessorInterface {
             }
         }
 
-        fadeOut += tpf / 64;
+        fadeOut += tpf / 128;
         gammaCorrectionFilter.setGamma(fadeOut);
     }
 }

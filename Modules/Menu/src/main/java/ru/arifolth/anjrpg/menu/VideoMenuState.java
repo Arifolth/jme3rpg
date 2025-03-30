@@ -25,14 +25,13 @@ import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.SpringGridLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
-import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
-import ru.arifolth.anjrpg.interfaces.SoundTypeEnum;
+import ru.arifolth.anjrpg.interfaces.*;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static com.simsilica.lemur.component.BorderLayout.Position.*;
+import static com.simsilica.lemur.component.BorderLayout.Position.East;
+import static com.simsilica.lemur.component.BorderLayout.Position.West;
 
 public class VideoMenuState extends CustomCompositeAppState {
     private final static Logger LOGGER = LoggerFactory.getLogger(VideoMenuState.class);
@@ -45,6 +44,8 @@ public class VideoMenuState extends CustomCompositeAppState {
     private Dropdown samplesDropDown = new SamplesDropDown();
     private Checkbox fullscreen = new Checkbox("Fullscreen");
     private Checkbox vsync = new Checkbox("VSync");
+    private ViewDistanceDropDown viewDistanceDropDown = new ViewDistanceDropDown();
+
     private ANJRpgInterface application;
     private GameLogicCoreInterface gameLogicCore;
 
@@ -67,15 +68,19 @@ public class VideoMenuState extends CustomCompositeAppState {
         applySamples(settings);
         applyFullScreen(settings);
         applyVSync(settings);
+        applyViewDistance(settings);
+
         getApplication().setSettings(settings);
+        SettingsUtils.saveSettings(settings);
+
+        getStateManager().attach(new ExitMenuState(parent.getParent(), "Restart required to apply changes."));
 
         setEnabled(false);
         parent.setEnabled(false);
+    }
 
-        SettingsUtils.saveSettings(settings);
-
-        getApplication().getContext().setSettings(settings);
-        getApplication().getContext().restart();
+    private void applyViewDistance(AppSettings settings) {
+        settings.put(ViewDistanceSettings.class.getSimpleName(), viewDistanceDropDown.getSelectedValue());
     }
 
     private void applySamples(AppSettings settings) {
@@ -122,6 +127,7 @@ public class VideoMenuState extends CustomCompositeAppState {
         frameRateDropDown.initialize(settings);
         bitsPerPixelDropDown.initialize(settings);
         samplesDropDown.initialize(settings);
+        viewDistanceDropDown.initialize(settings);
 
         vsync.setChecked(settings.getBoolean("VSync"));
         fullscreen.setChecked(settings.getBoolean("Fullscreen"));
@@ -173,6 +179,11 @@ public class VideoMenuState extends CustomCompositeAppState {
         Checkbox checkbox = joinPanel.addChild(fullscreen);
 
         checkbox = joinPanel.addChild(vsync);
+
+        props = joinPanel.addChild(new Container(new BorderLayout()));
+        props.setBackground(null);
+        props.addChild(new Label("View Distance:"), West);
+        props.addChild(viewDistanceDropDown, East);
 
         props = joinPanel.addChild(new Container(new BorderLayout()));
         props.setBackground(null);

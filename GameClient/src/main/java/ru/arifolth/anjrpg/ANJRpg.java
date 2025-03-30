@@ -52,12 +52,14 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
     private boolean startNewGame = false;
 
     private static RolePlayingGameInterface app;
+    private final static boolean running = false;
 
     static {
         Arrays.stream(LogManager.getLogManager().getLogger(Constants.ROOT_LOGGER).getHandlers()).forEach(h -> h.setLevel(Level.INFO));
     }
     public static void main(String[] args) throws IOException {
         app = new ANJRpg();
+        app.setPauseOnLostFocus(false);
         app.start();
     }
 
@@ -113,6 +115,8 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
     public void simpleUpdate(float tpf) {
         InitializationDelegateInterface initializationDelegate = gameLogicCore.getInitializationDelegate();
         switch (initialization) {
+            case STOP:
+                break;
             case PENDING: {
                 if(!startNewGame) {
                     gameLogicCore.getSoundManager().update(tpf);
@@ -150,12 +154,11 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
                     guiViewPort.removeProcessor(niftyDisplay);
 
                     initialization = InitStateEnum.RUNNING;
-//                    gameLogicCore.getGameStateManager().setGameState(GameState.CALM);
                 }
                 break;
             }
             case RUNNING: {
-                //run game
+                //run the game
                 super.simpleUpdate(tpf);
             }
         }
@@ -228,5 +231,12 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
     @Override
     public AppSettings getSettings(){
         return this.settings;
+    }
+
+    @Override
+    public void stop() {
+        initialization = InitStateEnum.STOP;
+        super.stop(); // Triggers JME3 cleanup
+        System.exit(0); // Force JVM termination after cleanup
     }
 }
