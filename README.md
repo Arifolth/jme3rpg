@@ -53,7 +53,7 @@ To build them enable profile
 
 ## Run using Jdk
 ```bash
-mvn exec:java -pl GameClient -Djvm.options="-Xmx8G -server -XX:UseAVX=2 -XX:+UseZGC -XX:+ZProactive -XX:+UseStringDeduplication -XX:+UseCompressedOops -XX:+UseLargePages -XX:LargePageSizeInBytes=2M"
+mvn exec:java -pl GameClient -Djvm.options="-Xms8G -Xmx8G -server -XX:UseSSE=4.2 -XX:UseAVX=2 -XX:+UseZGC -XX:+ZProactive -XX:+UseStringDeduplication -XX:+UseCompressedOops -XX:+UseLargePages -XX:LargePageSizeInBytes=2M -XX:+UseFMA -XX:MaxVectorSize=32 -XX:ObjectAlignmentInBytes=16 -XX:+UseTransparentHugePages -XX:+FlushDenormalsToZero -XX:+RelaxAccessControl -XX:+IgnoreStrictfp"
 ```
 
 ## Repo

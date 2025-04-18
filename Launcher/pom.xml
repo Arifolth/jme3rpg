@@ -132,7 +132,7 @@
                         <argument>--type</argument>
                         <argument>app-image</argument>
                         <argument>--java-options</argument>
-                        <argument>-Xms8G -Xmx8G -server -XX:UseAVX=2 -XX:+UseZGC -XX:+ZProactive -XX:+UseStringDeduplication -XX:+UseCompressedOops -XX:+UseLargePages -XX:LargePageSizeInBytes=2M</argument>
+                        <argument>-Xms8G -Xmx8G -server -XX:UseSSE=4.2 -XX:UseAVX=2 -XX:+UseZGC -XX:+ZProactive -XX:+UseStringDeduplication -XX:+UseCompressedOops -XX:+UseLargePages -XX:LargePageSizeInBytes=2M -XX:+UseFMA -XX:MaxVectorSize=32 -XX:ObjectAlignmentInBytes=16 -XX:+UseTransparentHugePages -XX:+FlushDenormalsToZero -XX:+RelaxAccessControl -XX:+IgnoreStrictfp</argument>
                     </arguments>
                 </configuration>
             </plugin>
