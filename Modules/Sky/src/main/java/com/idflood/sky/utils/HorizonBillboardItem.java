@@ -36,7 +36,7 @@ public class HorizonBillboardItem extends Geometry {
     public HorizonBillboardItem(AssetManager assetManager, String name, Float scale) {
         super(name);
 
-        box = new Quad(8_000, 4_500);
+        box = new Quad(16_000, 9_000);
         setMesh(box);
 
         Material mountainShader = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
@@ -63,7 +63,7 @@ public class HorizonBillboardItem extends Geometry {
         mountainShader.getAdditionalRenderState().setDepthWrite(true);
         mountainShader.getAdditionalRenderState().setColorWrite(true);
         mountainShader.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-        mountainShader.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+        mountainShader.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Back);
 
         setCullHint(Spatial.CullHint.Never);
         setQueueBucket(RenderQueue.Bucket.Sky);
@@ -74,6 +74,8 @@ public class HorizonBillboardItem extends Geometry {
 
         BillboardControl billBoadControl = new BillboardControl();
         billBoadControl.setAlignment(BillboardControl.Alignment.AxialY);
+        setLocalScale(scale);
+
         addControl(billBoadControl);
     }
 }

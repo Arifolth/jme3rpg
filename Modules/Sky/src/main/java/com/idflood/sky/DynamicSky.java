@@ -8,6 +8,7 @@ import com.idflood.sky.utils.HorizonBillboardItem;
 import com.jme3.asset.AssetManager;
 import com.jme3.light.AmbientLight;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.post.filters.GammaCorrectionFilter;
 import com.jme3.renderer.ViewPort;
@@ -20,12 +21,13 @@ import ru.arifolth.anjrpg.processors.FadeGammaProcessor;
 import ru.arifolth.anjrpg.processors.FadeLightProcessor;
 import ru.arifolth.anjrpg.interfaces.*;
 
-import static ru.arifolth.anjrpg.interfaces.Constants.INITIAL_MOUNTAINS_OFFSET;
+import static ru.arifolth.anjrpg.interfaces.Constants.INITIAL_MOUNTAINS_DIRECTION;
 
 public class DynamicSky extends Node implements SkyInterface {
     private CloudsBillboardItem clouds;
     private HorizonBillboardItem horizon;
-    private float fadeOut;
+    private Node mountainNode = new Node("MountainNode");
+
     private AmbientLight ambientLight;
     private DynamicSun dynamicSun = null;
     private DynamicStars dynamicStars = null;
@@ -66,18 +68,15 @@ public class DynamicSky extends Node implements SkyInterface {
 
     @Override
     public void initialize() {
-        var lambdaContext = new Object() {
-            Node mountainNode = new Node();
-        };
         horizon = new HorizonBillboardItem(gameLogicCore.getAssetManager(), "Mountain", 1f);
-        lambdaContext.mountainNode.attachChild(horizon);
-        LodUtils.setUpModelLod(lambdaContext.mountainNode);
-        lambdaContext.mountainNode = GeometryBatchFactory.optimize(lambdaContext.mountainNode, true);
-        MikktspaceTangentGenerator.generate(lambdaContext.mountainNode);
-        lambdaContext.mountainNode.updateModelBound();
-        lambdaContext.mountainNode.setLocalTranslation(INITIAL_MOUNTAINS_OFFSET);
+        mountainNode.attachChild(horizon);
+        LodUtils.setUpModelLod(mountainNode);
+        mountainNode = GeometryBatchFactory.optimize(mountainNode, true);
+        MikktspaceTangentGenerator.generate(mountainNode);
+        mountainNode.updateModelBound();
+        mountainNode.setLocalTranslation(INITIAL_MOUNTAINS_DIRECTION);
         gameLogicCore.getApp().enqueue(() -> {
-            gameLogicCore.getRootNode().attachChild(lambdaContext.mountainNode);
+            gameLogicCore.getRootNode().attachChild(mountainNode);
         });
 
         clouds = new CloudsBillboardItem(gameLogicCore.getAssetManager(), "Clouds", 1f);
@@ -143,20 +142,39 @@ public class DynamicSky extends Node implements SkyInterface {
         dynamicStars.update(dynamicSun.getSunSystem().getDirection());
         dynamicStars.lookAt(dynamicSun.getSunSystem().getPosition(), Vector3f.ZERO);
 
-        Vector3f playerLocation = gameLogicCore.getPlayerCharacter().getNode().getLocalTranslation().clone();
+        updateCloudsLocation();
+
+        updateMountainLocation();
+
+        updateStarsLocation();
+    }
+
+    private void updateCloudsLocation() {
+        Vector3f playerLocation = gameLogicCore.getPlayerCharacter().getNode().getWorldTranslation();
         playerLocation.x += Constants.HEIGHT_OFFSET;
         playerLocation.y += Constants.HEIGHT_OFFSET;
         clouds.setLocalTranslation(playerLocation);
+        clouds.setLocalRotation(Quaternion.IDENTITY);
+    }
 
-        playerLocation = gameLogicCore.getPlayerCharacter().getNode().getLocalTranslation().clone();
-        playerLocation.x += Constants.MOUNTAINS_HEIGHT_OFFSET;
-        playerLocation.y += Constants.HEIGHT_OFFSET;
-        horizon.setLocalTranslation(playerLocation);
+    private void updateStarsLocation() {
+        // Get player's world position
+        Vector3f playerLocation = gameLogicCore.getPlayerCharacter().getNode().getWorldTranslation();
 
-        playerLocation = gameLogicCore.getPlayerCharacter().getNode().getLocalTranslation().clone();
-        playerLocation.x += Constants.MOUNTAINS_HEIGHT_OFFSET;
-        playerLocation.y += Constants.HEIGHT_OFFSET;
-        dynamicStars.setLocalTranslation(playerLocation);
+        // Calculate star position at fixed offset
+        Vector3f starPosition = new Vector3f(
+                playerLocation.x + Constants.MOUNTAINS_HEIGHT_OFFSET,
+                Constants.HEIGHT_OFFSET,  // Fixed Y position (height)
+                playerLocation.z + 1000f  // Fixed Z distance (critical for unreachability)
+        );
+
+        // Update stars' position
+        dynamicStars.setLocalTranslation(starPosition);
+    }
+
+    private void updateMountainLocation() {
+        Vector3f currentPlayerPos = gameLogicCore.getPlayerCharacter().getNode().getWorldTranslation();
+        mountainNode.setLocalTranslation(currentPlayerPos.add(INITIAL_MOUNTAINS_DIRECTION));
     }
 
     @Override

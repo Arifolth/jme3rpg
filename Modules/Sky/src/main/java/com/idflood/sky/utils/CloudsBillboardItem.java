@@ -21,6 +21,7 @@ package com.idflood.sky.utils;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
@@ -57,5 +58,8 @@ public class CloudsBillboardItem extends Geometry {
         setLocalScale(scale);
 
         getControl(BillboardControl.class).setAlignment(BillboardControl.Alignment.AxialY);
+
+        // Force initial orientation (optional)
+        setLocalRotation(Quaternion.IDENTITY); // Face north/south
     }
 }

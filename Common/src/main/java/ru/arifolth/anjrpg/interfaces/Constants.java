@@ -46,7 +46,7 @@ public class Constants {
     public static final int MIN_FRAME_RATE = 30;
     public static final int HEIGHT_OFFSET = -250;
     public static final int MOUNTAINS_HEIGHT_OFFSET = -4000;
-    public static final Vector3f INITIAL_MOUNTAINS_OFFSET = new Vector3f(MOUNTAINS_HEIGHT_OFFSET, 0f, 0f);
+    public static final Vector3f INITIAL_MOUNTAINS_DIRECTION = new Vector3f(MOUNTAINS_HEIGHT_OFFSET, 0f, 0f);
     public static final float TERRAIN_SCALE_X = 2f;
     public static final float TERRAIN_SCALE_Y = 1f;
     public static final float TERRAIN_SCALE_Z = 2f;
@@ -77,6 +77,7 @@ public class Constants {
     public static final float JUMP_COOLDOWN = 1.0f;
     public static final int TREE_PLANTING_RANGE = 1500;
     public static final int TREE_PLANTING_HEIGHT = 70;
+    public static final float STARS_HEIGHT = 8000f;
     public static float MELEE_DISTANCE_LIMIT = 5.5f;
 
     //HKEY_CURRENT_USER\Software\JavaSoft\Prefs\
