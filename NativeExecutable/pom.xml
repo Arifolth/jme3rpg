@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>launcher</artifactId>
+    <artifactId>NativeExecutable</artifactId>
 
     <parent>
         <groupId>ru.arifolth.game</groupId>
@@ -13,7 +13,7 @@
         <relativePath>../Libraries/pom.xml</relativePath>
     </parent>
 
-    <name>Game Launcher</name>
+    <name>Native Executable</name>
 
     <dependencies>
 
@@ -108,7 +108,7 @@
                 <version>1.1.1</version>
                 <executions>
                     <execution>
-                        <id>build-launcher</id>
+                        <id>build-native-executable</id>
                         <phase>package</phase>
                         <goals>
                             <goal>exec</goal>
@@ -132,7 +132,7 @@
                         <argument>--type</argument>
                         <argument>app-image</argument>
                         <argument>--java-options</argument>
-                        <argument>-Xms8G -Xmx8G -server -XX:UseSSE=4.2 -XX:UseAVX=2 -XX:+UseZGC -XX:+ZProactive -XX:+UseStringDeduplication -XX:+UseCompressedOops -XX:+UseLargePages -XX:LargePageSizeInBytes=2M -XX:+UseFMA -XX:MaxVectorSize=32 -XX:ObjectAlignmentInBytes=16 -XX:+UseTransparentHugePages -XX:+FlushDenormalsToZero -XX:+RelaxAccessControl -XX:+IgnoreStrictfp</argument>
+                        <argument>-Xms8G -Xmx8G -server -XX:UseAVX=2 -XX:+UseZGC -XX:+ZProactive -XX:+UseStringDeduplication -XX:+UseCompressedOops -XX:+UseLargePages -XX:LargePageSizeInBytes=2M -XX:+UseFMA -XX:MaxVectorSize=32 -XX:ObjectAlignmentInBytes=16</argument>
                     </arguments>
                 </configuration>
             </plugin>

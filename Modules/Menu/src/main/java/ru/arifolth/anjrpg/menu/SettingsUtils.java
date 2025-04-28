@@ -61,7 +61,7 @@ public class SettingsUtils {
             applyDefaultSettings(settings);
         }
 
-        //Native launcher BUG workaround - otherwise it will drop to some weird resolution
+        //Native Executable BUG workaround - otherwise it will drop to some weird resolution
         settings.setSettingsDialogImage(null);
         if (!JmeSystem.showSettingsDialog(settings, true)) {
             return null;

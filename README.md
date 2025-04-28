@@ -17,7 +17,7 @@ mailto: <arifolth@gmail.com>
 - Environmental and combat sounds
 - UI
 - Loading Screen and Main Menu
-- Native launcher (executable with bundled jre)
+- Native Executable Module (executable with bundled jre)
 
 ## Gameplay Keys
 Default bindings:
@@ -49,7 +49,7 @@ mvn install
 Native executables ware tested to build and run successfully on a Windows box.
 
 To build them enable profile 
-```native``` and perform build of the [Launcher](Launcher) module  
+```native``` and perform build of the [NativeExecutable](NativeExecutable) module  
 
 ## Run using Jdk
 ```bash

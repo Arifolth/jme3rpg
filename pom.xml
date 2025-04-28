@@ -181,7 +181,7 @@
                 <java.version>17</java.version>
             </properties>
             <modules>
-                <module>Launcher</module>
+                <module>NativeExecutable</module>
             </modules>
         </profile>
     </profiles>
