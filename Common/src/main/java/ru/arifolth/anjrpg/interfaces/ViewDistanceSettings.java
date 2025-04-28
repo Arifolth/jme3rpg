@@ -30,7 +30,7 @@ public enum ViewDistanceSettings implements ViewDistanceSettingsInterface {
     //129/1025/1.5
 
     LOW {
-        int patchSize = 33;
+        int patchSize = 65;
         int terrainSize = 513;
         float lodMultiplier = 3.5f;
         int localTranslation = -100;
@@ -55,7 +55,7 @@ public enum ViewDistanceSettings implements ViewDistanceSettingsInterface {
         }
     },
     MED {
-        int patchSize = 129;
+        int patchSize = 257;
         int terrainSize = 513;
         float lodMultiplier = 2.7f;
         int localTranslation = -100;
