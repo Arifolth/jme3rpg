@@ -238,7 +238,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
     private void detachGrass(TerrainQuad quad) {
         Node quadGrass = quad.getUserData(Constants.QUAD_GRASS);
         if(quadGrass != null) {
-            app.enqueue(() -> {
+            app.getThrottledQueue().enqueue(() -> {
                 app.getGameLogicCore().getGrassNode().detachChild(quadGrass);
             });
         }
@@ -247,7 +247,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
     private void detachTrees(TerrainQuad quad) {
         Node quadForest = quad.getUserData(Constants.QUAD_FOREST);
         if(quadForest != null) {
-            app.enqueue(() -> {
+            app.getThrottledQueue().enqueue(() -> {
                 app.getGameLogicCore().getForestNode().detachChild(quadForest);
             });
         }
@@ -256,7 +256,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
     private void detachMushrooms(TerrainQuad quad) {
         Node quadMushrooms = quad.getUserData(Constants.QUAD_MUSHROOMS);
         if(quadMushrooms != null) {
-            app.enqueue(() -> {
+            app.getThrottledQueue().enqueue(() -> {
                 app.getGameLogicCore().getMushroomsNode().detachChild(quadMushrooms);
             });
         }
@@ -265,7 +265,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
     private void detachBushes(TerrainQuad quad) {
         Node quadBushes = quad.getUserData(Constants.QUAD_BUSHES);
         if(quadBushes != null) {
-            app.enqueue(() -> {
+            app.getThrottledQueue().enqueue(() -> {
                 app.getGameLogicCore().getBushesNode().detachChild(quadBushes);
             });
         }

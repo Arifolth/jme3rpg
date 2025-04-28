@@ -88,13 +88,13 @@ public class VegetationInitialization implements VegetationInitializationInterfa
                         context.setNode(GeometryBatchFactory.optimize(context.getNode(), true));
                         context.getNode().updateModelBound();
                         quad.setUserData(Constants.QUAD_FOREST, context.getNode());
-                        gameLogicCore.getApp().enqueue(() -> {
+                        ((RolePlayingGameInterface )gameLogicCore.getApp()).getThrottledQueue().enqueue(() -> {
                             Thread.yield();
                             gameLogicCore.getForestNode().attachChild(context.getNode());
                         });
                     }
                 } else {
-                    gameLogicCore.getApp().enqueue(() -> {
+                    ((RolePlayingGameInterface )gameLogicCore.getApp()).getThrottledQueue().enqueue(() -> {
                         gameLogicCore.getForestNode().attachChild(context.getNode());
                     });
                 }
@@ -128,13 +128,13 @@ public class VegetationInitialization implements VegetationInitializationInterfa
                         context.setNode(GeometryBatchFactory.optimize(context.getNode(), true));
                         context.getNode().updateModelBound();
                         quad.setUserData(Constants.QUAD_MUSHROOMS, context.getNode());
-                        gameLogicCore.getApp().enqueue(() -> {
+                        ((RolePlayingGameInterface )gameLogicCore.getApp()).getThrottledQueue().enqueue(() -> {
                             Thread.yield();
                             gameLogicCore.getMushroomsNode().attachChild(context.getNode());
                         });
                     }
                 } else {
-                    gameLogicCore.getApp().enqueue(() -> {
+                    ((RolePlayingGameInterface )gameLogicCore.getApp()).getThrottledQueue().enqueue(() -> {
                         gameLogicCore.getMushroomsNode().attachChild(context.getNode());
                     });
                 }
@@ -171,13 +171,13 @@ public class VegetationInitialization implements VegetationInitializationInterfa
                         context.setNode(GeometryBatchFactory.optimize(context.getNode(), true));
                         context.getNode().updateModelBound();
                         quad.setUserData(Constants.QUAD_GRASS, context.getNode());
-                        gameLogicCore.getApp().enqueue(() -> {
+                        ((RolePlayingGameInterface )gameLogicCore.getApp()).getThrottledQueue().enqueue(() -> {
                             Thread.yield();
                             gameLogicCore.getGrassNode().attachChild(context.getNode());
                         });
                     }
                 } else {
-                    gameLogicCore.getApp().enqueue(() -> {
+                    ((RolePlayingGameInterface )gameLogicCore.getApp()).getThrottledQueue().enqueue(() -> {
                         gameLogicCore.getGrassNode().attachChild(context.getNode());
                     });
                 }
@@ -221,13 +221,13 @@ public class VegetationInitialization implements VegetationInitializationInterfa
                         context.setNode(GeometryBatchFactory.optimize(context.getNode(), true));
                         context.getNode().updateModelBound();
                         quad.setUserData(Constants.QUAD_BUSHES, context.getNode());
-                        gameLogicCore.getApp().enqueue(() -> {
+                        ((RolePlayingGameInterface )gameLogicCore.getApp()).getThrottledQueue().enqueue(() -> {
                             Thread.yield();
                             gameLogicCore.getBushesNode().attachChild(context.getNode());
                         });
                     }
                 } else {
-                    gameLogicCore.getApp().enqueue(() -> {
+                    ((RolePlayingGameInterface )gameLogicCore.getApp()).getThrottledQueue().enqueue(() -> {
                         gameLogicCore.getBushesNode().attachChild(context.getNode());
                     });
                 }

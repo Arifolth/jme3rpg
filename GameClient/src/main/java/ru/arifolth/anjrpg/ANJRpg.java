@@ -94,6 +94,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
     @Override
     public void simpleInitApp()  {
         super.simpleInitApp();
+        stateManager.attach(new RenderingThreadPriorityAppState());
 
         setupLemur();
 

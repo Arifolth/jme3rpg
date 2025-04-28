@@ -35,6 +35,7 @@
 - [ ] Loading Screen with Fade in filter
 - [ ] Mechanism to eventually apply fog filter on a scene
 - [ ] Fade-in for a Fog filter
+- [ ] Precompute Vegetation Placement
 
 ### Sound
 - [ ] Walking in water/splashes

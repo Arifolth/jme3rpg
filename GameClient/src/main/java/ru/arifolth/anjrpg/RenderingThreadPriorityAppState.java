@@ -16,23 +16,36 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.anjrpg.interfaces;
+package ru.arifolth.anjrpg;
 
 import com.jme3.app.Application;
-import com.jme3.scene.Node;
+import com.jme3.app.state.BaseAppState;
 
-public interface RolePlayingGameInterface extends Application {
-    GameLogicCoreInterface getGameLogicCore();
+public class RenderingThreadPriorityAppState extends BaseAppState {
 
-    Node getRootNode();
+    @Override
+    protected void initialize(Application app) {
+        app.enqueue(() -> {
+            // Access the rendering thread
+            Thread renderingThread = Thread.currentThread();
 
-    FilterManagerInterface getFilterManager();
+            // Set maximum priority for the rendering thread
+            renderingThread.setPriority(Thread.MAX_PRIORITY);
+        });
+    }
 
-    SoundManagerInterface getSoundManager();
+    @Override
+    protected void cleanup(Application app) {
+        // Cleanup if necessary
+    }
 
-    TerrainManagerInterface getTerrainManager();
+    @Override
+    protected void onEnable() {
+        // Handle when the state is enabled
+    }
 
-    String getVersion();
-
-    ThrottledSceneGraphQueueInterface getThrottledQueue();
+    @Override
+    protected void onDisable() {
+        // Handle when the state is disabled
+    }
 }

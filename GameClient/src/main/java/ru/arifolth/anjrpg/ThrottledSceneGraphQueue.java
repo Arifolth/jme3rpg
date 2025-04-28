@@ -16,23 +16,34 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.anjrpg.interfaces;
+package ru.arifolth.anjrpg;
 
-import com.jme3.app.Application;
-import com.jme3.scene.Node;
+import ru.arifolth.anjrpg.interfaces.ThrottledSceneGraphQueueInterface;
 
-public interface RolePlayingGameInterface extends Application {
-    GameLogicCoreInterface getGameLogicCore();
+import java.util.concurrent.ConcurrentLinkedQueue;
 
-    Node getRootNode();
+public class ThrottledSceneGraphQueue implements ThrottledSceneGraphQueueInterface {
+    private final ConcurrentLinkedQueue<Runnable> queue = new ConcurrentLinkedQueue<>();
 
-    FilterManagerInterface getFilterManager();
+    @Override
+    public void enqueue(Runnable r) {
+        queue.add(r);
+    }
 
-    SoundManagerInterface getSoundManager();
+    // Call this ONCE per frame (e.g., from simpleUpdate)
+    @Override
+    public void processOne() {
+        Runnable r = queue.poll();
+        if (r != null) {
+            r.run();
+        }
+    }
 
-    TerrainManagerInterface getTerrainManager();
-
-    String getVersion();
-
-    ThrottledSceneGraphQueueInterface getThrottledQueue();
+    // Optionally: process N per frame
+    @Override
+    public void processN(int n) {
+        for (int i = 0; i < n; i++) {
+            processOne();
+        }
+    }
 }

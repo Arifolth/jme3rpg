@@ -18,21 +18,12 @@
 
 package ru.arifolth.anjrpg.interfaces;
 
-import com.jme3.app.Application;
-import com.jme3.scene.Node;
+public interface ThrottledSceneGraphQueueInterface {
+    void enqueue(Runnable r);
 
-public interface RolePlayingGameInterface extends Application {
-    GameLogicCoreInterface getGameLogicCore();
+    // Call this ONCE per frame (e.g., from simpleUpdate)
+    void processOne();
 
-    Node getRootNode();
-
-    FilterManagerInterface getFilterManager();
-
-    SoundManagerInterface getSoundManager();
-
-    TerrainManagerInterface getTerrainManager();
-
-    String getVersion();
-
-    ThrottledSceneGraphQueueInterface getThrottledQueue();
+    // Optionally: process N per frame
+    void processN(int n);
 }
