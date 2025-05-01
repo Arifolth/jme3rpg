@@ -123,7 +123,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
      */
     @Override
     public void simpleUpdate(float tpf) {
-        throttledQueue.processOne();
+        throttledQueue.processOneEveryTwoFrames();
 
         gameLogicCore.update(tpf);
 

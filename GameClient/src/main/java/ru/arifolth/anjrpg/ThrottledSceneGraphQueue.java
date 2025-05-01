@@ -24,18 +24,31 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ThrottledSceneGraphQueue implements ThrottledSceneGraphQueueInterface {
     private final ConcurrentLinkedQueue<Runnable> queue = new ConcurrentLinkedQueue<>();
+    private int frameCounter = 0;
 
     @Override
     public void enqueue(Runnable r) {
         queue.add(r);
     }
 
-    // Call this ONCE per frame (e.g., from simpleUpdate)
+    // process ONCE per frame (e.g., from simpleUpdate)
     @Override
     public void processOne() {
         Runnable r = queue.poll();
         if (r != null) {
             r.run();
+        }
+    }
+
+    // every two frames
+    @Override
+    public void processOneEveryTwoFrames() {
+        frameCounter++;
+        if (frameCounter % 2 == 0) {
+            Runnable r = queue.poll();
+            if (r != null) {
+                r.run();
+            }
         }
     }
 

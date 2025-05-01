@@ -21,9 +21,9 @@ package ru.arifolth.anjrpg.interfaces;
 public interface ThrottledSceneGraphQueueInterface {
     void enqueue(Runnable r);
 
-    // Call this ONCE per frame (e.g., from simpleUpdate)
     void processOne();
 
-    // Optionally: process N per frame
+    void processOneEveryTwoFrames();
+
     void processN(int n);
 }
