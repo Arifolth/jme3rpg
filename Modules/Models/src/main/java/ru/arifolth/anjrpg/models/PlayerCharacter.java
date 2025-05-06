@@ -78,7 +78,7 @@ public class PlayerCharacter extends AnimatedCharacter {
 
     @Override
     public void initializeModelLod() {
-        LodUtils.setUpModelLod(characterModel);
+        //NO LODs FOR THE MODELS, TOO AGGRESSIVE
     }
 
     @Override
