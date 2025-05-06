@@ -70,8 +70,7 @@ public class DynamicSky extends Node implements SkyInterface {
     public void initialize() {
         horizon = new HorizonBillboardItem(gameLogicCore.getAssetManager(), "Mountain", 1f);
         mountainNode.attachChild(horizon);
-        LodUtils.setUpModelLod(mountainNode);
-        mountainNode = GeometryBatchFactory.optimize(mountainNode, true);
+        mountainNode = GeometryBatchFactory.optimize(mountainNode, false);
         MikktspaceTangentGenerator.generate(mountainNode);
         mountainNode.updateModelBound();
         mountainNode.setLocalTranslation(INITIAL_MOUNTAINS_DIRECTION);
