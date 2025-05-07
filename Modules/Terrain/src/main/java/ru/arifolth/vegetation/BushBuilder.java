@@ -43,8 +43,8 @@ public class BushBuilder implements BuilderInterface {
     private final Vector3f quadLocation;
     private final TerrainQuad quad;
     private final ContextInterface context;
-    private Node node;
-    private CountDownLatch countDownLatch;
+    private final Node node;
+    private final CountDownLatch countDownLatch;
 
     public BushBuilder(GameLogicCoreInterface gameLogicCore, Vector3f quadLocation, TerrainQuad quad, ContextInterface context, CountDownLatch countDownLatch) {
         this.gameLogicCore = gameLogicCore;
@@ -65,14 +65,10 @@ public class BushBuilder implements BuilderInterface {
 
             quadBushes.forEach(this::accept);
 
-            context.getNode().attachChild(node);
+            context.getNode().attachChild(GeometryBatchFactory.optimize(node));
         } finally {
             countDownLatch.countDown();
         }
-    }
-
-    public void setNode(Node node) {
-        this.node = node;
     }
 
     private List<Spatial> setupBushes() {
@@ -96,7 +92,8 @@ public class BushBuilder implements BuilderInterface {
     public void accept(Spatial bushNode) {
         CollisionResults results = new CollisionResults();
 
-        synchronized (quadLocation) {
+        try (LockGuard ignored = new LockGuard(context.getQuadLock())) {
+            // critical section
             Vector3f start = new Vector3f(quadLocation.x + Utils.getRandomNumberInRange(-Constants.TREE_PLANTING_RANGE, Constants.TREE_PLANTING_RANGE), Constants.TREE_PLANTING_HEIGHT, quadLocation.z + Utils.getRandomNumberInRange(-Constants.TREE_PLANTING_RANGE, Constants.TREE_PLANTING_RANGE));
             Ray ray = new Ray(start, RAY_DOWN);
 

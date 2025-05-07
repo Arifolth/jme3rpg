@@ -44,8 +44,8 @@ public class MushroomBuilder implements BuilderInterface {
     private final TerrainQuad quad;
     private final ContextInterface context;
 
-    private Node node;
-    private CountDownLatch countDownLatch;
+    private final Node node;
+    private final CountDownLatch countDownLatch;
 
     public MushroomBuilder(GameLogicCoreInterface gameLogicCore, Vector3f quadLocation, TerrainQuad quad, ContextInterface context, CountDownLatch countDownLatch) {
         this.gameLogicCore = gameLogicCore;
@@ -66,15 +66,10 @@ public class MushroomBuilder implements BuilderInterface {
 
             quadMushrooms.forEach(this::accept);
 
-            context.getNode().attachChild(node);
+            context.getNode().attachChild(GeometryBatchFactory.optimize(node));
         } finally {
             countDownLatch.countDown();
         }
-    }
-
-
-    public void setNode(Node node) {
-        this.node = node;
     }
 
     private List<Spatial> setupMushrooms() {
@@ -95,7 +90,8 @@ public class MushroomBuilder implements BuilderInterface {
     public void accept(Spatial mushroomNode) {
         CollisionResults results = new CollisionResults();
 
-        synchronized (quadLocation) {
+        try (LockGuard ignored = new LockGuard(context.getQuadLock())) {
+            // critical section
             Vector3f start = new Vector3f(quadLocation.x + Utils.getRandomNumberInRange(-Constants.TREE_PLANTING_RANGE, Constants.TREE_PLANTING_RANGE), Constants.TREE_PLANTING_HEIGHT, quadLocation.z + Utils.getRandomNumberInRange(-Constants.TREE_PLANTING_RANGE, Constants.TREE_PLANTING_RANGE));
             Ray ray = new Ray(start, RAY_DOWN);
 

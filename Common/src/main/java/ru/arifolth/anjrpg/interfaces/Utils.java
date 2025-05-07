@@ -23,10 +23,9 @@ import com.jme3.bullet.control.CharacterControl;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.SplittableRandom;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Utils {
-    private static final ThreadLocal<SplittableRandom> RANDOM = ThreadLocal.withInitial(SplittableRandom::new);
     private Utils() {
     }
 
@@ -37,7 +36,7 @@ public class Utils {
         if (probability >= 100) {
             return true;
         }
-        return RANDOM.get().nextInt(100) < probability;
+        return ThreadLocalRandom.current().nextInt(100) < probability;
     }
 
 
@@ -45,7 +44,7 @@ public class Utils {
         if (min >= max) {
             throw new IllegalArgumentException("max must be greater than min");
         }
-        return min + (max - min) * RANDOM.get().nextFloat();
+        return min + (max - min) * ThreadLocalRandom.current().nextFloat();
     }
 
     public static void enableEntityPhysics(CharacterInterface character) {
@@ -65,7 +64,7 @@ public class Utils {
             throw new IllegalArgumentException();
         }
         int size = values.size();
-        int i = RANDOM.get().nextInt(size);
+        int i = ThreadLocalRandom.current().nextInt(size);
         if (values instanceof List) {
             return ((List<V>) values).get(i);
         } else {

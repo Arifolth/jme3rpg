@@ -66,7 +66,7 @@ public class VegetationInitialization implements VegetationInitializationInterfa
         taskStarterService.execute(new Runnable() {
             @Override
             public void run() {
-                ContextInterface context = new TreesContext(quad.getUserData(Constants.QUAD_FOREST));
+                final ContextInterface context = new TreesContext(quad.getUserData(Constants.QUAD_FOREST));
 
                 final Vector3f quadLocation = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().clone();
                 if (context.getNode() == null) {
@@ -91,7 +91,6 @@ public class VegetationInitialization implements VegetationInitializationInterfa
                         context.getNode().updateModelBound();
                         quad.setUserData(Constants.QUAD_FOREST, context.getNode());
                         throttledQueue.enqueue(() -> {
-                            Thread.yield();
                             gameLogicCore.getForestNode().attachChild(context.getNode());
                         });
                     }
@@ -108,7 +107,7 @@ public class VegetationInitialization implements VegetationInitializationInterfa
         taskStarterService.execute(new Runnable() {
             @Override
             public void run() {
-                ContextInterface context = new MushroomContext(quad.getUserData(Constants.QUAD_MUSHROOMS));
+                final ContextInterface context = new MushroomContext(quad.getUserData(Constants.QUAD_MUSHROOMS));
 
                 final Vector3f quadLocation = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().clone();
                 if (context.getNode() == null) {
@@ -131,7 +130,6 @@ public class VegetationInitialization implements VegetationInitializationInterfa
                         context.getNode().updateModelBound();
                         quad.setUserData(Constants.QUAD_MUSHROOMS, context.getNode());
                         throttledQueue.enqueue(() -> {
-                            Thread.yield();
                             gameLogicCore.getMushroomsNode().attachChild(context.getNode());
                         });
                     }
@@ -148,7 +146,7 @@ public class VegetationInitialization implements VegetationInitializationInterfa
         taskStarterService.execute(new Runnable() {
             @Override
             public void run() {
-                ContextInterface context = new GrassContext(quad.getUserData(Constants.QUAD_GRASS));
+                final ContextInterface context = new GrassContext(quad.getUserData(Constants.QUAD_GRASS));
 
                 final Vector3f quadLocation = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().clone();
                 if (context.getNode() == null) {
@@ -174,7 +172,6 @@ public class VegetationInitialization implements VegetationInitializationInterfa
                         context.getNode().updateModelBound();
                         quad.setUserData(Constants.QUAD_GRASS, context.getNode());
                         throttledQueue.enqueue(() -> {
-                            Thread.yield();
                             gameLogicCore.getGrassNode().attachChild(context.getNode());
                         });
                     }
@@ -201,7 +198,7 @@ public class VegetationInitialization implements VegetationInitializationInterfa
         taskStarterService.execute(new Runnable() {
             @Override
             public void run() {
-                ContextInterface context = new BushesContext(quad.getUserData(Constants.QUAD_BUSHES));
+                final ContextInterface context = new BushesContext(quad.getUserData(Constants.QUAD_BUSHES));
 
                 final Vector3f quadLocation = gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().clone();
                 if (context.getNode() == null) {
@@ -224,7 +221,6 @@ public class VegetationInitialization implements VegetationInitializationInterfa
                         context.getNode().updateModelBound();
                         quad.setUserData(Constants.QUAD_BUSHES, context.getNode());
                         throttledQueue.enqueue(() -> {
-                            Thread.yield();
                             gameLogicCore.getBushesNode().attachChild(context.getNode());
                         });
                     }

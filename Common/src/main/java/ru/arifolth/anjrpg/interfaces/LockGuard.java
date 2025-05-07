@@ -18,14 +18,18 @@
 
 package ru.arifolth.anjrpg.interfaces;
 
-import com.jme3.scene.Node;
-
 import java.util.concurrent.locks.ReentrantLock;
 
-public interface ContextInterface {
-    void setNode(Node node);
+public class LockGuard implements AutoCloseable {
+    private final ReentrantLock lock;
 
-    Node getNode();
+    public LockGuard(ReentrantLock lock) {
+        this.lock = lock;
+        this.lock.lock();
+    }
 
-    ReentrantLock getQuadLock();
+    @Override
+    public void close() {
+        lock.unlock();
+    }
 }

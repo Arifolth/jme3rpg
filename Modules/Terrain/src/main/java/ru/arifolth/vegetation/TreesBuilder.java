@@ -43,8 +43,8 @@ public class TreesBuilder implements BuilderInterface {
     private final TerrainQuad quad;
     private final ContextInterface context;
 
-    private Node node;
-    private CountDownLatch countDownLatch;
+    private final Node node;
+    private final CountDownLatch countDownLatch;
 
     public TreesBuilder(Vector3f quadLocation, TerrainQuad quad, ContextInterface context, CountDownLatch countDownLatch) {
         this.quadLocation = quadLocation;
@@ -64,15 +64,10 @@ public class TreesBuilder implements BuilderInterface {
 
             quadForest.forEach(this::accept);
 
-            context.getNode().attachChild(node);
+            context.getNode().attachChild(GeometryBatchFactory.optimize(node));
         } finally {
             countDownLatch.countDown();
         }
-    }
-
-
-    public void setNode(Node node) {
-        this.node = node;
     }
 
     private List<Spatial> setupTrees() {
@@ -83,7 +78,7 @@ public class TreesBuilder implements BuilderInterface {
             treeModelCustom.scale(1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10), 1 + Utils.getRandomNumberInRange(1, 10));
             quadForest.add(treeModelCustom);
         }
-        Thread.yield();
+
         return quadForest;
     }
 
@@ -91,7 +86,8 @@ public class TreesBuilder implements BuilderInterface {
     public void accept(Spatial treeNode) {
         CollisionResults results = new CollisionResults();
 
-        synchronized (quadLocation) {
+        try (LockGuard ignored = new LockGuard(context.getQuadLock())) {
+            // critical section
             Vector3f start = new Vector3f(quadLocation.x + Utils.getRandomNumberInRange(-Constants.TREE_PLANTING_RANGE, Constants.TREE_PLANTING_RANGE), Constants.TREE_PLANTING_HEIGHT, quadLocation.z + Utils.getRandomNumberInRange(-Constants.TREE_PLANTING_RANGE, Constants.TREE_PLANTING_RANGE));
             Ray ray = new Ray(start, RAY_DOWN);
 

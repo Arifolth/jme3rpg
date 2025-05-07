@@ -41,8 +41,8 @@ public class GrassBuilder implements BuilderInterface {
     private final Vector3f quadLocation;
     private final TerrainQuad quad;
     private final ContextInterface context;
-    private Node node;
-    private CountDownLatch countDownLatch;
+    private final Node node;
+    private final CountDownLatch countDownLatch;
 
     public GrassBuilder(GameLogicCoreInterface gameLogicCore, Vector3f quadLocation, TerrainQuad quad, ContextInterface context, CountDownLatch countDownLatch) {
         this.gameLogicCore = gameLogicCore;
@@ -63,14 +63,10 @@ public class GrassBuilder implements BuilderInterface {
 
             quadGrass.forEach(this::accept);
 
-            context.getNode().attachChild(node);
+            context.getNode().attachChild(GeometryBatchFactory.optimize(node));
         } finally {
             countDownLatch.countDown();
         }
-    }
-
-    public void setNode(Node node) {
-        this.node = node;
     }
 
     private List<Spatial> setupGrass() {
@@ -94,7 +90,8 @@ public class GrassBuilder implements BuilderInterface {
     public void accept(Spatial grassSpatial) {
         CollisionResults results = new CollisionResults();
 
-        synchronized (quadLocation) {
+        try (LockGuard ignored = new LockGuard(context.getQuadLock())) {
+            // critical section
             Vector3f start = new Vector3f(quadLocation.x + Utils.getRandomNumberInRange(-Constants.TREE_PLANTING_RANGE, Constants.TREE_PLANTING_RANGE), Constants.TREE_PLANTING_HEIGHT, quadLocation.z + Utils.getRandomNumberInRange(-Constants.TREE_PLANTING_RANGE, Constants.TREE_PLANTING_RANGE));
             Ray ray = new Ray(start, RAY_DOWN);
 
