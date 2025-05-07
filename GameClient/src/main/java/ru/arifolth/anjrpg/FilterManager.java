@@ -18,6 +18,7 @@
 
 package ru.arifolth.anjrpg;
 
+import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
@@ -29,6 +30,7 @@ import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Node;
 import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.water.WaterFilter;
+import ru.arifolth.anjrpg.filters.FilmGrainFilter;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.FilterManagerInterface;
 import ru.arifolth.anjrpg.interfaces.SkyInterface;
@@ -45,15 +47,21 @@ public class FilterManager implements FilterManagerInterface {
     private FilterPostProcessor fpp;
     private FogFilter fog;
     private GammaCorrectionFilter gammaCorrectionFilter;
+    private Renderer renderer;
 
-    public FilterManager(AssetManager assetManager, Node rootNode, ViewPort viewPort, SkyInterface sky, Renderer renderer) {
+    private SimpleApplication application;
+    private FilmGrainFilter filmGrainFilter;
+
+    public FilterManager(SimpleApplication application, AssetManager assetManager, Node rootNode, ViewPort viewPort, SkyInterface sky, Renderer renderer) {
+        this.application = application;
         this.assetManager = assetManager;
         this.rootNode = rootNode;
         this.viewPort = viewPort;
         this.sky = sky;
+        this.renderer = renderer;
 
         fpp = new FilterPostProcessor(assetManager);
-        renderer.setDefaultAnisotropicFilter(1);
+        this.renderer.setDefaultAnisotropicFilter(1);
 
         setupFog();
 
@@ -64,6 +72,7 @@ public class FilterManager implements FilterManagerInterface {
         setupShadowRenderer();
         setupCartoonEdgeFilter();
         setupToneMapFilter();
+        setupFilmGrainFilter();
 
         viewPort.addProcessor(fpp);
     }
@@ -75,6 +84,11 @@ public class FilterManager implements FilterManagerInterface {
         setupWaterFilter();
 
         setupGammaCorrectionFilter();
+    }
+
+    private void setupFilmGrainFilter() {
+        filmGrainFilter = new FilmGrainFilter(application);
+        fpp.addFilter(filmGrainFilter);
     }
 
     private void setupGammaCorrectionFilter() {

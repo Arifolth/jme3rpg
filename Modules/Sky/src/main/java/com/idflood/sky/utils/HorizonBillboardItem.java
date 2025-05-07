@@ -29,6 +29,7 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.control.BillboardControl;
 import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
+import com.jme3.texture.image.ColorSpace;
 
 public class HorizonBillboardItem extends Geometry {
     private Mesh box;
@@ -46,6 +47,7 @@ public class HorizonBillboardItem extends Geometry {
         normalMap.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
         Texture specularMap = assetManager.loadTexture("Textures/Terrain/background/MountainSpecularMap.png");
         specularMap.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
+        specularMap.getImage().setColorSpace(ColorSpace.Linear);
         mountainShader.setColor("Diffuse", ColorRGBA.White);
         mountainShader.setColor("Ambient", ColorRGBA.White);
         mountainShader.setColor("Specular", ColorRGBA.White);

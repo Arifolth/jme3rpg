@@ -143,7 +143,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     }
 
     void setupFilters() {
-        filterManager = new FilterManager(assetManager, rootNode, viewPort, sky, renderer);
+        filterManager = new FilterManager(this, assetManager, rootNode, viewPort, sky, renderer);
 
         setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
