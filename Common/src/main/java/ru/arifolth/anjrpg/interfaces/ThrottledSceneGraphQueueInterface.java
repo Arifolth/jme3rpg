@@ -23,7 +23,5 @@ public interface ThrottledSceneGraphQueueInterface {
 
     void processOne();
 
-    void processOneEveryTwoFrames();
-
-    void processN(int n);
+    void processOneEveryNFrames();
 }

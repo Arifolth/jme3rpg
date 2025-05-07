@@ -40,6 +40,7 @@ public class VegetationInitialization implements VegetationInitializationInterfa
 
 
     private GameLogicCoreInterface gameLogicCore;
+    private ThrottledSceneGraphQueueInterface throttledQueue;
 
     public VegetationInitialization() {
         Runtime.getRuntime().addShutdownHook(new Thread(executorService::shutdownNow));
@@ -48,6 +49,7 @@ public class VegetationInitialization implements VegetationInitializationInterfa
 
     public void setGameLogicCore(GameLogicCoreInterface gameLogicCore) {
         this.gameLogicCore = gameLogicCore;
+        this.throttledQueue = ((RolePlayingGameInterface) this.gameLogicCore.getApp()).getThrottledQueue();
     }
 
     @Override
@@ -88,13 +90,13 @@ public class VegetationInitialization implements VegetationInitializationInterfa
                         context.setNode(GeometryBatchFactory.optimize(context.getNode(), true));
                         context.getNode().updateModelBound();
                         quad.setUserData(Constants.QUAD_FOREST, context.getNode());
-                        ((RolePlayingGameInterface )gameLogicCore.getApp()).getThrottledQueue().enqueue(() -> {
+                        throttledQueue.enqueue(() -> {
                             Thread.yield();
                             gameLogicCore.getForestNode().attachChild(context.getNode());
                         });
                     }
                 } else {
-                    ((RolePlayingGameInterface )gameLogicCore.getApp()).getThrottledQueue().enqueue(() -> {
+                    throttledQueue.enqueue(() -> {
                         gameLogicCore.getForestNode().attachChild(context.getNode());
                     });
                 }
@@ -128,13 +130,13 @@ public class VegetationInitialization implements VegetationInitializationInterfa
                         context.setNode(GeometryBatchFactory.optimize(context.getNode(), true));
                         context.getNode().updateModelBound();
                         quad.setUserData(Constants.QUAD_MUSHROOMS, context.getNode());
-                        ((RolePlayingGameInterface )gameLogicCore.getApp()).getThrottledQueue().enqueue(() -> {
+                        throttledQueue.enqueue(() -> {
                             Thread.yield();
                             gameLogicCore.getMushroomsNode().attachChild(context.getNode());
                         });
                     }
                 } else {
-                    ((RolePlayingGameInterface )gameLogicCore.getApp()).getThrottledQueue().enqueue(() -> {
+                    throttledQueue.enqueue(() -> {
                         gameLogicCore.getMushroomsNode().attachChild(context.getNode());
                     });
                 }
@@ -171,13 +173,13 @@ public class VegetationInitialization implements VegetationInitializationInterfa
                         context.setNode(GeometryBatchFactory.optimize(context.getNode(), true));
                         context.getNode().updateModelBound();
                         quad.setUserData(Constants.QUAD_GRASS, context.getNode());
-                        ((RolePlayingGameInterface )gameLogicCore.getApp()).getThrottledQueue().enqueue(() -> {
+                        throttledQueue.enqueue(() -> {
                             Thread.yield();
                             gameLogicCore.getGrassNode().attachChild(context.getNode());
                         });
                     }
                 } else {
-                    ((RolePlayingGameInterface )gameLogicCore.getApp()).getThrottledQueue().enqueue(() -> {
+                    throttledQueue.enqueue(() -> {
                         gameLogicCore.getGrassNode().attachChild(context.getNode());
                     });
                 }
@@ -221,13 +223,13 @@ public class VegetationInitialization implements VegetationInitializationInterfa
                         context.setNode(GeometryBatchFactory.optimize(context.getNode(), true));
                         context.getNode().updateModelBound();
                         quad.setUserData(Constants.QUAD_BUSHES, context.getNode());
-                        ((RolePlayingGameInterface )gameLogicCore.getApp()).getThrottledQueue().enqueue(() -> {
+                        throttledQueue.enqueue(() -> {
                             Thread.yield();
                             gameLogicCore.getBushesNode().attachChild(context.getNode());
                         });
                     }
                 } else {
-                    ((RolePlayingGameInterface )gameLogicCore.getApp()).getThrottledQueue().enqueue(() -> {
+                    throttledQueue.enqueue(() -> {
                         gameLogicCore.getBushesNode().attachChild(context.getNode());
                     });
                 }

@@ -43,7 +43,7 @@ public class ViewDistanceDropDown extends Dropdown {
     }
 
     protected void setCurrentValue() {
-        chosenElement.setText(ViewDistanceSettings.valueOf((String) settings.getOrDefault(ViewDistanceSettings.class.getSimpleName(), ViewDistanceSettings.MED.name())).name());
+        chosenElement.setText(SettingsUtils.getViewDistanceSettings(settings).name());
     }
 
     private Collection<String> getRenderers() {

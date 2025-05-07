@@ -30,10 +30,11 @@ public enum ViewDistanceSettings implements ViewDistanceSettingsInterface {
     //129/1025/1.5
 
     LOW {
-        int patchSize = 65;
-        int terrainSize = 513;
-        float lodMultiplier = 3.5f;
-        int localTranslation = -100;
+        final int framesThrottle = 1;
+        final int patchSize = 65;
+        final int terrainSize = 513;
+        final float lodMultiplier = 3.5f;
+        final int localTranslation = -100;
         @Override
         public int getPatchSize() {
             return patchSize;
@@ -52,13 +53,19 @@ public enum ViewDistanceSettings implements ViewDistanceSettingsInterface {
         @Override
         public float getLodMultiplier() {
             return lodMultiplier;
+        }
+
+        @Override
+        public int getFramesThrottle() {
+            return framesThrottle;
         }
     },
     MED {
-        int patchSize = 257;
-        int terrainSize = 513;
-        float lodMultiplier = 2.7f;
-        int localTranslation = -100;
+        final int framesThrottle = 2;
+        final int patchSize = 257;
+        final int terrainSize = 513;
+        final float lodMultiplier = 2.7f;
+        final int localTranslation = -100;
         @Override
         public int getPatchSize() {
             return patchSize;
@@ -77,13 +84,19 @@ public enum ViewDistanceSettings implements ViewDistanceSettingsInterface {
         @Override
         public float getLodMultiplier() {
             return lodMultiplier;
+        }
+
+        @Override
+        public int getFramesThrottle() {
+            return framesThrottle;
         }
     },
     HIGH {
-        int patchSize = 513;
-        int terrainSize = 1025;
-        float lodMultiplier = 1.7f;
-        int localTranslation = -100;
+        final int framesThrottle = 8;
+        final int patchSize = 65;
+        final int terrainSize = 1025;
+        final float lodMultiplier = 1.2f;
+        final int localTranslation = -100;
         @Override
         public int getPatchSize() {
             return patchSize;
@@ -102,6 +115,11 @@ public enum ViewDistanceSettings implements ViewDistanceSettingsInterface {
         @Override
         public float getLodMultiplier() {
             return lodMultiplier;
+        }
+
+        @Override
+        public int getFramesThrottle() {
+            return framesThrottle;
         }
     };
 

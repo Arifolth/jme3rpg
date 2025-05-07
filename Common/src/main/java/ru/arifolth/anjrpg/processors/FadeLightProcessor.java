@@ -35,7 +35,7 @@ public class FadeLightProcessor implements ProcessorInterface {
         this.sunLight = sunLight;
         this.fadeGammaProcessor = fadeGammaProcessor;
 
-        this.ambientLight.setColor(new ColorRGBA(0.35f, 0.35f, 0.35f, 1.0f));
+        this.ambientLight.setColor(new ColorRGBA(0.45f, 0.45f, 0.45f, 1.0f));
     }
 
     @Override

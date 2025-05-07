@@ -55,7 +55,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     protected BulletAppState bulletAppState;
     protected GameLogicCoreInterface gameLogicCore;
     private final Node terrainNode = new Node("Terrain");
-    private final ThrottledSceneGraphQueue throttledQueue = new ThrottledSceneGraphQueue();
+    private ThrottledSceneGraphQueue throttledQueue;
 
     public RolePlayingGame() {
         super(new FlyCamAppState(),
@@ -77,6 +77,12 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     public void simpleInitApp() {
         /* Game stuff */
         setupAssetManager();
+
+        setupThrottledQueue();
+    }
+
+    private void setupThrottledQueue() {
+        throttledQueue = new ThrottledSceneGraphQueue(this);
     }
 
     protected void loadResources() {
@@ -123,7 +129,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
      */
     @Override
     public void simpleUpdate(float tpf) {
-        throttledQueue.processOneEveryTwoFrames();
+        throttledQueue.processOneEveryNFrames();
 
         gameLogicCore.update(tpf);
 

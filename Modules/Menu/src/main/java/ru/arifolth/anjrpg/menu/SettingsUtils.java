@@ -18,6 +18,7 @@
 
 package ru.arifolth.anjrpg.menu;
 
+import com.jme3.app.SimpleApplication;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeSystem;
 import com.jme3.system.JmeVersion;
@@ -76,5 +77,14 @@ public class SettingsUtils {
         } catch (BackingStoreException ex) {
             ex.printStackTrace();
         }
+    }
+
+    public static ViewDistanceSettings getViewDistanceSettings(SimpleApplication app) {
+        AppSettings settings = app.getContext().getSettings();
+        return getViewDistanceSettings(settings);
+    }
+
+    public static ViewDistanceSettings getViewDistanceSettings(AppSettings settings) {
+        return ViewDistanceSettings.valueOf((String) settings.getOrDefault(ViewDistanceSettings.class.getSimpleName(), ViewDistanceSettings.MED.name()));
     }
 }

@@ -18,13 +18,22 @@
 
 package ru.arifolth.anjrpg;
 
+import com.jme3.app.SimpleApplication;
 import ru.arifolth.anjrpg.interfaces.ThrottledSceneGraphQueueInterface;
+import ru.arifolth.anjrpg.interfaces.ViewDistanceSettings;
+import ru.arifolth.anjrpg.menu.SettingsUtils;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ThrottledSceneGraphQueue implements ThrottledSceneGraphQueueInterface {
     private final ConcurrentLinkedQueue<Runnable> queue = new ConcurrentLinkedQueue<>();
     private int frameCounter = 0;
+    private int frameThrottle;
+
+    public ThrottledSceneGraphQueue(SimpleApplication app) {
+        ViewDistanceSettings viewDistanceSettings = SettingsUtils.getViewDistanceSettings(app);
+        this.frameThrottle = viewDistanceSettings.getFramesThrottle();
+    }
 
     @Override
     public void enqueue(Runnable r) {
@@ -42,21 +51,13 @@ public class ThrottledSceneGraphQueue implements ThrottledSceneGraphQueueInterfa
 
     // every two frames
     @Override
-    public void processOneEveryTwoFrames() {
+    public void processOneEveryNFrames() {
         frameCounter++;
-        if (frameCounter % 2 == 0) {
+        if (frameCounter % frameThrottle == 0) {
             Runnable r = queue.poll();
             if (r != null) {
                 r.run();
             }
-        }
-    }
-
-    // Optionally: process N per frame
-    @Override
-    public void processN(int n) {
-        for (int i = 0; i < n; i++) {
-            processOne();
         }
     }
 }

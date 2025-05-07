@@ -105,7 +105,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>1.1.1</version>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <id>build-native-executable</id>
@@ -132,7 +132,7 @@
                         <argument>--type</argument>
                         <argument>app-image</argument>
                         <argument>--java-options</argument>
-                        <argument>-Xms8G -Xmx8G -server -XX:UseAVX=2 -XX:+UseZGC -XX:+ZProactive -XX:+UseStringDeduplication -XX:+UseCompressedOops -XX:+UseLargePages -XX:LargePageSizeInBytes=2M -XX:+UseFMA -XX:MaxVectorSize=32 -XX:ObjectAlignmentInBytes=16</argument>
+                        <argument>-Xms8G -Xmx8G -server -XX:UseAVX=2 -XX:+UseG1GC -XX:MaxGCPauseMillis=50 -XX:+ParallelRefProcEnabled -XX:G1HeapRegionSize=4m -XX:InitiatingHeapOccupancyPercent=30 -XX:+UseStringDeduplication -XX:+UseCompressedOops -XX:+UseLargePages -XX:LargePageSizeInBytes=2M -XX:+UseFMA -XX:MaxVectorSize=32 -XX:ObjectAlignmentInBytes=16</argument>
                     </arguments>
                 </configuration>
             </plugin>

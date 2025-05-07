@@ -23,4 +23,5 @@ public interface ViewDistanceSettingsInterface {
     int getTerrainSize();
     int getLocalTranslation();
     float getLodMultiplier();
+    int getFramesThrottle();
 }

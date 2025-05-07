@@ -42,6 +42,7 @@ import com.jme3.terrain.noise.fractal.FractalSum;
 import com.jme3.terrain.noise.modulator.NoiseModulator;
 import com.jme3.texture.Texture;
 import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.anjrpg.menu.SettingsUtils;
 
 import java.util.logging.Logger;
 
@@ -75,7 +76,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
 
     @Override
     public void initialize() {
-        viewDistanceSettings = ViewDistanceSettings.valueOf((String) app.getContext().getSettings().getOrDefault(ViewDistanceSettings.class.getSimpleName(), ViewDistanceSettings.MED.name()));
+        viewDistanceSettings = SettingsUtils.getViewDistanceSettings(app.getContext().getSettings());
     }
 
     @Override
