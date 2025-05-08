@@ -47,13 +47,11 @@ public class HorizonBillboardItem extends Geometry {
         normalMap.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
         Texture specularMap = assetManager.loadTexture("Textures/Terrain/background/MountainSpecularMap.png");
         specularMap.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
-        specularMap.getImage().setColorSpace(ColorSpace.Linear);
         mountainShader.setColor("Diffuse", ColorRGBA.White);
         mountainShader.setColor("Ambient", ColorRGBA.White);
         mountainShader.setColor("Specular", ColorRGBA.White);
         mountainShader.setTexture("DiffuseMap", grass);
         mountainShader.setTexture("NormalMap", normalMap);
-        mountainShader.setTexture("ParallaxMap", specularMap);
         mountainShader.setTexture("SpecularMap", specularMap);
         mountainShader.setBoolean("UseMaterialColors", true);
         mountainShader.setBoolean("HardwareShadows", true);

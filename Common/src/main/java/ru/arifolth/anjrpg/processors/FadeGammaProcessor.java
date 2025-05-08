@@ -44,7 +44,7 @@ public class FadeGammaProcessor  implements ProcessorInterface {
             }
         }
 
-        fadeOut += tpf / 128;
+        fadeOut += tpf / 16;
         gammaCorrectionFilter.setGamma(fadeOut);
     }
 }

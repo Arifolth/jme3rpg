@@ -53,7 +53,6 @@ public enum GrassTypeEnum implements BaseVegetationType {
             grassShader.setColor("Specular", ColorRGBA.White);
             grassShader.setTexture("DiffuseMap", grass);
             grassShader.setTexture("NormalMap", normalMap);
-            grassShader.setTexture("ParallaxMap", specularMap);
             grassShader.setTexture("SpecularMap", specularMap);
             grassShader.setBoolean("UseMaterialColors", true);
             grassShader.setBoolean("HardwareShadows", true);
@@ -131,7 +130,6 @@ public enum GrassTypeEnum implements BaseVegetationType {
             grassShader.setColor("Specular", ColorRGBA.White);
             grassShader.setTexture("DiffuseMap", grass);
             grassShader.setTexture("NormalMap", normalMap);
-            grassShader.setTexture("ParallaxMap", specularMap);
             grassShader.setTexture("SpecularMap", specularMap);
             grassShader.setBoolean("UseMaterialColors", true);
             grassShader.setBoolean("HardwareShadows", true);
@@ -209,7 +207,6 @@ public enum GrassTypeEnum implements BaseVegetationType {
             grassShader.setColor("Specular", ColorRGBA.White);
             grassShader.setTexture("DiffuseMap", grass);
             grassShader.setTexture("NormalMap", normalMap);
-            grassShader.setTexture("ParallaxMap", specularMap);
             grassShader.setTexture("SpecularMap", specularMap);
             grassShader.setBoolean("UseMaterialColors", true);
             grassShader.setBoolean("HardwareShadows", true);
@@ -287,7 +284,6 @@ public enum GrassTypeEnum implements BaseVegetationType {
             grassShader.setColor("Specular", ColorRGBA.White);
             grassShader.setTexture("DiffuseMap", grass);
             grassShader.setTexture("NormalMap", normalMap);
-            grassShader.setTexture("ParallaxMap", specularMap);
             grassShader.setTexture("SpecularMap", specularMap);
             grassShader.setBoolean("UseMaterialColors", true);
             grassShader.setBoolean("HardwareShadows", true);

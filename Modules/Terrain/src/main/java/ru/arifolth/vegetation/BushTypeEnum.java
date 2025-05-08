@@ -54,7 +54,6 @@ public enum BushTypeEnum implements BaseVegetationType {
             bushShader.setColor("Specular", ColorRGBA.White);
             bushShader.setTexture("DiffuseMap", texture);
             bushShader.setTexture("NormalMap", normalMap);
-            bushShader.setTexture("ParallaxMap", specularMap);
             bushShader.setTexture("SpecularMap", specularMap);
             bushShader.setBoolean("UseMaterialColors", true);
             bushShader.setBoolean("HardwareShadows", true);
@@ -132,7 +131,6 @@ public enum BushTypeEnum implements BaseVegetationType {
             bushShader.setColor("Specular", ColorRGBA.White);
             bushShader.setTexture("DiffuseMap", texture);
             bushShader.setTexture("NormalMap", normalMap);
-            bushShader.setTexture("ParallaxMap", specularMap);
             bushShader.setTexture("SpecularMap", specularMap);
             bushShader.setBoolean("UseMaterialColors", true);
             bushShader.setBoolean("HardwareShadows", true);
@@ -210,7 +208,6 @@ public enum BushTypeEnum implements BaseVegetationType {
             bushShader.setColor("Specular", ColorRGBA.White);
             bushShader.setTexture("DiffuseMap", texture);
             bushShader.setTexture("NormalMap", normalMap);
-            bushShader.setTexture("ParallaxMap", specularMap);
             bushShader.setTexture("SpecularMap", specularMap);
             bushShader.setBoolean("UseMaterialColors", true);
             bushShader.setBoolean("HardwareShadows", true);
