@@ -21,12 +21,10 @@ package ru.arifolth.anjrpg.filters;
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
-import com.jme3.math.Vector2f;
 import com.jme3.post.Filter;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.texture.Texture2D;
-import ru.arifolth.anjrpg.ANJRpg;
 
 //Inspired by https://www.shadertoy.com/view/3sGGRz
 public class FilmGrainFilter extends Filter {
