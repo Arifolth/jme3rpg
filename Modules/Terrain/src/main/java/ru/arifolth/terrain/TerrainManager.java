@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2024 Alexander Nilov
+ *     Copyright (C) 2014 - 2025 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -23,7 +23,9 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.scene.Node;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.vegetation.BushTypeEnum;
 import ru.arifolth.vegetation.GrassTypeEnum;
+import ru.arifolth.vegetation.MushroomTypeEnum;
 import ru.arifolth.vegetation.TreeTypeEnum;
 
 import java.util.EnumSet;
@@ -44,18 +46,24 @@ public class TerrainManager implements TerrainManagerInterface {
         this.app = app;
 
         terrainBuilder = new FractalTerrainGrid(assetManager, bulletAppState, app);
+        terrainBuilder.initialize();
 
         TreeTypeEnum.setAssetManager(assetManager);
         GrassTypeEnum.setAssetManager(assetManager);
+        BushTypeEnum.setAssetManager(assetManager);
+        MushroomTypeEnum.setAssetManager(assetManager);
     }
 
     @Override
     public void initialize() {
         EnumSet.allOf(TreeTypeEnum.class).forEach(TreeTypeEnum::init);
         EnumSet.allOf(GrassTypeEnum.class).forEach(GrassTypeEnum::init);
+        EnumSet.allOf(BushTypeEnum.class).forEach(BushTypeEnum::init);
+        EnumSet.allOf(MushroomTypeEnum.class).forEach(MushroomTypeEnum::init);
 
         generateTerrain();
     }
+
     private void generateTerrain() {
         terrain = terrainBuilder.generateTerrain();
     }

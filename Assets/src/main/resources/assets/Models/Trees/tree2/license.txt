@@ -1,0 +1,11 @@
+Model Information:
+* title:	Tree
+* source:	https://sketchfab.com/3d-models/tree-a2a6237a270840e198cc7db1c47f1ef7
+* author:	DJMaesen (https://sketchfab.com/bumstrum)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Tree" (https://sketchfab.com/3d-models/tree-a2a6237a270840e198cc7db1c47f1ef7) by DJMaesen (https://sketchfab.com/bumstrum) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

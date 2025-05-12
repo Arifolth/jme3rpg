@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2024 Alexander Nilov
+ *     Copyright (C) 2014 - 2025 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -18,10 +18,12 @@
 
 package ru.arifolth.anjrpg.menu;
 
+import com.jme3.app.SimpleApplication;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeSystem;
 import com.jme3.system.JmeVersion;
 import ru.arifolth.anjrpg.interfaces.Constants;
+import ru.arifolth.anjrpg.interfaces.ViewDistanceSettings;
 
 import java.awt.*;
 import java.util.prefs.BackingStoreException;
@@ -33,17 +35,17 @@ public class SettingsUtils {
 
     public static void applyDefaultSettings(AppSettings settings) {
         GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        settings.setFullscreen(device.isFullScreenSupported());
-        DisplayMode[] modes = device.getDisplayModes();
-        DisplayMode mode = modes[modes.length-1];
+        settings.setFullscreen(false);
+        DisplayMode mode = device.getDisplayMode();
         settings.setDepthBits(mode.getBitDepth());
         settings.setResolution(mode.getWidth(),mode.getHeight());
         settings.setRenderer(AppSettings.LWJGL_OPENGL45);
         settings.setFrequency(mode.getRefreshRate());
-        settings.setGammaCorrection(false);
+        settings.setGammaCorrection(true);
         settings.setStencilBits(Constants.STENCIL_BITS);
         settings.setTitle(JmeVersion.FULL_NAME);
         settings.setUseRetinaFrameBuffer(true);
+        settings.put(ViewDistanceSettings.class.getSimpleName(), ViewDistanceSettings.MED.name());
     }
 
     public static AppSettings loadSettings() {
@@ -60,7 +62,7 @@ public class SettingsUtils {
             applyDefaultSettings(settings);
         }
 
-        //Native launcher BUG workaround - otherwise it will drop to some weird resolution
+        //Native Executable BUG workaround - otherwise it will drop to some weird resolution
         settings.setSettingsDialogImage(null);
         if (!JmeSystem.showSettingsDialog(settings, true)) {
             return null;
@@ -75,5 +77,14 @@ public class SettingsUtils {
         } catch (BackingStoreException ex) {
             ex.printStackTrace();
         }
+    }
+
+    public static ViewDistanceSettings getViewDistanceSettings(SimpleApplication app) {
+        AppSettings settings = app.getContext().getSettings();
+        return getViewDistanceSettings(settings);
+    }
+
+    public static ViewDistanceSettings getViewDistanceSettings(AppSettings settings) {
+        return ViewDistanceSettings.valueOf((String) settings.getOrDefault(ViewDistanceSettings.class.getSimpleName(), ViewDistanceSettings.MED.name()));
     }
 }

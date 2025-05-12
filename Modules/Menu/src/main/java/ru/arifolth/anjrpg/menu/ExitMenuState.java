@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2024 Alexander Nilov
+ *     Copyright (C) 2014 - 2025 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -36,9 +36,15 @@ public class ExitMenuState extends CompositeAppState {
     private Container window;
     private ANJRpgInterface application;
     private GameLogicCoreInterface gameLogicCore;
+    private String message = "Exit game?";
 
     public ExitMenuState(MainMenuState parent) {
         this.parent = parent;
+    }
+
+    public ExitMenuState(MainMenuState parent, String message) {
+        this.parent = parent;
+        this.message = message;
     }
 
     @Override
@@ -65,7 +71,7 @@ public class ExitMenuState extends CompositeAppState {
         setWindowSize();
 
         Container menuContainer = window.addChild(new Container(new BorderLayout()));
-        Label title = menuContainer.addChild(new Label("Exit game?"), North);
+        Label title = menuContainer.addChild(new Label(message), North);
         title.setFontSize(32);
         title.setInsets(new Insets3f(0, 0, 10, 0));
 
@@ -87,8 +93,6 @@ public class ExitMenuState extends CompositeAppState {
         gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
 
         application.stop();
-
-        System.exit(0);
     }
 
     @Override

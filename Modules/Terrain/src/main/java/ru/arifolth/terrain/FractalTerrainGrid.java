@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2024 Alexander Nilov
+ *     Copyright (C) 2014 - 2025 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -42,12 +42,13 @@ import com.jme3.terrain.noise.fractal.FractalSum;
 import com.jme3.terrain.noise.modulator.NoiseModulator;
 import com.jme3.texture.Texture;
 import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.anjrpg.menu.SettingsUtils;
 
 import java.util.logging.Logger;
 
 public class FractalTerrainGrid implements FractalTerrainGridInterface {
     final private static Logger LOGGER = Logger.getLogger(FractalTerrainGrid.class.getName());
-
+    private ViewDistanceSettings viewDistanceSettings;
     private TerrainQuad terrain;
 
     private final AssetManager assetManager;
@@ -74,9 +75,14 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
     }
 
     @Override
+    public void initialize() {
+        viewDistanceSettings = SettingsUtils.getViewDistanceSettings(app.getContext().getSettings());
+    }
+
+    @Override
     public TerrainQuad generateTerrain() {
         // TERRAIN TEXTURE material
-        Material matTerrain = new Material(this.assetManager, "MatDefs/HeightBasedTerrain.j3md");
+        Material matTerrain = new Material(this.assetManager, "Common/MatDefs/Terrain/HeightBasedTerrain.j3md");
 
         AppSettings settings = app.getContext().getSettings();
         matTerrain.getAdditionalRenderState().setWireframe(settings.getBoolean(Constants.DEBUG));
@@ -115,7 +121,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
         matTerrain.setTexture("slopeColorMap", rock);
         matTerrain.setFloat("slopeTileFactor", 32);
 
-        matTerrain.setFloat("terrainSize", 513);
+        matTerrain.setFloat("terrainSize", viewDistanceSettings.getTerrainSize());
 
         this.base = new FractalSum();
         this.base.setRoughness(0.82f);
@@ -135,11 +141,11 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
         FilteredBasis ground = new FilteredBasis(this.base);
 
         this.perturb = new PerturbFilter();
-        this.perturb.setMagnitude(0.419f);
+        this.perturb.setMagnitude(0.219f);
 
         this.therm = new OptimizedErode();
         this.therm.setRadius(1);
-        this.therm.setTalus(0.511f);
+        this.therm.setTalus(0.711f);
 
         this.smooth = new SmoothFilter();
         this.smooth.setRadius(1);
@@ -153,7 +159,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
 
         ground.addPreFilter(this.iterate);
 
-        this.terrain = new TerrainGrid("Terrain", 65, 1025, new FractalTileLoader(ground, 256f));
+        this.terrain = new TerrainGrid("Terrain", viewDistanceSettings.getPatchSize(), viewDistanceSettings.getTerrainSize(), new FractalTileLoader(ground, 128f));
 
         this.terrain.setMaterial(matTerrain);
 
@@ -166,7 +172,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
         setUpCollision();
 
         terrain.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
-        terrain.setQueueBucket(RenderQueue.Bucket.Transparent);
+        terrain.setQueueBucket(RenderQueue.Bucket.Opaque);
         matTerrain.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Back);
         terrain.setCullHint(Spatial.CullHint.Dynamic);
 
@@ -179,13 +185,13 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
 
     private void setupPosition() {
         //terrain postion
-        terrain.setLocalTranslation(0, -200, 0);
+        terrain.setLocalTranslation(0, viewDistanceSettings.getLocalTranslation(), 0);
     }
 
     private void setUpLODControl() {
         /** 5. The LOD (level of detail) depends on were the camera is: */
-        TerrainLodControl control = new TerrainGridLodControl(this.terrain, app.getCamera());
-        control.setLodCalculator(new DistanceLodCalculator(257, 2.7f)); // patch size, and a multiplier
+        TerrainGridLodControl control = new TerrainGridLodControl(this.terrain, app.getCamera());
+        control.setLodCalculator(new DistanceLodCalculator(viewDistanceSettings.getPatchSize(), viewDistanceSettings.getLodMultiplier())); // patch size, and a multiplier
         this.terrain.addControl(control);
     }
 
@@ -195,7 +201,6 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
             public void gridMoved(Vector3f newCenter) {
             }
 
-            //TODO rewrite tree gen using thread pool executor and thread safe queue or stack
             @Override
             public void tileAttached(Vector3f cell, TerrainQuad quad) {
                 while(quad.getControl(RigidBodyControl.class)!=null){
@@ -210,6 +215,10 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
                 initializationDelegate.positionTrees(quad);
                 //plant grass
                 initializationDelegate.positionGrass(quad);
+                //plant bushes
+                initializationDelegate.positionBushes(quad);
+                //plant bushes
+                initializationDelegate.positionMushrooms(quad);
             }
 
             @Override
@@ -220,6 +229,8 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
                 }
                 detachTrees(quad);
                 detachGrass(quad);
+                detachBushes(quad);
+                detachMushrooms(quad);
             }
 
         });
@@ -228,20 +239,36 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
     private void detachGrass(TerrainQuad quad) {
         Node quadGrass = quad.getUserData(Constants.QUAD_GRASS);
         if(quadGrass != null) {
-            app.enqueue(() -> {
+            app.getThrottledQueue().enqueue(() -> {
                 app.getGameLogicCore().getGrassNode().detachChild(quadGrass);
             });
-//            quad.setUserData(Constants.QUAD_GRASS, null);
         }
     }
 
     private void detachTrees(TerrainQuad quad) {
         Node quadForest = quad.getUserData(Constants.QUAD_FOREST);
         if(quadForest != null) {
-            app.enqueue(() -> {
+            app.getThrottledQueue().enqueue(() -> {
                 app.getGameLogicCore().getForestNode().detachChild(quadForest);
             });
-//            quad.setUserData(Constants.QUAD_FOREST, null);
+        }
+    }
+
+    private void detachMushrooms(TerrainQuad quad) {
+        Node quadMushrooms = quad.getUserData(Constants.QUAD_MUSHROOMS);
+        if(quadMushrooms != null) {
+            app.getThrottledQueue().enqueue(() -> {
+                app.getGameLogicCore().getMushroomsNode().detachChild(quadMushrooms);
+            });
+        }
+    }
+
+    private void detachBushes(TerrainQuad quad) {
+        Node quadBushes = quad.getUserData(Constants.QUAD_BUSHES);
+        if(quadBushes != null) {
+            app.getThrottledQueue().enqueue(() -> {
+                app.getGameLogicCore().getBushesNode().detachChild(quadBushes);
+            });
         }
     }
 

@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2024 Alexander Nilov
+ *     Copyright (C) 2014 - 2025 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -20,7 +20,10 @@ package ru.arifolth.anjrpg.interfaces;
 
 import com.jme3.scene.Node;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 public abstract class AbstractContext implements ContextInterface {
+    private final ReentrantLock quadLock = new ReentrantLock();
     private Node node;
 
     public AbstractContext(Node node) {
@@ -35,5 +38,10 @@ public abstract class AbstractContext implements ContextInterface {
     @Override
     public Node getNode() {
         return node;
+    }
+
+    @Override
+    public ReentrantLock getQuadLock() {
+        return quadLock;
     }
 }

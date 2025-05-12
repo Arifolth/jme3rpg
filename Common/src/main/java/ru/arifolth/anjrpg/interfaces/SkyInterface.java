@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2024 Alexander Nilov
+ *     Copyright (C) 2014 - 2025 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -22,11 +22,11 @@ import com.jme3.light.DirectionalLight;
 import com.jme3.math.Vector3f;
 
 public interface SkyInterface {
+    void initialize();
+
     Vector3f getSunDirection();
 
     int getHours();
 
     void update(float tpf);
-
-    DirectionalLight getSunLight();
 }

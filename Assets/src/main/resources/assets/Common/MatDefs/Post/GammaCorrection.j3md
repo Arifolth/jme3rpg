@@ -1,0 +1,20 @@
+MaterialDef GammaCorrection {
+ 
+    MaterialParameters {
+        Int NumSamples
+        Texture2D Texture
+        Float InvGamma       
+    }
+ 
+    Technique {
+        VertexShader    GLSL120: Common/MatDefs/Post/Post.vert
+        FragmentShader  GLSL120: Common/MatDefs/Post/GammaCorrection.frag
+ 
+        WorldParameters {
+        }
+        
+        Defines { 
+            RESOLVE_MS : NumSamples
+        }
+    }
+}

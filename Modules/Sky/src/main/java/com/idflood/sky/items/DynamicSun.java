@@ -34,7 +34,7 @@ public class DynamicSun extends Node {
         this.viewPort = viewPort;
         this.scaling = scaling;
         
-        sunLight = getSunLight();
+        sunLight = initSunLight();
         rootNode.addLight(sunLight);
                 
         sunSystem.setSiteLatitude(46.32f);
@@ -58,13 +58,17 @@ public class DynamicSun extends Node {
         return sunSystem;
     }
     
-    public DirectionalLight getSunLight(){
+    public DirectionalLight initSunLight(){
         DirectionalLight dl = new DirectionalLight();
         dl.setDirection(lightDir);
-        dl.setColor(ColorRGBA.White);
+        dl.setColor(ColorRGBA.White.mult(5.0f));
         return dl;
     }
-        
+
+    public DirectionalLight getSunLight() {
+        return sunLight;
+    }
+
     protected void updateLightPosition(){
         lightDir = sunSystem.getDirection();
         lightPosition = sunSystem.getPosition();

@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2024 Alexander Nilov
+ *     Copyright (C) 2014 - 2025 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.control.BillboardControl;
 import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
+import com.jme3.texture.image.ColorSpace;
 
 public class HorizonBillboardItem extends Geometry {
     private Mesh box;
@@ -36,7 +37,7 @@ public class HorizonBillboardItem extends Geometry {
     public HorizonBillboardItem(AssetManager assetManager, String name, Float scale) {
         super(name);
 
-        box = new Quad(8_000, 4_500);
+        box = new Quad(16_000, 9_000);
         setMesh(box);
 
         Material mountainShader = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
@@ -51,7 +52,6 @@ public class HorizonBillboardItem extends Geometry {
         mountainShader.setColor("Specular", ColorRGBA.White);
         mountainShader.setTexture("DiffuseMap", grass);
         mountainShader.setTexture("NormalMap", normalMap);
-        mountainShader.setTexture("ParallaxMap", specularMap);
         mountainShader.setTexture("SpecularMap", specularMap);
         mountainShader.setBoolean("UseMaterialColors", true);
         mountainShader.setBoolean("HardwareShadows", true);
@@ -63,7 +63,7 @@ public class HorizonBillboardItem extends Geometry {
         mountainShader.getAdditionalRenderState().setDepthWrite(true);
         mountainShader.getAdditionalRenderState().setColorWrite(true);
         mountainShader.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-        mountainShader.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+        mountainShader.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Back);
 
         setCullHint(Spatial.CullHint.Never);
         setQueueBucket(RenderQueue.Bucket.Sky);
@@ -74,6 +74,8 @@ public class HorizonBillboardItem extends Geometry {
 
         BillboardControl billBoadControl = new BillboardControl();
         billBoadControl.setAlignment(BillboardControl.Alignment.AxialY);
+        setLocalScale(scale);
+
         addControl(billBoadControl);
     }
 }

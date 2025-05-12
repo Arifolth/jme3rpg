@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2024 Alexander Nilov
+ *     Copyright (C) 2014 - 2025 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -20,11 +20,8 @@ package ru.arifolth.vegetation;
 
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
-import com.jme3.math.FastMath;
-import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
-import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.terrain.geomipmap.TerrainQuad;
@@ -33,9 +30,7 @@ import ru.arifolth.anjrpg.interfaces.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.IntStream;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Stream;
 
 import static ru.arifolth.anjrpg.interfaces.Constants.RAY_DOWN;
@@ -46,46 +41,36 @@ public class GrassBuilder implements BuilderInterface {
     private final Vector3f quadLocation;
     private final TerrainQuad quad;
     private final ContextInterface context;
-    private Node node = new Node();
+    private final Node node;
+    private final CountDownLatch countDownLatch;
 
-    public GrassBuilder(GameLogicCoreInterface gameLogicCore, Vector3f quadLocation, TerrainQuad quad, ContextInterface context) {
+    public GrassBuilder(GameLogicCoreInterface gameLogicCore, Vector3f quadLocation, TerrainQuad quad, ContextInterface context, CountDownLatch countDownLatch) {
         this.gameLogicCore = gameLogicCore;
         this.quadLocation = quadLocation;
         this.quad = quad;
         this.context = context;
+        this.countDownLatch = countDownLatch;
+
+        node = new Node(quad.getName() + ":" + this.toString());
     }
 
     @Override
     public void run() {
+        Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+
         try {
             List<Spatial> quadGrass = setupGrass();
 
-            Stream<Spatial> stream = quadGrass.stream();
-            stream.forEach(this::accept);
+            quadGrass.forEach(this::accept);
 
-            setNode(GeometryBatchFactory.optimize(getNode(), true));
-            synchronized (quadLocation) {
-                context.getNode().attachChild(getNode());
-                context.getNode().updateModelBound();
-
-                quad.setUserData(Constants.QUAD_GRASS, context.getNode());
-            }
+            context.getNode().attachChild(GeometryBatchFactory.optimize(node));
         } finally {
-            gameLogicCore.getApp().enqueue(() -> {
-                gameLogicCore.getGrassNode().attachChild(context.getNode());
-            });
+            countDownLatch.countDown();
         }
     }
 
-    public void setNode(Node node) {
-        this.node = node;
-    }
-
-    public Node getNode() {
-        return node;
-    }
     private List<Spatial> setupGrass() {
-        final int grassAmount = 250_000;
+        final int grassAmount = 50_000;
         List<Spatial> quadGrass = new ArrayList<>(grassAmount);
         for (int i = 0; i < grassAmount; i++) {
             Node grassInstance = GrassTypeEnum.getRandomGrass();
@@ -93,6 +78,9 @@ public class GrassBuilder implements BuilderInterface {
             grassInstance.setLocalTranslation(grassInstance.getLocalTranslation().getX(), grassInstance.getLocalTranslation().getY(), grassInstance.getLocalTranslation().getZ() - 15);
             grassInstance.rotate(Utils.getRandomNumberInRange(-0.65f, 0.65f), Utils.getRandomNumberInRange(-1.65f, 1.65f), 0);
             quadGrass.add(grassInstance);
+            if( i % 80 == 0){
+                Thread.yield();
+            }
         }
 
         return quadGrass;
@@ -102,7 +90,8 @@ public class GrassBuilder implements BuilderInterface {
     public void accept(Spatial grassSpatial) {
         CollisionResults results = new CollisionResults();
 
-        synchronized (quadLocation) {
+        try (LockGuard ignored = new LockGuard(context.getQuadLock())) {
+            // critical section
             Vector3f start = new Vector3f(quadLocation.x + Utils.getRandomNumberInRange(-Constants.TREE_PLANTING_RANGE, Constants.TREE_PLANTING_RANGE), Constants.TREE_PLANTING_HEIGHT, quadLocation.z + Utils.getRandomNumberInRange(-Constants.TREE_PLANTING_RANGE, Constants.TREE_PLANTING_RANGE));
             Ray ray = new Ray(start, RAY_DOWN);
 
@@ -114,7 +103,7 @@ public class GrassBuilder implements BuilderInterface {
                 Vector3f plantLocation = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y, hit.getContactPoint().z);
                 grassSpatial.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
 
-                getNode().attachChild(grassSpatial);
+                node.attachChild(grassSpatial);
             }
         }
     }

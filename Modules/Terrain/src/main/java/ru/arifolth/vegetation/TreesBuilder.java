@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2024 Alexander Nilov
+ *     Copyright (C) 2014 - 2025 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -24,7 +24,6 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
-import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.terrain.geomipmap.TerrainQuad;
@@ -33,56 +32,42 @@ import ru.arifolth.anjrpg.interfaces.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Stream;
 
 import static ru.arifolth.anjrpg.interfaces.Constants.RAY_DOWN;
 
 public class TreesBuilder implements BuilderInterface {
-    private final GameLogicCoreInterface gameLogicCore;
 
     private final Vector3f quadLocation;
     private final TerrainQuad quad;
     private final ContextInterface context;
 
-    private Node node = new Node();
+    private final Node node;
+    private final CountDownLatch countDownLatch;
 
-    public TreesBuilder(GameLogicCoreInterface gameLogicCore, Vector3f quadLocation, TerrainQuad quad, ContextInterface context) {
-        this.gameLogicCore = gameLogicCore;
+    public TreesBuilder(Vector3f quadLocation, TerrainQuad quad, ContextInterface context, CountDownLatch countDownLatch) {
         this.quadLocation = quadLocation;
         this.quad = quad;
         this.context = context;
+        this.countDownLatch = countDownLatch;
+
+        node = new Node(quad.getName() + ":" + this.toString());
     }
 
     @Override
     public void run() {
+        Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+
         try {
             List<Spatial> quadForest = setupTrees();
 
-            Stream<Spatial> stream = quadForest.stream();
-            stream.forEach(this::accept);
+            quadForest.forEach(this::accept);
 
-            setNode(GeometryBatchFactory.optimize(getNode(), true));
-            synchronized (quadLocation) {
-                context.getNode().attachChild(getNode());
-                context.getNode().updateModelBound();
-
-                quad.setUserData(Constants.QUAD_FOREST, context.getNode());
-            }
+            context.getNode().attachChild(GeometryBatchFactory.optimize(node));
         } finally {
-            gameLogicCore.getApp().enqueue(() -> {
-                gameLogicCore.getForestNode().attachChild(context.getNode());
-            });
+            countDownLatch.countDown();
         }
-    }
-
-
-    public void setNode(Node node) {
-        this.node = node;
-    }
-
-    public Node getNode() {
-        return node;
     }
 
     private List<Spatial> setupTrees() {
@@ -101,7 +86,8 @@ public class TreesBuilder implements BuilderInterface {
     public void accept(Spatial treeNode) {
         CollisionResults results = new CollisionResults();
 
-        synchronized (quadLocation) {
+        try (LockGuard ignored = new LockGuard(context.getQuadLock())) {
+            // critical section
             Vector3f start = new Vector3f(quadLocation.x + Utils.getRandomNumberInRange(-Constants.TREE_PLANTING_RANGE, Constants.TREE_PLANTING_RANGE), Constants.TREE_PLANTING_HEIGHT, quadLocation.z + Utils.getRandomNumberInRange(-Constants.TREE_PLANTING_RANGE, Constants.TREE_PLANTING_RANGE));
             Ray ray = new Ray(start, RAY_DOWN);
 
@@ -111,12 +97,12 @@ public class TreesBuilder implements BuilderInterface {
         if (hit != null) {
             if (hit.getContactPoint().y > Constants.WATER_LEVEL_HEIGHT) {
                 Vector3f plantLocation = new Vector3f(hit.getContactPoint().x, hit.getContactPoint().y, hit.getContactPoint().z);
-                treeNode.setLocalTranslation(plantLocation.x, plantLocation.y, plantLocation.z);
+                treeNode.setLocalTranslation(plantLocation.x, plantLocation.y - 3f, plantLocation.z);
                 treeNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(-6.5f, 6.5f) * FastMath.DEG_TO_RAD, new Vector3f(1, 0, 1)));
 
                 treeNode.setLocalRotation(new Quaternion().fromAngleAxis(Utils.getRandomNumberInRange(0f, 360f) * FastMath.DEG_TO_RAD, new Vector3f(0, 1, 0)));
 
-                getNode().attachChild(treeNode);
+                node.attachChild(treeNode);
             }
         }
     }

@@ -1,0 +1,11 @@
+Model Information:
+* title:	Fly Agaric Mushroom
+* source:	https://sketchfab.com/3d-models/fly-agaric-mushroom-d6c3876f091b4de49a38553a177bab0f
+* author:	Timothy Hsu (https://sketchfab.com/timothyhsu)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Fly Agaric Mushroom" (https://sketchfab.com/3d-models/fly-agaric-mushroom-d6c3876f091b4de49a38553a177bab0f) by Timothy Hsu (https://sketchfab.com/timothyhsu) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

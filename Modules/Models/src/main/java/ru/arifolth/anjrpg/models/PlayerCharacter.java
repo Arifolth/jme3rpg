@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2024 Alexander Nilov
+ *     Copyright (C) 2014 - 2025 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@ import java.util.logging.Logger;
 
 public class PlayerCharacter extends AnimatedCharacter {
     final private static Logger LOGGER = Logger.getLogger(PlayerCharacter.class.getName());
+
 
     public static final String PLAYER_CHARACTER_MODEL = "Models/Ninja/Ninja.j3o";
     protected final AnimationDelegateInterface animationDelegate = new AnimationDelegate(this);
@@ -77,7 +78,7 @@ public class PlayerCharacter extends AnimatedCharacter {
 
     @Override
     public void initializeModelLod() {
-        LodUtils.setUpModelLod(characterModel);
+        //NO LODs FOR THE MODELS, TOO AGGRESSIVE
     }
 
     @Override

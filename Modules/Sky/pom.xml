@@ -30,4 +30,7 @@
       <scope>compile</scope>
     </dependency>
   </dependencies>
+
+  <url>https://github.com/Arifolth/jme3rpg</url>
+
 </project>

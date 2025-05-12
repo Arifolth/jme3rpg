@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2024 Alexander Nilov
+ *     Copyright (C) 2014 - 2025 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -54,6 +54,8 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     private FilterManagerInterface filterManager;
     protected BulletAppState bulletAppState;
     protected GameLogicCoreInterface gameLogicCore;
+    private final Node terrainNode = new Node("Terrain");
+    private ThrottledSceneGraphQueue throttledQueue;
 
     public RolePlayingGame() {
         super(new FlyCamAppState(),
@@ -75,6 +77,12 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     public void simpleInitApp() {
         /* Game stuff */
         setupAssetManager();
+
+        setupThrottledQueue();
+    }
+
+    private void setupThrottledQueue() {
+        throttledQueue = new ThrottledSceneGraphQueue(this);
     }
 
     protected void loadResources() {
@@ -87,6 +95,9 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         setupSky();
 
         setupFilters();
+
+        filterManager.initialize();
+        sky.initialize();
     }
 
     private void initializeEntities() {
@@ -118,6 +129,8 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
      */
     @Override
     public void simpleUpdate(float tpf) {
+        throttledQueue.processOneEveryNFrames();
+
         gameLogicCore.update(tpf);
 
         terrainManager.update(tpf);
@@ -130,8 +143,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     }
 
     void setupFilters() {
-        filterManager = new FilterManager(assetManager, rootNode, viewPort, sky, renderer);
-        filterManager.initialize();
+        filterManager = new FilterManager(this, assetManager, rootNode, viewPort, sky, renderer);
 
         setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
@@ -143,10 +155,13 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     }
 
     protected void attachTerrain() {
-        enqueue(() -> {
-            // execute in the jME3 rendering thread.
-            getRootNode().attachChild(terrainManager.getTerrain());
-        });
+        if(getRootNode().getChild(terrainNode.getName()) == null) {
+            terrainNode.attachChild(terrainManager.getTerrain());
+            enqueue(() -> {
+                // execute in the jME3 rendering thread.
+                getRootNode().attachChild(terrainNode);
+            });
+        }
     }
 
     @Override
@@ -155,7 +170,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     }
 
     @Override
-    public synchronized Node getRootNode() {
+    public Node getRootNode() {
         return this.rootNode;
     }
 
@@ -232,5 +247,10 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     @Override
     public String getVersion() {
         return version;
+    }
+
+    @Override
+    public ThrottledSceneGraphQueueInterface getThrottledQueue() {
+        return throttledQueue;
     }
 }

@@ -1,0 +1,11 @@
+Model Information:
+* title:	Macrolepiota procera
+* source:	https://sketchfab.com/3d-models/macrolepiota-procera-80edb9e8104f4995aac3dd0dcd3fc4d6
+* author:	Tadeas Kribek (https://sketchfab.com/tadeas.kribek)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Macrolepiota procera" (https://sketchfab.com/3d-models/macrolepiota-procera-80edb9e8104f4995aac3dd0dcd3fc4d6) by Tadeas Kribek (https://sketchfab.com/tadeas.kribek) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

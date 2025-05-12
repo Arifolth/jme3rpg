@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2024 Alexander Nilov
+ *     Copyright (C) 2014 - 2025 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -18,8 +18,10 @@
 
 package ru.arifolth.anjrpg;
 
+import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.*;
 import com.jme3.post.ssao.SSAOFilter;
@@ -28,6 +30,7 @@ import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Node;
 import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.water.WaterFilter;
+import ru.arifolth.anjrpg.filters.FilmGrainFilter;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.FilterManagerInterface;
 import ru.arifolth.anjrpg.interfaces.SkyInterface;
@@ -42,35 +45,70 @@ public class FilterManager implements FilterManagerInterface {
     private  ViewPort viewPort;
     private WaterFilter waterFilter;
     private FilterPostProcessor fpp;
-
-    private Renderer renderer;
     private FogFilter fog;
+    private GammaCorrectionFilter gammaCorrectionFilter;
+    private Renderer renderer;
 
-    public FilterManager(AssetManager assetManager, Node rootNode, ViewPort viewPort, SkyInterface sky, Renderer renderer) {
+    private SimpleApplication application;
+    private FilmGrainFilter filmGrainFilter;
+
+    public FilterManager(SimpleApplication application, AssetManager assetManager, Node rootNode, ViewPort viewPort, SkyInterface sky, Renderer renderer) {
+        this.application = application;
         this.assetManager = assetManager;
         this.rootNode = rootNode;
         this.viewPort = viewPort;
         this.sky = sky;
         this.renderer = renderer;
-    }
 
-    @Override
-    public void initialize() {
         fpp = new FilterPostProcessor(assetManager);
+        this.renderer.setDefaultAnisotropicFilter(1);
 
-        renderer.setDefaultAnisotropicFilter(1);
         setupFog();
 
         setupFilterPostProcessor();
-        setupLightScatteringFilter();
         setupDepthOfFieldFilter();
         setupSSAOFilter();
         setupTranslucentBucketFilter();
         setupShadowRenderer();
-        setupWaterFilter();
         setupCartoonEdgeFilter();
+        setupToneMapFilter();
+        setupFilmGrainFilter();
+
+        ContrastAdjustmentFilter contrastFilter = new ContrastAdjustmentFilter();
+        contrastFilter.setExponents(0.8f, 0.8f, 0.8f);
+        fpp.addFilter(contrastFilter);
 
         viewPort.addProcessor(fpp);
+    }
+
+    @Override
+    public void initialize() {
+        setupLightScatteringFilter();
+
+        setupWaterFilter();
+
+        setupGammaCorrectionFilter();
+    }
+
+    private void setupFilmGrainFilter() {
+        filmGrainFilter = new FilmGrainFilter(application);
+        fpp.addFilter(filmGrainFilter);
+    }
+
+    private void setupGammaCorrectionFilter() {
+        gammaCorrectionFilter = new GammaCorrectionFilter();
+        fpp.addFilter(gammaCorrectionFilter);
+    }
+
+    @Override
+    public GammaCorrectionFilter getGammaCorrectionFilter() {
+        return gammaCorrectionFilter;
+    }
+
+    private void setupToneMapFilter() {
+        ToneMapFilter toneMapFilter = new ToneMapFilter();
+        toneMapFilter.setWhitePoint(new Vector3f(8f, 8f, 8f));
+        fpp.addFilter(toneMapFilter);
     }
 
     private void setupFog() {

@@ -1,6 +1,6 @@
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2024 Alexander Nilov
+ *     Copyright (C) 2014 - 2025 Alexander Nilov
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ public class Constants {
 
     public static final float DAMAGE = 25f;
 
-    public static final int NPC_AMOUNT = 1;
+    public static final int NPC_AMOUNT = 0;
     public static final int NPC_LOCATION_RANGE = 250;
 
     public static final int WATER_LEVEL_HEIGHT = -70;
@@ -46,7 +46,7 @@ public class Constants {
     public static final int MIN_FRAME_RATE = 30;
     public static final int HEIGHT_OFFSET = -250;
     public static final int MOUNTAINS_HEIGHT_OFFSET = -4000;
-    public static final Vector3f INITIAL_MOUNTAINS_OFFSET = new Vector3f(MOUNTAINS_HEIGHT_OFFSET, 0f, 0f);
+    public static final Vector3f INITIAL_MOUNTAINS_DIRECTION = new Vector3f(MOUNTAINS_HEIGHT_OFFSET, 0f, 0f);
     public static final float TERRAIN_SCALE_X = 2f;
     public static final float TERRAIN_SCALE_Y = 1f;
     public static final float TERRAIN_SCALE_Z = 2f;
@@ -61,11 +61,15 @@ public class Constants {
     public static final int STENCIL_BITS = 8;
     public static final int RIGID_BODIES_SIZE = 4;
     public static final String QUAD_GRASS = "quadGrass";
+    public static final String QUAD_BUSHES = "quadBushes";
     public static final String QUAD_FOREST = "quadForest";
+    public static final String QUAD_MUSHROOMS = "quadMushrooms";
     public static final float FIRING_RANGE = 5f;
     public static final float WALKING_RANGE = 500f;
     public static final float WALK_SPEED = .3f;
     public static final String GRASS_NODE = "Grass";
+    public static final String MUSHROOMS_NODE = "Mushrooms";
+    public static final String BUSHES_NODE = "Bushes";
     public static final String FOREST_NODE = "Forest";
     public static final String ENEMIES_NODE = "Enemies";
     public static final float CHANGE_GAME_STATE_TPF = 0.3f;
@@ -73,6 +77,7 @@ public class Constants {
     public static final float JUMP_COOLDOWN = 1.0f;
     public static final int TREE_PLANTING_RANGE = 1500;
     public static final int TREE_PLANTING_HEIGHT = 70;
+    public static final float STARS_HEIGHT = 8000f;
     public static float MELEE_DISTANCE_LIMIT = 5.5f;
 
     //HKEY_CURRENT_USER\Software\JavaSoft\Prefs\

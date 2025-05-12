@@ -17,7 +17,7 @@ mailto: <arifolth@gmail.com>
 - Environmental and combat sounds
 - UI
 - Loading Screen and Main Menu
-- Native launcher (executable with bundled jre)
+- Native Executable Module (executable with bundled jre)
 
 ## Gameplay Keys
 Default bindings:
@@ -49,22 +49,18 @@ mvn install
 Native executables ware tested to build and run successfully on a Windows box.
 
 To build them enable profile 
-```native``` and perform a [Launcher](Launcher) module build  
+```native``` and perform build of the [NativeExecutable](NativeExecutable) module  
 
 ## Run using Jdk
 ```bash
-mvn exec:java -pl GameClient -Djvm.options="-Xmx8G -server -XX:+UseZGC -XX:+ZProactive -XX:+UseStringDeduplication -XX:+UseLargePages"
+mvn exec:java -pl GameClient -Dexec.jvmArguments="-Xms8G -Xmx8G -server -XX:UseAVX=2 -XX:+UseG1GC -XX:MaxGCPauseMillis=50 -XX:+ParallelRefProcEnabled -XX:G1HeapRegionSize=4m -XX:InitiatingHeapOccupancyPercent=30 -XX:+UseStringDeduplication -XX:+UseCompressedOops -XX:+UseLargePages -XX:LargePageSizeInBytes=2M"
 ```
 
 ## Repo
 <https://github.com/Arifolth/jme3rpg>
 
-## Materials used
-- [Mtnrim_v0.zip](https://sourceforge.net/projects/mountainrim/)
-- https://github.com/rdok/Arcem-Tutari
-- Sounds from https://freesound.org/
-- Tree models and Grass textures from BioMonkey
-- Other resources, credit is given in the code
+## Third-party components, libraries and models used
+Please see [CREDITS.md](CREDITS.md) 
 
 ## Screenshots
 ![Image](Screenshots/Combat.jpg "icon")
@@ -78,4 +74,4 @@ mvn exec:java -pl GameClient -Djvm.options="-Xmx8G -server -XX:+UseZGC -XX:+ZPro
 ## License
 It is released under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.txt)
 
-#### Copyright 2014 - 2024 &copy; Alexander Nilov
+#### Copyright 2014 - 2025 &copy; Alexander Nilov
