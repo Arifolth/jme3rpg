@@ -74,11 +74,13 @@ public class FilterManager implements FilterManagerInterface {
         setupToneMapFilter();
         setupFilmGrainFilter();
 
-        ContrastAdjustmentFilter contrastFilter = new ContrastAdjustmentFilter();
-        contrastFilter.setExponents(0.8f, 0.8f, 0.8f);
-        fpp.addFilter(contrastFilter);
-
         viewPort.addProcessor(fpp);
+    }
+
+    private void setupContrastAdjustmentFilter() {
+        ContrastAdjustmentFilter contrastFilter = new ContrastAdjustmentFilter();
+        contrastFilter.setExponents(0.89f, 0.89f, 0.89f);
+        fpp.addFilter(contrastFilter);
     }
 
     @Override
