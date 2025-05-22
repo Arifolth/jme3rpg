@@ -77,12 +77,6 @@ public class FilterManager implements FilterManagerInterface {
         viewPort.addProcessor(fpp);
     }
 
-    private void setupContrastAdjustmentFilter() {
-        ContrastAdjustmentFilter contrastFilter = new ContrastAdjustmentFilter();
-        contrastFilter.setExponents(0.89f, 0.89f, 0.89f);
-        fpp.addFilter(contrastFilter);
-    }
-
     @Override
     public void initialize() {
         setupLightScatteringFilter();
