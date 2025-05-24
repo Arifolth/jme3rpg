@@ -1,0 +1,25 @@
+MaterialDef FSR CAS Filter {
+
+  MaterialParameters {
+    Texture2D Texture
+    Int NumSamples
+    Vector2 Resolution
+    Float Sharpness
+  }
+
+  Technique {
+    VertexShader   GLSL330: Common/MatDefs/Post/fsr_cas.vert
+    FragmentShader GLSL330: Common/MatDefs/Post/fsr_cas.frag
+
+    WorldParameters {
+      WorldViewProjectionMatrix
+    }
+
+    RenderState {
+      DepthTest Off
+      DepthWrite Off
+      Blend Off
+      FaceCull Off
+    }
+  }
+}

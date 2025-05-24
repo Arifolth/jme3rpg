@@ -18,33 +18,47 @@
 
 package ru.arifolth.anjrpg.filters;
 
-import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.post.Filter;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
+import com.jme3.math.Vector2f;
+import com.jme3.texture.Texture;
 import com.jme3.texture.Texture2D;
 
-//Inspired by https://www.shadertoy.com/view/3sGGRz
-public class FilmGrainFilter extends Filter {
-    private SimpleApplication application;
-    private ViewPort viewPort;
+/*
+* Inspired by https://www.shadertoy.com/view/ftsXzM
+* */
+public class FSRCASFilter extends Filter {
+    private float sharpness = 0.8f; // Range 0.0 (soft) to 1.0  (sharp)
 
-    public FilmGrainFilter(SimpleApplication application) {
-        super("FilmGrainFilter");
-        this.application = application;
+    public FSRCASFilter() {
+        super("FSR CAS Filter");
     }
 
     @Override
-    protected void initFilter(AssetManager assetManager, RenderManager renderManager, ViewPort vp, int w, int h) {
-        this.viewPort = vp;
+    protected void initFilter(AssetManager assetManager,
+                              RenderManager renderManager,
+                              ViewPort vp,
+                              int w, int h) {
+        material = new Material(assetManager, "Common/MatDefs/Post/FSRCASFilter.j3md");
 
-        material = new Material(assetManager, "Common/MatDefs/Post/FilmGrain.j3md");
         Texture2D tex = processor.getFilterTexture();
+        // Ensure proper HDR texture handling
+        tex.setWrap(Texture.WrapMode.Clamp);
+        tex.setMagFilter(Texture.MagFilter.Bilinear);
+        tex.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+
         material.setTexture("Texture", tex);
         material.setInt("NumSamples", tex.getImage().getMultiSamples());
-        material.setFloat("Time", application.getTimer().getTimeInSeconds());
+
+        int width = vp.getCamera().getWidth();
+        int height = vp.getCamera().getHeight();
+
+        material.setVector2("Resolution", new Vector2f(width, height));
+
+        material.setFloat("Sharpness", sharpness);
     }
 
     @Override
@@ -52,9 +66,15 @@ public class FilmGrainFilter extends Filter {
         return material;
     }
 
-    @Override
-    protected void preFrame(float tpf) {
-        if(material != null)
-            material.setFloat("Time", application.getTimer().getTimeInSeconds());
+    public void setSharpness(float sharpness) {
+        this.sharpness = sharpness;
+
+        if (material != null) {
+            material.setFloat("Sharpness", sharpness);
+        }
+    }
+
+    public float getSharpness() {
+        return sharpness;
     }
 }
