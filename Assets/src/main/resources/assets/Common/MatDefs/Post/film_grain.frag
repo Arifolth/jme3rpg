@@ -1,3 +1,21 @@
+/**
+ *     ANJRpg - an open source Role Playing Game written in Java.
+ *     Copyright (C) 2014 - 2025 Alexander Nilov
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 uniform sampler2D Texture;
 uniform float Time;
 in vec2 texCoord;
@@ -40,7 +58,7 @@ void main() {
     vec2 uv = texCoord; // assuming texCoord in [0,1]
 
     // Noise strength (adjust for desired grain amount)
-    float strength = 0.132;
+    float strength = 0.102;
 
     // Generate animated noise vector from time and uv
     vec4 noise = vec4(
@@ -73,10 +91,10 @@ void main() {
 
     // Adjust brightness and contrast
     float brightness = -0.1; // negative to darken slightly
-    float contrast = 0.9;    // less than 1 to reduce contrast a bit
+    float contrast = 0.88;    // less than 1 to reduce contrast a bit
     vec3 finalColor = adjustBrightnessContrast(desatColor, brightness, contrast);
 
-    float gamma = 1.2;
+    float gamma = 1.43;
     finalColor = pow(finalColor, vec3(1.0 / gamma));
 
     fragColor = vec4(finalColor, color.a);
