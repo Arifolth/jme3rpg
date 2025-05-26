@@ -20,7 +20,7 @@ The following third-party libraries and tools have been used in the development 
    License: [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0)
    Home Page: [Apache Groovy](https://groovy-lang.org/)
 6. Film Grain Shader
-   Original work: [Simple Film Grain Shader](https://www.shadertoy.com/view/3sGGRz)
+   Original work: [Film Grain by willeves07](https://www.shadertoy.com/view/DdGyRd)
 7. CAS Shader
 - **Original:**  
   [FidelityFX CAS shader](https://gpuopen.com/fidelityfx-cas/)  

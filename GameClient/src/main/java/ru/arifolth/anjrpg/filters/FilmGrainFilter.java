@@ -26,7 +26,7 @@ import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.texture.Texture2D;
 
-//Inspired by https://www.shadertoy.com/view/3sGGRz
+//Inspired by https://www.shadertoy.com/view/DdGyRd
 public class FilmGrainFilter extends Filter {
     private SimpleApplication application;
     private ViewPort viewPort;

@@ -1,5 +1,5 @@
 /*
-This work is a derivative of the shader originally created by terchapone on shadertoy: https://www.shadertoy.com/view/3sGGRz,
+This work is a derivative of the shader originally created by willeves07 on shadertoy: https://www.shadertoy.com/view/DdGyRd,
 Modifications and adaptations for jMonkeyEngine 3 compatibility by Alexander Nilov, 2025.
 Licensed under the GNU GPLv3 License.
 */
@@ -45,7 +45,6 @@ float luminance(vec3 color) {
     return dot(color, vec3(0.299, 0.587, 0.114));
 }
 
-// Parameters you can tweak
 uniform float brightness; // around 0.0 means no change, negative to darken, positive to brighten
 uniform float contrast;   // 1.0 means no change, <1 to reduce contrast, >1 to increase contrast
 
