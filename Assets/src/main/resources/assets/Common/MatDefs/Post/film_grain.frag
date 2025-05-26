@@ -1,3 +1,9 @@
+/*
+This work is a derivative of the shader originally created by terchapone on shadertoy: https://www.shadertoy.com/view/3sGGRz,
+Modifications and adaptations for jMonkeyEngine 3 compatibility by Alexander Nilov, 2025.
+Licensed under the GNU GPLv3 License.
+*/
+
 /**
  *     ANJRpg - an open source Role Playing Game written in Java.
  *     Copyright (C) 2014 - 2025 Alexander Nilov

@@ -71,6 +71,9 @@ Please see [CREDITS.md](CREDITS.md)
 ![Image](Screenshots/Night.jpg "icon")
 ![Image](Screenshots/Grass.jpg "icon")
 
+## Credits
+For detailed credits and license information, see the [Credits](CREDITS.md) file.
+
 ## License
 It is released under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.txt)
 
