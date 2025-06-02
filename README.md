@@ -5,7 +5,7 @@ An Open Source Action RPG game written in Java.
 mailto: <arifolth@gmail.com>
 
 #
-![1-BlueMountain.jpg](Screenshots/1-BlueMountain.jpg)
+![1-BlueMountain.jpg](Screenshots/BlueMountain/Mountain.jpg)
 ## Features:
 - Modular Maven build
 - Borderless procedurally generated world (Work In Progress)
@@ -14,6 +14,7 @@ mailto: <arifolth@gmail.com>
 - Physics 
 - Enemies with AI and Combat System
 - Animated models
+- GLSL shaders: Film Grain and FidelityFX CAS (sharpening)
 - Environmental and combat sounds
 - UI
 - Loading Screen and Main Menu
@@ -63,13 +64,17 @@ mvn exec:java -pl GameClient -Dexec.jvmArguments="-Xms8G -Xmx8G -server -XX:UseA
 Please see [CREDITS.md](CREDITS.md) 
 
 ## Screenshots
-![Image](Screenshots/Combat.jpg "icon")
-![Image](Screenshots/Rain.jpg "icon")
-![Image](Screenshots/Dawn.jpg "icon")
-![Image](Screenshots/Lake.jpg "icon")
+![Image](Screenshots/Forest/Forest2.jpg "icon")
+![Image](Screenshots/Rain/Rain.jpg "icon")
+![Image](Screenshots/Night/Sunrise.jpg "icon")
+![Image](Screenshots/Night/Night4.jpg "icon")
 ![Image](Screenshots/Underwater.jpg "icon")
-![Image](Screenshots/Night.jpg "icon")
-![Image](Screenshots/Grass.jpg "icon")
+![Image](Screenshots/Night/Sunset.jpg "icon")
+![Image](Screenshots/Lake/Lake.jpg "icon")
+![Image](Screenshots/Forest/Forest3.jpg "icon")
+
+## Credits
+For detailed credits and license information, see the [Credits](CREDITS.md) file.
 
 ## License
 It is released under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.txt)

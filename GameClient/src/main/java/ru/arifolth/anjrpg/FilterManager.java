@@ -30,6 +30,7 @@ import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Node;
 import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.water.WaterFilter;
+import ru.arifolth.anjrpg.filters.FSRCASFilter;
 import ru.arifolth.anjrpg.filters.FilmGrainFilter;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.FilterManagerInterface;
@@ -60,25 +61,54 @@ public class FilterManager implements FilterManagerInterface {
         this.sky = sky;
         this.renderer = renderer;
 
-        fpp = new FilterPostProcessor(assetManager);
         this.renderer.setDefaultAnisotropicFilter(1);
 
-        setupFog();
-
-        setupFilterPostProcessor();
-        setupDepthOfFieldFilter();
-        setupSSAOFilter();
-        setupTranslucentBucketFilter();
         setupShadowRenderer();
-        setupCartoonEdgeFilter();
-        setupToneMapFilter();
-        setupFilmGrainFilter();
+        setupFilterPostProcessor(assetManager);
 
-        ContrastAdjustmentFilter contrastFilter = new ContrastAdjustmentFilter();
-        contrastFilter.setExponents(0.8f, 0.8f, 0.8f);
-        fpp.addFilter(contrastFilter);
+        setupSSAOFilter();
+        setupDepthOfFieldFilter();
+
+        setupFog();
+        setupTranslucentBucketFilter();
+
+        setupCartoonEdgeFilter();
+
+        setupBloomFilter();
+        setupToneMapFilter();
+
+        setupFilmGrainFilter();
+        setupFSRCASFilter();
+        setupFXAAFilter();
 
         viewPort.addProcessor(fpp);
+    }
+
+    private void setupFXAAFilter() {
+        FXAAFilter fxaa = new FXAAFilter();
+        fxaa.setSubPixelShift(5.0f);
+        fxaa.setReduceMul(5.0f);
+        fxaa.setVxOffset(5.0f);
+        fxaa.setEnabled(true);
+        fpp.addFilter(fxaa);
+    }
+
+    private void setupBloomFilter() {
+        BloomFilter bloom = new BloomFilter(BloomFilter.GlowMode.SceneAndObjects);
+        bloom.setDownSamplingFactor(2.0f);
+        bloom.setExposurePower(55);
+        bloom.setBloomIntensity(1.0f);
+        fpp.addFilter(bloom);
+    }
+
+    private void setupFilterPostProcessor(AssetManager assetManager) {
+        fpp = new FilterPostProcessor(assetManager);
+    }
+
+    private void setupFSRCASFilter() {
+        FSRCASFilter fsrFilter = new FSRCASFilter();
+        fsrFilter.setSharpness(0.0f); // Range 0.0 (sharp) to 1.0 (soft)
+        fpp.addFilter(fsrFilter);
     }
 
     @Override
@@ -175,21 +205,6 @@ public class FilterManager implements FilterManagerInterface {
         lsf = new LightScatteringFilter(sky.getSunDirection().negate().normalizeLocal().mult(500));
         lsf.setLightDensity(1.0f);
         fpp.addFilter(lsf);
-    }
-
-    private void setupFilterPostProcessor() {
-        FXAAFilter fxaa = new FXAAFilter();
-        fxaa.setSubPixelShift(5.0f);
-        fxaa.setReduceMul(5.0f);
-        fxaa.setVxOffset(5.0f);
-        fxaa.setEnabled(true);
-        fpp.addFilter(fxaa);
-
-        BloomFilter bloom = new BloomFilter(BloomFilter.GlowMode.SceneAndObjects);
-        bloom.setDownSamplingFactor(2.0f);
-        bloom.setExposurePower(55);
-        bloom.setBloomIntensity(1.0f);
-        fpp.addFilter(bloom);
     }
 
     @Override

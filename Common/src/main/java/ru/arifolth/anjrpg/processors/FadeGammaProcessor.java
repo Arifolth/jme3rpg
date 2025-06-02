@@ -23,8 +23,8 @@ import ru.arifolth.anjrpg.interfaces.ProcessorInterface;
 
 public class FadeGammaProcessor  implements ProcessorInterface {
     private GammaCorrectionFilter gammaCorrectionFilter;
-    private final static float MAX_GAMMA_CAP = 1.0f;
-    private final static float MIN_GAMMA_CAP = 0.60f;
+    private final static float MAX_GAMMA_CAP = 0.84f;
+    private final static float MIN_GAMMA_CAP = 0.6f;
     private float fadeOut = MIN_GAMMA_CAP;
 
     public FadeGammaProcessor(GammaCorrectionFilter gammaCorrectionFilter) {

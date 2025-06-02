@@ -19,6 +19,23 @@ The following third-party libraries and tools have been used in the development 
 5. Groovy
    License: [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0)
    Home Page: [Apache Groovy](https://groovy-lang.org/)
+6. Film Grain Shader
+   Original work: [Film Grain by willeves07](https://www.shadertoy.com/view/DdGyRd)
+7. CAS Shader
+- **Original:**  
+  [FidelityFX CAS shader](https://gpuopen.com/fidelityfx-cas/)  
+  Licensed under the [MIT License](Licenses/FidelityFX%20CAS/LICENSE.txt)  
+  Source: [GPUOpen-Effects/FidelityFX-CAS](https://github.com/GPUOpen-Effects/FidelityFX-CAS)
+
+- **Intermediate derivative work:**  
+  Adapted by [goingdigital on ShaderToy](https://www.shadertoy.com/view/ftsXzM)
+
+- **This project:**  
+  Further adapted and made compatible with jMonkeyEngine 3 (jme3) by Alexander Nilov, 2025.  
+  Licensed under the GNU GPLv3 license.
+
+*This project retains the original MIT license notice from AMD as required.*
+
 
 ### External Assets
 
