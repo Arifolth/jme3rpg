@@ -60,9 +60,6 @@ mvn exec:java -pl GameClient -Dexec.jvmArguments="-Xms8G -Xmx8G -server -XX:UseA
 ## Repo
 <https://github.com/Arifolth/jme3rpg>
 
-## Third-party components, libraries and models used
-Please see [CREDITS.md](CREDITS.md) 
-
 ## Screenshots
 ![Image](Screenshots/Forest/Forest2.jpg "icon")
 ![Image](Screenshots/Rain/Rain.jpg "icon")
@@ -74,7 +71,8 @@ Please see [CREDITS.md](CREDITS.md)
 ![Image](Screenshots/Forest/Forest3.jpg "icon")
 
 ## Credits
-For detailed credits and license information, see the [Credits](CREDITS.md) file.
+#### For detailed credits, licensing information, third-party components, libraries, textures, sounds/music and models used:
+Please see [CREDITS.md](CREDITS.md)
 
 ## License
 It is released under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.txt)

@@ -109,7 +109,7 @@ public class PlayerCharacter extends AnimatedCharacter {
         // Results of the collision test are written into this object
         CollisionResults results = new CollisionResults();
 
-        // Test for collisions between the road and the ray
+        // Test for collisions between the enemies and the ray
         enemies.collideWith(ray, results);
         if(results.size() > 0) {
             Geometry geometry = results.getClosestCollision().getGeometry();
@@ -648,5 +648,10 @@ public class PlayerCharacter extends AnimatedCharacter {
                 }
             }
         }
+    }
+
+    @Override
+    public Map.Entry<Iterator<CharacterInterface>, CharacterInterface> getLockedOnCharacter() {
+        return lockedOnCharacter;
     }
 }

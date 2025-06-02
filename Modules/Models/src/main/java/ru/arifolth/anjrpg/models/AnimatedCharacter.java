@@ -29,7 +29,6 @@ import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.scene.debug.SkeletonDebugger;
 import com.jme3.system.AppSettings;
-import com.jme3.util.TangentBinormalGenerator;
 import com.jme3.util.mikktspace.MikktspaceTangentGenerator;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.Debug;

@@ -29,7 +29,7 @@ public abstract class BaseCharacter implements CharacterInterface {
     protected CharacterControl characterControl;
     protected Spatial characterModel;
     protected HealthBarInterface healthBar;
-    private Node characterNode = new Node();
+    private final Node characterNode = new Node();
 
     public BaseCharacter() {
     }

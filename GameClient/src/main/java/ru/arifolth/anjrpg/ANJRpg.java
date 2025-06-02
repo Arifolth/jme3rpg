@@ -18,7 +18,6 @@
 
 package ru.arifolth.anjrpg;
 
-import com.jme3.app.StatsAppState;
 import com.jme3.niftygui.NiftyJmeDisplay;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeContext;
@@ -30,6 +29,7 @@ import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.input.NiftyInputEvent;
 import de.lessvoid.nifty.screen.Screen;
+import ru.arifolth.anjrpg.compass.CompassState;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.menu.SettingsUtils;
 
@@ -52,7 +52,6 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
     private boolean startNewGame = false;
 
     private static RolePlayingGameInterface app;
-    private final static boolean running = false;
 
     static {
         Arrays.stream(LogManager.getLogManager().getLogger(Constants.ROOT_LOGGER).getHandlers()).forEach(h -> h.setLevel(Level.INFO));
@@ -148,6 +147,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
                     //after it is attached, it's managed by the update loop thread
                     // and may not be modified from any other thread anymore!
                     createMinimap();
+                    createCompass();
 
                     setProgress("Loading complete");
                     nifty.gotoScreen("end");
@@ -164,6 +164,10 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
                 super.simpleUpdate(tpf);
             }
         }
+    }
+
+    private void createCompass() {
+        stateManager.attach(new CompassState());
     }
 
     public void showLoadingMenu() {

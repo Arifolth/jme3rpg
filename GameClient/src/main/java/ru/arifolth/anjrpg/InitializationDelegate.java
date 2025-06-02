@@ -23,9 +23,7 @@ import com.jme3.collision.CollisionResults;
 import com.jme3.input.ChaseCamera;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.MouseButtonTrigger;
-import com.jme3.math.ColorRGBA;
-import com.jme3.math.Ray;
-import com.jme3.math.Vector3f;
+import com.jme3.math.*;
 import com.jme3.scene.Node;
 import com.jme3.ui.Picture;
 import ru.arifolth.anjrpg.interfaces.*;
@@ -71,6 +69,9 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         PlayerCharacter playerCharacter = (PlayerCharacter) gameLogicCore.getCharacterFactory().createCharacter(PlayerCharacter.class);
         playerCharacter.setCam(gameLogicCore.getCam());
         playerCharacter.setDamageIndicator(gameLogicCore.getDamageIndicator());
+
+        playerCharacter.getNode().setLocalRotation(new Quaternion().fromAngleAxis(FastMath.PI, Vector3f.UNIT_Y));
+
         gameLogicCore.setPlayerCharacter(playerCharacter);
         gameLogicCore.getMovementController().setPlayerCharacter(playerCharacter);
     }
