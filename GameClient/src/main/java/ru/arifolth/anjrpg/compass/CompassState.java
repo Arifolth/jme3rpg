@@ -91,8 +91,7 @@ public class CompassState extends BaseAppState {
             compass.setPointsOfInterest(activePOIs);
 
             // Proceed with compass rotation and indicator updates
-            // Get ACTUAL player forward vector (negative Z in JME)
-            Vector3f playerForward = playerCharacter.getNode().getWorldRotation().mult(Vector3f.UNIT_Z).negate();
+            Vector3f playerForward = playerCharacter.getNode().getWorldRotation().mult(Vector3f.UNIT_Z);
 
             // Calculate compass offset for texture scrolling
             float compassOffset = calculateCompassOffset(FastMath.atan2(playerForward.x, playerForward.z));
@@ -149,15 +148,17 @@ public class CompassState extends BaseAppState {
     }
 
     private float calculateCompassOffset(float angle) {
-        // Convert angle to [0, 2π) range
-        if (angle < 0) {
-            angle += FastMath.TWO_PI;
-        }
+        // Convert angle to [-π, π] range if needed
+        angle = FastMath.normalize(angle, -FastMath.PI, FastMath.PI);
 
-        float normalizedAngle = angle / FastMath.TWO_PI; // [0, 1)
-        float offset = normalizedAngle - 0.5f; // Center current direction
+        // Calculate offset:
+        // - North (0) should be 0.5
+        // - East (π/2) should be 0.75
+        // - South (±π) should be 0.0
+        // - West (-π/2) should be 0.25
+        float offset = 0.5f - (angle / FastMath.TWO_PI);
 
-        // Normalize to [0,1)
+        // Normalize to [0, 1)
         offset = offset - (float)Math.floor(offset);
         return offset;
     }
