@@ -29,20 +29,22 @@ import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
 import ru.arifolth.anjrpg.ANJRpg;
 import ru.arifolth.anjrpg.interfaces.Constants;
+import ru.arifolth.anjrpg.interfaces.compass.CompassInterface;
+import ru.arifolth.anjrpg.interfaces.compass.POIInterface;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Compass {
+public class Compass implements CompassInterface {
     private SimpleApplication app;
     private Node compassNode;
     private Geometry compassWheel;
     private Geometry compassFrame;
     private Material compassMaterial;
     private Material frameMaterial;
-    private List<POITarget> pointsOfInterest;
+    private List<POIInterface> pointsOfInterest;
     private Map<String, Geometry> targetIndicators;
 
     public Compass(SimpleApplication application) {
@@ -136,11 +138,13 @@ public class Compass {
         compassNode.attachChild(compassFrame);
     }
 
-    public List<POITarget> getPointsOfInterest() {
+    @Override
+    public List<POIInterface> getPointsOfInterest() {
         return pointsOfInterest;
     }
 
-    public void setPointsOfInterest(List<POITarget> pointsOfInterest) {
+    @Override
+    public void setPointsOfInterest(List<POIInterface> pointsOfInterest) {
         this.pointsOfInterest = pointsOfInterest;
     }
 
@@ -149,6 +153,7 @@ public class Compass {
      * @param compassOffset normalized value [0..1] representing player's heading,
      *                      where 0 means North aligned at left edge of texture.
      */
+    @Override
     public void updateCompassRotation(float compassOffset) {
         // Clamp compassOffset between 0 and 1
         compassOffset = compassOffset - (float)Math.floor(compassOffset);
@@ -166,6 +171,7 @@ public class Compass {
      * @param poiId Unique identifier of the POI
      * @return Geometry representing the target indicator on the compass
      */
+    @Override
     public Geometry getTargetIndicator(String poiId) {
         // Check if indicator already exists
         if (targetIndicators.containsKey(poiId)) {
@@ -229,6 +235,7 @@ public class Compass {
     }
 
 
+    @Override
     public Node getCompassNode() {
         return compassNode;
     }

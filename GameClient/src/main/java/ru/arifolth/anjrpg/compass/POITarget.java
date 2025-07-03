@@ -19,22 +19,18 @@
 package ru.arifolth.anjrpg.compass;
 
 import com.jme3.math.Vector3f;
+import ru.arifolth.anjrpg.interfaces.compass.POIInterface;
+import ru.arifolth.anjrpg.interfaces.compass.POIType;
 
 /**
  * Represents a Point Of Interest (POI) target for the compass system.
  * Can be a fixed landmark or a moving NPC.
  */
-public class POITarget {
+public class POITarget implements POIInterface {
     private final String id;           // Unique identifier for the POI
     private Vector3f position;         // World coordinates of the POI
     private String name;               // Optional display name
     private POIType type;              // Type of POI (LANDMARK, NPC, etc.)
-
-    public enum POIType {
-        LANDMARK,
-        NPC,
-        OTHER
-    }
 
     /**
      * Constructor for a POI target.
@@ -50,30 +46,37 @@ public class POITarget {
         this.type = type;
     }
 
+    @Override
     public String getId() {
         return id;
     }
 
+    @Override
     public Vector3f getPosition() {
         return position.clone();
     }
 
+    @Override
     public void setPosition(Vector3f newPosition) {
         this.position = newPosition.clone();
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public void setName(String newName) {
         this.name = newName;
     }
 
+    @Override
     public POIType getType() {
         return type;
     }
 
+    @Override
     public void setType(POIType newType) {
         this.type = newType;
     }
