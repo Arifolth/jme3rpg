@@ -183,50 +183,41 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
             }
 
             Vector3f directionToTarget = toTarget.normalize();
-            float dot = playerForward.dot(directionToTarget);
-            float det = playerForward.x * directionToTarget.z - playerForward.z * directionToTarget.x;
-            float angle = FastMath.atan2(det, dot);
 
-            // Check if target is behind player
-            boolean isBehind = Math.abs(angle) > FastMath.HALF_PI;
+            // Calculate angle between player forward and target direction
+            float angle = calculateRelativeAngle(playerForward, directionToTarget);
 
             Geometry targetIndicator = compass.getTargetIndicator(poi.getId());
             if (targetIndicator != null) {
                 targetIndicator.setCullHint(Spatial.CullHint.Inherit);
 
-                if (isBehind) {
-                    // For behind targets, use special positioning
-                    float behindPosition = angle > 0 ? Constants.COMPASS_WIDTH - 40f : 40f;
-                    targetIndicator.setLocalTranslation(behindPosition,
-                            targetIndicator.getLocalTranslation().y,
-                            targetIndicator.getLocalTranslation().z);
-                    // Optional: Use different material/color for behind indicators
-                } else {
-                    // Normal front-facing positioning
-                    float compassPosition = calculateTargetCompassPosition(angle);
-                    Vector3f currentPos = targetIndicator.getLocalTranslation();
-                    Vector3f targetPos = new Vector3f(compassPosition, currentPos.y, currentPos.z);
-                    Vector3f interpolatedPos = currentPos.interpolateLocal(targetPos, tpf * 8.0f);
-                    targetIndicator.setLocalTranslation(interpolatedPos);
-                }
+                float compassPosition = calculateTargetCompassPosition(angle);
+                Vector3f currentPos = targetIndicator.getLocalTranslation();
+                Vector3f targetPos = new Vector3f(compassPosition, currentPos.y, currentPos.z);
+
+                // Use immediate positioning without interpolation
+                targetIndicator.setLocalTranslation(targetPos);
             }
         }
     }
 
+    // New method to calculate relative angle properly
+    private float calculateRelativeAngle(Vector3f forward, Vector3f toTarget) {
+        // Project vectors onto XZ plane
+        Vector3f a = new Vector3f(forward.x, 0, forward.z).normalizeLocal();
+        Vector3f b = new Vector3f(toTarget.x, 0, toTarget.z).normalizeLocal();
+
+        // Calculate angle using atan2 for full 360-degree range
+        float angle = FastMath.atan2(a.x*b.z - a.z*b.x, a.dot(b));
+        return angle;
+    }
+
     private float calculateTargetCompassPosition(float angle) {
-        float normalized = (angle + FastMath.PI) / FastMath.TWO_PI;
+        // Normalize angle to [0, 2π]
+        if (angle < 0) angle += FastMath.TWO_PI;
 
-        float totalWidth = Constants.COMPASS_WIDTH + (Constants.FRAME_BORDER_WIDTH * 2);
-
-        float position = normalized * totalWidth;
-
-        float margin = 30f;
-        position = FastMath.clamp(position, margin, totalWidth - margin);
-
-        // fine-tuning offset
-         position -= Constants.FRAME_BORDER_WIDTH * 2;
-
-        return position;
+        // Map angle to compass width
+        return (angle / FastMath.TWO_PI) * Constants.COMPASS_WIDTH;
     }
 
     @Override
