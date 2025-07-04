@@ -213,11 +213,14 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
     }
 
     private float calculateTargetCompassPosition(float angle) {
-        // Normalize angle to [0, 2π]
         if (angle < 0) angle += FastMath.TWO_PI;
 
-        // Map angle to compass width
-        return (angle / FastMath.TWO_PI) * Constants.COMPASS_WIDTH;
+        float position = (angle / FastMath.TWO_PI) * Constants.COMPASS_WIDTH;
+
+        // Account for frame border + additional offset
+        position -= Constants.FRAME_BORDER_WIDTH * 2;
+
+        return position;
     }
 
     @Override
