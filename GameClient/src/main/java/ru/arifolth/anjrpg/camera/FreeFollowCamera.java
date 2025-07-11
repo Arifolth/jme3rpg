@@ -41,10 +41,11 @@ public class FreeFollowCamera extends AbstractControl implements AnalogListener,
     private static final float MAX_ZOOM = 20.0f;
 
     private Vector3f worldUp = Vector3f.UNIT_Y;
-    private float currentPitch = 0.0f;
+    private float currentYaw = 0.0f;
+    private float currentPitch = 0.3f;
     private float maxPitch = FastMath.QUARTER_PI; // 45 degrees max pitch
     private float minPitch = -FastMath.QUARTER_PI; // -45 degrees min pitch
-
+    // New rotation angles
 
     private final Camera cam;
     private final Spatial target;
@@ -88,23 +89,35 @@ public class FreeFollowCamera extends AbstractControl implements AnalogListener,
     @Override
     protected void controlUpdate(float tpf) {
         if (enabled && target != null) {
-            // Get target position
-            Vector3f targetPos = target.getWorldTranslation();
+            // Get target position and add vertical offset
+            Vector3f targetPos = target.getWorldTranslation().add(0, offset.y, 0);
 
-            // Calculate shoulder offset - use camera right vector
-            Vector3f camRight = cam.getLeft().negate();
-            Vector3f shoulderOffset = camRight.mult(offset.x);
+            // Calculate orbit position using spherical coordinates
+            float horizontalDistance = offset.z * FastMath.cos(currentPitch);
+            float verticalDistance = offset.z * FastMath.sin(currentPitch);
+            Vector3f orbitOffset = new Vector3f(
+                    horizontalDistance * FastMath.sin(currentYaw),
+                    verticalDistance,
+                    horizontalDistance * FastMath.cos(currentYaw)
+            );
 
-            // Calculate desired position
-            Vector3f desiredPos = targetPos
-                    .add(shoulderOffset) // Apply shoulder offset
-                    .add(0, offset.y, 0) // Add height offset
-                    .subtract(cam.getDirection().mult(offset.z)); // Apply distance
+            // Base camera position (without shoulder offset)
+            Vector3f desiredPos = targetPos.add(orbitOffset);
+
+            // Calculate shoulder offset direction
+            Vector3f lookDir = targetPos.subtract(desiredPos).normalize();
+            Vector3f right = lookDir.cross(worldUp).normalize();
+
+            // Apply shoulder offset
+            desiredPos = desiredPos.add(right.mult(offset.x));
 
             // Smooth interpolation
             Vector3f currentPos = cam.getLocation();
             Vector3f newPos = currentPos.interpolateLocal(desiredPos, tpf * 5.0f);
             cam.setLocation(newPos);
+
+            // Always look at the target
+            cam.lookAt(targetPos, worldUp);
         }
     }
 
@@ -116,18 +129,24 @@ public class FreeFollowCamera extends AbstractControl implements AnalogListener,
     @Override
     public void onAnalog(String name, float value, float tpf) {
         if (!enabled) return;
+        if (dragToRotate && !canRotate) return;
 
+        // Inverted horizontal axis
         if (name.equals("CUSTOM_CAM_LEFT")) {
-            rotateCamera(value, cam.getUp());
+            currentYaw += rotationSpeed * value;  // Inverted: was -
         } else if (name.equals("CUSTOM_CAM_RIGHT")) {
-            rotateCamera(-value, cam.getUp());
-        } else if (name.equals("CUSTOM_CAM_UP")) {
-            rotateCamera(-value, cam.getLeft());
+            currentYaw -= rotationSpeed * value;  // Inverted: was +
+        }
+        // Inverted vertical axis
+        else if (name.equals("CUSTOM_CAM_UP")) {
+            currentPitch -= rotationSpeed * value;  // Inverted: was +
+            currentPitch = FastMath.clamp(currentPitch, minPitch, maxPitch);
         } else if (name.equals("CUSTOM_CAM_DOWN")) {
-            rotateCamera(value, cam.getLeft());
+            currentPitch += rotationSpeed * value;  // Inverted: was -
+            currentPitch = FastMath.clamp(currentPitch, minPitch, maxPitch);
         }
 
-        // Handle zoom
+        // Handle zoom (unchanged)
         if (name.equals(MOUSE_WHEEL_UP)) {
             zoomCamera(value);
         } else if (name.equals(MOUSE_WHEEL_DOWN)) {
@@ -135,15 +154,9 @@ public class FreeFollowCamera extends AbstractControl implements AnalogListener,
         }
     }
 
-    // Add zoomCamera method
     private void zoomCamera(float amount) {
         float zoomChange = amount * 0.5f;
-        float newZ = offset.z - zoomChange;
-        newZ = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, newZ));
-
-        // Maintain shoulder position while zooming
-        float ratio = newZ / offset.z;
-        offset.set(offset.x * ratio, offset.y, newZ);
+        offset.z = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, offset.z - zoomChange));
     }
 
     @Override
