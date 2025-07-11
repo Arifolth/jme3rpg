@@ -94,14 +94,14 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
             compass.setPointsOfInterest(activePOIs);
 
             // Proceed with compass rotation and indicator updates
-            Vector3f playerForward = playerCharacter.getNode().getWorldRotation().mult(Vector3f.UNIT_Z);
+            Vector3f cameraForward = getApplication().getCamera().getDirection().clone();
+            cameraForward.y = 0; // Project to horizontal plane
+            cameraForward.normalizeLocal();
 
-            // Calculate compass offset for texture scrolling
-            float compassOffset = calculateCompassOffset(FastMath.atan2(playerForward.x, playerForward.z));
+            float compassOffset = calculateCompassOffset(FastMath.atan2(cameraForward.x, cameraForward.z));
             compass.updateCompassRotation(compassOffset);
 
-            // Update target indicators
-            updateTargetIndicators(playerForward, tpf);
+            updateTargetIndicators(cameraForward, tpf); // Pass camera forward
         }
     }
 
@@ -166,11 +166,11 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
         return offset;
     }
 
-    private void updateTargetIndicators(Vector3f playerForward, float tpf) {
-        Vector3f playerPosition = playerCharacter.getNode().getWorldTranslation();
+    private void updateTargetIndicators(Vector3f cameraForward, float tpf) {
+        Vector3f cameraPosition = getApplication().getCamera().getLocation(); // Use camera position
 
         for (POIInterface poi : compass.getPointsOfInterest()) {
-            Vector3f toTarget = poi.getPosition().subtract(playerPosition);
+            Vector3f toTarget = poi.getPosition().subtract(cameraPosition); // From camera position
             toTarget.y = 0;
 
             if (toTarget.lengthSquared() < 1.0f) {
@@ -183,9 +183,7 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
             }
 
             Vector3f directionToTarget = toTarget.normalize();
-
-            // Calculate angle between player forward and target direction
-            float angle = calculateRelativeAngle(playerForward, directionToTarget);
+            float angle = calculateRelativeAngle(cameraForward, directionToTarget);
 
             Geometry targetIndicator = compass.getTargetIndicator(poi.getId());
             if (targetIndicator != null) {
@@ -201,24 +199,38 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
         }
     }
 
-    // New method to calculate relative angle properly
-    private float calculateRelativeAngle(Vector3f forward, Vector3f toTarget) {
-        // Project vectors onto XZ plane
-        Vector3f a = new Vector3f(forward.x, 0, forward.z).normalizeLocal();
+    private float calculateRelativeAngle(Vector3f cameraForward, Vector3f toTarget) {
+        // Project vectors onto horizontal plane
+        Vector3f a = new Vector3f(cameraForward.x, 0, cameraForward.z).normalizeLocal();
         Vector3f b = new Vector3f(toTarget.x, 0, toTarget.z).normalizeLocal();
 
-        // Calculate angle using atan2 for full 360-degree range
-        float angle = FastMath.atan2(a.x*b.z - a.z*b.x, a.dot(b));
+        // Calculate the angle between vectors using dot product and cross product
+        float dot = a.dot(b);
+        float cross = a.x * b.z - a.z * b.x; // 2D cross product
+
+        // This gives us the angle in the correct quadrant
+        float angle = FastMath.atan2(cross, dot);
+
         return angle;
     }
 
     private float calculateTargetCompassPosition(float angle) {
+        // Normalize angle to [0, 2π]
         if (angle < 0) angle += FastMath.TWO_PI;
 
-        float position = (angle / FastMath.TWO_PI) * Constants.COMPASS_WIDTH;
+        // Convert to [0, 1] range
+        float normalized = angle / FastMath.TWO_PI;
 
-        // Account for frame border + additional offset
-        position -= Constants.FRAME_BORDER_WIDTH * 2;
+        // Calculate visible area (compass width minus frame borders)
+        float visibleWidth = Constants.COMPASS_WIDTH - 4 * Constants.FRAME_BORDER_WIDTH;
+        float position = normalized * visibleWidth;
+
+        // Add left frame border offset and clamp to visible area
+        position = FastMath.clamp(
+                position + Constants.FRAME_BORDER_WIDTH,
+                Constants.FRAME_BORDER_WIDTH,
+                Constants.COMPASS_WIDTH - Constants.FRAME_BORDER_WIDTH * 4
+        );
 
         return position;
     }

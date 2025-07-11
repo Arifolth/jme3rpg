@@ -49,7 +49,8 @@ public class FreeFollowCamera extends AbstractControl implements AnalogListener,
 
     private final Camera cam;
     private final Spatial target;
-    private Vector3f offset = new Vector3f(0, 3.5f, 10f);
+    //camera position, behind the right player shoulder
+    private Vector3f offset = new Vector3f(8f, 6f, 10f);
     private final InputManager inputManager;
     private float rotationSpeed = 2.0f;
     private boolean enabled = true;
