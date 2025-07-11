@@ -250,6 +250,23 @@ public class PlayerCharacter extends AnimatedCharacter {
             this.getWalkDirection().addLocal(camLeft.negate());
         }
 
+        // Turn character to face movement direction when moving left/right
+        if (lockedOnCharacter == null) {
+            if (this.isLeft() && !this.isUp() && !this.isDown()) {
+                // Pure left movement - turn to face left direction
+                Vector3f leftDir = this.getCam().getLeft().clone();
+                leftDir.y = 0;
+                leftDir.normalizeLocal();
+                characterControl.setViewDirection(leftDir);
+            } else if (this.isRight() && !this.isUp() && !this.isDown()) {
+                // Pure right movement - turn to face right direction
+                Vector3f rightDir = this.getCam().getLeft().clone().negate();
+                rightDir.y = 0;
+                rightDir.normalizeLocal();
+                characterControl.setViewDirection(rightDir);
+            }
+        }
+
         if(this.isJumping()) {
             LOGGER.log(Level.INFO, "JUMP PRESSED");
 

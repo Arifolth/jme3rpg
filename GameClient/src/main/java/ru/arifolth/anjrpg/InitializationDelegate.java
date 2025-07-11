@@ -20,12 +20,10 @@ package ru.arifolth.anjrpg;
 
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
-import com.jme3.input.ChaseCamera;
-import com.jme3.input.MouseInput;
-import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.math.*;
 import com.jme3.scene.Node;
 import com.jme3.ui.Picture;
+import ru.arifolth.anjrpg.camera.FreeFollowCamera;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.models.NonPlayerCharacter;
 import ru.arifolth.anjrpg.models.PlayerCharacter;
@@ -98,48 +96,33 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         //initializeNPCs(positionCharacters);
     }
 
-
     @Override
     public void setupCamera() {
-        // We re-use the flyby camera for rotation, while positioning is handled by physics
-        //flyCam.setMoveSpeed(10);
-        gameLogicCore.getFlyCam().setMoveSpeed(100);
-        //change (increase) view distance
-        gameLogicCore.getCam().setFrustumFar(20000);
-
-        /**/
-        // Disable the default first-person cam!
+        // Disable default fly cam
         gameLogicCore.getFlyCam().setEnabled(false);
 
-        // Enable a chase cam
-        ChaseCamera chaseCam = new ChaseCamera(gameLogicCore.getCam(), gameLogicCore.getPlayerCharacter().getCharacterModel(), gameLogicCore.getInputManager());
+        // Create custom camera control
+        FreeFollowCamera customCam = new FreeFollowCamera(
+                gameLogicCore.getCam(),
+                gameLogicCore.getPlayerCharacter().getCharacterModel(),
+                gameLogicCore.getInputManager()
+        );
 
-        //Uncomment this to invert the camera's vertical rotation Axis
-        chaseCam.setInvertVerticalAxis(true);
+        // Configure the camera
+        customCam.setOffset(new Vector3f(2.0f, 10f, 10f)); // Right shoulder position
+        customCam.setDragToRotate(false); // Free mouse look
+        customCam.setRotationSpeed(2.0f);
+        customCam.setEnabled(true);
 
-        //Uncomment this to invert the camera's horizontal rotation Axis
-        //chaseCam.setInvertHorizontalAxis(true);
+        // Attach to a node in the scene (required for AbstractControl)
+        Node cameraControlNode = new Node("CameraControl");
+        cameraControlNode.addControl(customCam);
+        gameLogicCore.getRootNode().attachChild(cameraControlNode);
 
-        //Comment this to disable smooth camera motion
-        chaseCam.setSmoothMotion(true);
-
-        //Uncomment this to disable trailing of the camera
-        //WARNING, trailing only works with smooth motion enabled. It is true by default.
-        //chaseCam.setTrailingEnabled(false);
-
-        //Uncomment this to look 3 world units above the target
-        //chaseCam.setLookAtOffset(Vector3f.UNIT_Y.mult(3));
-        //chaseCam.setLookAtOffset(new Vector3f(0, 1, -1).mult(3));
-        chaseCam.setLookAtOffset(new Vector3f(0, 3.5f, 1.5f).mult(3));
-
-        //Uncomment this to enable rotation when the middle mouse button is pressed (like Blender)
-        //WARNING : setting this trigger disable the rotation on right and left mouse button click
-        chaseCam.setToggleRotationTrigger(new MouseButtonTrigger(MouseInput.BUTTON_MIDDLE));
-
-        //chaseCam.setDefaultDistance(40);
-        //chaseCam.setDefaultHorizontalRotation(90f);
-        //chaseCam.setDefaultVerticalRotation(90f);
+        gameLogicCore.getCam().setFrustumFar(20000);
+        gameLogicCore.getInputManager().setCursorVisible(false);
     }
+
 
     @Override
     public void initializePlayer(boolean positionCharacters) {
