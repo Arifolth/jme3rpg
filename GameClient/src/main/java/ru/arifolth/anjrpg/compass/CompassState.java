@@ -77,7 +77,6 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
     public void update(float tpf) {
         if (compass != null && playerCharacter != null) {
             final List<POIInterface> activePOIs = new ArrayList<>(2);
-//            activePOIs.add(staticPOI); // Always include static POI
             activePOIs.addAll(testPOIs);
 
             if(playerCharacter.getLockedOnCharacter() != null) {
@@ -85,23 +84,22 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
                 Vector3f npcPos = playerCharacter.getLockedOnCharacter().getValue().getNode().getWorldTranslation();
 
                 // Calculate normalized direction vector from player to NPC
-                Vector3f direction = npcPos.subtract(playerPos).normalizeLocal(); //Player always face the enemy while locked
+                Vector3f direction = npcPos.subtract(playerPos).normalizeLocal();
                 npcPOI.setPosition(direction);
-
-                activePOIs.add(npcPOI); // Add NPC POI if target exists
+                activePOIs.add(npcPOI);
             }
 
             compass.setPointsOfInterest(activePOIs);
 
-            // Proceed with compass rotation and indicator updates
+            // Keep using camera direction for rotation
             Vector3f cameraForward = getApplication().getCamera().getDirection().clone();
-            cameraForward.y = 0; // Project to horizontal plane
+            cameraForward.y = 0;
             cameraForward.normalizeLocal();
 
             float compassOffset = calculateCompassOffset(FastMath.atan2(cameraForward.x, cameraForward.z));
             compass.updateCompassRotation(compassOffset);
 
-            updateTargetIndicators(cameraForward, tpf); // Pass camera forward
+            updateTargetIndicators(cameraForward, tpf);
         }
     }
 
@@ -151,15 +149,17 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
     }
 
     private float calculateCompassOffset(float angle) {
-        // Convert angle to [-π, π] range if needed
-        angle = FastMath.normalize(angle, -FastMath.PI, FastMath.PI);
+        // Convert angle to [0, 2π] range
+        if (angle < 0) {
+            angle += FastMath.TWO_PI;
+        }
 
         // Calculate offset:
-        // - North (0) should be 0.5
-        // - East (π/2) should be 0.75
-        // - South (±π) should be 0.0
-        // - West (-π/2) should be 0.25
-        float offset = 0.5f - (angle / FastMath.TWO_PI);
+        // North (0) should be 0.0
+        // East (π/2) should be 0.25
+        // South (π) should be 0.5
+        // West (3π/2) should be 0.75
+        float offset = angle / FastMath.TWO_PI;
 
         // Normalize to [0, 1)
         offset = offset - (float)Math.floor(offset);
@@ -167,10 +167,10 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
     }
 
     private void updateTargetIndicators(Vector3f cameraForward, float tpf) {
-        Vector3f cameraPosition = getApplication().getCamera().getLocation(); // Use camera position
+        Vector3f playerPosition = playerCharacter.getNode().getWorldTranslation();
 
         for (POIInterface poi : compass.getPointsOfInterest()) {
-            Vector3f toTarget = poi.getPosition().subtract(cameraPosition); // From camera position
+            Vector3f toTarget = poi.getPosition().subtract(playerPosition);
             toTarget.y = 0;
 
             if (toTarget.lengthSquared() < 1.0f) {
@@ -189,7 +189,9 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
             if (targetIndicator != null) {
                 targetIndicator.setCullHint(Spatial.CullHint.Inherit);
 
-                float compassPosition = calculateTargetCompassPosition(angle);
+                // Convert angle to compass position
+                float compassPosition = (angle + FastMath.PI) / FastMath.TWO_PI * Constants.COMPASS_WIDTH;
+
                 Vector3f currentPos = targetIndicator.getLocalTranslation();
                 Vector3f targetPos = new Vector3f(compassPosition, currentPos.y, currentPos.z);
 
@@ -209,9 +211,7 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
         float cross = a.x * b.z - a.z * b.x; // 2D cross product
 
         // This gives us the angle in the correct quadrant
-        float angle = FastMath.atan2(cross, dot);
-
-        return angle;
+        return FastMath.atan2(cross, dot);
     }
 
     private float calculateTargetCompassPosition(float angle) {
