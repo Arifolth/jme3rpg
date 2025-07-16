@@ -112,9 +112,9 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
         testPOIs.add(new POITarget("north",      playerPos.add(new Vector3f(0f, 0f,  -distance)), "NORTH",      POIType.LANDMARK));
 
         testPOIs.add(new POITarget("east",       playerPos.add(new Vector3f(distance, 0f, 0f)), "EAST",       POIType.LANDMARK));
-        testPOIs.add(new POITarget("south",      playerPos.add(new Vector3f(0f, 0f, distance)), "SOUTH",      POIType.LANDMARK));
-
-        testPOIs.add(new POITarget("west",       playerPos.add(new Vector3f(-distance, 0f, 0f)), "WEST",       POIType.LANDMARK));
+//        testPOIs.add(new POITarget("south",      playerPos.add(new Vector3f(0f, 0f, distance)), "SOUTH",      POIType.LANDMARK));
+//
+//        testPOIs.add(new POITarget("west",       playerPos.add(new Vector3f(-distance, 0f, 0f)), "WEST",       POIType.LANDMARK));
 
         compass.setPointsOfInterest(testPOIs);
 
@@ -149,6 +149,9 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
     }
 
     private float calculateCompassOffset(float angle) {
+        // Invert the angle to match camera rotation direction
+        angle = -angle;
+
         // Convert angle to [0, 2π] range
         if (angle < 0) {
             angle += FastMath.TWO_PI;
@@ -212,27 +215,6 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
 
         // This gives us the angle in the correct quadrant
         return FastMath.atan2(cross, dot);
-    }
-
-    private float calculateTargetCompassPosition(float angle) {
-        // Normalize angle to [0, 2π]
-        if (angle < 0) angle += FastMath.TWO_PI;
-
-        // Convert to [0, 1] range
-        float normalized = angle / FastMath.TWO_PI;
-
-        // Calculate visible area (compass width minus frame borders)
-        float visibleWidth = Constants.COMPASS_WIDTH - 4 * Constants.FRAME_BORDER_WIDTH;
-        float position = normalized * visibleWidth;
-
-        // Add left frame border offset and clamp to visible area
-        position = FastMath.clamp(
-                position + Constants.FRAME_BORDER_WIDTH,
-                Constants.FRAME_BORDER_WIDTH,
-                Constants.COMPASS_WIDTH - Constants.FRAME_BORDER_WIDTH * 4
-        );
-
-        return position;
     }
 
     @Override
