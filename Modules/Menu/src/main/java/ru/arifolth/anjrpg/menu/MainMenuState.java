@@ -181,6 +181,7 @@ public class MainMenuState extends BaseAppState {
 
         setWindowSize(height);
 
+        GuiGlobals.getInstance().setCursorEventsEnabled(true);
 
         Node gui = ((SimpleApplication) application).getGuiNode();
         gui.attachChild(mainWindow);
@@ -203,5 +204,6 @@ public class MainMenuState extends BaseAppState {
     @Override
     protected void onDisable() {
         mainWindow.removeFromParent();
+        GuiGlobals.getInstance().setCursorEventsEnabled(false);
     }
 }

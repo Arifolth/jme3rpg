@@ -23,6 +23,7 @@ import com.jme3.collision.CollisionResults;
 import com.jme3.math.*;
 import com.jme3.scene.Node;
 import com.jme3.ui.Picture;
+import com.simsilica.lemur.GuiGlobals;
 import ru.arifolth.anjrpg.camera.FreeFollowCamera;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.models.NonPlayerCharacter;
@@ -100,6 +101,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
     public void setupCamera() {
         // Disable default fly cam
         gameLogicCore.getFlyCam().setEnabled(false);
+        GuiGlobals.getInstance().setCursorEventsEnabled(false);
 
         // Create custom camera control
         FreeFollowCamera customCam = new FreeFollowCamera(

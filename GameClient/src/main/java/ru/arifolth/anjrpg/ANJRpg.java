@@ -18,6 +18,7 @@
 
 package ru.arifolth.anjrpg;
 
+import com.jme3.app.FlyCamAppState;
 import com.jme3.niftygui.NiftyJmeDisplay;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeContext;
@@ -95,6 +96,8 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
         super.simpleInitApp();
 
         stateManager.attach(new RenderingThreadPriorityAppState());
+
+        stateManager.detach(stateManager.getState(FlyCamAppState.class));
 
         setupLemur();
 
