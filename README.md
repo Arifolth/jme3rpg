@@ -28,7 +28,6 @@ Default bindings:
 - D - move right
 - SHIFT + W or SHIFT + S - RUN
 - LEFT_MOUSE - attack
-- MIDDLE_MOUSE - hold to move camera around the player
 - RIGHT_MOUSE - block (hold)
 - SPACE - jump
 
