@@ -132,6 +132,8 @@ public class MainMenuState extends BaseAppState {
 
     @Override
     protected void onEnable() {
+        GuiGlobals.getInstance().requestCursorEnabled(this);
+
         ANJRpgInterface application = (ANJRpgInterface) getApplication();
 
         int width = application.getSettings().getWidth();
@@ -181,8 +183,6 @@ public class MainMenuState extends BaseAppState {
 
         setWindowSize(height);
 
-        GuiGlobals.getInstance().setCursorEventsEnabled(true);
-
         Node gui = ((SimpleApplication) application).getGuiNode();
         gui.attachChild(mainWindow);
         GuiGlobals.getInstance().requestFocus(mainWindow);
@@ -203,7 +203,7 @@ public class MainMenuState extends BaseAppState {
 
     @Override
     protected void onDisable() {
+        GuiGlobals.getInstance().releaseCursorEnabled(this);
         mainWindow.removeFromParent();
-        GuiGlobals.getInstance().setCursorEventsEnabled(false);
     }
 }
