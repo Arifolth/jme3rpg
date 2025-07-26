@@ -26,10 +26,9 @@ import com.jme3.input.InputManager;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.ui.Picture;
-import ru.arifolth.anjrpg.interfaces.weather.EmitterInterface;
+import ru.arifolth.anjrpg.interfaces.camera.FollowCameraInterface;
 
 import java.util.Map;
-import java.util.Set;
 
 public interface GameLogicCoreInterface {
     CharacterInterface getPlayerCharacter();
@@ -85,4 +84,8 @@ public interface GameLogicCoreInterface {
     SkyInterface getSky();
 
     void setSky(SkyInterface sky);
+
+    void setFreeFollowCamera(FollowCameraInterface freeFollowCamera);
+
+    FollowCameraInterface getFreeFollowCamera();
 }

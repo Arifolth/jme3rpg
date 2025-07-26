@@ -132,6 +132,7 @@ public class MainMenuState extends BaseAppState {
 
     @Override
     protected void onEnable() {
+        gameLogicCore.getFreeFollowCamera().setEnabled(false);
         GuiGlobals.getInstance().requestCursorEnabled(this);
 
         ANJRpgInterface application = (ANJRpgInterface) getApplication();
@@ -203,6 +204,7 @@ public class MainMenuState extends BaseAppState {
 
     @Override
     protected void onDisable() {
+        gameLogicCore.getFreeFollowCamera().setEnabled(true);
         GuiGlobals.getInstance().releaseCursorEnabled(this);
         mainWindow.removeFromParent();
     }

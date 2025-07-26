@@ -20,31 +20,28 @@ package ru.arifolth.anjrpg.camera;
 
 import com.jme3.input.InputManager;
 import com.jme3.input.MouseInput;
-import com.jme3.input.controls.ActionListener;
-import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.MouseAxisTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.math.FastMath;
-import com.jme3.math.Matrix3f;
-import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.control.AbstractControl;
+import ru.arifolth.anjrpg.interfaces.camera.FollowCameraInterface;
 
-public class FreeFollowCamera extends AbstractControl implements AnalogListener, ActionListener {
+public class FreeFollowCamera extends AbstractControl implements FollowCameraInterface {
     private static final String MOUSE_WHEEL_UP = "MOUSE_WHEEL_UP";
     private static final String MOUSE_WHEEL_DOWN = "MOUSE_WHEEL_DOWN";
     private static final float MIN_ZOOM = 2.0f;
-    private static final float MAX_ZOOM = 20.0f;
+    private static final float MAX_ZOOM = 25.0f;
 
-    private Vector3f worldUp = Vector3f.UNIT_Y;
+    private final Vector3f worldUp = Vector3f.UNIT_Y;
     private float currentYaw = 0.0f;
     private float currentPitch = 0.3f;
-    private float maxPitch = FastMath.QUARTER_PI; // 45 degrees max pitch
-    private float minPitch = -FastMath.QUARTER_PI; // -45 degrees min pitch
+    private final float maxPitch = FastMath.QUARTER_PI; // 45 degrees max pitch
+    private final float minPitch = -FastMath.QUARTER_PI; // -45 degrees min pitch
     // New rotation angles
 
     private final Camera cam;
@@ -69,6 +66,7 @@ public class FreeFollowCamera extends AbstractControl implements AnalogListener,
         this.cam = cam;
         this.target = target;
         this.inputManager = inputManager;
+
         registerWithInput();
     }
 
@@ -129,8 +127,11 @@ public class FreeFollowCamera extends AbstractControl implements AnalogListener,
 
     @Override
     public void onAnalog(String name, float value, float tpf) {
-        if (!enabled) return;
-        if (dragToRotate && !canRotate) return;
+        if (!enabled)
+            return;
+
+        if (dragToRotate && !canRotate)
+            return;
 
         // Inverted horizontal axis
         if (name.equals("CUSTOM_CAM_LEFT")) {
@@ -162,7 +163,8 @@ public class FreeFollowCamera extends AbstractControl implements AnalogListener,
 
     @Override
     public void onAction(String name, boolean value, float tpf) {
-        if (!enabled) return;
+        if (!enabled)
+            return;
 
         if (name.equals("CUSTOM_CAM_ROTATEDRAG") && dragToRotate) {
             canRotate = value;
@@ -170,65 +172,12 @@ public class FreeFollowCamera extends AbstractControl implements AnalogListener,
         }
     }
 
-    private void rotateCamera(float value, Vector3f axis) {
-        if (dragToRotate && !canRotate) {
-            return;
-        }
-
-        // Create rotation matrix
-        Matrix3f mat = new Matrix3f();
-
-        // Determine rotation type based on axis
-        if (axis.equals(cam.getUp())) {
-            // Horizontal rotation (yaw) - use world up vector
-            mat.fromAngleNormalAxis(rotationSpeed * value, worldUp);
-        } else if (axis.equals(cam.getLeft())) {
-            // Vertical rotation (pitch) - clamp to min/max values
-            float newPitch = currentPitch + rotationSpeed * value;
-
-            // Constrain pitch to avoid flipping
-            if (newPitch > maxPitch) {
-                value = (maxPitch - currentPitch) / rotationSpeed;
-                currentPitch = maxPitch;
-            } else if (newPitch < minPitch) {
-                value = (minPitch - currentPitch) / rotationSpeed;
-                currentPitch = minPitch;
-            } else {
-                currentPitch = newPitch;
-            }
-
-            mat.fromAngleNormalAxis(rotationSpeed * value, cam.getLeft());
-        }
-
-        // Apply rotation to camera vectors
-        Vector3f up = cam.getUp();
-        Vector3f left = cam.getLeft();
-        Vector3f dir = cam.getDirection();
-
-        mat.mult(up, up);
-        mat.mult(left, left);
-        mat.mult(dir, dir);
-
-        // Orthonormalize to prevent skewing
-        dir.normalizeLocal();
-        up.set(worldUp); // Keep camera upright
-        left.set(up.cross(dir)); // Recalculate left vector
-        left.normalizeLocal();
-        dir.set(left.cross(up)); // Recalculate direction
-        dir.normalizeLocal();
-
-        // Set camera orientation
-        Quaternion q = new Quaternion();
-        q.fromAxes(left, up, dir);
-        q.normalizeLocal();
-        cam.setAxes(q);
-    }
-
     // Getters and setters
     public void setOffset(Vector3f offset) {
         this.offset = offset.clone();
     }
 
+    @Override
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
@@ -242,16 +191,5 @@ public class FreeFollowCamera extends AbstractControl implements AnalogListener,
 
     public void setRotationSpeed(float speed) {
         this.rotationSpeed = speed;
-    }
-
-    public void cleanup() {
-        if (inputManager != null) {
-            for (String mapping : mappings) {
-                if (inputManager.hasMapping(mapping)) {
-                    inputManager.deleteMapping(mapping);
-                }
-            }
-            inputManager.removeListener(this);
-        }
     }
 }

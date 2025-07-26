@@ -19,9 +19,11 @@
 package ru.arifolth.anjrpg;
 
 import com.jme3.app.FlyCamAppState;
+import com.jme3.cursors.plugins.JmeCursor;
 import com.jme3.niftygui.NiftyJmeDisplay;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeContext;
+import com.jme3.texture.Texture;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.style.BaseStyles;
 import de.lessvoid.nifty.Nifty;
@@ -113,6 +115,25 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
         GuiGlobals globals = GuiGlobals.getInstance();
         BaseStyles.loadGlassStyle();
         globals.getStyles().setDefaultStyle("glass");
+
+        loadHardwareCursor();
+    }
+
+    private void loadHardwareCursor() {
+        try {
+            Texture cursorTexture = assetManager.loadTexture("Interface/Cursors/cursor.png");
+
+            JmeCursor customCursor = MouseUtils.getJmeCursor(cursorTexture);
+
+            inputManager.setMouseCursor(customCursor);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Cursor loading failed", e);
+            // Fallback to system cursor
+            inputManager.setMouseCursor(null);
+        } finally {
+            inputManager.setCursorVisible(false);
+            GuiGlobals.getInstance().setCursorEventsEnabled(false);
+        }
     }
 
     @Override

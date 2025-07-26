@@ -38,6 +38,7 @@ import static ru.arifolth.anjrpg.interfaces.Constants.RAY_DOWN;
 public class InitializationDelegate implements InitializationDelegateInterface {
     private final GameLogicCore gameLogicCore;
     final private static Logger LOGGER = Logger.getLogger(InitializationDelegate.class.getName());
+    private FreeFollowCamera freeFollowCamera;
 
     public InitializationDelegate(GameLogicCore gameLogicCore) {
         this.gameLogicCore = gameLogicCore;
@@ -101,28 +102,27 @@ public class InitializationDelegate implements InitializationDelegateInterface {
     public void setupCamera() {
         // Disable default fly cam
         gameLogicCore.getFlyCam().setEnabled(false);
-        GuiGlobals.getInstance().setCursorEventsEnabled(false);
 
         // Create custom camera control
-        FreeFollowCamera customCam = new FreeFollowCamera(
+        freeFollowCamera = new FreeFollowCamera(
                 gameLogicCore.getCam(),
                 gameLogicCore.getPlayerCharacter().getCharacterModel(),
                 gameLogicCore.getInputManager()
         );
 
         // Configure the camera
-        customCam.setOffset(new Vector3f(2.0f, 10f, 10f)); // Right shoulder position
-        customCam.setDragToRotate(false); // Free mouse look
-        customCam.setRotationSpeed(2.0f);
-        customCam.setEnabled(true);
+        freeFollowCamera.setOffset(new Vector3f(2.0f, 10f, 10f)); // Right shoulder position
+        freeFollowCamera.setDragToRotate(false); // Free mouse look
+        freeFollowCamera.setRotationSpeed(2.0f);
+        freeFollowCamera.setEnabled(true);
+        gameLogicCore.setFreeFollowCamera(freeFollowCamera);
 
         // Attach to a node in the scene (required for AbstractControl)
         Node cameraControlNode = new Node("CameraControl");
-        cameraControlNode.addControl(customCam);
+        cameraControlNode.addControl(freeFollowCamera);
         gameLogicCore.getRootNode().attachChild(cameraControlNode);
 
         gameLogicCore.getCam().setFrustumFar(20000);
-        gameLogicCore.getInputManager().setCursorVisible(false);
     }
 
 
