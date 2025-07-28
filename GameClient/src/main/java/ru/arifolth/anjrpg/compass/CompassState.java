@@ -195,8 +195,11 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
                 // Convert angle to compass position
                 float compassPosition = (angle + FastMath.PI) / FastMath.TWO_PI * Constants.COMPASS_WIDTH;
 
+                // Subtract half the indicator width to center the pointer on its exact compass direction
+                float correctedCompassPosition = compassPosition - (Constants.UI_PADDING / 2.0f);
+
                 Vector3f currentPos = targetIndicator.getLocalTranslation();
-                Vector3f targetPos = new Vector3f(compassPosition, currentPos.y, currentPos.z);
+                Vector3f targetPos = new Vector3f(correctedCompassPosition, currentPos.y, currentPos.z);
 
                 // Use immediate positioning without interpolation
                 targetIndicator.setLocalTranslation(targetPos);
