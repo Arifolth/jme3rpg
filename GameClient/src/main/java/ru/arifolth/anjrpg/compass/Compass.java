@@ -32,10 +32,7 @@ import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.compass.CompassInterface;
 import ru.arifolth.anjrpg.interfaces.compass.POIInterface;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Compass implements CompassInterface {
     private SimpleApplication app;
@@ -44,12 +41,12 @@ public class Compass implements CompassInterface {
     private Geometry compassFrame;
     private Material compassMaterial;
     private Material frameMaterial;
-    private List<POIInterface> pointsOfInterest;
+    private Collection<POIInterface> pointsOfInterest;
     private Map<String, Geometry> targetIndicators;
 
     public Compass(SimpleApplication application) {
         this.app = application;
-        this.pointsOfInterest = new ArrayList<>();
+        this.pointsOfInterest = new HashSet<>();
         this.targetIndicators = new HashMap<>();
 
         initializeCompass();
@@ -139,12 +136,12 @@ public class Compass implements CompassInterface {
     }
 
     @Override
-    public List<POIInterface> getPointsOfInterest() {
+    public Collection<POIInterface> getPointsOfInterest() {
         return pointsOfInterest;
     }
 
     @Override
-    public void setPointsOfInterest(List<POIInterface> pointsOfInterest) {
+    public void setPointsOfInterest(Collection<POIInterface> pointsOfInterest) {
         this.pointsOfInterest = pointsOfInterest;
     }
 
@@ -161,6 +158,10 @@ public class Compass implements CompassInterface {
         // Update the material uniform controlling texture scroll
         // Assuming your material has a float parameter "ScrollOffset" used in the vertex shader
         compassMaterial.setFloat("ScrollOffset", compassOffset);
+    }
+
+    public Map<String, Geometry> getTargetIndicators() {
+        return targetIndicators;
     }
 
     /**

@@ -36,12 +36,14 @@ import ru.arifolth.anjrpg.interfaces.compass.CompassStateInterface;
 import ru.arifolth.anjrpg.interfaces.compass.POIInterface;
 import ru.arifolth.anjrpg.interfaces.compass.POIType;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.logging.Logger;
 
 import static ru.arifolth.anjrpg.interfaces.Constants.INITIAL_MOUNTAINS_DIRECTION;
 
 public class CompassState extends BaseAppState implements CompassStateInterface {
+    final private static Logger LOGGER = Logger.getLogger(CompassState.class.getName());
+
     private CompassInterface compass;
     private CharacterInterface playerCharacter;
 
@@ -50,6 +52,9 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
     private POITarget npcPOI;
     private POIInterface staticPOI;
     private List<POIInterface> testPOIs;
+    private final Set<POIInterface> activePOIs = new HashSet<>();
+    private final Set<String> activeIds = new HashSet<>();
+
 
     @Override
     protected void initialize(Application app) {
@@ -76,16 +81,16 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
     @Override
     public void update(float tpf) {
         if (compass != null && playerCharacter != null) {
-            final List<POIInterface> activePOIs = new ArrayList<>(2);
+            activePOIs.clear();
             activePOIs.addAll(testPOIs);
 
-            if(playerCharacter.getLockedOnCharacter() != null) {
-                Vector3f playerPos = playerCharacter.getNode().getWorldTranslation();
-                Vector3f npcPos = playerCharacter.getLockedOnCharacter().getValue().getNode().getWorldTranslation();
+            Map.Entry<Iterator<CharacterInterface>, CharacterInterface> lock = playerCharacter.getLockedOnCharacter();
+            if(lock != null && !lock.getValue().isDead()) {
+                Vector3f npcPos = lock.getValue().getNode().getWorldTranslation();
 
-                // Calculate normalized direction vector from player to NPC
-                Vector3f direction = npcPos.subtract(playerPos).normalizeLocal();
-                npcPOI.setPosition(direction);
+                // Store actual NPC world position, not direction
+                npcPOI.setPosition(npcPos);
+
                 activePOIs.add(npcPOI);
             }
 
@@ -99,13 +104,13 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
             float compassOffset = calculateCompassOffset(FastMath.atan2(cameraForward.x, cameraForward.z));
             compass.updateCompassRotation(compassOffset);
 
-            updateTargetIndicators(cameraForward, tpf);
+            updateTargetIndicators(cameraForward);
         }
     }
 
     private void addTestStaticPOIs(CharacterInterface playerCharacter, CompassInterface compass) {
         Vector3f playerPos = playerCharacter.getNode().getWorldTranslation();
-        float distance = 50f; // distance from player
+        float distance = 5000f; // distance from player
 
         testPOIs = new ArrayList<>();
 
@@ -116,8 +121,6 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
 //
 //        testPOIs.add(new POITarget("west",       playerPos.add(new Vector3f(-distance, 0f, 0f)), "WEST",       POIType.LANDMARK));
 
-        compass.setPointsOfInterest(testPOIs);
-
         // Add world markers
         addVerticalMarkersForPOIs(testPOIs);
     }
@@ -125,7 +128,7 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
     private void addVerticalMarkersForPOIs(List<POIInterface> pois) {
         Node rootNode = ((SimpleApplication)getApplication()).getRootNode();
         Node markersNode = new Node("Markers");
-        float height = 80f; // Tall so visible from afar
+        float height = 180f; // Tall so visible from afar
         float radius = 0.2f; // Thin
         for (POIInterface poi : pois) {
             Cylinder cyl = new Cylinder(8, 16, radius, height, true);
@@ -169,9 +172,25 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
         return offset;
     }
 
-    private void updateTargetIndicators(Vector3f cameraForward, float tpf) {
-        Vector3f playerPosition = playerCharacter.getNode().getWorldTranslation();
+    private void updateTargetIndicators(Vector3f cameraForward) {
+        // Step 1: Collect active POI IDs
+        activeIds.clear();
+        for (POIInterface poi : compass.getPointsOfInterest()) {
+            activeIds.add(poi.getId());
+        }
 
+        // Step 2: Hide indicators for inactive POIs
+        Map<String, Geometry> targetIndicatorsMap = compass.getTargetIndicators();
+        for (Map.Entry<String, Geometry> entry : targetIndicatorsMap.entrySet()) {
+            String poiId = entry.getKey();
+            Geometry indicator = entry.getValue();
+            if (!activeIds.contains(poiId)) {
+                indicator.setCullHint(Spatial.CullHint.Always); // Hide inactive indicator
+            }
+        }
+
+        // Step 3: Updating active POIs...
+        Vector3f playerPosition = playerCharacter.getNode().getWorldTranslation();
         for (POIInterface poi : compass.getPointsOfInterest()) {
             Vector3f toTarget = poi.getPosition().subtract(playerPosition);
             toTarget.y = 0;

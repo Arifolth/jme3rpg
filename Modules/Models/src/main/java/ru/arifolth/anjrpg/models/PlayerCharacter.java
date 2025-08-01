@@ -73,7 +73,8 @@ public class PlayerCharacter extends AnimatedCharacter {
         this.firingRange = Constants.MELEE_DISTANCE_LIMIT;
         this.shootDelay = Constants.SHOOT_DELAY;
         this.shootRate = Constants.SHOOT_RATE;
-        this.turnRate = FastMath.QUARTER_PI / 1.5f;
+
+        this.turnRate = Constants.TURN_RATE;
     }
 
     @Override
@@ -645,7 +646,8 @@ public class PlayerCharacter extends AnimatedCharacter {
     @Override
     public void lockOnTarget() {
         if(lockedOnCharacter == null) {  //start all over
-            for (Iterator<CharacterInterface> iterator = gameLogicCore.getCharacterMap().values().iterator(); iterator.hasNext(); ) {
+            Iterator<CharacterInterface> iterator = gameLogicCore.getCharacterMap().values().iterator();
+            while (iterator.hasNext()) {
                 CharacterInterface character = iterator.next();
                 if (withinRange(walkingRange, character)) {
                     lockedOnCharacter = new AbstractMap.SimpleEntry<>(iterator,character);

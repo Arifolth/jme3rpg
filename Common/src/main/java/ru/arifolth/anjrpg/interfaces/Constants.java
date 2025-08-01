@@ -18,6 +18,7 @@
 
 package ru.arifolth.anjrpg.interfaces;
 
+import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.post.ssao.SSAOFilter;
 
@@ -28,7 +29,7 @@ public class Constants {
 
     public static final float DAMAGE = 25f;
 
-    public static final int NPC_AMOUNT = 0;
+    public static final int NPC_AMOUNT = 1;
     public static final int NPC_LOCATION_RANGE = 250;
 
     public static final int WATER_LEVEL_HEIGHT = -70;
@@ -54,7 +55,6 @@ public class Constants {
     public static final int HIT_PROBABILITY = 50;
     public static final float SHOOT_DELAY = 3f;
     public static final float SHOOT_RATE = 3.5f;
-    public static final MusicTypeEnum NULL = null;
     public static final int STARS_COUNT = 500;
     public static final int DISTANCE_TO_STARS = 9000;
     public static final String VERSION_PROPERTIES = "version.properties";
@@ -83,6 +83,7 @@ public class Constants {
     public static final float COMPASS_WIDTH = 600f;
     public static final float COMPASS_HEIGHT = 120f;
     public static final float FRAME_BORDER_WIDTH = 8f;
+    public static final float TURN_RATE = FastMath.QUARTER_PI / 0.75f;
     public static float MELEE_DISTANCE_LIMIT = 5.5f;
 
     //HKEY_CURRENT_USER\Software\JavaSoft\Prefs\

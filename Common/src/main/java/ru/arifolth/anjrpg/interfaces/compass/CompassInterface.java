@@ -20,16 +20,20 @@ package ru.arifolth.anjrpg.interfaces.compass;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public interface CompassInterface {
-    List<POIInterface> getPointsOfInterest();
+    Collection<POIInterface> getPointsOfInterest();
 
-    void setPointsOfInterest(List<POIInterface> pointsOfInterest);
+    void setPointsOfInterest(Collection<POIInterface> pointsOfInterest);
 
     void updateCompassRotation(float compassOffset);
 
     Geometry getTargetIndicator(String poiId);
 
     Node getCompassNode();
+
+    Map<String, Geometry> getTargetIndicators();
 }

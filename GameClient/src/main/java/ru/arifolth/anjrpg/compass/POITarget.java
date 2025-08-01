@@ -22,6 +22,8 @@ import com.jme3.math.Vector3f;
 import ru.arifolth.anjrpg.interfaces.compass.POIInterface;
 import ru.arifolth.anjrpg.interfaces.compass.POIType;
 
+import java.util.Objects;
+
 /**
  * Represents a Point Of Interest (POI) target for the compass system.
  * Can be a fixed landmark or a moving NPC.
@@ -79,5 +81,25 @@ public class POITarget implements POIInterface {
     @Override
     public void setType(POIType newType) {
         this.type = newType;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        POITarget poiTarget = (POITarget) o;
+
+        if (!Objects.equals(id, poiTarget.id)) return false;
+        if (!Objects.equals(name, poiTarget.name)) return false;
+        return type == poiTarget.type;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        return result;
     }
 }
