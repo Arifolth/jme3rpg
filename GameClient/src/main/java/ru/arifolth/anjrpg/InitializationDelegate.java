@@ -24,6 +24,7 @@ import com.jme3.math.*;
 import com.jme3.scene.Node;
 import com.jme3.ui.Picture;
 import com.simsilica.lemur.GuiGlobals;
+import ru.arifolth.anjrpg.camera.DeathAwareCamera;
 import ru.arifolth.anjrpg.camera.FreeFollowCamera;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.models.NonPlayerCharacter;
@@ -104,7 +105,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         gameLogicCore.getFlyCam().setEnabled(false);
 
         // Create custom camera control
-        freeFollowCamera = new FreeFollowCamera(
+        freeFollowCamera = new DeathAwareCamera(
                 gameLogicCore.getCam(),
                 gameLogicCore.getPlayerCharacter().getCharacterModel(),
                 gameLogicCore.getInputManager()

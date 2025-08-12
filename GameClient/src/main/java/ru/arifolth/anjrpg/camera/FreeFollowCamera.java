@@ -37,20 +37,20 @@ public class FreeFollowCamera extends AbstractControl implements FollowCameraInt
     private static final float MIN_ZOOM = 2.0f;
     private static final float MAX_ZOOM = 25.0f;
 
-    private final Vector3f worldUp = Vector3f.UNIT_Y;
-    private float currentYaw = 0.0f;
-    private float currentPitch = 0.3f;
+    protected final Vector3f worldUp = Vector3f.UNIT_Y;
+    protected float currentYaw = 0.0f;
+    protected float currentPitch = 0.3f;
     private final float maxPitch = FastMath.QUARTER_PI; // 45 degrees max pitch
     private final float minPitch = -FastMath.QUARTER_PI; // -45 degrees min pitch
     // New rotation angles
 
-    private final Camera cam;
-    private final Spatial target;
+    protected final Camera cam;
+    protected final Spatial target;
     //camera position, behind the right player shoulder
-    private Vector3f offset = new Vector3f(8f, 6f, 10f);
+    protected Vector3f offset = new Vector3f(8f, 6f, 10f);
     private final InputManager inputManager;
     private float rotationSpeed = 2.0f;
-    private boolean enabled = true;
+    protected boolean enabled = true;
     private boolean dragToRotate = false;
     private boolean canRotate = false;
 
@@ -87,7 +87,10 @@ public class FreeFollowCamera extends AbstractControl implements FollowCameraInt
 
     @Override
     protected void controlUpdate(float tpf) {
-        if (enabled && target != null) {
+        if (!enabled)
+            return; // Early exit if disabled
+
+        if (target != null) {
             // Get target position and add vertical offset
             Vector3f targetPos = target.getWorldTranslation().add(0, offset.y, 0);
 

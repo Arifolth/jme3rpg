@@ -28,6 +28,8 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.*;
 import com.jme3.ui.Picture;
 import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.anjrpg.interfaces.camera.DeathAwareCameraInterface;
+import ru.arifolth.anjrpg.interfaces.camera.FollowCameraInterface;
 
 import java.util.AbstractMap;
 import java.util.Iterator;
@@ -64,8 +66,7 @@ public class PlayerCharacter extends AnimatedCharacter {
     private float health;
 
     private Map.Entry<Iterator<CharacterInterface>, CharacterInterface> lockedOnCharacter = null;
-    private boolean lock_pressed;
-
+    private final Ray attackRay = new Ray();
     public PlayerCharacter() {
         this.setModel(PLAYER_CHARACTER_MODEL);
         this.setName(this.getClass().getName());
@@ -105,13 +106,20 @@ public class PlayerCharacter extends AnimatedCharacter {
 
         Node enemies = gameLogicCore.getEnemies();
 
-        Ray ray = new Ray(characterControl.getPhysicsLocation(), characterControl.getViewDirection().negate());
-        ray.setLimit(Constants.MELEE_DISTANCE_LIMIT);
+        // Distance check before collision test
+        float distance = characterControl.getPhysicsLocation().distance(enemies.getWorldBound().getCenter());
+        if (distance > Constants.MELEE_DISTANCE_LIMIT * 1.5f)
+            return;
+
         // Results of the collision test are written into this object
         CollisionResults results = new CollisionResults();
 
+        attackRay.setOrigin(characterControl.getPhysicsLocation());
+        attackRay.setDirection(characterControl.getViewDirection().negateLocal());
+        attackRay.setLimit(Constants.MELEE_DISTANCE_LIMIT);
+
         // Test for collisions between the enemies and the ray
-        enemies.collideWith(ray, results);
+        enemies.collideWith(attackRay, results);
         if(results.size() > 0) {
             Geometry geometry = results.getClosestCollision().getGeometry();
             if(geometry == null)
@@ -198,7 +206,11 @@ public class PlayerCharacter extends AnimatedCharacter {
     }
 
     public void movementUpdate(float k) {
+        if (dead)
+            return; // Early exit for dead characters
+
         float movement_amount = 0.3f;
+
         if (this.isRunning()) {
             movement_amount *= 1.75;
         }
@@ -463,11 +475,15 @@ public class PlayerCharacter extends AnimatedCharacter {
 
         gameLogicCore.detachGameOverIndicator();
 
+        // Reset camera to normal mode before respawning
+        DeathAwareCameraInterface camera = (DeathAwareCameraInterface) gameLogicCore.getFreeFollowCamera();
+        camera.deactivateDeathCamera();
+
         gameLogicCore.getApp().enqueue(() -> {
             gameLogicCore.getRootNode().attachChild(this.getNode());
         });
 
-        if(!initializing) {
+        if (!initializing) {
             healthBar.create();
         }
 
@@ -477,19 +493,22 @@ public class PlayerCharacter extends AnimatedCharacter {
     @Override
     public void die() {
         dead = true;
-
         combatTracker.reset();
-
         gameLogicCore.getGameStateManager().setGameState(GameState.DEATH);
 
+        // Get the current ground position where player died
+        Vector3f deathPosition = characterControl.getPhysicsLocation().clone();
+
+        // Activate death camera before starting death animation
+        DeathAwareCameraInterface camera = (DeathAwareCameraInterface) gameLogicCore.getFreeFollowCamera();
+        camera.activateDeathCamera(deathPosition);
+
+        // Start death animation
         animationDelegate.deathAnimation();
 
         this.getPlayerStepsNode(false).pause();
-
         gameLogicCore.attachGameOverIndicator();
-
         healthBar.destroy();
-
         lockedOnCharacter = null;
     }
 
