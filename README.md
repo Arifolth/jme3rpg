@@ -46,7 +46,7 @@ mvn install
 ```
 
 ### Native executables
-Native executables ware tested to build and run successfully on a Windows box.
+Native executables were tested to build and run successfully on a Windows box.
 
 To build them enable profile 
 ```native``` and perform build of the [NativeExecutable](NativeExecutable) module  
