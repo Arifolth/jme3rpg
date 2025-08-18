@@ -25,6 +25,7 @@ import com.jme3.scene.Node;
 import com.jme3.ui.Picture;
 import com.simsilica.lemur.GuiGlobals;
 import ru.arifolth.anjrpg.camera.DeathAwareCamera;
+import ru.arifolth.anjrpg.camera.EnhancedFreeFollowCamera;
 import ru.arifolth.anjrpg.camera.FreeFollowCamera;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.models.NonPlayerCharacter;
@@ -39,7 +40,7 @@ import static ru.arifolth.anjrpg.interfaces.Constants.RAY_DOWN;
 public class InitializationDelegate implements InitializationDelegateInterface {
     private final GameLogicCore gameLogicCore;
     final private static Logger LOGGER = Logger.getLogger(InitializationDelegate.class.getName());
-    private FreeFollowCamera freeFollowCamera;
+    private DeathAwareCamera freeFollowCamera;
 
     public InitializationDelegate(GameLogicCore gameLogicCore) {
         this.gameLogicCore = gameLogicCore;
@@ -101,29 +102,35 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
     @Override
     public void setupCamera() {
-        // Disable default fly cam
-        gameLogicCore.getFlyCam().setEnabled(false);
-
-        // Create custom camera control
+        // Create enhanced camera control with smoothing
         freeFollowCamera = new DeathAwareCamera(
                 gameLogicCore.getCam(),
                 gameLogicCore.getPlayerCharacter().getCharacterModel(),
                 gameLogicCore.getInputManager()
         );
 
-        // Configure the camera
+        // Configure camera for smooth movement
         freeFollowCamera.setOffset(new Vector3f(2.0f, 10f, 10f)); // Right shoulder position
         freeFollowCamera.setDragToRotate(false); // Free mouse look
         freeFollowCamera.setRotationSpeed(2.0f);
         freeFollowCamera.setEnabled(true);
         gameLogicCore.setFreeFollowCamera(freeFollowCamera);
 
-        // Attach to a node in the scene (required for AbstractControl)
+        // exponential smoothing for best results
+        freeFollowCamera.setSmoothingType(EnhancedFreeFollowCamera.SmoothingType.EXPONENTIAL_SMOOTHING);
+        freeFollowCamera.setSmoothingFactor(0.15f); // Lower = smoother but more lag
+
+        // Enable terrain collision detection (requires terrain spatial)
+        freeFollowCamera.setUseTerrainCollision(true);
+        freeFollowCamera.setTerrainSpatial(gameLogicCore.getTerrainManager().getTerrain());
+
+        // Attach to scene
         Node cameraControlNode = new Node("CameraControl");
         cameraControlNode.addControl(freeFollowCamera);
         gameLogicCore.getRootNode().attachChild(cameraControlNode);
 
         gameLogicCore.getCam().setFrustumFar(20000);
+        gameLogicCore.getInputManager().setCursorVisible(false);
     }
 
 

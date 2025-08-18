@@ -25,7 +25,7 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.Spatial;
 import ru.arifolth.anjrpg.interfaces.camera.DeathAwareCameraInterface;
 
-public class DeathAwareCamera extends FreeFollowCamera implements DeathAwareCameraInterface {
+public class DeathAwareCamera extends EnhancedFreeFollowCamera implements DeathAwareCameraInterface {
     private boolean deathCameraMode = false;
     private Vector3f deathObservationPoint = new Vector3f();
     private Vector3f deathCameraPosition = new Vector3f();
@@ -105,7 +105,7 @@ public class DeathAwareCamera extends FreeFollowCamera implements DeathAwareCame
         }
     }
     private void updateNormalCamera(float tpf) {
-        // Your existing camera update logic here
+        // camera update logic here
         Vector3f targetPos = target.getWorldTranslation().add(0, offset.y, 0);
 
         float horizontalDistance = offset.z * FastMath.cos(currentPitch);
