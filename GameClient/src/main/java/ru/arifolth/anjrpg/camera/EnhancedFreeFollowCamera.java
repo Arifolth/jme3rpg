@@ -25,6 +25,8 @@
 
 package ru.arifolth.anjrpg.camera;
 
+import com.jme3.collision.CollisionResult;
+import com.jme3.collision.CollisionResults;
 import com.jme3.input.InputManager;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
@@ -32,17 +34,13 @@ import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.MouseAxisTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.math.FastMath;
-import com.jme3.math.Matrix3f;
-import com.jme3.math.Quaternion;
+import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.control.AbstractControl;
-import com.jme3.collision.CollisionResults;
-import com.jme3.collision.CollisionResult;
-import com.jme3.math.Ray;
 import ru.arifolth.anjrpg.interfaces.camera.FollowCameraInterface;
 
 public class EnhancedFreeFollowCamera extends AbstractControl implements FollowCameraInterface, AnalogListener, ActionListener {
@@ -66,23 +64,22 @@ public class EnhancedFreeFollowCamera extends AbstractControl implements FollowC
     private float springStiffness = 100.0f;      // For spring system
     private float springDamping = 20.0f;         // For spring system
     private float cutoffFrequency = 0.5f;        // For low-pass filter
-    private float adaptiveThreshold = 1.0f;      // For adaptive smoothing
+    private final float adaptiveThreshold = 1.0f;      // For adaptive smoothing
 
     // Camera smoothing state
-    private Vector3f smoothedPosition = new Vector3f();
-    private Vector3f velocity = new Vector3f();
-    private Vector3f previousInput = new Vector3f();
-    private float[] filterHistory = new float[5];
-    private int filterIndex = 0;
+    private final Vector3f smoothedPosition = new Vector3f();
+    private final Vector3f velocity = new Vector3f();
 
     // Existing fields
     protected Vector3f worldUp = Vector3f.UNIT_Y;
     protected float currentYaw = 0.0f;
     protected float currentPitch = 0.3f;
-    private float maxPitch = FastMath.QUARTER_PI;
-    private float minPitch = -FastMath.QUARTER_PI;
+    private final float maxPitch = FastMath.QUARTER_PI; // 45 degrees max pitch
+    private final float minPitch = -FastMath.QUARTER_PI; // -45 degrees min pitch
+
     protected final Camera cam;
     protected final Spatial target;
+    //camera position, behind the right player shoulder
     protected Vector3f offset = new Vector3f(8f, 6f, 10f);
     private final InputManager inputManager;
     private float rotationSpeed = 2.0f;
@@ -92,9 +89,10 @@ public class EnhancedFreeFollowCamera extends AbstractControl implements FollowC
 
     // Terrain collision fields
     private boolean useTerrainCollision = true;
-    private float minHeightAboveTerrain = 2.0f;
+    private final float minHeightAboveTerrain = 2.0f;
     private Spatial terrainSpatial;
 
+    // Input mappings
     private static final String[] mappings = new String[]{
             "CUSTOM_CAM_LEFT", "CUSTOM_CAM_RIGHT",
             "CUSTOM_CAM_UP", "CUSTOM_CAM_DOWN",
@@ -139,7 +137,10 @@ public class EnhancedFreeFollowCamera extends AbstractControl implements FollowC
 
     @Override
     protected void controlUpdate(float tpf) {
-        if (enabled && target != null) {
+        if (!enabled)
+            return; // Early exit if disabled
+
+        if (target != null) {
             // Calculate desired camera position
             Vector3f targetPos = target.getWorldTranslation().add(0, offset.y, 0);
 
@@ -153,11 +154,14 @@ public class EnhancedFreeFollowCamera extends AbstractControl implements FollowC
                     horizontalDistance * FastMath.cos(currentYaw)
             );
 
+            // Base camera position (without shoulder offset)
             Vector3f desiredPos = targetPos.add(orbitOffset);
 
-            // Apply shoulder offset
+            // Calculate shoulder offset direction
             Vector3f lookDir = targetPos.subtract(desiredPos).normalize();
             Vector3f right = lookDir.cross(worldUp).normalize();
+
+            // Apply shoulder offset
             desiredPos = desiredPos.add(right.mult(offset.x));
 
             // Apply terrain collision if enabled
@@ -310,18 +314,24 @@ public class EnhancedFreeFollowCamera extends AbstractControl implements FollowC
 
     @Override
     public void onAnalog(String name, float value, float tpf) {
-        if (!enabled) return;
-        if (dragToRotate && !canRotate) return;
+        if (!enabled)
+            return;
 
+        if (dragToRotate && !canRotate)
+            return;
+
+        // Inverted horizontal axis
         if (name.equals("CUSTOM_CAM_LEFT")) {
-            currentYaw += rotationSpeed * value;
+            currentYaw += rotationSpeed * value;  // Inverted: was -
         } else if (name.equals("CUSTOM_CAM_RIGHT")) {
-            currentYaw -= rotationSpeed * value;
-        } else if (name.equals("CUSTOM_CAM_UP")) {
-            currentPitch -= rotationSpeed * value;
+            currentYaw -= rotationSpeed * value;  // Inverted: was +
+        }
+        // Inverted vertical axis
+        else if (name.equals("CUSTOM_CAM_UP")) {
+            currentPitch -= rotationSpeed * value;  // Inverted: was +
             currentPitch = FastMath.clamp(currentPitch, minPitch, maxPitch);
         } else if (name.equals("CUSTOM_CAM_DOWN")) {
-            currentPitch += rotationSpeed * value;
+            currentPitch += rotationSpeed * value;  // Inverted: was -
             currentPitch = FastMath.clamp(currentPitch, minPitch, maxPitch);
         } else if (name.equals(MOUSE_WHEEL_UP)) {
             zoomCamera(value);
@@ -337,18 +347,21 @@ public class EnhancedFreeFollowCamera extends AbstractControl implements FollowC
 
     @Override
     public void onAction(String name, boolean value, float tpf) {
-        if (!enabled) return;
+        if (!enabled)
+            return;
+
         if (name.equals("CUSTOM_CAM_ROTATEDRAG") && dragToRotate) {
             canRotate = value;
             inputManager.setCursorVisible(!value);
         }
     }
 
-    // Standard getters and setters
+    // Getters and setters
     public void setOffset(Vector3f offset) {
         this.offset = offset.clone();
     }
 
+    @Override
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
@@ -362,16 +375,5 @@ public class EnhancedFreeFollowCamera extends AbstractControl implements FollowC
 
     public void setRotationSpeed(float speed) {
         this.rotationSpeed = speed;
-    }
-
-    public void cleanup() {
-        if (inputManager != null) {
-            for (String mapping : mappings) {
-                if (inputManager.hasMapping(mapping)) {
-                    inputManager.deleteMapping(mapping);
-                }
-            }
-            inputManager.removeListener(this);
-        }
     }
 }
