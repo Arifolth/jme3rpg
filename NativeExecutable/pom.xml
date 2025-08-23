@@ -118,7 +118,6 @@
                 <configuration>
                     <executable>jpackage</executable>
                     <arguments>
-                        <argument>--win-console</argument>
                         <argument>--input</argument>
                         <argument>target/jmods</argument>
                         <argument>--dest</argument>
