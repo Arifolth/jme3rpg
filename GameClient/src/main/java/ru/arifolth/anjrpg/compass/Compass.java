@@ -74,11 +74,24 @@ public class Compass implements CompassInterface {
 
 
     private void positionCompass() {
-        float miniMapSize = screenHeight * 0.33f; // 33% of screen height
-        final float verticalSpacing = screenHeight * 0.046f; // Scales with resolution
+        float miniMapSize = screenHeight * 0.33f; // minimap height and width
+        final float verticalSpacing = screenHeight * 0.046f;
+        final float uiPadding = screenHeight * 0.02f;
 
-        float compassX = screenWidth - (miniMapSize + (screenHeight * 0.02f));
-        float compassY = screenHeight - miniMapSize - (screenHeight * 0.02f) - verticalSpacing - compassHeight;
+        float miniMapLeftEdge = screenWidth - miniMapSize - uiPadding;
+
+        // Calculate minimap horizontal center
+        float miniMapCenterX = miniMapLeftEdge + miniMapSize / 2;
+
+        float frameBorderWidth = screenHeight * 0.001f;
+
+        float frameWidth = compassWidth + frameBorderWidth * 2;
+
+        // Compute compass X so its center aligns with minimapCenterX
+        float compassX = miniMapCenterX - (frameWidth / 2);
+
+        // Y position remains below minimap with vertical spacing
+        float compassY = screenHeight - miniMapSize - uiPadding - verticalSpacing - compassHeight;
 
         compassNode.setLocalTranslation(compassX, compassY, 1f);
     }
