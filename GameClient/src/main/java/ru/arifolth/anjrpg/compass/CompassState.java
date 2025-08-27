@@ -212,7 +212,7 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
                 targetIndicator.setCullHint(Spatial.CullHint.Inherit);
 
                 // Convert angle to compass position
-                float compassPosition = (angle + FastMath.PI) / FastMath.TWO_PI * Constants.COMPASS_WIDTH;
+                float compassPosition = (angle + FastMath.PI) / FastMath.TWO_PI * compass.getCompassWidth();
 
                 // Subtract half the indicator width to center the pointer on its exact compass direction
                 float correctedCompassPosition = compassPosition - (Constants.UI_PADDING / 2.0f);

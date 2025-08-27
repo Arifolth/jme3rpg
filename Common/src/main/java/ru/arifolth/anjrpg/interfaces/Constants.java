@@ -79,9 +79,6 @@ public class Constants {
     public static final int TREE_PLANTING_HEIGHT = 70;
     public static final float STARS_HEIGHT = 8000f;
     public static final float UI_PADDING = 20f;
-    // Compass dimensions in screen units
-    public static final float COMPASS_WIDTH = 600f;
-    public static final float COMPASS_HEIGHT = 120f;
     public static final float FRAME_BORDER_WIDTH = 8f;
     public static final float TURN_RATE = FastMath.QUARTER_PI / 0.75f;
     public static float MELEE_DISTANCE_LIMIT = 5.5f;

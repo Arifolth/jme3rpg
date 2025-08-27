@@ -43,6 +43,11 @@ public class Compass implements CompassInterface {
     private Material frameMaterial;
     private Collection<POIInterface> pointsOfInterest;
     private Map<String, Geometry> targetIndicators;
+    private float screenWidth;
+    private float screenHeight;
+    private float miniMapSize;
+    private float compassWidth;
+    private float compassHeight;
 
     public Compass(SimpleApplication application) {
         this.app = application;
@@ -53,46 +58,34 @@ public class Compass implements CompassInterface {
     }
 
     private void initializeCompass() {
-        // Create the main compass node
         compassNode = new Node("CompassHUD");
+        screenWidth = app.getCamera().getWidth();
+        screenHeight = app.getCamera().getHeight();
 
-        // Initialize compass wheel geometry
+        // Percentage-based sizing instead of hardcoded one
+        compassWidth = screenWidth * 0.175f;   // 17.5% of screen width
+        compassHeight = screenHeight * 0.05f; // 5% of screen height
+
         initializeCompassWheel();
-
-        // Initialize sandstone frame
         initializeCompassFrame();
-
-        // Position compass in upper center of screen
         positionCompass();
-
         createTopBarMiddlePointer();
     }
 
+
     private void positionCompass() {
-        float screenWidth = app.getCamera().getWidth();
-        float screenHeight = app.getCamera().getHeight();
+        float miniMapSize = screenHeight * 0.33f; // 33% of screen height
+        final float verticalSpacing = screenHeight * 0.046f; // Scales with resolution
 
-        float miniMapSize = ((float)((ANJRpg)app).getSettings().getHeight() / 3.0f);
-        // Desired vertical spacing between minimap and compass
-        final float verticalSpacing = 50f;
+        float compassX = screenWidth - (miniMapSize + (screenHeight * 0.02f));
+        float compassY = screenHeight - miniMapSize - (screenHeight * 0.02f) - verticalSpacing - compassHeight;
 
-        // Compass dimensions (as defined previously)
-        float compassWidth = Constants.COMPASS_WIDTH;
-        float compassHeight = Constants.COMPASS_HEIGHT;
-
-        // Calculate X position: align center with minimap
-        float compassX = screenWidth - (miniMapSize / 10) - compassWidth;
-
-        // Calculate Y position: place compass below minimap with spacing
-        float compassY = screenHeight - miniMapSize - Constants.UI_PADDING - verticalSpacing - compassHeight;
-
-        // Set local translation of the compass node
         compassNode.setLocalTranslation(compassX, compassY, 1f);
     }
 
     private void initializeCompassWheel() {
         // Create quad geometry for compass wheel
-        Quad compassQuad = new Quad(Constants.COMPASS_WIDTH, Constants.COMPASS_HEIGHT);
+        Quad compassQuad = new Quad(compassWidth, compassHeight);
         compassWheel = new Geometry("CompassWheel", compassQuad);
 
         // Create custom material with scrolling capability
@@ -115,27 +108,24 @@ public class Compass implements CompassInterface {
     }
 
     private void initializeCompassFrame() {
-        // Create slightly larger quad for frame
-        float frameWidth = Constants.COMPASS_WIDTH + (Constants.FRAME_BORDER_WIDTH * 2);
-        float frameHeight = Constants.COMPASS_HEIGHT + (Constants.FRAME_BORDER_WIDTH * 2);
+        float frameBorderWidth = Math.max(1.0f, screenHeight * 0.001f); // 0.1% of screen height, minimum 1px
+
+        float frameWidth = compassWidth + (frameBorderWidth * 2);
+        float frameHeight = compassHeight + (frameBorderWidth * 2);
 
         Quad frameQuad = new Quad(frameWidth, frameHeight);
         compassFrame = new Geometry("CompassFrame", frameQuad);
-
         frameMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-        // Load your sandstone border texture (replace with your actual texture path)
-        Texture borderTexture = app.getAssetManager().loadTexture("Textures/Compass/A_21_9_rectangular_frame_.png");
 
-        // Set the texture as the ColorMap of the material
+        Texture borderTexture = app.getAssetManager().loadTexture("Textures/Compass/A_21_9_rectangular_frame_.png");
         frameMaterial.setTexture("ColorMap", borderTexture);
         compassFrame.setMaterial(frameMaterial);
 
-        // Position frame behind compass wheel
-        compassFrame.setLocalTranslation(-Constants.FRAME_BORDER_WIDTH, -Constants.FRAME_BORDER_WIDTH, -0.1f);
+        // Position frame with ultra-minimal offset
+        compassFrame.setLocalTranslation(-frameBorderWidth, -frameBorderWidth, -0.1f);
         compassNode.attachChild(compassFrame);
     }
 
-    @Override
     public Collection<POIInterface> getPointsOfInterest() {
         return pointsOfInterest;
     }
@@ -227,14 +217,18 @@ public class Compass implements CompassInterface {
         pointerGeom.rotate(0, 0, FastMath.PI);
 
         // Position it centered horizontally on the top border of the compass quad
-        float x = (Constants.COMPASS_WIDTH + (Constants.FRAME_BORDER_WIDTH * 2)) / 2;
-        float y = (Constants.COMPASS_HEIGHT + (Constants.COMPASS_HEIGHT)) / 2f;
+        float x = (compassWidth + (Constants.FRAME_BORDER_WIDTH * 2)) / 2;
+        float y = (compassHeight + (compassHeight)) / 2f;
         pointerGeom.setLocalTranslation(x, y, 0.0f); // Z to render above compass
 
         // Attach to compass node so it moves with compass UI
         compassNode.attachChild(pointerGeom);
     }
 
+    @Override
+    public float getCompassWidth() {
+        return compassWidth;
+    }
 
     @Override
     public Node getCompassNode() {

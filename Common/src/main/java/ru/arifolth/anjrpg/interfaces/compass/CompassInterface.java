@@ -33,6 +33,8 @@ public interface CompassInterface {
 
     Geometry getTargetIndicator(String poiId);
 
+    float getCompassWidth();
+
     Node getCompassNode();
 
     Map<String, Geometry> getTargetIndicators();
