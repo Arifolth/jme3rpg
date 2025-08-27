@@ -81,6 +81,8 @@ public class Constants {
     public static final float UI_PADDING = 20f;
     public static final float FRAME_BORDER_WIDTH = 8f;
     public static final float TURN_RATE = FastMath.QUARTER_PI / 0.75f;
+    // Full cone angle
+    public static final float CONE_DEGREES = 45.0f;
     public static float MELEE_DISTANCE_LIMIT = 5.5f;
 
     //HKEY_CURRENT_USER\Software\JavaSoft\Prefs\

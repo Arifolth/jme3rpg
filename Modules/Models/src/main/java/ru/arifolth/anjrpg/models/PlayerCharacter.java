@@ -22,14 +22,11 @@ import com.jme3.animation.AnimChannel;
 import com.jme3.animation.AnimControl;
 import com.jme3.animation.LoopMode;
 import com.jme3.app.SimpleApplication;
-import com.jme3.collision.CollisionResults;
 import com.jme3.math.*;
 import com.jme3.renderer.Camera;
-import com.jme3.scene.*;
 import com.jme3.ui.Picture;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.interfaces.camera.DeathAwareCameraInterface;
-import ru.arifolth.anjrpg.interfaces.camera.FollowCameraInterface;
 
 import java.util.AbstractMap;
 import java.util.Iterator;
@@ -104,32 +101,22 @@ public class PlayerCharacter extends AnimatedCharacter {
 
         playSound(getSwordSwingNode());
 
-        Node enemies = gameLogicCore.getEnemies();
+        Map.Entry<Iterator<CharacterInterface>, CharacterInterface> lock = getLockedOnCharacter();
+        if(lock != null && !lock.getValue().isDead()) {
+            Vector3f playerForward = characterControl.getViewDirection().negate().normalize();
+            Vector3f playerPos = characterControl.getPhysicsLocation().clone();
+            CharacterInterface npc = lock.getValue();
+            Vector3f npcPos = npc.getNode().getWorldTranslation();
 
-        // Distance check before collision test
-        float distance = characterControl.getPhysicsLocation().distance(enemies.getWorldBound().getCenter());
-        if (distance > Constants.MELEE_DISTANCE_LIMIT * 1.5f)
-            return;
-
-        // Results of the collision test are written into this object
-        CollisionResults results = new CollisionResults();
-
-        attackRay.setOrigin(characterControl.getPhysicsLocation());
-        attackRay.setDirection(characterControl.getViewDirection().negateLocal());
-        attackRay.setLimit(Constants.MELEE_DISTANCE_LIMIT);
-
-        // Test for collisions between the enemies and the ray
-        enemies.collideWith(attackRay, results);
-        if(results.size() > 0) {
-            Geometry geometry = results.getClosestCollision().getGeometry();
-            if(geometry == null)
+            // Distance check before collision test
+            float distance = characterControl.getPhysicsLocation().distance(npcPos);
+            if (distance > Constants.MELEE_DISTANCE_LIMIT * 1.5f)
                 return;
-            Node parent = geometry.getParent();
-            if(parent == null)
-                return;
-            Node grandParent = parent.getParent();
-            CharacterInterface npc = gameLogicCore.getCharacterMap().get(grandParent);
-            if(npc != null) {
+
+            Vector3f toNpc = npcPos.subtract(playerPos).normalize();
+            float angleBetween = playerForward.angleBetween(toNpc) * FastMath.RAD_TO_DEG;
+
+            if (angleBetween <= Constants.CONE_DEGREES / 2.0f) {
                 boolean blocked = Utils.getRandom(Constants.HIT_PROBABILITY);
                 if(!blocked) {
                     npc.getHealthBar().applyDamage(Constants.DAMAGE);
