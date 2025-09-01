@@ -98,7 +98,6 @@ public class PlayerCharacter extends AnimatedCharacter {
 
     public void attack() {
         animationDelegate.attackAnimation();
-
         playSound(getSwordSwingNode());
 
         Map.Entry<Iterator<CharacterInterface>, CharacterInterface> lock = getLockedOnCharacter();
@@ -125,6 +124,45 @@ public class PlayerCharacter extends AnimatedCharacter {
                     npc.getAnimationDelegate().blockAnimation();
                     npc.resetShootCounterByQuarter();
                     playSound(getSwordBlockNode());
+                }
+            }
+        } else {
+            // No locked target - area attack
+            Vector3f playerForward = characterControl.getViewDirection().negate().normalize();
+            Vector3f playerPos = characterControl.getPhysicsLocation().clone();
+
+            Iterator<CharacterInterface> iterator = gameLogicCore.getCharacterMap().values().iterator();
+            while (iterator.hasNext()) {
+                CharacterInterface npc = iterator.next();
+
+                // Skip dead characters and the player itself
+                if (npc.isDead() || npc == this) {
+                    continue;
+                }
+
+                Vector3f characterPos = npc.getNode().getWorldTranslation();
+
+                // Distance check - must be reachable
+                float distance = playerPos.distance(characterPos);
+                if (distance > Constants.MELEE_DISTANCE_LIMIT * 1.5f) {
+                    continue;
+                }
+
+                // Angle check - must be within 45-degree cone (22.5 degrees on each side)
+                Vector3f toCharacter = characterPos.subtract(playerPos).normalize();
+                float angleBetween = playerForward.angleBetween(toCharacter) * FastMath.RAD_TO_DEG;
+
+                if (angleBetween <= Constants.CONE_DEGREES / 2.0f) {
+                    // NPC is within attack cone and range
+                    boolean blocked = Utils.getRandom(Constants.HIT_PROBABILITY);
+                    if(!blocked) {
+                        npc.getHealthBar().applyDamage(Constants.DAMAGE);
+                        playSound(getSwordHitNode());
+                    } else {
+                        npc.getAnimationDelegate().blockAnimation();
+                        npc.resetShootCounterByQuarter();
+                        playSound(getSwordBlockNode());
+                    }
                 }
             }
         }
