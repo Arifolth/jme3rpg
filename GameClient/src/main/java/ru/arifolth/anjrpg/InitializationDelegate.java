@@ -91,7 +91,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
     public void initialize(boolean positionCharacters) {
         setupGameOverIndicator();
 
-        //put player at the beginning location
+        //put player at the start location
         initializePlayer(positionCharacters);
 
         //position NPCs around the Player
@@ -116,9 +116,9 @@ public class InitializationDelegate implements InitializationDelegateInterface {
 
         // exponential smoothing for best results
         freeFollowCamera.setSmoothingType(EnhancedFreeFollowCamera.SmoothingType.EXPONENTIAL_SMOOTHING);
-        freeFollowCamera.setSmoothingFactor(0.15f); // Lower = smoother but more lag
+        freeFollowCamera.setSmoothingFactor(0.0001f); // Lower = smoother but more lag
 
-        // Enable terrain collision detection (requires terrain spatial)
+        // Enable terrain collision detection
         freeFollowCamera.setUseTerrainCollision(true);
         freeFollowCamera.setTerrainSpatial(gameLogicCore.getTerrainManager().getTerrain());
 

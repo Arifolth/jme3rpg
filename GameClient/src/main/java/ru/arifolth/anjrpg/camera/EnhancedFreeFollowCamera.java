@@ -115,7 +115,7 @@ public class EnhancedFreeFollowCamera extends AbstractControl implements FollowC
     }
 
     public void setSmoothingFactor(float factor) {
-        this.smoothingFactor = FastMath.clamp(factor, 0.01f, 1.0f);
+        this.smoothingFactor = FastMath.clamp(factor, 0.0001f, 1.0f);
     }
 
     public void setSpringParameters(float stiffness, float damping) {
