@@ -20,9 +20,12 @@ package ru.arifolth.anjrpg.compass;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
+import com.jme3.collision.CollisionResult;
+import com.jme3.collision.CollisionResults;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
+import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
@@ -130,6 +133,7 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
         Node markersNode = new Node("Markers");
         float height = 180f; // Tall so visible from afar
         float radius = 0.2f; // Thin
+
         for (POIInterface poi : pois) {
             Cylinder cyl = new Cylinder(8, 16, radius, height, true);
             Geometry geom = new Geometry("POIVertical_" + poi.getId(), cyl);
@@ -141,14 +145,51 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
             mat.setColor("Color", poi.getType() == POIType.NPC ? ColorRGBA.Red : ColorRGBA.Blue);
             geom.setMaterial(mat);
 
-            // Place base at POI position, raise so it stands vertically
-            Vector3f pos = poi.getPosition();
-            geom.setLocalTranslation(pos.x, pos.y + height / 2f, pos.z);
+            // Get ground-adjusted position using raycast
+            Vector3f groundPosition = getGroundPosition(poi.getPosition());
+
+            // Place base at ground position, raise so it stands vertically
+            geom.setLocalTranslation(groundPosition.x, groundPosition.y + height / 2f, groundPosition.z);
 
             markersNode.attachChild(geom);
         }
 
         rootNode.attachChild(markersNode);
+    }
+
+    /**
+     * Uses raycast to find the ground level at a given world position
+     * @param targetPosition The world position to check
+     * @return Ground-adjusted position
+     */
+    private Vector3f getGroundPosition(Vector3f targetPosition) {
+        // Get the terrain from the root node
+        Node rootNode = ((SimpleApplication)getApplication()).getRootNode();
+
+        // Start raycast from high above the target position
+        Vector3f rayStart = new Vector3f(targetPosition.x, targetPosition.y + Constants.TREE_PLANTING_HEIGHT, targetPosition.z);
+        Ray ray = new Ray(rayStart, Constants.RAY_DOWN);
+
+        CollisionResults results = new CollisionResults();
+
+        // Cast ray against terrain
+        rootNode.collideWith(ray, results);
+
+        CollisionResult hit = results.getClosestCollision();
+        if (hit != null) {
+            Vector3f groundPoint = hit.getContactPoint();
+
+            // Ensure the marker is placed above water level
+            if (groundPoint.y > Constants.WATER_LEVEL_HEIGHT) {
+                return groundPoint;
+            } else {
+                // If below water level, place at water level
+                return new Vector3f(targetPosition.x, Constants.WATER_LEVEL_HEIGHT, targetPosition.z);
+            }
+        } else {
+            // If no collision found, fallback to original position
+            return new Vector3f(targetPosition.x, 0f, targetPosition.z);
+        }
     }
 
     private float calculateCompassOffset(float angle) {
