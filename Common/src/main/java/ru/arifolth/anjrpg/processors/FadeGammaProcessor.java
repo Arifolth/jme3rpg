@@ -25,7 +25,7 @@ public class FadeGammaProcessor  implements ProcessorInterface {
     private GammaCorrectionFilter gammaCorrectionFilter;
     private final static float MAX_GAMMA_CAP = 0.84f;
     private final static float MIN_GAMMA_CAP = 0.6f;
-    private float fadeOut = MIN_GAMMA_CAP;
+    private float fadeGamma = MIN_GAMMA_CAP;
 
     public FadeGammaProcessor(GammaCorrectionFilter gammaCorrectionFilter) {
         this.gammaCorrectionFilter = gammaCorrectionFilter;
@@ -35,16 +35,18 @@ public class FadeGammaProcessor  implements ProcessorInterface {
     @Override
     public void process(float tpf) {
         if(tpf < 0) {
-            if(fadeOut <= MIN_GAMMA_CAP) {
+            if(fadeGamma <= MIN_GAMMA_CAP) {
                 return;
             }
         } else {
-            if(fadeOut >= MAX_GAMMA_CAP) {
+            if(fadeGamma >= MAX_GAMMA_CAP) {
                 return;
             }
         }
 
-        fadeOut += tpf / 16;
-        gammaCorrectionFilter.setGamma(fadeOut);
+        fadeGamma += tpf / 16;
+        if(fadeGamma > 0) { //IAE: Gamma value can't be below or equal 0.
+            gammaCorrectionFilter.setGamma(fadeGamma);
+        }
     }
 }
