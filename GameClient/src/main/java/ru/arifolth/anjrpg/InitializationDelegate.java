@@ -20,14 +20,11 @@ package ru.arifolth.anjrpg;
 
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
-import com.jme3.input.ChaseCamera;
-import com.jme3.input.MouseInput;
-import com.jme3.input.controls.MouseButtonTrigger;
-import com.jme3.math.ColorRGBA;
-import com.jme3.math.Ray;
-import com.jme3.math.Vector3f;
+import com.jme3.math.*;
 import com.jme3.scene.Node;
 import com.jme3.ui.Picture;
+import ru.arifolth.anjrpg.camera.DeathAwareCamera;
+import ru.arifolth.anjrpg.camera.EnhancedFreeFollowCamera;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.models.NonPlayerCharacter;
 import ru.arifolth.anjrpg.models.PlayerCharacter;
@@ -41,6 +38,7 @@ import static ru.arifolth.anjrpg.interfaces.Constants.RAY_DOWN;
 public class InitializationDelegate implements InitializationDelegateInterface {
     private final GameLogicCore gameLogicCore;
     final private static Logger LOGGER = Logger.getLogger(InitializationDelegate.class.getName());
+    private DeathAwareCamera freeFollowCamera;
 
     public InitializationDelegate(GameLogicCore gameLogicCore) {
         this.gameLogicCore = gameLogicCore;
@@ -71,6 +69,9 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         PlayerCharacter playerCharacter = (PlayerCharacter) gameLogicCore.getCharacterFactory().createCharacter(PlayerCharacter.class);
         playerCharacter.setCam(gameLogicCore.getCam());
         playerCharacter.setDamageIndicator(gameLogicCore.getDamageIndicator());
+
+        playerCharacter.getNode().setLocalRotation(new Quaternion().fromAngleAxis(FastMath.PI, Vector3f.UNIT_Y));
+
         gameLogicCore.setPlayerCharacter(playerCharacter);
         gameLogicCore.getMovementController().setPlayerCharacter(playerCharacter);
     }
@@ -90,55 +91,46 @@ public class InitializationDelegate implements InitializationDelegateInterface {
     public void initialize(boolean positionCharacters) {
         setupGameOverIndicator();
 
-        //put player at the beginning location
+        //put player at the start location
         initializePlayer(positionCharacters);
 
         //position NPCs around the Player
         //initializeNPCs(positionCharacters);
     }
 
-
     @Override
     public void setupCamera() {
-        // We re-use the flyby camera for rotation, while positioning is handled by physics
-        //flyCam.setMoveSpeed(10);
-        gameLogicCore.getFlyCam().setMoveSpeed(100);
-        //change (increase) view distance
+        // Create enhanced camera control with smoothing
+        freeFollowCamera = new DeathAwareCamera(
+                gameLogicCore.getCam(),
+                gameLogicCore.getPlayerCharacter().getCharacterModel(),
+                gameLogicCore.getInputManager()
+        );
+
+        // Configure camera for smooth movement
+        freeFollowCamera.setOffset(new Vector3f(2.0f, 10f, 10f)); // Right shoulder position
+        freeFollowCamera.setDragToRotate(false); // Free mouse look
+        freeFollowCamera.setRotationSpeed(2.0f);
+        freeFollowCamera.setEnabled(true);
+        gameLogicCore.setFreeFollowCamera(freeFollowCamera);
+
+        // exponential smoothing for best results
+        freeFollowCamera.setSmoothingType(EnhancedFreeFollowCamera.SmoothingType.EXPONENTIAL_SMOOTHING);
+        freeFollowCamera.setSmoothingFactor(0.0001f); // Lower = smoother but more lag
+
+        // Enable terrain collision detection
+        freeFollowCamera.setUseTerrainCollision(true);
+        freeFollowCamera.setTerrainSpatial(gameLogicCore.getTerrainManager().getTerrain());
+
+        // Attach to scene
+        Node cameraControlNode = new Node("CameraControl");
+        cameraControlNode.addControl(freeFollowCamera);
+        gameLogicCore.getRootNode().attachChild(cameraControlNode);
+
         gameLogicCore.getCam().setFrustumFar(20000);
-
-        /**/
-        // Disable the default first-person cam!
-        gameLogicCore.getFlyCam().setEnabled(false);
-
-        // Enable a chase cam
-        ChaseCamera chaseCam = new ChaseCamera(gameLogicCore.getCam(), gameLogicCore.getPlayerCharacter().getCharacterModel(), gameLogicCore.getInputManager());
-
-        //Uncomment this to invert the camera's vertical rotation Axis
-        chaseCam.setInvertVerticalAxis(true);
-
-        //Uncomment this to invert the camera's horizontal rotation Axis
-        //chaseCam.setInvertHorizontalAxis(true);
-
-        //Comment this to disable smooth camera motion
-        chaseCam.setSmoothMotion(true);
-
-        //Uncomment this to disable trailing of the camera
-        //WARNING, trailing only works with smooth motion enabled. It is true by default.
-        //chaseCam.setTrailingEnabled(false);
-
-        //Uncomment this to look 3 world units above the target
-        //chaseCam.setLookAtOffset(Vector3f.UNIT_Y.mult(3));
-        //chaseCam.setLookAtOffset(new Vector3f(0, 1, -1).mult(3));
-        chaseCam.setLookAtOffset(new Vector3f(0, 3.5f, 1.5f).mult(3));
-
-        //Uncomment this to enable rotation when the middle mouse button is pressed (like Blender)
-        //WARNING : setting this trigger disable the rotation on right and left mouse button click
-        chaseCam.setToggleRotationTrigger(new MouseButtonTrigger(MouseInput.BUTTON_MIDDLE));
-
-        //chaseCam.setDefaultDistance(40);
-        //chaseCam.setDefaultHorizontalRotation(90f);
-        //chaseCam.setDefaultVerticalRotation(90f);
+        gameLogicCore.getInputManager().setCursorVisible(false);
     }
+
 
     @Override
     public void initializePlayer(boolean positionCharacters) {

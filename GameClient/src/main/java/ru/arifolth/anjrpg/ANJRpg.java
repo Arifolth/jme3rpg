@@ -18,10 +18,12 @@
 
 package ru.arifolth.anjrpg;
 
-import com.jme3.app.StatsAppState;
+import com.jme3.app.FlyCamAppState;
+import com.jme3.cursors.plugins.JmeCursor;
 import com.jme3.niftygui.NiftyJmeDisplay;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeContext;
+import com.jme3.texture.Texture;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.style.BaseStyles;
 import de.lessvoid.nifty.Nifty;
@@ -30,6 +32,7 @@ import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.input.NiftyInputEvent;
 import de.lessvoid.nifty.screen.Screen;
+import ru.arifolth.anjrpg.compass.CompassState;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.menu.SettingsUtils;
 
@@ -52,7 +55,6 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
     private boolean startNewGame = false;
 
     private static RolePlayingGameInterface app;
-    private final static boolean running = false;
 
     static {
         Arrays.stream(LogManager.getLogManager().getLogger(Constants.ROOT_LOGGER).getHandlers()).forEach(h -> h.setLevel(Level.INFO));
@@ -97,6 +99,8 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
 
         stateManager.attach(new RenderingThreadPriorityAppState());
 
+        stateManager.detach(stateManager.getState(FlyCamAppState.class));
+
         setupLemur();
 
         setupPhysix();
@@ -111,6 +115,25 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
         GuiGlobals globals = GuiGlobals.getInstance();
         BaseStyles.loadGlassStyle();
         globals.getStyles().setDefaultStyle("glass");
+
+        loadHardwareCursor();
+    }
+
+    private void loadHardwareCursor() {
+        try {
+            Texture cursorTexture = assetManager.loadTexture("Interface/Cursors/cursor.png");
+
+            JmeCursor customCursor = MouseUtils.getJmeCursor(cursorTexture);
+
+            inputManager.setMouseCursor(customCursor);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Cursor loading failed", e);
+            // Fallback to system cursor
+            inputManager.setMouseCursor(null);
+        } finally {
+            inputManager.setCursorVisible(false);
+            GuiGlobals.getInstance().setCursorEventsEnabled(false);
+        }
     }
 
     @Override
@@ -148,6 +171,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
                     //after it is attached, it's managed by the update loop thread
                     // and may not be modified from any other thread anymore!
                     createMinimap();
+                    createCompass();
 
                     setProgress("Loading complete");
                     nifty.gotoScreen("end");
@@ -164,6 +188,10 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
                 super.simpleUpdate(tpf);
             }
         }
+    }
+
+    private void createCompass() {
+        stateManager.attach(new CompassState());
     }
 
     public void showLoadingMenu() {

@@ -123,11 +123,10 @@ public class MiniMapState extends BaseAppState {
         );
 
         guiNode = ((SimpleApplication)app).getGuiNode();
-        guiNode.attachChild(minimap);
     }
 
     private static int getMapSize(ANJRpg app) {
-        return (int) ((float)app.getSettings().getHeight() / 3.6f);
+        return (int) ((float)app.getSettings().getHeight() / 3.0f);
     }
 
 

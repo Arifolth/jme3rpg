@@ -24,6 +24,7 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import jme3tools.optimize.GeometryBatchFactory;
+import ru.arifolth.anjrpg.interfaces.core.ThreadExecutorProvider;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.vegetation.BushBuilder;
 import ru.arifolth.vegetation.GrassBuilder;
@@ -35,7 +36,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class VegetationInitialization implements VegetationInitializationInterface {
-    private final ExecutorService executorService = Executors.newWorkStealingPool();
+    private final ExecutorService executorService = ThreadExecutorProvider.getExecutor();
     private final ExecutorService taskStarterService = Executors.newSingleThreadExecutor();
 
 

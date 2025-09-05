@@ -27,6 +27,7 @@ import com.jme3.input.InputManager;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.ui.Picture;
+import ru.arifolth.anjrpg.interfaces.camera.FollowCameraInterface;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.weather.WeatherManager;
 
@@ -65,6 +66,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
     private Picture damageIndicator = null;
     private Map<Node, CharacterInterface> characterMap = new WeakHashMap<>();
     private GameStateManagerInterface gameStateManager = new GameStateManager(this);
+    private FollowCameraInterface freeFollowCamera;
 
     public GameLogicCore(Application app, Camera cam, FlyByCamera flyCam, InputManager inputManager, BulletAppState bulletAppState, AssetManager assetManager, SoundManagerInterface soundManager, TerrainManagerInterface terrainManager, Node rootNode) {
         this.movementController = new MovementController(app, inputManager);
@@ -258,5 +260,15 @@ public class GameLogicCore implements GameLogicCoreInterface {
     @Override
     public void setSky(SkyInterface sky) {
         this.sky = sky;
+    }
+
+    @Override
+    public void setFreeFollowCamera(FollowCameraInterface freeFollowCamera) {
+        this.freeFollowCamera = freeFollowCamera;
+    }
+
+    @Override
+    public FollowCameraInterface getFreeFollowCamera() {
+        return freeFollowCamera;
     }
 }

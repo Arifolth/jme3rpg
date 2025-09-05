@@ -157,19 +157,10 @@
         <profile>
             <id>jdk17</id>
             <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <properties>
-                <java.version>17</java.version>
-            </properties>
-        </profile>
-        <profile>
-            <id>jdk21</id>
-            <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <java.version>21</java.version>
+                <java.version>17</java.version>
             </properties>
         </profile>
         <profile>
@@ -177,9 +168,6 @@
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
-            <properties>
-                <java.version>17</java.version>
-            </properties>
             <modules>
                 <module>NativeExecutable</module>
             </modules>

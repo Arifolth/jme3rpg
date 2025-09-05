@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 
 public class CharacterFactory<T extends CharacterInterface> implements CharacterFactoryInterface<T> {
     final private static Logger LOGGER = Logger.getLogger(CharacterFactory.class.getName());
-    private GameLogicCore gameLogicCore;
+    private final GameLogicCore gameLogicCore;
 
     public CharacterFactory(GameLogicCore gameLogicCore) {
         this.gameLogicCore = gameLogicCore;

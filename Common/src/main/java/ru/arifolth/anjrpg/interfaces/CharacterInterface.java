@@ -24,6 +24,9 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.ui.Picture;
 
+import java.util.Iterator;
+import java.util.Map;
+
 public interface CharacterInterface {
     CombatTracker combatTracker = new CombatTracker();
 
@@ -92,10 +95,6 @@ public interface CharacterInterface {
 
     boolean isBlocking();
 
-    static CombatTracker getCombatTracker() {
-        return CharacterInterface.combatTracker;
-    }
-
     void initializeModelLod();
 
     HealthBarInterface getHealthBar();
@@ -109,4 +108,6 @@ public interface CharacterInterface {
     boolean isInCombat();
 
     void lockOnTarget();
+
+    Map.Entry<Iterator<CharacterInterface>, CharacterInterface> getLockedOnCharacter();
 }

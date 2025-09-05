@@ -1,0 +1,22 @@
+MaterialDef Scrolling Compass {
+    MaterialParameters {
+        Texture2D ColorMap
+        Float ScrollOffset : 0.0
+        Float Metallic : 0.0
+        Float Roughness : 1.0
+        Color Specular : 1.0 1.0 1.0 1.0
+    }
+
+    Technique {
+        VertexShader GLSL100: Common/MatDefs/Compass/ScrollingCompass.vert
+        FragmentShader GLSL100: Common/MatDefs/Compass/ScrollingCompass.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+        }
+
+        Defines {
+            HAS_COLORMAP : ColorMap
+        }
+    }
+}

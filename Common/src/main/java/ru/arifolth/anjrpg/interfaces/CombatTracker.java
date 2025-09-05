@@ -27,7 +27,7 @@ import java.util.logging.Logger;
 
 public class CombatTracker implements CombatTrackerInterface {
     final private static Logger LOGGER = Logger.getLogger(CombatTracker.class.getName());
-    private Set<CharacterInterface> enemies = new HashSet<>();
+    private final Set<CharacterInterface> enemies = new HashSet<>();
     private GameLogicCoreInterface gameLogicCore;
     private boolean inCombat = false;
 
