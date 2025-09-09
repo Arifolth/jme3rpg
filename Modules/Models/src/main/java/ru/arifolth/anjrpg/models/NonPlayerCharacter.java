@@ -22,6 +22,7 @@ import com.jme3.animation.AnimChannel;
 import com.jme3.animation.AnimControl;
 import com.jme3.animation.LoopMode;
 import com.jme3.animation.SkeletonControl;
+import com.jme3.app.SimpleApplication;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
@@ -30,6 +31,8 @@ import com.jme3.system.AppSettings;
 import ru.arifolth.anjrpg.interfaces.CharacterInterface;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.Debug;
+import ru.arifolth.anjrpg.models.bars.HealthBar;
+import ru.arifolth.anjrpg.models.bars.PlayerHealthBar;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -85,10 +88,16 @@ public class NonPlayerCharacter extends PlayerCharacter {
             stop();
         }
 
-        healthBarUpdate(tpf);
+        barsUpdate(tpf);
     }
 
-    protected void healthBarUpdate(float k) {
+    @Override
+    protected void initBars() {
+        healthBar = new HealthBar(gameLogicCore.getAssetManager(), this);
+        healthBar.create();
+    }
+
+    protected void barsUpdate(float k) {
         healthBar.update();
     }
 
@@ -117,6 +126,7 @@ public class NonPlayerCharacter extends PlayerCharacter {
             playSound(getSwordHitNode());
         } else {
             LOGGER.log(Level.INFO, "BLOCKED!");
+            playerCharacter.getStaminaBar().consumeStamina(Constants.MAXIMUM_STAMINA);
             playSound(getSwordBlockNode());
         }
     }

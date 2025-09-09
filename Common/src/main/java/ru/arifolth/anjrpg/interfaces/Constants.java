@@ -77,13 +77,27 @@ public class Constants {
     public static final float JUMP_COOLDOWN = 1.0f;
     public static final int TREE_PLANTING_RANGE = 1500;
     public static final int TREE_PLANTING_HEIGHT = 70;
-    public static final float STARS_HEIGHT = 8000f;
     public static final float UI_PADDING = 20f;
     public static final float FRAME_BORDER_WIDTH = 8f;
     public static final float TURN_RATE = FastMath.QUARTER_PI / 0.75f;
     // Full cone angle
     public static final float CONE_DEGREES = 45.0f;
     public static float MELEE_DISTANCE_LIMIT = 5.5f;
+
+    public static final float MAXIMUM_HEALTH = 100f;
+    public static final float MAXIMUM_MANA = 100f;
+    public static final float MAXIMUM_STAMINA = 100f;
+
+    // Player bars positioning
+    public static final float PLAYER_BARS_SPACING = 8f;
+    public static final float PLAYER_BARS_LEFT_MARGIN = 20f;
+    public static final float PLAYER_BARS_TOP_MARGIN = 20f;
+
+    // Stamina and mana regeneration rates
+    public static final float STAMINA_REGENERATION_RATE = 25f; // per second
+    public static final float MANA_REGENERATION_RATE = 15f; // per second
+    public static final float STAMINA_CONSUMPTION_RUN = 20f; // per second when running
+    public static final float STAMINA_CONSUMPTION_JUMP = 15f; // per jump
 
     //HKEY_CURRENT_USER\Software\JavaSoft\Prefs\
 

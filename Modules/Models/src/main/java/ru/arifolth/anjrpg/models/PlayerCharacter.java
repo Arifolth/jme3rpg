@@ -26,7 +26,12 @@ import com.jme3.math.*;
 import com.jme3.renderer.Camera;
 import com.jme3.ui.Picture;
 import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.anjrpg.interfaces.bars.ManaBarInterface;
+import ru.arifolth.anjrpg.interfaces.bars.StaminaBarInterface;
 import ru.arifolth.anjrpg.interfaces.camera.DeathAwareCameraInterface;
+import ru.arifolth.anjrpg.models.bars.PlayerHealthBar;
+import ru.arifolth.anjrpg.models.bars.PlayerManaBar;
+import ru.arifolth.anjrpg.models.bars.PlayerStaminaBar;
 
 import java.util.AbstractMap;
 import java.util.Iterator;
@@ -36,7 +41,6 @@ import java.util.logging.Logger;
 
 public class PlayerCharacter extends AnimatedCharacter {
     final private static Logger LOGGER = Logger.getLogger(PlayerCharacter.class.getName());
-
 
     public static final String PLAYER_CHARACTER_MODEL = "Models/Ninja/Ninja.j3o";
     protected final AnimationDelegateInterface animationDelegate = new AnimationDelegate(this);
@@ -81,9 +85,15 @@ public class PlayerCharacter extends AnimatedCharacter {
     }
 
     @Override
-    protected void initHealthBar() {
-        healthBar = new HealthBar(gameLogicCore.getAssetManager(), this);
-        healthBar.create();
+    protected void initBars() {
+        healthBar = new PlayerHealthBar(gameLogicCore.getAssetManager(), this, (SimpleApplication) gameLogicCore.getApp());
+        healthBar.init();
+
+        manaBar = new PlayerManaBar(gameLogicCore.getAssetManager(), this, (SimpleApplication) gameLogicCore.getApp());
+        manaBar.init();
+
+        staminaBar = new PlayerStaminaBar(gameLogicCore.getAssetManager(), this, (SimpleApplication) gameLogicCore.getApp());
+        staminaBar.init();
     }
 
     public void setCam(Camera cam) {
@@ -214,7 +224,7 @@ public class PlayerCharacter extends AnimatedCharacter {
 
         combatTracker.update(k);
 
-        healthBarUpdate(k);
+        barsUpdate(k);
 
         damageIndicatorUpdate(k);
 
@@ -237,7 +247,13 @@ public class PlayerCharacter extends AnimatedCharacter {
         float movement_amount = 0.3f;
 
         if (this.isRunning()) {
-            movement_amount *= 1.75;
+            // Consume stamina when running
+            staminaBar.consumeStamina(Constants.STAMINA_CONSUMPTION_RUN * k);
+            if(!staminaBar.isExhausted()) {
+                movement_amount *= 1.75;
+            } else {
+                setRunning(false);
+            }
         }
 
         // Gets forward direction and moves it forward
@@ -322,7 +338,7 @@ public class PlayerCharacter extends AnimatedCharacter {
 
             if (this.getAnimationChannel().getAnimationName().equals(AnimConstants.JUMP)) {
                 LOGGER.log(Level.INFO, "JUMPING");
-
+                staminaBar.consumeStamina(Constants.STAMINA_CONSUMPTION_JUMP);
                 characterControl.getControllerId().setJumpSpeed(15f);
                 this.getCharacterControl().jump();
             }
@@ -383,8 +399,6 @@ public class PlayerCharacter extends AnimatedCharacter {
             }
         }
 
-
-        //free behaviour block
         characterControl.setWalkDirection(this.getWalkDirection());
 
         if (lockedOnCharacter == null) {
@@ -421,8 +435,13 @@ public class PlayerCharacter extends AnimatedCharacter {
         }
     }
 
-    protected void healthBarUpdate(float k) {
+    protected void barsUpdate(float k) {
+        if (initializing)
+            return;
+
         healthBar.update();
+        manaBar.update();
+        staminaBar.update();
     }
 
     @Override
@@ -508,9 +527,9 @@ public class PlayerCharacter extends AnimatedCharacter {
             gameLogicCore.getRootNode().attachChild(this.getNode());
         });
 
-        if (!initializing) {
-            healthBar.create();
-        }
+        healthBar.create();
+        manaBar.create();
+        staminaBar.create();
 
         dead = false;
     }
@@ -521,19 +540,21 @@ public class PlayerCharacter extends AnimatedCharacter {
         combatTracker.reset();
         gameLogicCore.getGameStateManager().setGameState(GameState.DEATH);
 
-        // Get the current ground position where player died
         Vector3f deathPosition = characterControl.getPhysicsLocation().clone();
 
-        // Activate death camera before starting death animation
         DeathAwareCameraInterface camera = (DeathAwareCameraInterface) gameLogicCore.getFreeFollowCamera();
         camera.activateDeathCamera(deathPosition);
 
-        // Start death animation
         animationDelegate.deathAnimation();
 
         this.getPlayerStepsNode(false).pause();
         gameLogicCore.attachGameOverIndicator();
+
+        // Destroy all bars
         healthBar.destroy();
+        manaBar.destroy();
+        staminaBar.destroy();
+
         lockedOnCharacter = null;
     }
 
@@ -685,6 +706,16 @@ public class PlayerCharacter extends AnimatedCharacter {
 
     public float getHealth() {
         return health;
+    }
+
+    @Override
+    public ManaBarInterface getManaBar() {
+        return manaBar;
+    }
+
+    @Override
+    public StaminaBarInterface getStaminaBar() {
+        return staminaBar;
     }
 
     @Override

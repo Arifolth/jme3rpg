@@ -16,7 +16,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.anjrpg.models;
+package ru.arifolth.anjrpg.models.bars;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
@@ -24,11 +24,11 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.control.BillboardControl;
 import com.jme3.scene.shape.Quad;
-import ru.arifolth.anjrpg.interfaces.HealthBarInterface;
+import ru.arifolth.anjrpg.interfaces.Constants;
+import ru.arifolth.anjrpg.interfaces.bars.HealthBarInterface;
+import ru.arifolth.anjrpg.models.PlayerCharacter;
 
 public class HealthBar implements HealthBarInterface {
-    public static final float MAXIMUM_HEALTH = 100f;
-    public static final String HEALTH = "health";
     private final AssetManager assetManager;
     private final PlayerCharacter character;
     private Geometry healthbar;
@@ -40,7 +40,7 @@ public class HealthBar implements HealthBarInterface {
 
     @Override
     public void create() {
-        character.setHealth(MAXIMUM_HEALTH);
+        character.setHealth(Constants.MAXIMUM_HEALTH);
 
         // add healthbar
         BillboardControl billboard = new BillboardControl();

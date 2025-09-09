@@ -16,16 +16,11 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ru.arifolth.anjrpg.interfaces;
+package ru.arifolth.anjrpg.interfaces.bars;
 
-public interface HealthBarInterface {
-    void create();
-
-    void destroy();
-
-    void update();
-
-    void applyDamage(float delta);
-
-    float getHealth();
+public interface ManaBarInterface extends BarInterface {
+    void consumeMana(float amount);
+    void restoreMana(float amount);
+    float getMana();
+    float getMaxMana();
 }

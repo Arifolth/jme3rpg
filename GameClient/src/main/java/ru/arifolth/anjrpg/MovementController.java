@@ -85,7 +85,7 @@ public class MovementController implements MovementControllerInterface {
                 playerCharacter.setDown(pressed);
                 break;
             case JUMP:
-                if(!playerCharacter.isJumping()) {
+                if(!playerCharacter.isJumping() && !playerCharacter.getStaminaBar().isExhausted()) {
                     playerCharacter.setJump_pressed(pressed);
                     if(playerCharacter.isJump_pressed()) {
                         playerCharacter.setJumping(true);
@@ -96,7 +96,7 @@ public class MovementController implements MovementControllerInterface {
                 playerCharacter.setRunning(pressed);
                 break;
             case BLOCK:
-                if(playerCharacter.isCapture_mouse() && !playerCharacter.isJumping()) {
+                if(playerCharacter.isCapture_mouse() && !playerCharacter.isJumping() && !playerCharacter.getStaminaBar().isExhausted()) {
                     playerCharacter.setBlock_pressed(pressed);
                     if(playerCharacter.isBlock_pressed()) {
                         playerCharacter.setBlocking(true);

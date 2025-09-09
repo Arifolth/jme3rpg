@@ -23,6 +23,10 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.ui.Picture;
+import ru.arifolth.anjrpg.interfaces.bars.BarInterface;
+import ru.arifolth.anjrpg.interfaces.bars.HealthBarInterface;
+import ru.arifolth.anjrpg.interfaces.bars.ManaBarInterface;
+import ru.arifolth.anjrpg.interfaces.bars.StaminaBarInterface;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -98,6 +102,8 @@ public interface CharacterInterface {
     void initializeModelLod();
 
     HealthBarInterface getHealthBar();
+    StaminaBarInterface getStaminaBar();
+    ManaBarInterface getManaBar();
 
     void setInitializing(boolean initializing);
 

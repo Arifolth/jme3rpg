@@ -23,12 +23,18 @@ import com.jme3.bullet.control.CharacterControl;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.anjrpg.interfaces.bars.BarInterface;
+import ru.arifolth.anjrpg.interfaces.bars.HealthBarInterface;
+import ru.arifolth.anjrpg.models.bars.PlayerManaBar;
+import ru.arifolth.anjrpg.models.bars.PlayerStaminaBar;
 
 public abstract class BaseCharacter implements CharacterInterface {
     protected GameLogicCoreInterface gameLogicCore;
     protected CharacterControl characterControl;
     protected Spatial characterModel;
     protected HealthBarInterface healthBar;
+    protected PlayerManaBar manaBar;
+    protected PlayerStaminaBar staminaBar;
     private final Node characterNode = new Node();
 
     public BaseCharacter() {
@@ -82,7 +88,7 @@ public abstract class BaseCharacter implements CharacterInterface {
         characterControl.setGravity(0);
     }
 
-    protected abstract void initHealthBar();
+    protected abstract void initBars();
 
     public String getName() {
         return getNode().getName();
@@ -105,7 +111,7 @@ public abstract class BaseCharacter implements CharacterInterface {
 
         setUpCharacterNode();
 
-        initHealthBar();
+        initBars();
 
         initializeSounds();
 
