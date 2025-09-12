@@ -19,8 +19,10 @@
 package ru.arifolth.anjrpg.menu;
 
 import com.jme3.app.Application;
+import com.jme3.math.ColorRGBA;
 import com.simsilica.lemur.*;
 import com.simsilica.lemur.component.BorderLayout;
+import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.state.CompositeAppState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,15 +70,19 @@ public class ExitMenuState extends CompositeAppState {
 
         parent.getMainWindow().clearChildren();
 
-        Container menuContainer = window.addChild(new Container(new BorderLayout()));
-        Label title = menuContainer.addChild(new Label(message), North);
+        Container contentContainer = new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even));
+        contentContainer.setBackground(null);
+
+        Container menuContainer = window.addChild(contentContainer);
+        Label title = menuContainer.addChild(new Label(message));
         title.setFontSize(32);
         title.setInsets(new Insets3f(0, 0, 10, 0));
 
-        Container props = menuContainer.addChild(new Container(new BorderLayout()), South);
+        Container props = menuContainer.addChild(new Container(new BorderLayout()));
         props.setBackground(null);
         props.addChild(new ActionButton(new CallMethodAction("Yes", this, "stop")), West);
         props.addChild(new ActionButton(new CallMethodAction("No", this, "onDisable")), East);
+        window.setBackground(null);
 
         parent.getMainWindow().addChild(window);
         GuiGlobals.getInstance().requestFocus(window);

@@ -86,7 +86,10 @@ public class OptionsMenuState extends CompositeAppState {
     protected void onEnable() {
         optionsWindow = new Container(new BorderLayout());
 
-        Container menuContainer = optionsWindow.addChild(new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even)));
+        Container contentContainer = new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even));
+        contentContainer.setBackground(null);
+
+        Container menuContainer = optionsWindow.addChild(contentContainer);
         Label title = menuContainer.addChild(new Label("Options"));
         title.setFontSize(32);
         title.setInsets(new Insets3f(10, 10, 0, 10));
@@ -102,6 +105,7 @@ public class OptionsMenuState extends CompositeAppState {
 
         ActionButton gameplay = menuContainer.addChild(new ActionButton(new CallMethodAction("Gameplay", this, "gameplay")));
         gameplay.setInsets(new Insets3f(10, 10, 10, 10));
+        optionsWindow.setBackground(null);
 
         parent.getMainWindow().addChild(optionsWindow, East);
         GuiGlobals.getInstance().requestFocus(optionsWindow);

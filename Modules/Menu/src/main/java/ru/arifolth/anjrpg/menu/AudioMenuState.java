@@ -71,13 +71,19 @@ public class AudioMenuState extends CustomCompositeAppState {
     protected void onEnable() {
         window = new Container();
 
-        Container menuContainer = window.addChild(new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even)));
+        Container contentContainer = new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even));
+        contentContainer.setBackground(null);
+
+        Container menuContainer = window.addChild(contentContainer);
         Label title = menuContainer.addChild(new Label("Audio"));
         title.setFontSize(24);
         title.setInsets(new Insets3f(10, 10, 0, 10));
 
         Container props;
-        Container joinPanel = menuContainer.addChild(new Container());
+        Container container = new Container();
+        container.setBackground(null);
+
+        Container joinPanel = menuContainer.addChild(container);
         joinPanel.setInsets(new Insets3f(10, 10, 10, 10));
         props = joinPanel.addChild(new Container(new BorderLayout()));
         props.setBackground(null);
@@ -91,6 +97,7 @@ public class AudioMenuState extends CustomCompositeAppState {
         props = joinPanel.addChild(new Container(new BorderLayout()));
         props.setBackground(null);
         props.addChild(new ActionButton(new CallMethodAction("Apply", this, "apply")), West);
+        window.setBackground(null);
 
         parent.getMainWindow().addChild(window, East);
         GuiGlobals.getInstance().requestFocus(window);

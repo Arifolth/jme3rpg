@@ -27,12 +27,11 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
+import com.jme3.ui.Picture;
 import com.simsilica.lemur.*;
 import com.simsilica.lemur.component.BorderLayout;
-import com.simsilica.lemur.component.IconComponent;
 import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.lemur.style.ElementId;
 import org.slf4j.Logger;
@@ -42,11 +41,14 @@ import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
 import ru.arifolth.anjrpg.interfaces.MusicTypeEnum;
 import ru.arifolth.anjrpg.interfaces.SoundTypeEnum;
 
+import static com.simsilica.lemur.component.BorderLayout.Position.Center;
+import static com.simsilica.lemur.component.BorderLayout.Position.North;
+
 public class PressAnyKeyState extends BaseAppState implements ActionListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(PressAnyKeyState.class);
 
     private static final String ANY_KEY_ACTION = "AnyKeyPressed";
-    private Container mainContainer;
+    private Container mainWindow;
     private Label titleLabel;
     private Label promptLabel;
     private ANJRpgInterface application;
@@ -57,11 +59,12 @@ public class PressAnyKeyState extends BaseAppState implements ActionListener {
     private float blinkTimer = 0f;
     private boolean promptVisible = true;
     private boolean isTransitioning = false;
+    private Picture backgroundPicture;
+    private Node gui;
 
     // Configuration
     private static final float FADE_IN_DURATION = 2.0f;
     private static final float BLINK_INTERVAL = 1.5f;
-    private static final float TRANSITION_DURATION = 0.5f;
 
     @Override
     protected void initialize(Application app) {
@@ -75,6 +78,15 @@ public class PressAnyKeyState extends BaseAppState implements ActionListener {
         if (gameLogicCore != null && gameLogicCore.getSoundManager() != null) {
             gameLogicCore.getSoundManager().setNextMusicType(MusicTypeEnum.MENU);
         }
+        gui = ((SimpleApplication) application).getGuiNode();
+
+        int width = application.getSettings().getWidth();
+        int height = application.getSettings().getHeight();
+        backgroundPicture = new Picture("Background");
+        backgroundPicture.setImage(gameLogicCore.getAssetManager(), "Interface/rpg_background.png", false);
+        backgroundPicture.setWidth(width);
+        backgroundPicture.setHeight(height);
+        backgroundPicture.setLocalTranslation(0, 0, -1);  // Behind UI
 
         // Set initial state
         fadeTimer = 0f;
@@ -122,65 +134,45 @@ public class PressAnyKeyState extends BaseAppState implements ActionListener {
 
     @Override
     protected void onDisable() {
-        if (mainContainer != null) {
-            mainContainer.removeFromParent();
+        if (mainWindow != null) {
+            mainWindow.removeFromParent();
         }
     }
 
     private void createUI() {
+        gui.attachChild(backgroundPicture);
+
         // Get screen dimensions
-        int width = application.getSettings().getWidth();
         int height = application.getSettings().getHeight();
-
-        // Create main container that fills the screen
-        mainContainer = new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even));
-
-        // Set background image
-        IconComponent background = new IconComponent("Interface/rpg_background.png", 0.32f, 0, 0f, 0f, false);
-        background.setOverlay(true);
-        background.setIconSize(new Vector2f(width, height));
-        mainContainer.setBackground(background);
+        mainWindow = new Container(new BorderLayout());
 
         // Create title label
         titleLabel = new Label("ANJRpg", new ElementId("press-any-key-title"));
         titleLabel.setFontSize(38);
         titleLabel.setColor(new ColorRGBA(0.9f, 0.7f, 0.3f, 0f)); // Golden color, initially transparent
-        titleLabel.setTextHAlignment(HAlignment.Center);
 
         // Create prompt label
         promptLabel = new Label("Press Any Key to Continue", new ElementId("press-any-key-prompt"));
         promptLabel.setFontSize(18);
         promptLabel.setColor(new ColorRGBA(0.8f, 0.8f, 0.8f, 0f)); // Light gray, initially transparent
-        promptLabel.setTextHAlignment(HAlignment.Center);
 
-        // Position elements in center
-        float centerX = width / 2f;
-        float centerY = height / 2f;
-
-        // Position title above center
-//        Vector3f titleSize = titleLabel.getPreferredSize();
-//        titleLabel.setLocalTranslation(centerX - titleSize.x / 2, centerY + 50, 1);
-
-        // Position prompt below title
-//        Vector3f promptSize = promptLabel.getPreferredSize();
-//        promptLabel.setLocalTranslation(centerX - promptSize.x / 2, centerY - 50, 1);
-
-        mainContainer.addChild(titleLabel).setInsets(new Insets3f(100, 500, 100, 500));
-        mainContainer.addChild(promptLabel).setInsets(new Insets3f(100, 500, 100, 500));
+        mainWindow.addChild(titleLabel, North);
+        mainWindow.addChild(promptLabel, Center);
+        mainWindow.setBackground(null);
 
         setWindowSize(height);
 
         // Add to scene
-        Node guiNode = ((SimpleApplication) application).getGuiNode();
-        guiNode.attachChild(mainContainer);
-        GuiGlobals.getInstance().requestFocus(mainContainer);
+        gui.attachChild(mainWindow);
+        GuiGlobals.getInstance().requestFocus(mainWindow);
     }
 
     @Override
     public void update(float tpf) {
         super.update(tpf);
 
-        if (isTransitioning) return;
+        if (isTransitioning)
+            return;
 
         // Handle fade-in animation
         if (fadeTimer < FADE_IN_DURATION) {
@@ -240,16 +232,22 @@ public class PressAnyKeyState extends BaseAppState implements ActionListener {
         return application.getCamera().getHeight() / (application.getCamera().getHeight() / 2f);
     }
 
-    private void setWindowSize(int height) {
-        Vector3f pref = mainContainer.getPreferredSize().clone();
 
+    private void setWindowSize(int height) {
+        Vector3f pref = mainWindow.getPreferredSize().clone();
         float standardScale = getStandardScale();
         pref.multLocal(1.5f * standardScale);
 
-        // With a slight bias toward the top
+        // Center horizontally and position with slight bias toward the top
+        int width = application.getSettings().getWidth();
+        float x = (width - pref.x) * 0.5f; // Center horizontally
         float y = height * 0.5f + pref.y * 0.45f;
 
-        mainContainer.setLocalTranslation(100 * standardScale, y, 0);
-        mainContainer.setLocalScale(1.5f * standardScale);
+        mainWindow.setLocalTranslation(x, y, 0);
+        mainWindow.setLocalScale(1.5f * standardScale);
+    }
+
+    public Picture getBackgroundPicture() {
+        return backgroundPicture;
     }
 }

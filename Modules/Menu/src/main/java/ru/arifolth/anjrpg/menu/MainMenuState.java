@@ -47,15 +47,15 @@ public class MainMenuState extends BaseAppState {
     private Container menuContainer;
     private ANJRpgInterface application;
     private GameLogicCoreInterface gameLogicCore;
-    private Picture backgroundPicture;
     private Node gui;
+    private PressAnyKeyState pressAnyKeyState;
 
     @Override
     protected void initialize(Application app) {
         application = (ANJRpgInterface) app;
 
         // Disable PressAnyKeyState if it's still active
-        PressAnyKeyState pressAnyKeyState = getStateManager().getState(PressAnyKeyState.class);
+        pressAnyKeyState = getStateManager().getState(PressAnyKeyState.class);
         if (pressAnyKeyState != null && pressAnyKeyState.isEnabled()) {
             pressAnyKeyState.setEnabled(false);
         }
@@ -63,7 +63,7 @@ public class MainMenuState extends BaseAppState {
         AppSettings oldSettings = new AppSettings(false);
         try {
             oldSettings.load(JmeVersion.FULL_NAME);
-            if(oldSettings.size() == 0) {
+            if(oldSettings.isEmpty()) {
                 //Game has been successfully launched. Save current settings.
                 SettingsUtils.saveSettings(this.application.getSettings());
             }
@@ -72,14 +72,6 @@ public class MainMenuState extends BaseAppState {
         }
         gameLogicCore = application.getGameLogicCore();
         gui = ((SimpleApplication) application).getGuiNode();
-
-        int width = application.getSettings().getWidth();
-        int height = application.getSettings().getHeight();
-        backgroundPicture = new Picture("Background");
-        backgroundPicture.setImage(gameLogicCore.getAssetManager(), "Interface/rpg_background.png", true);
-        backgroundPicture.setWidth(width);
-        backgroundPicture.setHeight(height);
-        backgroundPicture.setLocalTranslation(0, 0, -1);  // Behind UI
     }
 
     public MainMenuState() {
@@ -152,7 +144,6 @@ public class MainMenuState extends BaseAppState {
         gameLogicCore.getFreeFollowCamera().setEnabled(false);
         GuiGlobals.getInstance().requestCursorEnabled(this);
 
-        int width = application.getSettings().getWidth();
         int height = application.getSettings().getHeight();
 
         mainWindow = new Container(new BorderLayout());
@@ -164,10 +155,13 @@ public class MainMenuState extends BaseAppState {
         Label version = menuContainer.addChild(new Label("Version: " + ((ANJRpgInterface) getApplication()).getVersion()));
         version.setFontSize(12);
         version.setInsets(new Insets3f(10, 10, 0, 10));
+        menuContainer.setBackground(null);
+        mainWindow.setBackground(null);
 
         switch(((ANJRpgInterface)getApplication()).getInitStatus()) {
             case RUNNING: {
-                gui.detachChild(backgroundPicture);
+                gui.detachChild(pressAnyKeyState.getBackgroundPicture());
+
                 ActionButton restart = menuContainer.addChild(new ActionButton(new CallMethodAction("Restart Game", this, "restart")));
                 restart.setInsets(new Insets3f(10, 10, 10, 10));
 
@@ -178,8 +172,6 @@ public class MainMenuState extends BaseAppState {
                 break;
             }
             default: {
-                gui.attachChild(backgroundPicture);
-
                 ActionButton start = menuContainer.addChild(new ActionButton(new CallMethodAction("Start Game", this, "startNewGame")));
                 start.setInsets(new Insets3f(10, 10, 10, 10));
             }
@@ -219,7 +211,9 @@ public class MainMenuState extends BaseAppState {
     protected void onDisable() {
         gameLogicCore.getFreeFollowCamera().setEnabled(true);
         GuiGlobals.getInstance().releaseCursorEnabled(this);
-        gui.detachChild(backgroundPicture);
+
+        gui.detachChild(pressAnyKeyState.getBackgroundPicture());
+
         mainWindow.removeFromParent();
     }
 }
