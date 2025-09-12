@@ -34,7 +34,7 @@ import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.tools.SizeValue;
 import ru.arifolth.anjrpg.interfaces.*;
-import ru.arifolth.anjrpg.menu.MainMenuState;
+import ru.arifolth.anjrpg.menu.PressAnyKeyState;
 import ru.arifolth.sound.SoundManager;
 import ru.arifolth.terrain.TerrainManager;
 
@@ -62,7 +62,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
                 new AudioListenerState(),
                 new PopupState(),
                 new OptionPanelState(),
-                new MainMenuState()
+                new PressAnyKeyState()
         );
 
         try {

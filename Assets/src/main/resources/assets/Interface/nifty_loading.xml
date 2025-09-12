@@ -12,7 +12,7 @@
     </controlDefinition>
 
     <screen id="loadlevel" controller = "ru.arifolth.anjrpg.ANJRpg">
-        <layer id="loadinglayer" childLayout="center" backgroundImage="Interface/loading_screen.jpg">
+        <layer id="loadinglayer" childLayout="center" backgroundImage="Interface/rpg_background.png">
             <panel id = "loadingpanel" childLayout="vertical" align="center" valign="center" height="100%" width="70%">
                 <panel id = "footer" childLayout="vertical" align="right" valign="right" height="30%" width="100%">
                     <image filename="Interface/blood.png" align="right" height="325px" width="320px"/>

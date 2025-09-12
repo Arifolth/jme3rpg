@@ -7,7 +7,8 @@
 - [ ] Caves procedural generation
 - [ ] Interiors procedural generation
 - [ ] Switch to animated gltf models
-- [ ] Overall performance optimization
+- [x] Overall performance optimization
+- [x] Linux native client builds and works
 
 ## Medium Priority
 
@@ -36,6 +37,14 @@
 - [ ] Mechanism to eventually apply fog filter on a scene
 - [ ] Fade-in for a Fog filter
 - [ ] Precompute Vegetation Placement
+- 
+## Buildings
+- [ ] Roads and trails
+- [ ] Villages
+- [ ] Placement grounds 
+- [ ] Houses
+- [ ] Castles and towers
+- [ ] Ruins
 
 ### Sound
 - [ ] Walking in water/splashes
@@ -54,9 +63,9 @@
 - [ ] Consider Swim animation introduction
 
 ### Graphics
-- [ ] Graphics preset Low-Med-High
+- [x] Graphics preset Low-Med-High
 - [ ] HUD
-- [ ] Rework healthbar
+- [x] Rework healthbar
 - [x] Add bushes
 - [x] Add mushrooms
 - [ ] Seaweed

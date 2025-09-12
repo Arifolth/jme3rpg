@@ -68,8 +68,6 @@ public class ExitMenuState extends CompositeAppState {
 
         parent.getMainWindow().clearChildren();
 
-        setWindowSize();
-
         Container menuContainer = window.addChild(new Container(new BorderLayout()));
         Label title = menuContainer.addChild(new Label(message), North);
         title.setFontSize(32);
@@ -82,11 +80,6 @@ public class ExitMenuState extends CompositeAppState {
 
         parent.getMainWindow().addChild(window);
         GuiGlobals.getInstance().requestFocus(window);
-    }
-
-    private void setWindowSize() {
-        float standardScale = parent.getStandardScale();
-        window.setLocalScale(2.0f / standardScale);
     }
 
     protected void stop() {

@@ -26,6 +26,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeVersion;
+import com.jme3.ui.Picture;
 import com.simsilica.lemur.*;
 import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.IconComponent;
@@ -36,6 +37,7 @@ import ru.arifolth.anjrpg.interfaces.*;
 
 import java.util.prefs.BackingStoreException;
 
+import static com.simsilica.lemur.component.BorderLayout.Position.Center;
 import static com.simsilica.lemur.component.BorderLayout.Position.West;
 
 public class MainMenuState extends BaseAppState {
@@ -45,10 +47,18 @@ public class MainMenuState extends BaseAppState {
     private Container menuContainer;
     private ANJRpgInterface application;
     private GameLogicCoreInterface gameLogicCore;
+    private Picture backgroundPicture;
+    private Node gui;
 
     @Override
     protected void initialize(Application app) {
         application = (ANJRpgInterface) app;
+
+        // Disable PressAnyKeyState if it's still active
+        PressAnyKeyState pressAnyKeyState = getStateManager().getState(PressAnyKeyState.class);
+        if (pressAnyKeyState != null && pressAnyKeyState.isEnabled()) {
+            pressAnyKeyState.setEnabled(false);
+        }
 
         AppSettings oldSettings = new AppSettings(false);
         try {
@@ -61,8 +71,15 @@ public class MainMenuState extends BaseAppState {
             throw new RuntimeException(e);
         }
         gameLogicCore = application.getGameLogicCore();
+        gui = ((SimpleApplication) application).getGuiNode();
 
-        gameLogicCore.getSoundManager().setNextMusicType(MusicTypeEnum.MENU);
+        int width = application.getSettings().getWidth();
+        int height = application.getSettings().getHeight();
+        backgroundPicture = new Picture("Background");
+        backgroundPicture.setImage(gameLogicCore.getAssetManager(), "Interface/rpg_background.png", true);
+        backgroundPicture.setWidth(width);
+        backgroundPicture.setHeight(height);
+        backgroundPicture.setLocalTranslation(0, 0, -1);  // Behind UI
     }
 
     public MainMenuState() {
@@ -135,14 +152,12 @@ public class MainMenuState extends BaseAppState {
         gameLogicCore.getFreeFollowCamera().setEnabled(false);
         GuiGlobals.getInstance().requestCursorEnabled(this);
 
-        ANJRpgInterface application = (ANJRpgInterface) getApplication();
-
         int width = application.getSettings().getWidth();
         int height = application.getSettings().getHeight();
 
         mainWindow = new Container(new BorderLayout());
 
-        menuContainer = mainWindow.addChild(new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even)), West);
+        menuContainer = mainWindow.addChild(new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even)), Center);
         Label title = menuContainer.addChild(new Label("ANJRpg"));
         title.setFontSize(32);
         title.setInsets(new Insets3f(10, 10, 0, 10));
@@ -152,7 +167,7 @@ public class MainMenuState extends BaseAppState {
 
         switch(((ANJRpgInterface)getApplication()).getInitStatus()) {
             case RUNNING: {
-                mainWindow.setBackground(null);
+                gui.detachChild(backgroundPicture);
                 ActionButton restart = menuContainer.addChild(new ActionButton(new CallMethodAction("Restart Game", this, "restart")));
                 restart.setInsets(new Insets3f(10, 10, 10, 10));
 
@@ -163,10 +178,7 @@ public class MainMenuState extends BaseAppState {
                 break;
             }
             default: {
-                IconComponent background = new IconComponent("Interface/loading_screen.jpg", 0.32f, 0, 0f, 0f, false);
-                background.setOverlay(true);
-                background.setIconSize(new Vector2f(width, height));
-                mainWindow.setBackground(background);
+                gui.attachChild(backgroundPicture);
 
                 ActionButton start = menuContainer.addChild(new ActionButton(new CallMethodAction("Start Game", this, "startNewGame")));
                 start.setInsets(new Insets3f(10, 10, 10, 10));
@@ -184,28 +196,30 @@ public class MainMenuState extends BaseAppState {
 
         setWindowSize(height);
 
-        Node gui = ((SimpleApplication) application).getGuiNode();
         gui.attachChild(mainWindow);
         GuiGlobals.getInstance().requestFocus(mainWindow);
     }
 
     private void setWindowSize(int height) {
         Vector3f pref = mainWindow.getPreferredSize().clone();
-
         float standardScale = getStandardScale();
         pref.multLocal(1.5f * standardScale);
 
-        // With a slight bias toward the top
+        // Center horizontally and position with slight bias toward the top
+        int width = application.getSettings().getWidth();
+        float x = (width - pref.x) * 0.5f; // Center horizontally
         float y = height * 0.5f + pref.y * 0.45f;
 
-        mainWindow.setLocalTranslation(100 * standardScale, y, 0);
+        mainWindow.setLocalTranslation(x, y, 0);
         mainWindow.setLocalScale(1.5f * standardScale);
     }
+
 
     @Override
     protected void onDisable() {
         gameLogicCore.getFreeFollowCamera().setEnabled(true);
         GuiGlobals.getInstance().releaseCursorEnabled(this);
+        gui.detachChild(backgroundPicture);
         mainWindow.removeFromParent();
     }
 }
