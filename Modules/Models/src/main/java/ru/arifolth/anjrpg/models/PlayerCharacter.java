@@ -84,18 +84,6 @@ public class PlayerCharacter extends AnimatedCharacter {
         //NO LODs FOR THE MODELS, TOO AGGRESSIVE
     }
 
-    @Override
-    protected void initBars() {
-        healthBar = new PlayerHealthBar(gameLogicCore.getAssetManager(), this, (SimpleApplication) gameLogicCore.getApp());
-        healthBar.init();
-
-        manaBar = new PlayerManaBar(gameLogicCore.getAssetManager(), this, (SimpleApplication) gameLogicCore.getApp());
-        manaBar.init();
-
-        staminaBar = new PlayerStaminaBar(gameLogicCore.getAssetManager(), this, (SimpleApplication) gameLogicCore.getApp());
-        staminaBar.init();
-    }
-
     public void setCam(Camera cam) {
         this.cam = cam;
     }
@@ -516,7 +504,6 @@ public class PlayerCharacter extends AnimatedCharacter {
     @Override
     public void spawn() {
         gameLogicCore.getGameStateManager().setGameState(GameState.CALM);
-
         gameLogicCore.detachGameOverIndicator();
 
         // Reset camera to normal mode before respawning
@@ -526,10 +513,6 @@ public class PlayerCharacter extends AnimatedCharacter {
         gameLogicCore.getApp().enqueue(() -> {
             gameLogicCore.getRootNode().attachChild(this.getNode());
         });
-
-        healthBar.create();
-        manaBar.create();
-        staminaBar.create();
 
         dead = false;
     }
@@ -549,11 +532,6 @@ public class PlayerCharacter extends AnimatedCharacter {
 
         this.getPlayerStepsNode(false).pause();
         gameLogicCore.attachGameOverIndicator();
-
-        // Destroy all bars
-        healthBar.destroy();
-        manaBar.destroy();
-        staminaBar.destroy();
 
         lockedOnCharacter = null;
     }
@@ -747,5 +725,17 @@ public class PlayerCharacter extends AnimatedCharacter {
     @Override
     public Map.Entry<Iterator<CharacterInterface>, CharacterInterface> getLockedOnCharacter() {
         return lockedOnCharacter;
+    }
+
+    public void setHealthBar(PlayerHealthBar healthBar) {
+        this.healthBar = healthBar;
+    }
+
+    public void setManaBar(PlayerManaBar manaBar) {
+        this.manaBar = manaBar;
+    }
+
+    public void setStaminaBar(PlayerStaminaBar staminaBar) {
+        this.staminaBar = staminaBar;
     }
 }

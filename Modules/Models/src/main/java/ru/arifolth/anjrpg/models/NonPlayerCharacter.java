@@ -22,7 +22,6 @@ import com.jme3.animation.AnimChannel;
 import com.jme3.animation.AnimControl;
 import com.jme3.animation.LoopMode;
 import com.jme3.animation.SkeletonControl;
-import com.jme3.app.SimpleApplication;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
@@ -31,8 +30,8 @@ import com.jme3.system.AppSettings;
 import ru.arifolth.anjrpg.interfaces.CharacterInterface;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.Debug;
+import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
 import ru.arifolth.anjrpg.models.bars.HealthBar;
-import ru.arifolth.anjrpg.models.bars.PlayerHealthBar;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -57,6 +56,14 @@ public class NonPlayerCharacter extends PlayerCharacter {
 
     }
 
+    @Override
+    public void initialize(GameLogicCoreInterface gameLogicCore) {
+        super.initialize(gameLogicCore);
+
+        initBars();
+    }
+
+    @Override
     protected void initializeCharacterModel() {
         super.initializeCharacterModel();
         characterModel.rotate(0,3.14159f,0);
@@ -69,6 +76,7 @@ public class NonPlayerCharacter extends PlayerCharacter {
         this.playerCharacter = playerCharacter;
     }
 
+    @Override
     public void update(float tpf) {
         if(isDead() || playerCharacter.isDead())
             return;
@@ -91,12 +99,12 @@ public class NonPlayerCharacter extends PlayerCharacter {
         barsUpdate(tpf);
     }
 
-    @Override
     protected void initBars() {
         healthBar = new HealthBar(gameLogicCore.getAssetManager(), this);
         healthBar.create();
     }
 
+    @Override
     protected void barsUpdate(float k) {
         healthBar.update();
     }
@@ -105,6 +113,7 @@ public class NonPlayerCharacter extends PlayerCharacter {
         characterControl.jump();
     }
 
+    @Override
     public void attack() {
         if (isReady()) {
             combatTracker.incCounter(this);
@@ -131,6 +140,7 @@ public class NonPlayerCharacter extends PlayerCharacter {
         }
     }
 
+    @Override
     public void turningTo(Vector3f target) {
         Quaternion diff1 = new Quaternion();
         Quaternion diff2 = new Quaternion();
@@ -162,6 +172,7 @@ public class NonPlayerCharacter extends PlayerCharacter {
         animationDelegate.walkingAnimation();
     }
 
+    @Override
     public void stop() {
         if(walkDirection != null) {
             walkDirection.set(0f, 0f, 0f);

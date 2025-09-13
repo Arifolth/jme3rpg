@@ -32,6 +32,7 @@ import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.input.NiftyInputEvent;
 import de.lessvoid.nifty.screen.Screen;
+import ru.arifolth.anjrpg.bars.PlayerBarsState;
 import ru.arifolth.anjrpg.compass.CompassState;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.menu.SettingsUtils;
@@ -172,6 +173,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
                     // and may not be modified from any other thread anymore!
                     createMinimap();
                     createCompass();
+                    createPlayerBars();
 
                     setProgress("Loading complete");
                     nifty.gotoScreen("end");
@@ -192,6 +194,10 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
 
     private void createCompass() {
         stateManager.attach(new CompassState());
+    }
+
+    private void createPlayerBars() {
+        stateManager.attach(new PlayerBarsState());
     }
 
     public void showLoadingMenu() {
