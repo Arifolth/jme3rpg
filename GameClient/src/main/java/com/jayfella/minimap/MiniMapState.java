@@ -50,6 +50,8 @@ import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture2D;
 import ru.arifolth.anjrpg.ANJRpg;
+import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
+import ru.arifolth.anjrpg.interfaces.CharacterInterface;
 
 public class MiniMapState extends BaseAppState {
 
@@ -60,17 +62,11 @@ public class MiniMapState extends BaseAppState {
     private Camera mapCam;
     private ViewPort mapViewport;
     private Geometry minimap;
+    private CharacterInterface playerCharacter;
 
     private Node mapRoot;
     private Node guiNode;
-
-    /**
-     * Creates a new MiniMap and displays the scene specified.
-     * @param mapRoot   The scene to display in the minimap, for example the rootNode of your game.
-     */
-    public MiniMapState(Node mapRoot) {
-        this.mapRoot = mapRoot;
-    }
+    private boolean visible = false;
 
     public Node getMapRoot() {
         return mapRoot;
@@ -82,7 +78,12 @@ public class MiniMapState extends BaseAppState {
 
     @Override
     protected void initialize(Application app) {
-        int miniMapSize = getMapSize((ANJRpg) app);
+        SimpleApplication application = (SimpleApplication) app;
+
+        this.mapRoot = application.getRootNode();
+        this.playerCharacter = ((ANJRpgInterface) application).getGameLogicCore().getPlayerCharacter();
+
+        int miniMapSize = getMapSize((ANJRpg) application);
 
         mapCam = new Camera(miniMapSize, miniMapSize);
 
@@ -137,12 +138,18 @@ public class MiniMapState extends BaseAppState {
 
     @Override
     protected void onEnable() {
-        guiNode.attachChild(minimap);
+        if (playerCharacter != null && !playerCharacter.isDead()) {
+            guiNode.attachChild(minimap);
+            visible = true;
+        }
     }
 
     @Override
     protected void onDisable() {
-        minimap.removeFromParent();
+        if (visible) {
+            minimap.removeFromParent();
+            visible = false;
+        }
     }
 
     private final Quaternion mapRot = new Quaternion();
@@ -150,19 +157,30 @@ public class MiniMapState extends BaseAppState {
 
     @Override
     public void update(float tpf) {
+        if (playerCharacter == null)
+            return;
 
-        getApplication().getCamera().getRotation().toAngles(angles);
+        if (!playerCharacter.isDead() && !visible) {
+            guiNode.attachChild(minimap);
+            visible = true;
+        } else if (playerCharacter.isDead() && visible) {
+            minimap.removeFromParent();
+            visible = false;
+        }
 
-        mapRot.fromAngles(FastMath.HALF_PI, angles[1], 0);
+        if (visible) {
+            getApplication().getCamera().getRotation().toAngles(angles);
 
-        mapCam.setRotation(mapRot);
+            mapRot.fromAngles(FastMath.HALF_PI, angles[1], 0);
 
-        mapCam.setLocation(new Vector3f(
-                getApplication().getCamera().getLocation().x,
-                height,
-                getApplication().getCamera().getLocation().z
-        ));
+            mapCam.setRotation(mapRot);
 
+            mapCam.setLocation(new Vector3f(
+                    getApplication().getCamera().getLocation().x,
+                    height,
+                    getApplication().getCamera().getLocation().z
+            ));
+        }
     }
 
     private void setMapHeight(Camera camera, float factor) {

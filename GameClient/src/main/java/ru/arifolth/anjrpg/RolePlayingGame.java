@@ -107,8 +107,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
 
     protected void createMinimap() {
         // create the minimap
-        MiniMapState miniMapState = new MiniMapState(getRootNode());
-        stateManager.attach(miniMapState);
+        stateManager.attach(new MiniMapState());
     }
 
     void setupGameLogic() {

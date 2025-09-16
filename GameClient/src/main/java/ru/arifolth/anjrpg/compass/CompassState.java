@@ -49,6 +49,7 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
 
     private CompassInterface compass;
     private CharacterInterface playerCharacter;
+    private boolean visible = false;
 
     private Node guiNode;
 
@@ -83,12 +84,23 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
 
     @Override
     public void update(float tpf) {
-        if (compass != null && playerCharacter != null) {
+        if (playerCharacter == null)
+            return;
+
+        if (!playerCharacter.isDead() && !visible) {
+            guiNode.attachChild(compass.getCompassNode());
+            visible = true;
+        } else if (playerCharacter.isDead() && visible) {
+            compass.getCompassNode().removeFromParent();
+            visible = false;
+        }
+
+        if (visible) {
             activePOIs.clear();
             activePOIs.addAll(testPOIs);
 
             Map.Entry<Iterator<CharacterInterface>, CharacterInterface> lock = playerCharacter.getLockedOnCharacter();
-            if(lock != null && !lock.getValue().isDead()) {
+            if (lock != null && !lock.getValue().isDead()) {
                 Vector3f npcPos = lock.getValue().getNode().getWorldTranslation();
 
                 // Store actual NPC world position, not direction
@@ -287,11 +299,17 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
 
     @Override
     protected void onEnable() {
-        guiNode.attachChild(compass.getCompassNode());
+        if (playerCharacter != null && !playerCharacter.isDead()) {
+            guiNode.attachChild(compass.getCompassNode());
+            visible = true;
+        }
     }
 
     @Override
     protected void onDisable() {
-        compass.getCompassNode().removeFromParent();
+        if (visible) {
+            compass.getCompassNode().removeFromParent();
+            visible = false;
+        }
     }
 }
