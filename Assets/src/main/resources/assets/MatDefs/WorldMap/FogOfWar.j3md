@@ -1,0 +1,20 @@
+MaterialDef FogOfWar {
+    MaterialParameters {
+        Color FogColor
+        Texture2D DiscoveryMask
+    }
+
+    Technique {
+        VertexShader GLSL100:   MatDefs/WorldMap/FogOfWar.vert
+        FragmentShader GLSL100: MatDefs/WorldMap/FogOfWar.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+        }
+
+        RenderState {
+            Blend Alpha
+            DepthWrite Off
+        }
+    }
+}

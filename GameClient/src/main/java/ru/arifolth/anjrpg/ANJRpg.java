@@ -36,6 +36,7 @@ import ru.arifolth.anjrpg.bars.PlayerBarsState;
 import ru.arifolth.anjrpg.compass.CompassState;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.menu.SettingsUtils;
+import ru.arifolth.anjrpg.worldmap.WorldMapState;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -174,6 +175,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
                     createMinimap();
                     createCompass();
                     createPlayerBars();
+                    createWorldMap();
 
                     setProgress("Loading complete");
                     nifty.gotoScreen("end");
@@ -190,6 +192,10 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
                 super.simpleUpdate(tpf);
             }
         }
+    }
+
+    private void createWorldMap() {
+        stateManager.attach(new WorldMapState());
     }
 
     private void createCompass() {

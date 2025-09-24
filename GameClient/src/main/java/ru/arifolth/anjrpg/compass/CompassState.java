@@ -312,4 +312,9 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
             visible = false;
         }
     }
+
+    @Override
+    public CompassInterface getCompass() {
+        return compass;
+    }
 }

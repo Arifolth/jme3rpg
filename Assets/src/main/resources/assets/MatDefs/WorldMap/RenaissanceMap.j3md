@@ -1,0 +1,24 @@
+MaterialDef RenaissanceMap {
+    MaterialParameters {
+        Color LandColor
+        Color WaterColor
+        Color MountainColor
+        Color ForestColor
+        Float Contrast : 1.0
+        Float Saturation : 1.0
+        Texture2D ColorMap
+    }
+
+    Technique {
+        VertexShader GLSL100:   MatDefs/WorldMap/RenaissanceMap.vert
+        FragmentShader GLSL100: MatDefs/WorldMap/RenaissanceMap.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+        }
+
+        RenderState {
+            Blend Alpha
+        }
+    }
+}

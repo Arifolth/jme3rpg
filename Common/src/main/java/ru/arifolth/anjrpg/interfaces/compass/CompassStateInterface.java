@@ -20,4 +20,5 @@ package ru.arifolth.anjrpg.interfaces.compass;
 import com.jme3.app.state.AppState;
 
 public interface CompassStateInterface extends AppState {
+    CompassInterface getCompass();
 }
