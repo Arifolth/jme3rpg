@@ -18,6 +18,8 @@
 
 package ru.arifolth.anjrpg.interfaces.worldmap;
 
+import ru.arifolth.anjrpg.interfaces.CharacterInterface;
+
 import java.util.Set;
 
 public interface WorldMapStateInterface {
@@ -28,4 +30,6 @@ public interface WorldMapStateInterface {
     Set<String> getDiscoveredTiles();
 
     void addDiscoveredTile(String tileId);
+
+    CharacterInterface getPlayerCharacter();
 }

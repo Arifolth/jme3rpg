@@ -33,6 +33,8 @@ public interface WorldMapInterface {
     void updatePOIMarkers(Collection<POIInterface> pois, CharacterInterface playerCharacter,
                           Vector3f mapCenter, float mapScale);
 
+    void updateTileGrid(Set<String> discoveredTiles, int gridCenterX, int gridCenterZ);
+
     Node getMapNode();
 
     boolean isVisible();

@@ -31,6 +31,7 @@ import com.jme3.texture.Texture2D;
 import ru.arifolth.anjrpg.interfaces.CharacterInterface;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.compass.POIInterface;
+import ru.arifolth.anjrpg.interfaces.compass.POIType;
 import ru.arifolth.anjrpg.interfaces.worldmap.WorldMapInterface;
 
 import java.util.Collection;
@@ -44,6 +45,9 @@ public class WorldMap implements WorldMapInterface {
     private static final Logger LOGGER = Logger.getLogger(WorldMap.class.getName());
 
     private final SimpleApplication app;
+    private final WorldMapState worldMapState;
+    private final float tileMapSize;
+
     private Node mapNode;
     private Geometry mapFrame;
     private Geometry mapBackground;
@@ -51,67 +55,59 @@ public class WorldMap implements WorldMapInterface {
     private Geometry playerMarker;
 
     private Map<String, Geometry> poiMarkers = new HashMap<>();
+    private Map<String, Geometry> cachedTileGeometries = new HashMap<>();
+
     private Material mapMaterial;
     private Material fogMaterial;
     private Material playerMaterial;
+    private Material cachedTileMaterial;
+    private Material fallbackTileMaterial;
 
     private float screenWidth;
     private float screenHeight;
-    private Texture2D worldRenderTexture;
 
-    // Add cached tile markers and material
-    private final Map<String, Geometry> cachedTileMarkers = new HashMap<>();
-    private Material cachedTileMaterial;
-
-    public WorldMap(SimpleApplication app, Texture2D renderedTexture) {
+    public WorldMap(SimpleApplication app, WorldMapState worldMapState, float tileMapSize) {
         this.app = app;
+        this.worldMapState = worldMapState;
+        this.tileMapSize = tileMapSize;
         this.screenWidth = app.getCamera().getWidth();
         this.screenHeight = app.getCamera().getHeight();
-        this.worldRenderTexture = renderedTexture;
 
         initializeMapComponents();
+        LOGGER.info("WorldMap initialized with fallback textures");
     }
 
     private void initializeMapComponents() {
         mapNode = new Node("WorldMapUI");
 
-        // Create map frame (border)
         createMapFrame();
-
-        // Create map background
         createMapBackground();
-
-        // Create fog of war overlay
         createFogOverlay();
-
-        // Create cached tile material
-        createCachedTileMaterial();
-
-        // Create player marker
         createPlayerMarker();
-
-        // Position the entire map UI
+        createTileMaterials();
         positionMapUI();
     }
 
-    private void createCachedTileMaterial() {
+    private void createTileMaterials() {
+        // Material for cached textures
         cachedTileMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-        cachedTileMaterial.setColor("Color", new ColorRGBA(0.9f, 0.85f, 0.7f, 0.3f)); // Subtle discovered area tint
         cachedTileMaterial.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+
+        // Fallback material for tiles without cached textures
+        fallbackTileMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+        fallbackTileMaterial.setColor("Color", new ColorRGBA(0.7f, 0.6f, 0.4f, 0.8f)); // Earth tone
+        fallbackTileMaterial.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
     }
 
     private void createMapFrame() {
         float frameBorder = Constants.FRAME_BORDER_WIDTH;
-
         Quad frameQuad = new Quad(screenWidth + 2*frameBorder, screenHeight + 2*frameBorder);
         mapFrame = new Geometry("MapFrame", frameQuad);
 
         Material frameMat = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
         frameMat.setTexture("ColorMap", app.getAssetManager().loadTexture("Textures/Compass/A_21_9_rectangular_frame_.png"));
-
         mapFrame.setMaterial(frameMat);
         mapFrame.setLocalTranslation(-frameBorder, -frameBorder, -0.1f);
-
         mapNode.attachChild(mapFrame);
     }
 
@@ -120,9 +116,7 @@ public class WorldMap implements WorldMapInterface {
         mapBackground = new Geometry("MapBackground", mapQuad);
 
         mapMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-        mapMaterial.setTexture("ColorMap", worldRenderTexture);
-        mapMaterial.setColor("Color", new ColorRGBA(1f, 0.95f, 0.85f, 1f)); // Warm Renaissance tint
-
+        mapMaterial.setColor("Color", new ColorRGBA(0.92f, 0.87f, 0.78f, 1f));
         mapBackground.setMaterial(mapMaterial);
         mapNode.attachChild(mapBackground);
     }
@@ -132,178 +126,244 @@ public class WorldMap implements WorldMapInterface {
         fogOverlay = new Geometry("FogOverlay", fogQuad);
 
         fogMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-        fogMaterial.setColor("Color", new ColorRGBA(0.2f, 0.15f, 0.1f, 0.6f));
+        fogMaterial.setColor("Color", new ColorRGBA(0.15f, 0.12f, 0.08f, 0.85f));
         fogMaterial.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-
         fogOverlay.setMaterial(fogMaterial);
-        fogOverlay.setLocalTranslation(0, 0, 0.2f);
-
+        fogOverlay.setLocalTranslation(0, 0, 0.3f);
         mapNode.attachChild(fogOverlay);
     }
 
     private void createPlayerMarker() {
-        float markerSize = Constants.UI_PADDING;
-
+        float markerSize = Constants.UI_PADDING * 2f;
         Quad quad = new Quad(markerSize, markerSize);
         playerMarker = new Geometry("PlayerMarker", quad);
 
         playerMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
         playerMaterial.setColor("Color", new ColorRGBA(0.9f, 0.2f, 0.1f, 1f));
         playerMaterial.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-
         playerMarker.setMaterial(playerMaterial);
 
-        // Initial position middle of map, corrected as player moves
-        playerMarker.setLocalTranslation(screenWidth/2 - markerSize/2, screenHeight/2 - markerSize/2, 0.4f);
-
+        centerPlayerMarker();
         mapNode.attachChild(playerMarker);
     }
 
+    private void centerPlayerMarker() {
+        float markerSize = Constants.UI_PADDING * 2f;
+        playerMarker.setLocalTranslation(
+                screenWidth/2 - markerSize/2,
+                screenHeight/2 - markerSize/2,
+                0.5f
+        );
+    }
+
     private void positionMapUI() {
-        // Position map at bottom-left of GUI coordinates (0,0) to cover entire screen
         mapNode.setLocalTranslation(0, 0, 50f);
     }
 
     @Override
     public void updateFogOfWar(Set<String> discoveredTiles) {
+        // Fog is handled in updateTileGrid
+    }
+
+    public void updateTileGrid(Set<String> discoveredTiles, int gridCenterX, int gridCenterZ) {
         if (discoveredTiles == null) return;
 
-        // Clear existing cached tile markers
-        for (Geometry marker : cachedTileMarkers.values()) {
-            marker.removeFromParent();
-        }
-        cachedTileMarkers.clear();
-
-        // Create visual markers for all discovered (cached) tiles
-        for (String tileId : discoveredTiles) {
-            createCachedTileMarker(tileId);
+        // Update fog transparency
+        if (!discoveredTiles.isEmpty()) {
+            float discoveryRatio = Math.min(1.0f, discoveredTiles.size() / 50.0f);
+            float fogAlpha = 0.85f * (1.0f - discoveryRatio * 0.7f);
+            fogMaterial.setColor("Color", new ColorRGBA(0.15f, 0.12f, 0.08f, fogAlpha));
         }
 
-        // Update main fog opacity based on discovery ratio
-        if (discoveredTiles.size() > 0) {
-            float discoveryRatio = Math.min(1.0f, discoveredTiles.size() / 100.0f);
-            ColorRGBA fogColor = new ColorRGBA(0.2f, 0.15f, 0.1f, 0.85f * (1.0f - discoveryRatio * 0.5f));
+        clearOldTiles(gridCenterX, gridCenterZ);
+        createTileGrid(discoveredTiles, gridCenterX, gridCenterZ);
+    }
 
-            if (fogMaterial != null) {
-                try {
-                    fogMaterial.setColor("FogColor", fogColor);
-                } catch (Exception e) {
-                    // Fallback for basic material
-                    fogMaterial.setColor("Color", fogColor);
+    private void clearOldTiles(int gridCenterX, int gridCenterZ) {
+        cachedTileGeometries.entrySet().removeIf(entry -> {
+            String tileId = entry.getKey();
+            String[] coords = tileId.split(",");
+            if (coords.length != 2) return true;
+
+            try {
+                int tileX = Integer.parseInt(coords[0]);
+                int tileZ = Integer.parseInt(coords[1]);
+                return Math.abs(tileX - gridCenterX) > 2 || Math.abs(tileZ - gridCenterZ) > 2;
+            } catch (NumberFormatException e) {
+                return true;
+            }
+        });
+    }
+
+    private void createTileGrid(Set<String> discoveredTiles, int gridCenterX, int gridCenterZ) {
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                int tileX = gridCenterX + dx;
+                int tileZ = gridCenterZ + dz;
+                String tileId = tileX + "," + tileZ;
+
+                if (discoveredTiles.contains(tileId)) {
+                    if (!cachedTileGeometries.containsKey(tileId)) {
+                        createCachedTileGeometry(tileId, tileX, tileZ);
+                    } else {
+                        updateTilePosition(tileId, tileX, tileZ);
+                    }
                 }
             }
         }
     }
 
-    private void createCachedTileMarker(String tileId) {
-        if (cachedTileMarkers.containsKey(tileId)) {
-            return; // Already exists
-        }
-
+    private void createCachedTileGeometry(String tileId, int tileX, int tileZ) {
         try {
-            // Parse tile coordinates from tileId (format: "x,z")
-            String[] coords = tileId.split(",");
-            if (coords.length != 2) return;
+            Quad tileQuad = new Quad(tileMapSize, tileMapSize);
+            Geometry tileGeometry = new Geometry("CachedTile_" + tileId, tileQuad);
 
-            int tileX = Integer.parseInt(coords[0]);
-            int tileZ = Integer.parseInt(coords[1]);
+            // Try to use cached texture, fallback to colored quad
+            Texture2D cachedTexture = worldMapState.getTileTextureCache().get(tileId);
+            Material tileMat;
 
-            // Calculate tile size and position on map
-            float tileSize = 50f; // Visual size on map
-            float tileWorldSize = 100f; // World size of actual tile
+            if (cachedTexture != null) {
+                tileMat = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+                tileMat.setTexture("ColorMap", cachedTexture);
+                LOGGER.fine("Using cached texture for tile: " + tileId);
+            } else {
+                tileMat = fallbackTileMaterial;
+                LOGGER.fine("Using fallback material for tile: " + tileId);
+            }
 
-            // Convert world tile position to map coordinates
-            Vector3f tileWorldPos = new Vector3f(tileX * tileWorldSize, 0, tileZ * tileWorldSize);
-            Vector3f mapPos = worldToMapCoordinates(tileWorldPos, new Vector3f(0, 0, 0), 1.0f); // Center reference
+            tileMat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+            tileGeometry.setMaterial(tileMat);
 
-            // Create quad for cached tile area
-            Quad tileQuad = new Quad(tileSize, tileSize);
-            Geometry tileMarker = new Geometry("CachedTile_" + tileId, tileQuad);
-            tileMarker.setMaterial(cachedTileMaterial);
+            positionTileInGrid(tileGeometry, tileX, tileZ);
 
-            // Position on map
-            tileMarker.setLocalTranslation(mapPos.x - tileSize/2, mapPos.z - tileSize/2, 0.15f);
+            mapNode.attachChild(tileGeometry);
+            cachedTileGeometries.put(tileId, tileGeometry);
 
-            mapNode.attachChild(tileMarker);
-            cachedTileMarkers.put(tileId, tileMarker);
+            LOGGER.fine("Created tile geometry: " + tileId);
 
         } catch (Exception e) {
-            LOGGER.warning("Failed to create cached tile marker for " + tileId + ": " + e.getMessage());
+            LOGGER.warning("Failed to create tile geometry for " + tileId + ": " + e.getMessage());
+        }
+    }
+
+    private void updateTilePosition(String tileId, int tileX, int tileZ) {
+        Geometry tileGeometry = cachedTileGeometries.get(tileId);
+        if (tileGeometry != null) {
+            positionTileInGrid(tileGeometry, tileX, tileZ);
+
+            // Update texture if it became available
+            Texture2D cachedTexture = worldMapState.getTileTextureCache().get(tileId);
+            if (cachedTexture != null) {
+                Material currentMat = tileGeometry.getMaterial();
+                if (currentMat != null && currentMat == fallbackTileMaterial) {
+                    // Upgrade to texture material
+                    Material textureMat = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+                    textureMat.setTexture("ColorMap", cachedTexture);
+                    textureMat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+                    tileGeometry.setMaterial(textureMat);
+                    LOGGER.fine("Upgraded tile to texture: " + tileId);
+                }
+            }
+        }
+    }
+
+    private void positionTileInGrid(Geometry tileGeometry, int tileX, int tileZ) {
+        int gridCenterX = worldMapState.getCurrentGridCenterX();
+        int gridCenterZ = worldMapState.getCurrentGridCenterZ();
+
+        int relX = tileX - gridCenterX;
+        int relZ = tileZ - gridCenterZ;
+
+        float centerX = screenWidth / 2f;
+        float centerY = screenHeight / 2f;
+
+        float screenX = centerX + (relX * tileMapSize);
+        float screenY = centerY + (relZ * tileMapSize);
+
+        tileGeometry.setLocalTranslation(
+                screenX - tileMapSize/2,
+                screenY - tileMapSize/2,
+                0.1f
+        );
+    }
+
+    public void updatePOIMarkers(Collection<POIInterface> pois, CharacterInterface playerCharacter,
+                                 int gridCenterX, int gridCenterZ) {
+        if (playerCharacter == null) return;
+
+        for (Geometry marker : poiMarkers.values()) {
+            marker.removeFromParent();
+        }
+        poiMarkers.clear();
+
+        for (POIInterface poi : pois) {
+            createPOIMarker(poi, gridCenterX, gridCenterZ);
+        }
+
+        centerPlayerMarker();
+    }
+
+    private void createPOIMarker(POIInterface poi, int gridCenterX, int gridCenterZ) {
+        float markerSize = Constants.UI_PADDING * 1.5f;
+        Quad quad = new Quad(markerSize, markerSize);
+        Geometry poiGeo = new Geometry("POI_" + poi.getId(), quad);
+
+        Material mat = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+        ColorRGBA color = getPOIColor(poi.getType());
+        mat.setColor("Color", color);
+        mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        poiGeo.setMaterial(mat);
+
+        Vector3f poiWorldPos = poi.getPosition();
+        int poiTileX = worldToTileX(poiWorldPos.x);
+        int poiTileZ = worldToTileZ(poiWorldPos.z);
+
+        int relX = poiTileX - gridCenterX;
+        int relZ = poiTileZ - gridCenterZ;
+
+        if (Math.abs(relX) <= 1 && Math.abs(relZ) <= 1) {
+            float centerX = screenWidth / 2f;
+            float centerY = screenHeight / 2f;
+
+            float screenX = centerX + (relX * tileMapSize);
+            float screenY = centerY + (relZ * tileMapSize);
+
+            poiGeo.setLocalTranslation(
+                    screenX - markerSize/2f,
+                    screenY - markerSize/2f,
+                    0.4f
+            );
+            mapNode.attachChild(poiGeo);
+            poiMarkers.put(poi.getId(), poiGeo);
+        }
+    }
+
+    private int worldToTileX(float worldX) {
+        return (int) Math.floor(worldX / worldMapState.getTileWorldSize());
+    }
+
+    private int worldToTileZ(float worldZ) {
+        return (int) Math.floor(worldZ / worldMapState.getTileWorldSize());
+    }
+
+    private ColorRGBA getPOIColor(POIType type) {
+        switch(type) {
+            case NPC: return new ColorRGBA(1f, 0.8f, 0.2f, 1f);
+            case LANDMARK: return new ColorRGBA(0.2f, 0.8f, 1f, 1f);
+            default: return new ColorRGBA(0.8f, 0.8f, 0.8f, 1f);
         }
     }
 
     @Override
     public void updatePOIMarkers(Collection<POIInterface> pois, CharacterInterface playerCharacter,
                                  Vector3f mapCenter, float mapScale) {
-        if (playerCharacter == null) return;
-
-        Vector3f playerPos = playerCharacter.getNode().getWorldTranslation();
-
-        // Clear existing POI markers
-        for (Geometry marker : poiMarkers.values()) {
-            marker.removeFromParent();
-        }
-        poiMarkers.clear();
-
-        // Create new POI markers
-        for (POIInterface poi : pois) {
-            createPOIMarker(poi, mapCenter != null ? mapCenter : playerPos, mapScale);
-        }
-
-        // Update player marker position
-        updatePlayerMarkerPosition(playerPos, mapCenter != null ? mapCenter : playerPos, mapScale);
+        updatePOIMarkers(pois, playerCharacter,
+                worldMapState.getCurrentGridCenterX(),
+                worldMapState.getCurrentGridCenterZ());
     }
 
-    private void createPOIMarker(POIInterface poi, Vector3f mapCenter, float mapScale) {
-        float markerSize = Constants.UI_PADDING * 0.8f;
-
-        Quad quad = new Quad(markerSize, markerSize);
-        Geometry poiGeo = new Geometry("POI_" + poi.getId(), quad);
-        Material mat = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-
-        ColorRGBA col;
-        switch(poi.getType()) {
-            case NPC: col = new ColorRGBA(1f, 0.8f, 0.2f, 1f); break;
-            case LANDMARK: col = new ColorRGBA(0.2f, 0.8f, 1f, 1f); break;
-            default: col = new ColorRGBA(0.8f, 0.8f, 0.8f, 1f); break;
-        }
-
-        mat.setColor("Color", col);
-        mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-
-        poiGeo.setMaterial(mat);
-
-        Vector3f pos = worldToMapCoordinates(poi.getPosition(), mapCenter, mapScale);
-
-        if(pos.x >= 0 && pos.x <= screenWidth && pos.z >= 0 && pos.z <= screenHeight) {
-            poiGeo.setLocalTranslation(pos.x - markerSize/2f, pos.z - markerSize/2f, 0.3f);
-            mapNode.attachChild(poiGeo);
-            poiMarkers.put(poi.getId(), poiGeo);
-        }
-    }
-
-    // Player marker position update
-    private void updatePlayerMarkerPosition(Vector3f playerPos, Vector3f mapCenter, float mapScale) {
-        float markerSize = Constants.UI_PADDING;
-        Vector3f pos = worldToMapCoordinates(playerPos, mapCenter, mapScale);
-        playerMarker.setLocalTranslation(pos.x - markerSize/2f, pos.z - markerSize/2f, 0.4f);
-    }
-
-    // Converts world coords to map coordinates for fullscreen map quad
-    private Vector3f worldToMapCoordinates(Vector3f worldPos, Vector3f mapCenter, float mapScale) {
-        float worldViewRange = 2000f * mapScale; // match camera frustum
-
-        Vector3f relative = worldPos.subtract(mapCenter);
-
-        float mapX = (screenWidth / 2f) + (relative.x / worldViewRange) * (screenWidth / 2f);
-        float mapZ = (screenHeight / 2f) - (relative.z / worldViewRange) * (screenHeight / 2f); // Inverted Z for correct orientation
-
-        return new Vector3f(mapX, mapZ, 0);
-    }
-
-    // Add method to get cached tile information
     public int getCachedTileCount() {
-        return cachedTileMarkers.size();
+        return cachedTileGeometries.size();
     }
 
     @Override
@@ -318,9 +378,9 @@ public class WorldMap implements WorldMapInterface {
 
     @Override
     public void setVisible(boolean visible) {
-        if(visible && !isVisible()) {
+        if (visible && !isVisible()) {
             mapNode.setCullHint(Spatial.CullHint.Inherit);
-        } else if(!visible && isVisible()) {
+        } else if (!visible && isVisible()) {
             mapNode.setCullHint(Spatial.CullHint.Always);
         }
     }
