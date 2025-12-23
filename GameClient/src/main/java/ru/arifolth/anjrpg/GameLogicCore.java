@@ -29,7 +29,9 @@ import com.jme3.scene.Node;
 import com.jme3.ui.Picture;
 import ru.arifolth.anjrpg.interfaces.camera.FollowCameraInterface;
 import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.anjrpg.interfaces.worldmap.ITextureCache;
 import ru.arifolth.anjrpg.weather.WeatherManager;
+import ru.arifolth.anjrpg.worldmap.TextureCache;
 
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -45,6 +47,9 @@ public class GameLogicCore implements GameLogicCoreInterface {
     private Node forestNode = new Node(Constants.FOREST_NODE);
     private Node grassNode = new Node(Constants.GRASS_NODE);
     private Node mushroomsNode = new Node(Constants.MUSHROOMS_NODE);
+
+    private final ITextureCache textureCache;
+    private boolean worldMapVisible = false;
 
     private Node bushesNode = new Node(Constants.BUSHES_NODE);
 
@@ -79,6 +84,8 @@ public class GameLogicCore implements GameLogicCoreInterface {
         this.soundManager = soundManager;
         this.terrainManager = terrainManager;
         this.rootNode = rootNode;
+
+        this.textureCache = TextureCache.getInstance();
     }
 
     public void initialize() {
@@ -270,5 +277,20 @@ public class GameLogicCore implements GameLogicCoreInterface {
     @Override
     public FollowCameraInterface getFreeFollowCamera() {
         return freeFollowCamera;
+    }
+
+    @Override
+    public ITextureCache getTextureCache() {
+        return textureCache;
+    }
+
+    @Override
+    public void toggleWorldMap() {
+        worldMapVisible = !worldMapVisible;
+    }
+
+    @Override
+    public boolean isWorldMapVisible() {
+        return worldMapVisible;
     }
 }

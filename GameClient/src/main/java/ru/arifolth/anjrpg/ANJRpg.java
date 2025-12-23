@@ -109,6 +109,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
         setupSound();
         setupTerrain();
         setupGameLogic();
+        initTerrain();
     }
 
     private void setupLemur() {
@@ -195,7 +196,7 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
     }
 
     private void createWorldMap() {
-        stateManager.attach(new WorldMapState());
+        stateManager.attach(new WorldMapState(gameLogicCore));
     }
 
     private void createCompass() {

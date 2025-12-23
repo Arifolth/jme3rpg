@@ -41,6 +41,7 @@ import com.jme3.terrain.noise.filter.SmoothFilter;
 import com.jme3.terrain.noise.fractal.FractalSum;
 import com.jme3.terrain.noise.modulator.NoiseModulator;
 import com.jme3.texture.Texture;
+import ru.arifolth.anjrpg.TileTextureCapturer;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.menu.SettingsUtils;
 
@@ -50,7 +51,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
     final private static Logger LOGGER = Logger.getLogger(FractalTerrainGrid.class.getName());
     private ViewDistanceSettings viewDistanceSettings;
     private TerrainQuad terrain;
-
+    private TileTextureCapturer tileCapturer;
     private final AssetManager assetManager;
     private final BulletAppState bulletAppState;
     private final RolePlayingGameInterface app;
@@ -76,6 +77,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
 
     @Override
     public void initialize() {
+        this.tileCapturer = new TileTextureCapturer(app);
         viewDistanceSettings = SettingsUtils.getViewDistanceSettings(app.getContext().getSettings());
     }
 
@@ -195,6 +197,10 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
         this.terrain.addControl(control);
     }
 
+    private static String generateBaseTileId(Vector3f cell) {
+        return String.format("tile_%d_%d", (int)cell.x, (int)cell.z);
+    }
+
     private void setUpCollision() {
         ((TerrainGrid)terrain).addListener(new TerrainGridListener() {
             @Override
@@ -203,22 +209,29 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
 
             @Override
             public void tileAttached(Vector3f cell, TerrainQuad quad) {
-                while(quad.getControl(RigidBodyControl.class)!=null){
-                    quad.removeControl(RigidBodyControl.class);
-                }
-                quad.addControl(new RigidBodyControl(new HeightfieldCollisionShape(quad.getHeightMap(), terrain.getLocalScale()), 0));
-                quad.setLocked(true);
-                bulletAppState.getPhysicsSpace().add(quad);
+                try {
+                    while (quad.getControl(RigidBodyControl.class) != null) {
+                        quad.removeControl(RigidBodyControl.class);
+                    }
+                    quad.addControl(new RigidBodyControl(new HeightfieldCollisionShape(quad.getHeightMap(), terrain.getLocalScale()), 0));
+                    quad.setLocked(true);
+                    bulletAppState.getPhysicsSpace().add(quad);
 
-                initializationDelegate.setGameLogicCore(app.getGameLogicCore());
-                //plant trees
-                initializationDelegate.positionTrees(quad);
-                //plant grass
-                initializationDelegate.positionGrass(quad);
-                //plant bushes
-                initializationDelegate.positionBushes(quad);
-                //plant bushes
-                initializationDelegate.positionMushrooms(quad);
+                    initializationDelegate.setGameLogicCore(app.getGameLogicCore());
+                    //plant trees
+                    initializationDelegate.positionTrees(quad);
+                    //plant grass
+                    initializationDelegate.positionGrass(quad);
+                    //plant bushes
+                    initializationDelegate.positionBushes(quad);
+                    //plant bushes
+                    initializationDelegate.positionMushrooms(quad);
+                } finally {
+                    if (tileCapturer != null) {
+                        String baseTileId = generateBaseTileId(cell);
+                        tileCapturer.captureTileTextures(quad, baseTileId);
+                    }
+                }
             }
 
             @Override
@@ -274,6 +287,9 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
 
     @Override
     public void update() {
+        if (tileCapturer != null) {
+            tileCapturer.processPendingCaptures();  // Process one queued tile per frame
+        }
     }
 
     @Override

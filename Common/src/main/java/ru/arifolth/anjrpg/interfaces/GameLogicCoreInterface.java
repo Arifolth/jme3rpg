@@ -27,6 +27,7 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.ui.Picture;
 import ru.arifolth.anjrpg.interfaces.camera.FollowCameraInterface;
+import ru.arifolth.anjrpg.interfaces.worldmap.ITextureCache;
 
 import java.util.Map;
 
@@ -88,4 +89,8 @@ public interface GameLogicCoreInterface {
     void setFreeFollowCamera(FollowCameraInterface freeFollowCamera);
 
     FollowCameraInterface getFreeFollowCamera();
+
+    ITextureCache getTextureCache();
+    void toggleWorldMap();
+    boolean isWorldMapVisible();
 }

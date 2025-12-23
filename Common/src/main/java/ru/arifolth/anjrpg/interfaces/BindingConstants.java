@@ -19,6 +19,7 @@
 package ru.arifolth.anjrpg.interfaces;
 
 public enum BindingConstants {
+    WORLD_MAP("M"),
     LOCK("X"),
     ESCAPE("Escape"),
     UP("W"),

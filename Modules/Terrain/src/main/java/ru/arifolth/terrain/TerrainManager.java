@@ -46,7 +46,6 @@ public class TerrainManager implements TerrainManagerInterface {
         this.app = app;
 
         terrainBuilder = new FractalTerrainGrid(assetManager, bulletAppState, app);
-        terrainBuilder.initialize();
 
         TreeTypeEnum.setAssetManager(assetManager);
         GrassTypeEnum.setAssetManager(assetManager);
@@ -56,6 +55,8 @@ public class TerrainManager implements TerrainManagerInterface {
 
     @Override
     public void initialize() {
+        terrainBuilder.initialize();
+
         EnumSet.allOf(TreeTypeEnum.class).forEach(TreeTypeEnum::init);
         EnumSet.allOf(GrassTypeEnum.class).forEach(GrassTypeEnum::init);
         EnumSet.allOf(BushTypeEnum.class).forEach(BushTypeEnum::init);

@@ -110,9 +110,13 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         stateManager.attach(new MiniMapState());
     }
 
-    void setupGameLogic() {
+    protected void setupGameLogic() {
         gameLogicCore = new GameLogicCore(this, cam, flyCam, inputManager, bulletAppState, assetManager, soundManager, terrainManager, getRootNode());
         gameLogicCore.initialize();
+    }
+
+    protected void initTerrain() {
+        terrainManager.initialize();
     }
 
     private void setupAssetManager() {
@@ -190,7 +194,6 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
 
     void setupTerrain() {
         terrainManager = new TerrainManager(assetManager, bulletAppState, this);
-        terrainManager.initialize();
 //        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
 
