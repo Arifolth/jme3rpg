@@ -13,7 +13,7 @@
   <name>Game Libraries</name>
 
     <properties>
-		<log4j-api.version>2.19.0</log4j-api.version>
+		<log4j-api.version>[2.25.3,)</log4j-api.version>
 		<groovy.version>5.0.0-beta-1</groovy.version>
 		<sio2.version>1.8.0</sio2.version>
 		<guava.version>33.2.1-jre</guava.version>
