@@ -45,7 +45,6 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
 
 /**
  * Captures terrain tiles as textures for world map display.
@@ -55,7 +54,7 @@ import javax.imageio.ImageIO;
 public class TileTextureCapturer {
     private static final Logger logger = Logger.getLogger(TileTextureCapturer.class.getName());
     private static final int SUBTILE_RESOLUTION = 512;
-    private static final int CAPTURE_DELAY_FRAMES = 3;
+    private static final int CAPTURE_DELAY_FRAMES = 10;
 
     private final Application app;
     private final GameLogicCoreInterface gameLogicCore;
@@ -126,12 +125,12 @@ public class TileTextureCapturer {
 
                 for (int subX = 0; subX < 2; subX++) {
                     for (int subZ = 0; subZ < 2; subZ++) {
-                        String subTileId = String.format("tile_%d_%d_%d_%d", baseX, baseZ, subX, subZ);
+                        String subTileId = String.format("tile_%d_%d_sub_%d_%d", baseX, baseZ, subX, subZ);
                         captureSingleSubTile(pending.spatial, baseX, baseZ, subX, subZ, subTileId);
                     }
                 }
 
-                logger.info("✓ Captured 4 sub-tiles for base tile: " + pending.baseTileId);
+//                logger.info("✓ Captured 4 sub-tiles for base tile: " + pending.baseTileId);
 
             } catch (NumberFormatException e) {
                 logger.log(Level.SEVERE, "Failed to parse tile coordinates: " + pending.baseTileId, e);
@@ -232,7 +231,7 @@ public class TileTextureCapturer {
             offscreenTexture.setImage(image);
             gameLogicCore.getTextureCache().storeTexture(subTileId, offscreenTexture);
 
-            logger.info("Successfully captured sub-tile: " + subTileId);
+//            logger.info("Successfully captured sub-tile: " + subTileId);
 
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to capture sub-tile " + subTileId, e);
@@ -349,9 +348,7 @@ public class TileTextureCapturer {
             int croppedWidth = maxX - minX + 1;
             int croppedHeight = maxY - minY + 1;
 
-            logger.info(String.format(
-                    "Detected terrain: %dx%d at (%d,%d)",
-                    croppedWidth, croppedHeight, minX, minY));
+//            logger.info(String.format("Detected terrain: %dx%d at (%d,%d)", croppedWidth, croppedHeight, minX, minY));
 
             // Extract the detected region
             java.awt.image.BufferedImage croppedImage =
@@ -385,7 +382,7 @@ public class TileTextureCapturer {
             g2d.drawImage(croppedImage, offset, offset, targetSize, targetSize, null);
             g2d.dispose();
 
-            logger.info("Scaled to fill 512×512");
+//            logger.info("Scaled to fill 512×512");
             return result;
 
         } catch (Exception e) {
@@ -432,9 +429,7 @@ public class TileTextureCapturer {
             boolean success = javax.imageio.ImageIO.write(croppedImage, "PNG", outputFile);
 
             if (success) {
-                logger.info(String.format(
-                        "Saved cropped sub-tile: %s (%d bytes)",
-                        outputFile.getAbsolutePath(), outputFile.length()));
+//                logger.info(String.format("Saved cropped sub-tile: %s (%d bytes)", outputFile.getAbsolutePath(), outputFile.length()));
             } else {
                 logger.warning("ImageIO.write returned false for " + subTileId);
             }
