@@ -155,10 +155,9 @@ public class TileTextureCapturer {
         Spatial clonedSpatial = null;
 
         try {
-            // Update geometric state of original
+            // Update original spatial to get valid bounds
             spatial.updateGeometricState();
 
-            // Get bounds from original (not clone yet)
             BoundingBox parentBounds = (BoundingBox) spatial.getWorldBound();
             if (parentBounds == null) {
                 logger.warning("Spatial has no valid bounds: " + subTileId);
@@ -166,44 +165,24 @@ public class TileTextureCapturer {
             }
 
             Vector3f parentCenter = parentBounds.getCenter();
-            Vector3f parentExtent = parentBounds.getExtent(new Vector3f());
+            Vector3f parentExtent = new Vector3f(parentBounds.getExtent(new Vector3f()));
 
-            // FIX: Each subtile is exactly half of the base tile in both dimensions
+            // Calculate sub-tile extents
             float subTileExtentX = parentExtent.x / 2.0f;
             float subTileExtentZ = parentExtent.z / 2.0f;
 
-            // Calculate sub-tile center based on which quadrant we're in
-            // subX=0: left half, subX=1: right half
-            // subZ=0: front half (positive Z), subZ=1: back half (negative Z)
-            // JME coordinate system: Z increases going "north" (away from camera)
+            // Calculate sub-tile center (account for coordinate system)
+            float subTileCenterX = parentCenter.x + (subX == 0 ? -subTileExtentX : subTileExtentX);
+            float subTileCenterZ = parentCenter.z + (subZ == 0 ? -subTileExtentZ : subTileExtentZ);
 
-            float subTileCenterX = parentCenter.x - parentExtent.x + (subX * parentExtent.x) + subTileExtentX;
-            float subTileCenterZ = parentCenter.z - parentExtent.z + (subZ * parentExtent.z) + subTileExtentZ;
+            Vector3f subTileCenter = new Vector3f(subTileCenterX, parentCenter.y, subTileCenterZ);
+            Vector3f subTileExtent = new Vector3f(subTileExtentX, parentExtent.y, subTileExtentZ);
 
-            Vector3f subTileCenter = new Vector3f(
-                    subTileCenterX,
-                    parentCenter.y,
-                    subTileCenterZ
-            );
-
-            Vector3f subTileExtent = new Vector3f(
-                    subTileExtentX,
-                    parentExtent.y,
-                    subTileExtentZ
-            );
-
-            logger.info(String.format(
-                    "Sub-tile [%d,%d] %s: center=(%.1f, %.1f, %.1f), extent=(%.1f, %.1f, %.1f)",
-                    subX, subZ, subTileId,
-                    subTileCenter.x, subTileCenter.y, subTileCenter.z,
-                    subTileExtent.x, subTileExtent.y, subTileExtent.z
-            ));
-
-            // Clone the spatial for isolation
+            // Clone for isolation (does NOT affect original)
             clonedSpatial = spatial.clone();
             clonedSpatial.updateGeometricState();
 
-            // Create isolated scene with CLONE, not original
+            // Create isolated scene
             isolatedScene = new Node("IsolatedSubTileScene_" + subTileId);
             isolatedScene.attachChild(clonedSpatial);
 
@@ -217,11 +196,10 @@ public class TileTextureCapturer {
             ambient.setColor(ColorRGBA.White.mult(0.6f));
             isolatedScene.addLight(ambient);
 
-            // Update isolated scene
             isolatedScene.updateLogicalState(0.016f);
             isolatedScene.updateGeometricState();
 
-            // Create camera for sub-tile with correct frustum bounds
+            // Create camera (ISOLATED - does not affect main game camera)
             Camera subTileCam = createCameraForSubTile(subTileCenter, subTileExtent, subX, subZ);
 
             // Create framebuffer
@@ -233,17 +211,18 @@ public class TileTextureCapturer {
             fb.setDepthBuffer(Image.Format.Depth);
             fb.addColorTexture(offscreenTexture);
 
-            // Create viewport
-            offscreenView = app.getRenderManager().createMainView("SubTileView_" + subTileId, subTileCam);
+            // Create ISOLATED viewport (crucial: use a unique name, attach to cloned scene ONLY)
+            offscreenView = app.getRenderManager().createMainView("CaptureViewPort_" + subTileId, subTileCam);
             offscreenView.setClearFlags(true, true, true);
             offscreenView.setBackgroundColor(new ColorRGBA(0.15f, 0.15f, 0.15f, 1.0f));
             offscreenView.attachScene(isolatedScene);
             offscreenView.setOutputFrameBuffer(fb);
 
-            // Render
+            // CRITICAL: Render to offscreen buffer ONLY, do NOT call app.getRenderManager().render()
+            // This ensures the viewport doesn't interfere with main game rendering
             app.getRenderManager().renderViewPort(offscreenView, 0.016f);
 
-            // Read and save
+            // Read framebuffer
             ByteBuffer byteBuffer = BufferUtils.createByteBuffer(SUBTILE_RESOLUTION * SUBTILE_RESOLUTION * 4);
             app.getRenderManager().getRenderer().readFrameBuffer(fb, byteBuffer);
 
@@ -253,12 +232,13 @@ public class TileTextureCapturer {
             offscreenTexture.setImage(image);
             gameLogicCore.getTextureCache().storeTexture(subTileId, offscreenTexture);
 
-            logger.info("✓ Successfully captured sub-tile: " + subTileId);
+            logger.info("Successfully captured sub-tile: " + subTileId);
 
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Failed to capture sub-tile: " + subTileId, e);
+            logger.log(Level.SEVERE, "Failed to capture sub-tile " + subTileId, e);
+
         } finally {
-            // Cleanup
+            // CLEANUP: Remove viewport IMMEDIATELY to prevent jitter
             if (offscreenView != null) {
                 app.getRenderManager().removeMainView(offscreenView);
             }
@@ -268,8 +248,10 @@ public class TileTextureCapturer {
             if (isolatedScene != null) {
                 isolatedScene.detachAllChildren();
             }
+            // clonedSpatial will be garbage collected with isolatedScene
         }
     }
+
 
     /**
      * FIXED: Camera frustum bounds for orthographic projection
@@ -279,36 +261,25 @@ public class TileTextureCapturer {
      * - top/bottom bounds define Z-axis coverage (note: top=positive Z, bottom=negative Z)
      * - We offset these bounds based on which quadrant we're capturing
      */
-    private Camera createCameraForSubTile(Vector3f subTileCenter, Vector3f subTileExtent,
-                                          int subX, int subZ) {
+    private Camera createCameraForSubTile(Vector3f subTileCenter, Vector3f subTileExtent, int subX, int subZ) {
         Camera cam = new Camera(SUBTILE_RESOLUTION, SUBTILE_RESOLUTION);
 
         // Position camera above the sub-tile
-        float height = subTileCenter.y + Math.max(subTileExtent.y,
-                Math.max(subTileExtent.x, subTileExtent.z) * 2.0f);
+        float height = subTileCenter.y + Math.max(Math.max(subTileExtent.x, subTileExtent.z), subTileExtent.y) * 2.0f;
         cam.setLocation(new Vector3f(subTileCenter.x, height, subTileCenter.z));
         cam.lookAt(subTileCenter, Vector3f.UNIT_Y);
 
         // Orthographic projection
         cam.setParallelProjection(true);
 
-        // FIX: Set frustum to match the sub-tile's exact boundaries
-        // Each subtile is 256x256 world units (assuming base tile is 512x512)
-        float halfWidth = subTileExtent.x;  // 128 for 256 width subtile
-        float halfDepth = subTileExtent.z;  // 128 for 256 depth subtile
+        // Set frustum bounds
+        float halfWidth = subTileExtent.x;
+        float halfDepth = subTileExtent.z;
 
-        // For orthographic projection looking straight down:
-        // - left: -halfWidth (west boundary)
-        // - right: +halfWidth (east boundary)
-        // - top: +halfDepth (north boundary)
-        // - bottom: -halfDepth (south boundary)
-
-        // These values center the camera on the subtile
         float left = -halfWidth;
         float right = halfWidth;
         float top = halfDepth;
         float bottom = -halfDepth;
-
         float near = 0.1f;
         float far = height * 2.0f + 1000.0f;
 
