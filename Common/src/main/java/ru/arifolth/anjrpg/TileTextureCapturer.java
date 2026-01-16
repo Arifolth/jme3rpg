@@ -20,8 +20,10 @@ package ru.arifolth.anjrpg;
 
 import com.jme3.app.Application;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
+import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
@@ -35,6 +37,8 @@ import com.jme3.light.DirectionalLight;
 import com.jme3.light.AmbientLight;
 import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
 import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
+import ru.arifolth.anjrpg.interfaces.camera.DeathAwareCameraInterface;
+import ru.arifolth.anjrpg.interfaces.camera.FollowCameraInterface;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,10 +58,11 @@ import java.util.logging.Logger;
 public class TileTextureCapturer {
     private static final Logger logger = Logger.getLogger(TileTextureCapturer.class.getName());
     private static final int SUBTILE_RESOLUTION = 512;
-    private static final int CAPTURE_DELAY_FRAMES = 10;
+    private static final int CAPTURE_DELAY_FRAMES = 1;
 
     private final Application app;
     private final GameLogicCoreInterface gameLogicCore;
+    private final FollowCameraInterface camera;
 
     private static class PendingCapture {
         Spatial spatial;
@@ -77,10 +82,12 @@ public class TileTextureCapturer {
     public TileTextureCapturer(Application app) {
         this.app = app;
         this.gameLogicCore = ((ANJRpgInterface) app).getGameLogicCore();
-        ensureWorldMapDirectory();
+        camera = gameLogicCore.getFreeFollowCamera();
+
+        mkWorldMapDir();
     }
 
-    private void ensureWorldMapDirectory() {
+    private void mkWorldMapDir() {
         try {
             Files.createDirectories(Paths.get("./WorldMap"));
         } catch (IOException e) {
@@ -125,8 +132,12 @@ public class TileTextureCapturer {
 
                 for (int subX = 0; subX < 2; subX++) {
                     for (int subZ = 0; subZ < 2; subZ++) {
-                        String subTileId = String.format("tile_%d_%d_sub_%d_%d", baseX, baseZ, subX, subZ);
-                        captureSingleSubTile(pending.spatial, baseX, baseZ, subX, subZ, subTileId);
+                        int finalSubZ = subZ;
+                        int finalSubX = subX;
+                        String subTileId = String.format("tile_%d_%d_sub_%d_%d", baseX, baseZ, finalSubX, finalSubZ);
+                        app.enqueue(() -> {
+                            captureSingleSubTile(pending.spatial, baseX, baseZ, finalSubX, finalSubZ, subTileId);  // Safe for GL
+                        });
                     }
                 }
 
@@ -153,10 +164,9 @@ public class TileTextureCapturer {
         Node isolatedScene = null;
         Spatial clonedSpatial = null;
 
+        RenderManager renderManager = app.getRenderManager();
+        camera.setEnabled(false);
         try {
-            // Update original spatial to get valid bounds
-            spatial.updateGeometricState();
-
             BoundingBox parentBounds = (BoundingBox) spatial.getWorldBound();
             if (parentBounds == null) {
                 logger.warning("Spatial has no valid bounds: " + subTileId);
@@ -178,7 +188,8 @@ public class TileTextureCapturer {
             Vector3f subTileExtent = new Vector3f(subTileExtentX, parentExtent.y, subTileExtentZ);
 
             // Clone for isolation (does NOT affect original)
-            clonedSpatial = spatial.clone();
+            clonedSpatial = spatial.clone(false);
+            clonedSpatial.removeFromParent();
             clonedSpatial.updateGeometricState();
 
             // Create isolated scene
@@ -198,7 +209,6 @@ public class TileTextureCapturer {
             isolatedScene.updateLogicalState(0.016f);
             isolatedScene.updateGeometricState();
 
-            // Create camera (ISOLATED - does not affect main game camera)
             Camera subTileCam = createCameraForSubTile(subTileCenter, subTileExtent, subX, subZ);
 
             // Create framebuffer
@@ -210,20 +220,23 @@ public class TileTextureCapturer {
             fb.setDepthBuffer(Image.Format.Depth);
             fb.addColorTexture(offscreenTexture);
 
-            // Create ISOLATED viewport (crucial: use a unique name, attach to cloned scene ONLY)
-            offscreenView = app.getRenderManager().createMainView("CaptureViewPort_" + subTileId, subTileCam);
+            offscreenView = renderManager.createMainView("CaptureViewPort_" + subTileId, subTileCam);
             offscreenView.setClearFlags(true, true, true);
             offscreenView.setBackgroundColor(new ColorRGBA(0.15f, 0.15f, 0.15f, 1.0f));
             offscreenView.attachScene(isolatedScene);
             offscreenView.setOutputFrameBuffer(fb);
 
-            // CRITICAL: Render to offscreen buffer ONLY, do NOT call app.getRenderManager().render()
-            // This ensures the viewport doesn't interfere with main game rendering
-            app.getRenderManager().renderViewPort(offscreenView, 0.016f);
+            //TODO:add water
+            try {
+                renderManager.renderViewPort(offscreenView, 0.016f);
+            } finally {
+                // Remove the viewport
+                renderManager.removeMainView(offscreenView);
+            }
 
             // Read framebuffer
             ByteBuffer byteBuffer = BufferUtils.createByteBuffer(SUBTILE_RESOLUTION * SUBTILE_RESOLUTION * 4);
-            app.getRenderManager().getRenderer().readFrameBuffer(fb, byteBuffer);
+            renderManager.getRenderer().readFrameBuffer(fb, byteBuffer);
 
             Image image = new Image(Image.Format.RGBA8, SUBTILE_RESOLUTION, SUBTILE_RESOLUTION, byteBuffer);
             saveImageToFile(image, subTileId);
@@ -237,10 +250,8 @@ public class TileTextureCapturer {
             logger.log(Level.SEVERE, "Failed to capture sub-tile " + subTileId, e);
 
         } finally {
-            // CLEANUP: Remove viewport IMMEDIATELY to prevent jitter
-            if (offscreenView != null) {
-                app.getRenderManager().removeMainView(offscreenView);
-            }
+            camera.setEnabled(true);
+
             if (fb != null) {
                 fb.dispose();
             }
