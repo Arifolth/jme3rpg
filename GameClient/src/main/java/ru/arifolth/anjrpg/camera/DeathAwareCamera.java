@@ -105,9 +105,9 @@ public class DeathAwareCamera extends EnhancedFreeFollowCamera implements DeathA
         }
     }
     private void updateNormalCamera(float tpf) {
-        // camera update logic here
         Vector3f targetPos = target.getWorldTranslation().add(0, offset.y, 0);
 
+        // ... your orbit calculation unchanged ...
         float horizontalDistance = offset.z * FastMath.cos(currentPitch);
         float verticalDistance = offset.z * FastMath.sin(currentPitch);
         Vector3f orbitOffset = new Vector3f(
@@ -115,16 +115,31 @@ public class DeathAwareCamera extends EnhancedFreeFollowCamera implements DeathA
                 verticalDistance,
                 horizontalDistance * FastMath.cos(currentYaw)
         );
-
         Vector3f desiredPos = targetPos.add(orbitOffset);
         Vector3f lookDir = targetPos.subtract(desiredPos).normalize();
         Vector3f right = lookDir.cross(worldUp).normalize();
         desiredPos = desiredPos.add(right.mult(offset.x));
 
-        Vector3f currentPos = cam.getLocation();
-        Vector3f newPos = currentPos.interpolateLocal(desiredPos, tpf * 5.0f);
-        cam.setLocation(newPos);
+        // CRITICAL FIX 1: CLAMP desiredPos to max distance (20 units)
+        float targetDistance = targetPos.distance(desiredPos);
+        if (targetDistance > 20.0f) {
+            Vector3f directionToTarget = targetPos.subtract(desiredPos).normalizeLocal();
+            desiredPos = targetPos.subtract(directionToTarget.mult(20.0f));
+        }
 
+        // CRITICAL FIX 2: Normalize interpolation alpha to prevent overshoot
+        float alpha = Math.min(1.0f, tpf * 5.0f); // Cap at 1.0, no overshoot possible
+
+        // EMERGENCY RESET during extreme lag escape
+        Vector3f currentPos = cam.getLocation();
+        if (currentPos.distance(targetPos) > 40.0f) { // Double max distance
+            cam.setLocation(desiredPos);
+            cam.lookAt(targetPos, worldUp);
+            return;
+        }
+
+        Vector3f newPos = currentPos.interpolateLocal(desiredPos, alpha);
+        cam.setLocation(newPos);
         cam.lookAt(targetPos, worldUp);
     }
 
