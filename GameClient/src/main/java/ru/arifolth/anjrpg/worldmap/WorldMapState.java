@@ -33,6 +33,8 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.scene.shape.Quad;
 import com.jme3.scene.shape.Line;
 import com.jme3.texture.Texture;
+import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
+import ru.arifolth.anjrpg.interfaces.FractalTerrainGridInterface;
 import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
 
 import java.util.logging.Logger;
@@ -207,6 +209,8 @@ public class WorldMapState extends BaseAppState implements ActionListener {
         worldMapNode.setCullHint(Node.CullHint.Never);
         isMapVisible = true;
         LOGGER.info("World map shown");
+
+        ((ANJRpgInterface) getApplication()).getTerrainManager().processPendingTileCaptures();
     }
 
     public void hideMap() {

@@ -287,11 +287,15 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
 
     @Override
     public void update() {
-        if (tileCapturer != null) {
-            tileCapturer.processPendingCaptures();  // Process one queued tile per frame
-        }
     }
 
+    @Override
+    public void processPendingTileCaptures() {
+        if (tileCapturer != null) {
+            tileCapturer.processPendingTileCaptures();  // Process one queued tile per frame
+        }
+    }
+    
     @Override
     public int getRigidBodiesSize() {
         return rigidBodiesSize;

@@ -19,4 +19,5 @@
 package ru.arifolth.anjrpg.interfaces;
 
 public interface FractalTerrainGridInterface extends TerrainInterface  {
+    void processPendingTileCaptures();
 }

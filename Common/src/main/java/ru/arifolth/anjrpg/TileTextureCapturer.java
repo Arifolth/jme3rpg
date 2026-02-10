@@ -20,7 +20,6 @@ package ru.arifolth.anjrpg;
 
 import com.jme3.app.Application;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
@@ -37,7 +36,6 @@ import com.jme3.light.DirectionalLight;
 import com.jme3.light.AmbientLight;
 import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
 import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
-import ru.arifolth.anjrpg.interfaces.camera.DeathAwareCameraInterface;
 import ru.arifolth.anjrpg.interfaces.camera.FollowCameraInterface;
 
 import java.io.File;
@@ -56,7 +54,7 @@ import java.util.logging.Logger;
  * FIXED VERSION: Correct camera frustum bounds for each subtile quadrant
  */
 public class TileTextureCapturer {
-    private static final Logger logger = Logger.getLogger(TileTextureCapturer.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(TileTextureCapturer.class.getName());
     private static final int SUBTILE_RESOLUTION = 512;
     private static final int CAPTURE_DELAY_FRAMES = 1;
 
@@ -91,38 +89,32 @@ public class TileTextureCapturer {
         try {
             Files.createDirectories(Paths.get("./WorldMap"));
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "Failed to create WorldMap directory", e);
+            LOGGER.log(Level.SEVERE, "Failed to create WorldMap directory", e);
         }
     }
 
     public void captureTileTextures(Spatial spatial, String baseTileId) {
         if (spatial == null || baseTileId == null || baseTileId.isEmpty()) {
-            logger.warning("Invalid spatial or baseTileId for texture capture");
+            LOGGER.warning("Invalid spatial or baseTileId for texture capture");
             return;
         }
 
         pendingCaptures.offer(new PendingCapture(spatial, baseTileId));
-        logger.info("Queued tile for deferred capture: " + baseTileId);
+        LOGGER.info("Queued tile for deferred capture: " + baseTileId);
     }
 
-    public void processPendingCaptures() {
+    public void processPendingTileCaptures() {
         if (pendingCaptures.isEmpty()) {
             return;
         }
+        LOGGER.info("Process Pending Tile Captures STARTED");
+        LOGGER.info("Tiles in cache: " + pendingCaptures.size());
 
-        PendingCapture pending = pendingCaptures.peek();
-        if (pending == null) {
-            return;
-        }
-
-        pending.framesRemaining--;
-
-        if (pending.framesRemaining <= 0) {
-            pendingCaptures.poll();
-
+        PendingCapture pending = pendingCaptures.poll();
+        while(pending != null) {
             String[] parts = pending.baseTileId.replace("tile_", "").split("_");
             if (parts.length != 2) {
-                logger.warning("Invalid base tile ID format: " + pending.baseTileId);
+                LOGGER.warning("Invalid base tile ID format: " + pending.baseTileId);
                 return;
             }
 
@@ -131,22 +123,25 @@ public class TileTextureCapturer {
                 int baseZ = Integer.parseInt(parts[1]);
 
                 for (int subX = 0; subX < 2; subX++) {
+                    Thread.yield();
                     for (int subZ = 0; subZ < 2; subZ++) {
                         int finalSubZ = subZ;
                         int finalSubX = subX;
                         String subTileId = String.format("tile_%d_%d_sub_%d_%d", baseX, baseZ, finalSubX, finalSubZ);
-                        app.enqueue(() -> {
-                            captureSingleSubTile(pending.spatial, baseX, baseZ, finalSubX, finalSubZ, subTileId);  // Safe for GL
-                        });
+                        captureSingleSubTile(pending.spatial, baseX, baseZ, finalSubX, finalSubZ, subTileId);  // Safe for GL
                     }
                 }
 
 //                logger.info("✓ Captured 4 sub-tiles for base tile: " + pending.baseTileId);
 
             } catch (NumberFormatException e) {
-                logger.log(Level.SEVERE, "Failed to parse tile coordinates: " + pending.baseTileId, e);
+                LOGGER.log(Level.SEVERE, "Failed to parse tile coordinates: " + pending.baseTileId, e);
+            } finally {
+                pending = pendingCaptures.poll();
             }
         }
+
+        LOGGER.info("Process Pending Tile Captures FINISHED");
     }
 
     /**
@@ -169,7 +164,7 @@ public class TileTextureCapturer {
         try {
             BoundingBox parentBounds = (BoundingBox) spatial.getWorldBound();
             if (parentBounds == null) {
-                logger.warning("Spatial has no valid bounds: " + subTileId);
+                LOGGER.warning("Spatial has no valid bounds: " + subTileId);
                 return;
             }
 
@@ -244,10 +239,10 @@ public class TileTextureCapturer {
             offscreenTexture.setImage(image);
             gameLogicCore.getTextureCache().storeTexture(subTileId, offscreenTexture);
 
-//            logger.info("Successfully captured sub-tile: " + subTileId);
+            LOGGER.info("Successfully captured sub-tile: " + subTileId);
 
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Failed to capture sub-tile " + subTileId, e);
+            LOGGER.log(Level.SEVERE, "Failed to capture sub-tile " + subTileId, e);
 
         } finally {
             camera.setEnabled(true);
@@ -258,7 +253,6 @@ public class TileTextureCapturer {
             if (isolatedScene != null) {
                 isolatedScene.detachAllChildren();
             }
-            // clonedSpatial will be garbage collected with isolatedScene
         }
     }
 
@@ -352,7 +346,7 @@ public class TileTextureCapturer {
 
             // Validate
             if (minX > maxX || minY > maxY) {
-                logger.warning("No terrain content detected");
+                LOGGER.warning("No terrain content detected");
                 return bufferedImage;
             }
 
@@ -397,7 +391,7 @@ public class TileTextureCapturer {
             return result;
 
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Cropping failed", e);
+            LOGGER.log(Level.WARNING, "Cropping failed", e);
             // Fallback
             ByteBuffer buffer = jmeImage.getData(0);
             int width = jmeImage.getWidth();
@@ -442,11 +436,11 @@ public class TileTextureCapturer {
             if (success) {
 //                logger.info(String.format("Saved cropped sub-tile: %s (%d bytes)", outputFile.getAbsolutePath(), outputFile.length()));
             } else {
-                logger.warning("ImageIO.write returned false for " + subTileId);
+                LOGGER.warning("ImageIO.write returned false for " + subTileId);
             }
 
         } catch (java.io.IOException e) {
-            logger.log(Level.SEVERE, "Failed to save image for sub-tile " + subTileId, e);
+            LOGGER.log(Level.SEVERE, "Failed to save image for sub-tile " + subTileId, e);
         }
     }
 

@@ -20,7 +20,6 @@ package ru.arifolth.terrain;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
-import com.jme3.scene.Node;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.vegetation.BushTypeEnum;
@@ -33,7 +32,7 @@ import java.util.logging.Logger;
 
 public class TerrainManager implements TerrainManagerInterface {
     final private static Logger LOGGER = Logger.getLogger(TerrainManager.class.getName());
-    private TerrainInterface terrainBuilder;
+    private FractalTerrainGridInterface terrainBuilder;
 
     private TerrainQuad terrain;
     private final AssetManager assetManager;
@@ -78,8 +77,12 @@ public class TerrainManager implements TerrainManagerInterface {
         return terrainBuilder.getRigidBodiesSize();
     }
 
-
     public void update(float tpf) {
         terrainBuilder.update();
+    }
+
+    @Override
+    public void processPendingTileCaptures() {
+        terrainBuilder.processPendingTileCaptures(); //delegate map tiles processing
     }
 }
