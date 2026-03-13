@@ -422,20 +422,19 @@ public class TileTextureCapturer {
 
     private void saveImageToFile(Image image, String subTileId) {
         try {
-            // Apply intelligent cropping
-            // Background color from your offscreenView.setBackgroundColor: 0.15, 0.15, 0.15
-            int bgColorRGB = 0x262626; // 0.15 * 255 ≈ 38 = 0x26
-            int tolerance = 25; // Allow slight variation
+            int bgColorRGB = 0x262626;
+            int tolerance = 25;
 
             java.awt.image.BufferedImage croppedImage =
                     cropTerrainContent(image, bgColorRGB, tolerance);
 
-            File outputFile = new File("./WorldMap/" + subTileId + ".png");
-            boolean success = javax.imageio.ImageIO.write(croppedImage, "PNG", outputFile);
+            // --- NEW: Apply horizontal flip to match assembler's expectation ---
+            java.awt.image.BufferedImage flippedImage = flipHorizontal(croppedImage);
 
-            if (success) {
-//                logger.info(String.format("Saved cropped sub-tile: %s (%d bytes)", outputFile.getAbsolutePath(), outputFile.length()));
-            } else {
+            File outputFile = new File("./WorldMap/" + subTileId + ".png");
+            boolean success = javax.imageio.ImageIO.write(flippedImage, "PNG", outputFile);
+
+            if (!success) {
                 LOGGER.warning("ImageIO.write returned false for " + subTileId);
             }
 
@@ -444,4 +443,16 @@ public class TileTextureCapturer {
         }
     }
 
+    /**
+     * Flips a BufferedImage horizontally.
+     */
+    private java.awt.image.BufferedImage flipHorizontal(java.awt.image.BufferedImage src) {
+        int w = src.getWidth();
+        int h = src.getHeight();
+        java.awt.image.BufferedImage flipped = new java.awt.image.BufferedImage(w, h, src.getType());
+        java.awt.Graphics2D g2d = flipped.createGraphics();
+        g2d.drawImage(src, 0, 0, w, h, w, 0, 0, h, null); // Draw mirrored
+        g2d.dispose();
+        return flipped;
+    }
 }
