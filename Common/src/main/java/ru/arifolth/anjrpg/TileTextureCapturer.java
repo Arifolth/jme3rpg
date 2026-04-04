@@ -442,8 +442,8 @@ public class TileTextureCapturer {
             int height = flippedImage.getHeight();
             ByteBuffer buffer = com.jme3.util.BufferUtils.createByteBuffer(width * height * 4);
 
-            // JME3 expects Y=0 to be the bottom row, so we read AWT from bottom to top
-            for (int y = height - 1; y >= 0; y--) {
+            // Read AWT top-to-bottom to invert the vertical flip
+            for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
                     int argb = flippedImage.getRGB(x, y);
                     buffer.put((byte) ((argb >> 16) & 0xFF)); // R
