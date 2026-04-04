@@ -234,10 +234,14 @@ public class TileTextureCapturer {
             renderManager.getRenderer().readFrameBuffer(fb, byteBuffer);
 
             Image image = new Image(Image.Format.RGBA8, SUBTILE_RESOLUTION, SUBTILE_RESOLUTION, byteBuffer);
-            saveImageToFile(image, subTileId);
+            Texture2D perfectTexture = saveImageToFile(image, subTileId);
 
-            offscreenTexture.setImage(image);
-            gameLogicCore.getTextureCache().storeTexture(subTileId, offscreenTexture);
+            if (perfectTexture != null) {
+                gameLogicCore.getTextureCache().storeTexture(subTileId, perfectTexture);
+            } else {
+                // Fallback if writing failed
+                gameLogicCore.getTextureCache().storeTexture(subTileId, offscreenTexture);
+            }
 
             LOGGER.info("Successfully captured sub-tile: " + subTileId);
 
@@ -420,26 +424,41 @@ public class TileTextureCapturer {
         return dr * dr + dg * dg + db * db;
     }
 
-    private void saveImageToFile(Image image, String subTileId) {
+    private Texture2D saveImageToFile(Image image, String subTileId) {
         try {
             int bgColorRGB = 0x262626;
             int tolerance = 25;
-
-            java.awt.image.BufferedImage croppedImage =
-                    cropTerrainContent(image, bgColorRGB, tolerance);
-
-            // --- NEW: Apply horizontal flip to match assembler's expectation ---
+            java.awt.image.BufferedImage croppedImage = cropTerrainContent(image, bgColorRGB, tolerance);
             java.awt.image.BufferedImage flippedImage = flipHorizontal(croppedImage);
 
             File outputFile = new File("./WorldMap/" + subTileId + ".png");
             boolean success = javax.imageio.ImageIO.write(flippedImage, "PNG", outputFile);
-
             if (!success) {
                 LOGGER.warning("ImageIO.write returned false for " + subTileId);
             }
 
+            // --- NEW: Convert your perfect BufferedImage back to a JME3 Texture ---
+            int width = flippedImage.getWidth();
+            int height = flippedImage.getHeight();
+            ByteBuffer buffer = com.jme3.util.BufferUtils.createByteBuffer(width * height * 4);
+
+            // JME3 expects Y=0 to be the bottom row, so we read AWT from bottom to top
+            for (int y = height - 1; y >= 0; y--) {
+                for (int x = 0; x < width; x++) {
+                    int argb = flippedImage.getRGB(x, y);
+                    buffer.put((byte) ((argb >> 16) & 0xFF)); // R
+                    buffer.put((byte) ((argb >> 8) & 0xFF));  // G
+                    buffer.put((byte) (argb & 0xFF));         // B
+                    buffer.put((byte) ((argb >> 24) & 0xFF)); // A
+                }
+            }
+            buffer.flip();
+            Image finalJmeImage = new Image(Image.Format.RGBA8, width, height, buffer);
+            return new Texture2D(finalJmeImage);
+
         } catch (java.io.IOException e) {
-            LOGGER.log(Level.SEVERE, "Failed to save image for sub-tile " + subTileId, e);
+            LOGGER.log(java.util.logging.Level.SEVERE, "Failed to save image for sub-tile " + subTileId, e);
+            return null;
         }
     }
 

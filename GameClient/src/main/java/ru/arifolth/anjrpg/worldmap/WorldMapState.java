@@ -1,21 +1,3 @@
-/**
- *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2025 Alexander Nilov
- *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
- *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 package ru.arifolth.anjrpg.worldmap;
 
 import com.jme3.app.Application;
@@ -24,40 +6,49 @@ import com.jme3.app.state.BaseAppState;
 import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
+import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
-import com.jme3.math.Vector3f;
-import com.jme3.renderer.Camera;
-import com.jme3.scene.*;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.scene.*;
 import com.jme3.scene.shape.Quad;
-import com.jme3.scene.shape.Line;
 import com.jme3.texture.Texture;
 import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
-import ru.arifolth.anjrpg.interfaces.FractalTerrainGridInterface;
 import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
 
+import java.util.Optional;
 import java.util.logging.Logger;
 
-public class WorldMapState extends BaseAppState implements ActionListener {
+public class WorldMapState extends BaseAppState implements ActionListener, AnalogListener {
     private static final Logger LOGGER = Logger.getLogger(WorldMapState.class.getName());
 
     private static final String TOGGLE_MAP = "TOGGLE_MAP";
     private static final String ESCAPE_MAP = "ESCAPE_MAP";
+    private static final String PAN_UP = "PAN_UP";
+    private static final String PAN_DOWN = "PAN_DOWN";
+    private static final String PAN_LEFT = "PAN_LEFT";
+    private static final String PAN_RIGHT = "PAN_RIGHT";
 
     private final GameLogicCoreInterface gameLogicCore;
     private InputManager inputManager;
 
     private Node worldMapNode;
-    private Geometry mapBackground;
+    private Node mapTilesNode; // Holds the dynamic subquad meshes
     private Geometry mapBorder;
+
     private float mapWidth;
     private float mapHeight;
     private float screenWidth;
     private float screenHeight;
+    private float mapMargin;
     private boolean isMapVisible = false;
 
-    private float mapMargin;
+    // Viewport and Panning State
+    private float panX = 0f; // in subquad units
+    private float panY = 0f; // in subquad units
+    private final float PAN_SPEED = 4.0f; // Subquads per second
+    private float subquadWidth;
+    private float subquadHeight;
 
     public WorldMapState(GameLogicCoreInterface gameLogicCore) {
         this.gameLogicCore = gameLogicCore;
@@ -67,182 +58,162 @@ public class WorldMapState extends BaseAppState implements ActionListener {
     protected void initialize(Application app) {
         this.inputManager = app.getInputManager();
 
-        // Setup input mappings
+        // 1. Setup Input Mappings
         inputManager.addMapping(TOGGLE_MAP, new KeyTrigger(KeyInput.KEY_M));
-        inputManager.addListener(this, TOGGLE_MAP);
         inputManager.addMapping(ESCAPE_MAP, new KeyTrigger(KeyInput.KEY_ESCAPE));
-        inputManager.addListener(this, ESCAPE_MAP);
+        inputManager.addMapping(PAN_UP, new KeyTrigger(KeyInput.KEY_W));
+        inputManager.addMapping(PAN_DOWN, new KeyTrigger(KeyInput.KEY_S));
+        inputManager.addMapping(PAN_LEFT, new KeyTrigger(KeyInput.KEY_A));
+        inputManager.addMapping(PAN_RIGHT, new KeyTrigger(KeyInput.KEY_D));
+
+        inputManager.addListener(this, TOGGLE_MAP, ESCAPE_MAP);
+        inputManager.addListener(this, PAN_UP, PAN_DOWN, PAN_LEFT, PAN_RIGHT);
 
         initMapDimensions();
 
-        // Container covers the full screen to hold the full-screen border
         this.worldMapNode = new Node("WorldMapNode");
         this.worldMapNode.setLocalTranslation(0, 0, 5);
 
-        // Create map elements following the requested Z-order
-        createBorder();     // Z=0, Full Screen
-        createBackground(); // Z=1, centered with uniform margins
-        addPlaceholderGrid(); // Z=2, On top of background
+        createBorder();
 
-        // Initially hidden
+        // 2. Container for our 16 dynamic subquad meshes
+        this.mapTilesNode = new Node("MapTilesNode");
+        // Center the tiles area within the border
+        this.mapTilesNode.setLocalTranslation(mapMargin, mapMargin, 1);
+        this.worldMapNode.attachChild(mapTilesNode);
+
         worldMapNode.setCullHint(Node.CullHint.Always);
-
-        LOGGER.info("WorldMapState initialized");
     }
 
     private void initMapDimensions() {
-        Camera cam = getApplication().getCamera();
-        screenWidth = cam.getWidth();
-        screenHeight = cam.getHeight();
+        screenWidth = getApplication().getCamera().getWidth();
+        screenHeight = getApplication().getCamera().getHeight();
 
-        // Use a fixed uniform margin based on screen height to ensure border size
         mapMargin = screenHeight * 0.011f;
-
         mapWidth = screenWidth - (mapMargin * 2);
         mapHeight = screenHeight - (mapMargin * 2);
+
+        // We want exactly 4x4 subquads visible to occupy the whole screen container
+        subquadWidth = mapWidth / 4f;
+        subquadHeight = mapHeight / 4f;
     }
 
     private void createBorder() {
+        // Keeps your existing border setup untouched
+        Quad borderQuad = new Quad(screenWidth, screenHeight);
+        mapBorder = new Geometry("MapBorder", borderQuad);
+        Material borderMat = new Material(getApplication().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
         try {
-            // Border is 100% of screen size
-            Quad borderQuad = new Quad(screenWidth, screenHeight);
-            mapBorder = new Geometry("MapBorder", borderQuad);
-            Material borderMat = new Material(getApplication().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
             Texture borderTex = getApplication().getAssetManager().loadTexture("Textures/Compass/compass_brass_wheel3.png");
             borderMat.setTexture("ColorMap", borderTex);
-            mapBorder.setMaterial(borderMat);
-
-            // Z=0: Lowest overlay element
-            mapBorder.setLocalTranslation(0, 0, 0);
-
-            worldMapNode.attachChild(mapBorder);
         } catch (Exception e) {
             LOGGER.warning("Could not load border texture: " + e.getMessage());
         }
+        mapBorder.setMaterial(borderMat);
+        mapBorder.setLocalTranslation(0, 0, 0);
+        worldMapNode.attachChild(mapBorder);
     }
 
-    private void createBackground() {
-        // Create background quad
-        Quad backgroundQuad = new Quad(mapWidth, mapHeight);
-        mapBackground = new Geometry("MapBackground", backgroundQuad);
+    private void renderVisibleTiles() {
+        mapTilesNode.detachAllChildren();
 
-        // Create material with gray color (0.2, 0.2, 0.2, 0.8)
-        Material backgroundMat = new Material(getApplication().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-        backgroundMat.setColor("Color", new ColorRGBA(0.2f, 0.2f, 0.2f, 0.8f));
-        mapBackground.setMaterial(backgroundMat);
+        int startSubX = (int) Math.floor(panX);
+        int startSubY = (int) Math.floor(panY);
 
-        // Z=1: Middle tier, on top of border
-        // Use uniform margins to center exactly
-        mapBackground.setLocalTranslation(mapMargin, mapMargin, 1);
+        float fractionalPanX = panX - startSubX;
+        float fractionalPanY = panY - startSubY;
 
-        worldMapNode.attachChild(mapBackground);
-    }
+        float offsetX = -fractionalPanX * subquadWidth;
+        float offsetY = -fractionalPanY * subquadHeight;
 
-    private void addPlaceholderGrid() {
-        // Add a simple grid to show where tiles will go
-        // Grid lines at Z=2 to be on top of background
+        TextureCache cache = (TextureCache) TextureCache.getInstance();
 
-        Material lineMat = new Material(getApplication().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-        lineMat.setColor("Color", new ColorRGBA(0.3f, 0.3f, 0.3f, 0.5f));
-        lineMat.getAdditionalRenderState().setLineWidth(1f);
+        // 5x5 grid
+        for (int row = -1; row <= 4; row++) {
+            for (int col = -1; col <= 4; col++) {
 
-        // Start drawing from the margin offset
-        float startX = mapMargin;
-        float startY = mapMargin;
+                int worldSubX = startSubX + col;
+                int worldSubY = startSubY + row;
 
-        // Example: Draw a 10x10 grid within the map area
-        int gridSize = 10;
-        float cellWidth = mapWidth / gridSize;
-        float cellHeight = mapHeight / gridSize;
+                // BITWISE SHIFT is the only safe way to map negatives in Java
+                int quadX = worldSubX >> 1;
+                int quadY = worldSubY >> 1;
 
-        Node placeholderGrid = new Node("PlaceholderGrid");
-        // Z=2 to ensure it's on top of background and border
-        placeholderGrid.setLocalTranslation(0, 0, 2);
-        worldMapNode.attachChild(placeholderGrid);
+                // AND operation is the only safe way to get positive remainders for negatives
+                int subX = worldSubX & 1;
+                int subY = worldSubY & 1;
 
-        for (int i = 0; i <= gridSize; i++) {
-            // Vertical lines
-            Geometry vertLine = createLine(
-                    startX + i * cellWidth, startY,
-                    startX + i * cellWidth, startY + mapHeight,
-                    lineMat
-            );
-            placeholderGrid.attachChild(vertLine);
+                String tileId = String.format("tile_%d_%d_sub_%d_%d", quadX, quadY, subX, subY);
 
-            // Horizontal lines
-            Geometry horizLine = createLine(
-                    startX, startY + i * cellHeight,
-                    startX + mapWidth, startY + i * cellHeight,
-                    lineMat
-            );
-            placeholderGrid.attachChild(horizLine);
+                Quad quadMesh = new Quad(subquadWidth, subquadHeight);
+                Geometry geom = new Geometry(tileId, quadMesh);
+                Material mat = new Material(getApplication().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+
+                if (cache.containsTexture(tileId)) {
+                    Texture texture = cache.getTexture(tileId).get();
+//                    texture.setWrap(Texture.WrapMode.Repeat);
+
+                    mat.setTexture("ColorMap", texture);
+                    mat.setColor("Color", ColorRGBA.White);
+                } else {
+                    boolean isEven = ((worldSubX + worldSubY) & 1) == 0;
+                    mat.setColor("Color", isEven ? new ColorRGBA(0.4f, 0.4f, 0.4f, 1f) : new ColorRGBA(0.25f, 0.25f, 0.25f, 1f));
+                }
+
+                geom.setMaterial(mat);
+
+                float drawX = offsetX + (col * subquadWidth);
+                float drawY = offsetY + (row * subquadHeight);
+                geom.setLocalTranslation(drawX, drawY, 0);
+
+                mapTilesNode.attachChild(geom);
+            }
         }
     }
 
-    private Geometry createLine(float x1, float y1, float x2, float y2, Material mat) {
-        // Simple line implementation for grid using Line mesh
-        Vector3f start = new Vector3f(x1, y1, 2);
-        Vector3f end = new Vector3f(x2, y2, 2);
+    @Override
+    public void onAnalog(String name, float value, float tpf) {
+        if (!isMapVisible) return;
 
-        Line lineMesh = new Line(start, end);
-        Geometry line = new Geometry("GridLine", lineMesh);
-        line.setMaterial(mat);
+        // 3. Smooth panning with W/A/S/D
+        boolean moved = false;
+        if (name.equals(PAN_UP)) { panY += PAN_SPEED * tpf; moved = true; }
+        if (name.equals(PAN_DOWN)) { panY -= PAN_SPEED * tpf; moved = true; }
+        if (name.equals(PAN_RIGHT)) { panX += PAN_SPEED * tpf; moved = true; }
+        if (name.equals(PAN_LEFT)) { panX -= PAN_SPEED * tpf; moved = true; }
 
-        return line;
+        if (moved) {
+            renderVisibleTiles(); // Re-render / translate immediately
+        }
     }
 
     public void toggleMap() {
         isMapVisible = !isMapVisible;
-
-        if (isMapVisible) {
-            showMap();
-        } else {
-            hideMap();
-        }
+        if (isMapVisible) showMap();
+        else hideMap();
     }
 
     public void showMap() {
         if (worldMapNode.getParent() == null) {
-            // Attach to GUI node for 2D overlay
             ((SimpleApplication) getApplication()).getGuiNode().attachChild(worldMapNode);
         }
         worldMapNode.setCullHint(Node.CullHint.Never);
         isMapVisible = true;
-        LOGGER.info("World map shown");
-
+        renderVisibleTiles(); // Initial render setup upon opening the map
         ((ANJRpgInterface) getApplication()).getTerrainManager().processPendingTileCaptures();
     }
 
     public void hideMap() {
         worldMapNode.setCullHint(Node.CullHint.Always);
         isMapVisible = false;
-        LOGGER.info("World map hidden");
     }
 
     @Override
     public void onAction(String name, boolean isPressed, float tpf) {
         if (isPressed) {
-            if (name.equals(TOGGLE_MAP)) {
-                toggleMap();
-            } else if (name.equals(ESCAPE_MAP) && isMapVisible) {
-                hideMap();
-            }
+            if (name.equals(TOGGLE_MAP)) toggleMap();
+            else if (name.equals(ESCAPE_MAP) && isMapVisible) hideMap();
         }
-    }
-
-    @Override
-    public void update(float tpf) {
-    }
-
-    @Override
-    protected void onEnable() {
-        // Nothing additional needed
-    }
-
-    @Override
-    protected void onDisable() {
-        // Hide map when state is disabled
-        hideMap();
     }
 
     @Override
@@ -251,4 +222,9 @@ public class WorldMapState extends BaseAppState implements ActionListener {
             worldMapNode.removeFromParent();
         }
     }
+
+    // Unchanged lifecycle methods...
+    @Override public void update(float tpf) {}
+    @Override protected void onEnable() {}
+    @Override protected void onDisable() { hideMap(); }
 }
