@@ -243,7 +243,7 @@ public class TileTextureCapturer {
                 gameLogicCore.getTextureCache().storeTexture(subTileId, offscreenTexture);
             }
 
-            LOGGER.info("Successfully captured sub-tile: " + subTileId);
+//            LOGGER.info("Successfully captured sub-tile: " + subTileId);
 
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Failed to capture sub-tile " + subTileId, e);
@@ -425,17 +425,19 @@ public class TileTextureCapturer {
     }
 
     private Texture2D saveImageToFile(Image image, String subTileId) {
-        try {
+//        try {
             int bgColorRGB = 0x262626;
             int tolerance = 25;
             java.awt.image.BufferedImage croppedImage = cropTerrainContent(image, bgColorRGB, tolerance);
             java.awt.image.BufferedImage flippedImage = flipHorizontal(croppedImage);
 
+            /*
             File outputFile = new File("./WorldMap/" + subTileId + ".png");
             boolean success = javax.imageio.ImageIO.write(flippedImage, "PNG", outputFile);
             if (!success) {
                 LOGGER.warning("ImageIO.write returned false for " + subTileId);
             }
+            */
 
             // --- NEW: Convert your perfect BufferedImage back to a JME3 Texture ---
             int width = flippedImage.getWidth();
@@ -456,10 +458,10 @@ public class TileTextureCapturer {
             Image finalJmeImage = new Image(Image.Format.RGBA8, width, height, buffer);
             return new Texture2D(finalJmeImage);
 
-        } catch (java.io.IOException e) {
-            LOGGER.log(java.util.logging.Level.SEVERE, "Failed to save image for sub-tile " + subTileId, e);
-            return null;
-        }
+//        } catch (java.io.IOException e) {
+//            LOGGER.log(java.util.logging.Level.SEVERE, "Failed to save image for sub-tile " + subTileId, e);
+//            return null;
+//        }
     }
 
     /**

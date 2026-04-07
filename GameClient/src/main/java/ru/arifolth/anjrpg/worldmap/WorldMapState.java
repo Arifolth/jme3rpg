@@ -176,14 +176,14 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
         if (!isMapVisible) return;
 
         // 3. Smooth panning with W/A/S/D
-        boolean moved = false;
-        if (name.equals(PAN_UP)) { panY += PAN_SPEED * tpf; moved = true; }
-        if (name.equals(PAN_DOWN)) { panY -= PAN_SPEED * tpf; moved = true; }
-        if (name.equals(PAN_RIGHT)) { panX += PAN_SPEED * tpf; moved = true; }
-        if (name.equals(PAN_LEFT)) { panX -= PAN_SPEED * tpf; moved = true; }
-
-        if (moved) {
-            renderVisibleTiles(); // Re-render / translate immediately
+        if (name.equals(PAN_UP)) {
+            panY += PAN_SPEED * tpf;
+        } if (name.equals(PAN_DOWN)) {
+            panY -= PAN_SPEED * tpf;
+        } if (name.equals(PAN_RIGHT)) {
+            panX += PAN_SPEED * tpf;
+        } if (name.equals(PAN_LEFT)) {
+            panX -= PAN_SPEED * tpf;
         }
     }
 
@@ -224,7 +224,9 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
     }
 
     // Unchanged lifecycle methods...
-    @Override public void update(float tpf) {}
+    @Override public void update(float tpf) {
+        renderVisibleTiles(); // Re-render / translate immediately
+    }
     @Override protected void onEnable() {}
     @Override protected void onDisable() { hideMap(); }
 }
