@@ -21,6 +21,7 @@ package ru.arifolth.anjrpg;
 import com.jme3.app.Application;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
+import com.jme3.post.FilterPostProcessor;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
@@ -34,6 +35,7 @@ import com.jme3.util.BufferUtils;
 import com.jme3.bounding.BoundingBox;
 import com.jme3.light.DirectionalLight;
 import com.jme3.light.AmbientLight;
+import com.jme3.water.WaterFilter;
 import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
 import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
 import ru.arifolth.anjrpg.interfaces.camera.FollowCameraInterface;
@@ -62,20 +64,69 @@ public class TileTextureCapturer {
     private final GameLogicCoreInterface gameLogicCore;
     private final FollowCameraInterface camera;
 
-    private static class PendingCapture {
-        Spatial spatial;
-        String baseTileId;
-        int framesRemaining;
+    private WaterFilter mainWaterFilter; // Reference to the main water filter
 
-        PendingCapture(Spatial spatial, String baseTileId) {
+    // Add a new queue for sub‑tile capture tasks
+    private final Queue<SubTileCaptureTask> subTileCaptureQueue = new ConcurrentLinkedQueue<>();
+
+    // Task definition
+    private static class SubTileCaptureTask {
+        final Spatial spatial;
+        final int subX;
+        final int subZ;
+        final String subTileId;
+
+        SubTileCaptureTask(Spatial spatial, int subX, int subZ, String subTileId) {
             this.spatial = spatial;
-            this.baseTileId = baseTileId;
-            this.framesRemaining = CAPTURE_DELAY_FRAMES;
+            this.subX = subX;
+            this.subZ = subZ;
+            this.subTileId = subTileId;
         }
     }
 
-    private final Queue<PendingCapture> pendingCaptures =
-            new ConcurrentLinkedQueue<>();
+    /**
+     * Lag‑free synchronous capture: enqueues four sub‑tile tasks to be processed
+     * one per frame on the render thread.
+     */
+    synchronized public void syncCaptureTileTextures(Spatial spatial, String baseTileId) {
+        if (spatial == null || baseTileId == null || baseTileId.isEmpty()) {
+            LOGGER.warning("Invalid spatial or baseTileId for texture capture");
+            return;
+        }
+
+        String[] parts = baseTileId.replace("tile_", "").split("_");
+        if (parts.length != 2) {
+            LOGGER.warning("Invalid base tile ID format: " + baseTileId);
+            return;
+        }
+
+        try {
+            int baseX = Integer.parseInt(parts[0]);
+            int baseZ = Integer.parseInt(parts[1]);
+
+            for (int subX = 0; subX < 2; subX++) {
+                for (int subZ = 0; subZ < 2; subZ++) {
+                    String subTileId = String.format("tile_%d_%d_sub_%d_%d", baseX, baseZ, subX, subZ);
+                    subTileCaptureQueue.offer(new SubTileCaptureTask(spatial, subX, subZ, subTileId));
+                }
+            }
+            LOGGER.info("Enqueued 4 sub‑tile captures for base tile: " + baseTileId);
+
+        } catch (NumberFormatException e) {
+            LOGGER.log(Level.SEVERE, "Failed to parse tile coordinates: " + baseTileId, e);
+        }
+    }
+
+    /**
+     * Process one sub‑tile capture per frame (called from simpleUpdate).
+     * This spreads the workload and keeps the UI responsive.
+     */
+    public void processPendingSubTileCaptures() {
+        SubTileCaptureTask task = subTileCaptureQueue.poll();
+        if (task != null) {
+            captureSingleSubTile(task.spatial, task.subX, task.subZ, task.subTileId);
+        }
+    }
 
     public TileTextureCapturer(Application app) {
         this.app = app;
@@ -93,57 +144,6 @@ public class TileTextureCapturer {
         }
     }
 
-    public void captureTileTextures(Spatial spatial, String baseTileId) {
-        if (spatial == null || baseTileId == null || baseTileId.isEmpty()) {
-            LOGGER.warning("Invalid spatial or baseTileId for texture capture");
-            return;
-        }
-
-        pendingCaptures.offer(new PendingCapture(spatial, baseTileId));
-        LOGGER.info("Queued tile for deferred capture: " + baseTileId);
-    }
-
-    public void processPendingTileCaptures() {
-        if (pendingCaptures.isEmpty()) {
-            return;
-        }
-        LOGGER.info("Process Pending Tile Captures STARTED");
-        LOGGER.info("Tiles in cache: " + pendingCaptures.size());
-
-        PendingCapture pending = pendingCaptures.poll();
-        while(pending != null) {
-            String[] parts = pending.baseTileId.replace("tile_", "").split("_");
-            if (parts.length != 2) {
-                LOGGER.warning("Invalid base tile ID format: " + pending.baseTileId);
-                return;
-            }
-
-            try {
-                int baseX = Integer.parseInt(parts[0]);
-                int baseZ = Integer.parseInt(parts[1]);
-
-                for (int subX = 0; subX < 2; subX++) {
-                    Thread.yield();
-                    for (int subZ = 0; subZ < 2; subZ++) {
-                        int finalSubZ = subZ;
-                        int finalSubX = subX;
-                        String subTileId = String.format("tile_%d_%d_sub_%d_%d", baseX, baseZ, finalSubX, finalSubZ);
-                        captureSingleSubTile(pending.spatial, baseX, baseZ, finalSubX, finalSubZ, subTileId);  // Safe for GL
-                    }
-                }
-
-//                logger.info("✓ Captured 4 sub-tiles for base tile: " + pending.baseTileId);
-
-            } catch (NumberFormatException e) {
-                LOGGER.log(Level.SEVERE, "Failed to parse tile coordinates: " + pending.baseTileId, e);
-            } finally {
-                pending = pendingCaptures.poll();
-            }
-        }
-
-        LOGGER.info("Process Pending Tile Captures FINISHED");
-    }
-
     /**
      * FIXED VERSION: Proper camera frustum bounds for each subtile quadrant
      *
@@ -152,12 +152,12 @@ public class TileTextureCapturer {
      * 2. Proper camera frustum bounds based on which quadrant we're capturing
      * 3. Camera positioned at subtile center, not base tile center
      */
-    private void captureSingleSubTile(Spatial spatial, int baseX, int baseZ,
-                                      int subX, int subZ, String subTileId) {
+    synchronized private void captureSingleSubTile(Spatial spatial, int subX, int subZ, String subTileId) {
         FrameBuffer fb = null;
         ViewPort offscreenView = null;
         Node isolatedScene = null;
         Spatial clonedSpatial = null;
+        FilterPostProcessor fpp = null;
 
         RenderManager renderManager = app.getRenderManager();
         camera.setEnabled(false);
@@ -184,6 +184,20 @@ public class TileTextureCapturer {
 
             // Clone for isolation (does NOT affect original)
             clonedSpatial = spatial.clone(false);
+            if (clonedSpatial instanceof Node) {
+                Node node = (Node) clonedSpatial;
+                boolean hasGeometry = false;
+                for (Spatial child : node.getChildren()) {
+                    if (child instanceof com.jme3.scene.Geometry) {
+                        hasGeometry = true;
+                        break;
+                    }
+                }
+                if (!hasGeometry) {
+                    LOGGER.warning("No geometry found in subtile " + subTileId + ", skipping capture");
+                    return;
+                }
+            }
             clonedSpatial.removeFromParent();
             clonedSpatial.updateGeometricState();
 
@@ -200,6 +214,11 @@ public class TileTextureCapturer {
             AmbientLight ambient = new AmbientLight();
             ambient.setColor(ColorRGBA.White.mult(0.6f));
             isolatedScene.addLight(ambient);
+
+            WaterFilter offscreenWaterFilter = new WaterFilter();
+            offscreenWaterFilter.setReflectionScene(isolatedScene);
+            offscreenWaterFilter.setWaterHeight(mainWaterFilter.getWaterHeight());
+            offscreenWaterFilter.setCausticsTexture(mainWaterFilter.getCausticsTexture());
 
             isolatedScene.updateLogicalState(0.016f);
             isolatedScene.updateGeometricState();
@@ -221,8 +240,18 @@ public class TileTextureCapturer {
             offscreenView.attachScene(isolatedScene);
             offscreenView.setOutputFrameBuffer(fb);
 
-            //TODO:add water
+            fpp = new FilterPostProcessor(app.getAssetManager());
+            fpp.addFilter(offscreenWaterFilter);
+            offscreenView.addProcessor(fpp);
+
+            // Force the post-processor to initialise
+            fpp.initialize(renderManager, offscreenView);
+
             try {
+                // Warm-up renders – allows WaterFilter internal processors to stabilise
+                for (int i = 0; i < 4; i++) {
+                    renderManager.renderViewPort(offscreenView, 0.016f);
+                }
                 renderManager.renderViewPort(offscreenView, 0.016f);
             } finally {
                 // Remove the viewport
@@ -234,12 +263,13 @@ public class TileTextureCapturer {
             renderManager.getRenderer().readFrameBuffer(fb, byteBuffer);
 
             Image image = new Image(Image.Format.RGBA8, SUBTILE_RESOLUTION, SUBTILE_RESOLUTION, byteBuffer);
-            Texture2D perfectTexture = saveImageToFile(image, subTileId);
+            Texture2D perfectTexture = saveImageToFile(image, subTileId, subX, subZ);
 
             if (perfectTexture != null) {
                 gameLogicCore.getTextureCache().storeTexture(subTileId, perfectTexture);
             } else {
                 // Fallback if writing failed
+                LOGGER.log(Level.SEVERE, "Fallback to offscreenTexture");
                 gameLogicCore.getTextureCache().storeTexture(subTileId, offscreenTexture);
             }
 
@@ -251,11 +281,18 @@ public class TileTextureCapturer {
         } finally {
             camera.setEnabled(true);
 
+            if (fpp != null) {
+                fpp.cleanup();
+            }
             if (fb != null) {
                 fb.dispose();
             }
             if (isolatedScene != null) {
                 isolatedScene.detachAllChildren();
+            }
+            // ViewPort is already removed; but ensure it's detached
+            if (offscreenView != null) {
+                renderManager.removeMainView(offscreenView);
             }
         }
     }
@@ -296,172 +333,76 @@ public class TileTextureCapturer {
         return cam;
     }
 
-    /**
-     * SIMPLE: Detect terrain, scale to fill 512×512. That's it.
-     */
-    private java.awt.image.BufferedImage cropTerrainContent(
-            Image jmeImage,
-            int bgColorRGB,
-            int tolerance) {
-
-        try {
-            ByteBuffer buffer = jmeImage.getData(0);
-            int width = jmeImage.getWidth();
-            int height = jmeImage.getHeight();
-
-            java.awt.image.BufferedImage bufferedImage =
-                    new java.awt.image.BufferedImage(width, height,
-                            java.awt.image.BufferedImage.TYPE_INT_ARGB);
-
-            buffer.rewind();
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    int r = buffer.get() & 0xFF;
-                    int g = buffer.get() & 0xFF;
-                    int b = buffer.get() & 0xFF;
-                    int a = buffer.get() & 0xFF;
-                    bufferedImage.setRGB(x, y, (a << 24) | (r << 16) | (g << 8) | b);
-                }
+    private java.awt.image.BufferedImage cropFixedQuadrant(Image jmeImage, int subX, int subZ) {
+        // Convert JME Image to BufferedImage (implicit vertical flip already present)
+        ByteBuffer buffer = jmeImage.getData(0);
+        int width = jmeImage.getWidth();
+        int height = jmeImage.getHeight();
+        java.awt.image.BufferedImage bufferedImage = new java.awt.image.BufferedImage(width, height, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+        buffer.rewind();
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int r = buffer.get() & 0xFF;
+                int g = buffer.get() & 0xFF;
+                int b = buffer.get() & 0xFF;
+                int a = buffer.get() & 0xFF;
+                bufferedImage.setRGB(x, y, (a << 24) | (r << 16) | (g << 8) | b);
             }
-
-            int bgR = (bgColorRGB >> 16) & 0xFF;
-            int bgG = (bgColorRGB >> 8) & 0xFF;
-            int bgB = bgColorRGB & 0xFF;
-
-            // Find bounds of non-background pixels
-            int minX = width, maxX = -1;
-            int minY = height, maxY = -1;
-
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    int rgb = bufferedImage.getRGB(x, y);
-                    int r = (rgb >> 16) & 0xFF;
-                    int g = (rgb >> 8) & 0xFF;
-                    int b = rgb & 0xFF;
-
-                    if (colorDistanceSq(r, g, b, bgR, bgG, bgB) > tolerance * tolerance) {
-                        minX = Math.min(minX, x);
-                        maxX = Math.max(maxX, x);
-                        minY = Math.min(minY, y);
-                        maxY = Math.max(maxY, y);
-                    }
-                }
-            }
-
-            // Validate
-            if (minX > maxX || minY > maxY) {
-                LOGGER.warning("No terrain content detected");
-                return bufferedImage;
-            }
-
-            int croppedWidth = maxX - minX + 1;
-            int croppedHeight = maxY - minY + 1;
-
-//            logger.info(String.format("Detected terrain: %dx%d at (%d,%d)", croppedWidth, croppedHeight, minX, minY));
-
-            // Extract the detected region
-            java.awt.image.BufferedImage croppedImage =
-                    bufferedImage.getSubimage(minX, minY, croppedWidth, croppedHeight);
-
-            // Create result image
-            java.awt.image.BufferedImage result =
-                    new java.awt.image.BufferedImage(width, height,
-                            java.awt.image.BufferedImage.TYPE_INT_ARGB);
-
-            // Fill background
-            int bgARGB = 0xFF000000 | bgColorRGB;
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    result.setRGB(x, y, bgARGB);
-                }
-            }
-
-            // JUST SCALE TO FILL: No centering, no margins, no complexity
-            java.awt.Graphics2D g2d = result.createGraphics();
-            g2d.setRenderingHint(
-                    java.awt.RenderingHints.KEY_INTERPOLATION,
-                    java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-
-            // Scale to 85% to preserve some border for seamless tiling
-//            int targetSize = (int) (512 * 0.98);
-//            int offset = (512 - targetSize) / 2;
-            int targetSize = 512;
-            int offset = 0;
-
-            g2d.drawImage(croppedImage, offset, offset, targetSize, targetSize, null);
-            g2d.dispose();
-
-//            logger.info("Scaled to fill 512×512");
-            return result;
-
-        } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Cropping failed", e);
-            // Fallback
-            ByteBuffer buffer = jmeImage.getData(0);
-            int width = jmeImage.getWidth();
-            int height = jmeImage.getHeight();
-            java.awt.image.BufferedImage result =
-                    new java.awt.image.BufferedImage(width, height,
-                            java.awt.image.BufferedImage.TYPE_INT_ARGB);
-            buffer.rewind();
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    int r = buffer.get() & 0xFF;
-                    int g = buffer.get() & 0xFF;
-                    int b = buffer.get() & 0xFF;
-                    int a = buffer.get() & 0xFF;
-                    result.setRGB(x, y, (a << 24) | (r << 16) | (g << 8) | b);
-                }
-            }
-            return result;
         }
+
+        int half = width / 2; // 256
+
+        int cropX, cropY;
+        if (subX == 0 && subZ == 0) {
+            cropX = 0;    cropY = half; // bottom-left
+        } else if (subX == 1 && subZ == 0) {
+            cropX = half; cropY = half; // bottom-right
+        } else if (subX == 0 && subZ == 1) {
+            cropX = 0;    cropY = 0;    // top-left
+        } else { // subX == 1 && subZ == 1
+            cropX = half; cropY = 0;    // top-right
+        }
+
+        java.awt.image.BufferedImage cropped = bufferedImage.getSubimage(cropX, cropY, half, half);
+
+        // Upscale to 512×512
+        java.awt.image.BufferedImage result = new java.awt.image.BufferedImage(SUBTILE_RESOLUTION, SUBTILE_RESOLUTION, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+        java.awt.Graphics2D g2d = result.createGraphics();
+        g2d.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g2d.drawImage(cropped, 0, 0, SUBTILE_RESOLUTION, SUBTILE_RESOLUTION, null);
+        g2d.dispose();
+        return result;
     }
 
-    private int colorDistanceSq(int r1, int g1, int b1, int r2, int g2, int b2) {
-        int dr = r1 - r2;
-        int dg = g1 - g2;
-        int db = b1 - b2;
-        return dr * dr + dg * dg + db * db;
-    }
+    private Texture2D saveImageToFile(Image image, String subTileId, int subX, int subZ) throws IOException {
+        java.awt.image.BufferedImage croppedImage = cropFixedQuadrant(image, subX, subZ);
 
-    private Texture2D saveImageToFile(Image image, String subTileId) {
-//        try {
-            int bgColorRGB = 0x262626;
-            int tolerance = 25;
-            java.awt.image.BufferedImage croppedImage = cropTerrainContent(image, bgColorRGB, tolerance);
-            java.awt.image.BufferedImage flippedImage = flipHorizontal(croppedImage);
+        java.awt.image.BufferedImage flippedImage = flipHorizontal(croppedImage);
 
-            /*
-            File outputFile = new File("./WorldMap/" + subTileId + ".png");
-            boolean success = javax.imageio.ImageIO.write(flippedImage, "PNG", outputFile);
-            if (!success) {
-                LOGGER.warning("ImageIO.write returned false for " + subTileId);
+        /*File outputFile = new File("./WorldMap/" + subTileId + ".png");
+        boolean success = javax.imageio.ImageIO.write(flippedImage, "PNG", outputFile);
+        if (!success) {
+            LOGGER.warning("ImageIO.write returned false for " + subTileId);
+        }*/
+
+        // Convert back to JME Texture2D
+        int w = flippedImage.getWidth();
+        int h = flippedImage.getHeight();
+        ByteBuffer newBuffer = com.jme3.util.BufferUtils.createByteBuffer(w * h * 4);
+
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                int argb = flippedImage.getRGB(x, y);
+                newBuffer.put((byte) ((argb >> 16) & 0xFF)); // R
+                newBuffer.put((byte) ((argb >> 8) & 0xFF));  // G
+                newBuffer.put((byte) (argb & 0xFF));         // B
+                newBuffer.put((byte) ((argb >> 24) & 0xFF)); // A
             }
-            */
+        }
+        newBuffer.flip();
 
-            // --- NEW: Convert your perfect BufferedImage back to a JME3 Texture ---
-            int width = flippedImage.getWidth();
-            int height = flippedImage.getHeight();
-            ByteBuffer buffer = com.jme3.util.BufferUtils.createByteBuffer(width * height * 4);
-
-            // Read AWT top-to-bottom to invert the vertical flip
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    int argb = flippedImage.getRGB(x, y);
-                    buffer.put((byte) ((argb >> 16) & 0xFF)); // R
-                    buffer.put((byte) ((argb >> 8) & 0xFF));  // G
-                    buffer.put((byte) (argb & 0xFF));         // B
-                    buffer.put((byte) ((argb >> 24) & 0xFF)); // A
-                }
-            }
-            buffer.flip();
-            Image finalJmeImage = new Image(Image.Format.RGBA8, width, height, buffer);
-            return new Texture2D(finalJmeImage);
-
-//        } catch (java.io.IOException e) {
-//            LOGGER.log(java.util.logging.Level.SEVERE, "Failed to save image for sub-tile " + subTileId, e);
-//            return null;
-//        }
+        Image finalJmeImage = new Image(Image.Format.RGBA8, w, h, newBuffer);
+        return new Texture2D(finalJmeImage);
     }
 
     /**
@@ -475,5 +416,9 @@ public class TileTextureCapturer {
         g2d.drawImage(src, 0, 0, w, h, w, 0, 0, h, null); // Draw mirrored
         g2d.dispose();
         return flipped;
+    }
+
+    public void setMainWaterFilter(WaterFilter waterFilter) {
+        this.mainWaterFilter = waterFilter;
     }
 }

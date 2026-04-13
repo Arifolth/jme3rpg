@@ -18,6 +18,8 @@
 
 package ru.arifolth.anjrpg.interfaces;
 
+import ru.arifolth.anjrpg.TileTextureCapturer;
+
 public interface FractalTerrainGridInterface extends TerrainInterface  {
-    void processPendingTileCaptures();
+    TileTextureCapturer getTileCapturer();
 }

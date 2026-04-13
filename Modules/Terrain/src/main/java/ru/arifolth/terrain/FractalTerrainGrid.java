@@ -229,7 +229,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
                 } finally {
                     if (tileCapturer != null) {
                         String baseTileId = generateBaseTileId(cell);
-                        tileCapturer.captureTileTextures(quad, baseTileId);
+                        tileCapturer.syncCaptureTileTextures(quad, baseTileId);
                     }
                 }
             }
@@ -287,17 +287,22 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
 
     @Override
     public void update() {
+        processPendingTileCaptures();
     }
 
-    @Override
-    public void processPendingTileCaptures() {
+    private void processPendingTileCaptures() {
         if (tileCapturer != null) {
-            tileCapturer.processPendingTileCaptures();  // Process one queued tile per frame
+            tileCapturer.processPendingSubTileCaptures();  // Process one queued tile per frame
         }
     }
     
     @Override
     public int getRigidBodiesSize() {
         return rigidBodiesSize;
+    }
+
+    @Override
+    public TileTextureCapturer getTileCapturer() {
+        return tileCapturer;
     }
 }

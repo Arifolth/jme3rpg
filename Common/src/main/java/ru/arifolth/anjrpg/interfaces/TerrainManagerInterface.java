@@ -29,5 +29,5 @@ public interface TerrainManagerInterface {
 
     int getRigidBodiesSize();
 
-    void processPendingTileCaptures();
+    FractalTerrainGridInterface getTerrainBuilder();
 }

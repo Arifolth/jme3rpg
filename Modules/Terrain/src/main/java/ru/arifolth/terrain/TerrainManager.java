@@ -82,7 +82,7 @@ public class TerrainManager implements TerrainManagerInterface {
     }
 
     @Override
-    public void processPendingTileCaptures() {
-        terrainBuilder.processPendingTileCaptures(); //delegate map tiles processing
+    public FractalTerrainGridInterface getTerrainBuilder() {
+        return terrainBuilder;
     }
 }

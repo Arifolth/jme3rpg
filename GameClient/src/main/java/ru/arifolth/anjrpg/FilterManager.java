@@ -32,9 +32,7 @@ import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.water.WaterFilter;
 import ru.arifolth.anjrpg.filters.FSRCASFilter;
 import ru.arifolth.anjrpg.filters.FilmGrainFilter;
-import ru.arifolth.anjrpg.interfaces.Constants;
-import ru.arifolth.anjrpg.interfaces.FilterManagerInterface;
-import ru.arifolth.anjrpg.interfaces.SkyInterface;
+import ru.arifolth.anjrpg.interfaces.*;
 
 public class FilterManager implements FilterManagerInterface {
 
@@ -49,11 +47,11 @@ public class FilterManager implements FilterManagerInterface {
     private FogFilter fog;
     private GammaCorrectionFilter gammaCorrectionFilter;
     private Renderer renderer;
-
+    private TileTextureCapturer tileTextureCapturer;
     private SimpleApplication application;
     private FilmGrainFilter filmGrainFilter;
 
-    public FilterManager(SimpleApplication application, AssetManager assetManager, Node rootNode, ViewPort viewPort, SkyInterface sky, Renderer renderer) {
+    public FilterManager(SimpleApplication application, AssetManager assetManager, Node rootNode, ViewPort viewPort, SkyInterface sky, Renderer renderer, TerrainManagerInterface terrainManager) {
         this.application = application;
         this.assetManager = assetManager;
         this.rootNode = rootNode;
@@ -82,6 +80,8 @@ public class FilterManager implements FilterManagerInterface {
         setupFXAAFilter();
 
         viewPort.addProcessor(fpp);
+
+        tileTextureCapturer = terrainManager.getTerrainBuilder().getTileCapturer();
     }
 
     private void setupFXAAFilter() {
@@ -162,6 +162,9 @@ public class FilterManager implements FilterManagerInterface {
         waterFilter = new WaterFilter(rootNode, sky.getSunDirection().normalize());
         waterFilter.setWaterHeight(Constants.WATER_LEVEL_HEIGHT);
         fpp.addFilter(waterFilter);
+
+        // Pass reference to texture capturer
+        tileTextureCapturer.setMainWaterFilter(waterFilter);
     }
 
 
