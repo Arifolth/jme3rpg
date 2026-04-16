@@ -39,6 +39,7 @@ import com.jme3.water.WaterFilter;
 import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
 import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
 import ru.arifolth.anjrpg.interfaces.camera.FollowCameraInterface;
+import ru.arifolth.anjrpg.interfaces.graphics.ViewDistanceSettingsInterface;
 
 import java.io.File;
 import java.io.IOException;
@@ -68,6 +69,24 @@ public class TileTextureCapturer {
 
     // Add a new queue for sub‑tile capture tasks
     private final Queue<SubTileCaptureTask> subTileCaptureQueue = new ConcurrentLinkedQueue<>();
+
+    // Add field
+    private ViewDistanceSettingsInterface currentViewSettings;
+
+    // Add setter
+    public void setViewDistanceSettings(ViewDistanceSettingsInterface settings) {
+        this.currentViewSettings = settings;
+    }
+
+    // Helper to calculate expected tile size in world units
+    private float getTileWorldSize() {
+        if (currentViewSettings == null) {
+            // Fallback: derive from bounding box (current behavior)
+            return -1;
+        }
+        // terrainSize vertices = (terrainSize - 1) cells = world units (assuming 1 unit/cell)
+        return (float)(currentViewSettings.getTerrainSize() - 1);
+    }
 
     // Task definition
     private static class SubTileCaptureTask {
@@ -145,6 +164,23 @@ public class TileTextureCapturer {
     }
 
     /**
+     * Recursively checks if a Spatial or any of its descendants contains Geometry.
+     */
+    private boolean containsGeometry(Spatial spatial) {
+        if (spatial instanceof com.jme3.scene.Geometry) {
+            return true;
+        }
+        if (spatial instanceof Node) {
+            for (Spatial child : ((Node) spatial).getChildren()) {
+                if (containsGeometry(child)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * FIXED VERSION: Proper camera frustum bounds for each subtile quadrant
      *
      * Key changes:
@@ -168,12 +204,20 @@ public class TileTextureCapturer {
                 return;
             }
 
-            Vector3f parentCenter = parentBounds.getCenter();
             Vector3f parentExtent = new Vector3f(parentBounds.getExtent(new Vector3f()));
-
-            // Calculate sub-tile extents
-            float subTileExtentX = parentExtent.x / 2.0f;
-            float subTileExtentZ = parentExtent.z / 2.0f;
+            Vector3f parentCenter = parentBounds.getCenter();
+            float baseTileWorldSize = getTileWorldSize();
+            float subTileExtentX;
+            float subTileExtentZ;
+            if (baseTileWorldSize > 0) {
+                // Use expected size from settings
+                subTileExtentX = (baseTileWorldSize / 2.0f) / 2.0f; // half of half = quadrant
+                subTileExtentZ = subTileExtentX; // Assuming square tiles
+            } else {
+                // Fallback to bounding box if settings not available
+                subTileExtentX = parentExtent.x / 2.0f;
+                subTileExtentZ = parentExtent.z / 2.0f;
+            }
 
             // Calculate sub-tile center (account for coordinate system)
             float subTileCenterX = parentCenter.x + (subX == 0 ? -subTileExtentX : subTileExtentX);
@@ -184,22 +228,16 @@ public class TileTextureCapturer {
 
             // Clone for isolation (does NOT affect original)
             clonedSpatial = spatial.clone(false);
-            if (clonedSpatial instanceof Node) {
-                Node node = (Node) clonedSpatial;
-                boolean hasGeometry = false;
-                for (Spatial child : node.getChildren()) {
-                    if (child instanceof com.jme3.scene.Geometry) {
-                        hasGeometry = true;
-                        break;
-                    }
-                }
-                if (!hasGeometry) {
-                    LOGGER.warning("No geometry found in subtile " + subTileId + ", skipping capture");
-                    return;
-                }
-            }
             clonedSpatial.removeFromParent();
             clonedSpatial.updateGeometricState();
+
+            // Use recursive check instead of shallow loop
+            if (!containsGeometry(clonedSpatial)) {
+                LOGGER.warning("No geometry found in subtile " + subTileId + ", skipping capture");
+                LOGGER.fine("Spatial class: " + clonedSpatial.getClass().getName() +
+                        ", children count: " + (clonedSpatial instanceof Node ? ((Node)clonedSpatial).getChildren().size() : "N/A"));
+                return;
+            }
 
             // Create isolated scene
             isolatedScene = new Node("IsolatedSubTileScene_" + subTileId);
@@ -310,7 +348,12 @@ public class TileTextureCapturer {
         Camera cam = new Camera(SUBTILE_RESOLUTION, SUBTILE_RESOLUTION);
 
         // Position camera above the sub-tile
-        float height = subTileCenter.y + Math.max(Math.max(subTileExtent.x, subTileExtent.z), subTileExtent.y) * 2.0f;
+        // Calculate height with safety margin proportional to tile size
+        float baseHeightMargin = Math.max(subTileExtent.x, subTileExtent.z) * 2.0f;
+        // Add extra margin for HIGH setting's larger terrain
+        float sizeRatio = (currentViewSettings != null) ? (float)currentViewSettings.getTerrainSize() / 513.0f : 1.0f;
+        float height = subTileCenter.y + baseHeightMargin * sizeRatio;
+
         cam.setLocation(new Vector3f(subTileCenter.x, height, subTileCenter.z));
         cam.lookAt(subTileCenter, Vector3f.UNIT_Y);
 
@@ -325,9 +368,10 @@ public class TileTextureCapturer {
         float right = halfWidth;
         float top = halfDepth;
         float bottom = -halfDepth;
-        float near = 0.1f;
-        float far = height * 2.0f + 1000.0f;
 
+        float near = 0.1f;
+        // Scale far plane with terrain size to avoid clipping distant geometry
+        float far = height * 2.0f + (getTileWorldSize() > 0 ? getTileWorldSize() : 1000.0f);
         cam.setFrustum(near, far, left, right, top, bottom);
 
         return cam;
