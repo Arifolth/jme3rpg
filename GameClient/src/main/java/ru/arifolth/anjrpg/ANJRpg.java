@@ -173,7 +173,6 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
                     //especially attaching the terrain to the rootNode
                     //after it is attached, it's managed by the update loop thread
                     // and may not be modified from any other thread anymore!
-                    createMinimap();
                     createCompass();
                     createPlayerBars();
                     createWorldMap();

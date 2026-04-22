@@ -27,7 +27,6 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
-import ru.arifolth.anjrpg.ANJRpg;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.compass.CompassInterface;
 import ru.arifolth.anjrpg.interfaces.compass.POIInterface;
@@ -45,7 +44,6 @@ public class Compass implements CompassInterface {
     private Map<String, Geometry> targetIndicators;
     private float screenWidth;
     private float screenHeight;
-    private float miniMapSize;
     private float compassWidth;
     private float compassHeight;
 
@@ -74,24 +72,24 @@ public class Compass implements CompassInterface {
 
 
     private void positionCompass() {
-        float miniMapSize = screenHeight * 0.33f; // minimap height and width
+        float screenQuarterSize = screenHeight * 0.33f; // height and width
         final float verticalSpacing = screenHeight * 0.046f;
         final float uiPadding = screenHeight * 0.02f;
 
-        float miniMapLeftEdge = screenWidth - miniMapSize - uiPadding;
+        float screenQuarterLeftEdge = screenWidth - screenQuarterSize - uiPadding;
 
-        // Calculate minimap horizontal center
-        float miniMapCenterX = miniMapLeftEdge + miniMapSize / 2;
+        // Calculate screen quarter horizontal center
+        float screenQuarterCenterX = screenQuarterLeftEdge + screenQuarterSize / 2;
 
         float frameBorderWidth = screenHeight * 0.001f;
 
         float frameWidth = compassWidth + frameBorderWidth * 2;
 
-        // Compute compass X so its center aligns with minimapCenterX
-        float compassX = miniMapCenterX - (frameWidth / 2);
+        // Compute compass X so its center aligns with screenQuarterCenterX
+        float compassX = screenQuarterCenterX - (frameWidth / 2);
 
-        // Y position remains below minimap with vertical spacing
-        float compassY = screenHeight - miniMapSize - uiPadding - verticalSpacing - compassHeight;
+        // Y position remains below screen quarter with vertical spacing
+        float compassY = screenHeight - screenQuarterSize - uiPadding - verticalSpacing - compassHeight;
 
         compassNode.setLocalTranslation(compassX, compassY, 1f);
     }

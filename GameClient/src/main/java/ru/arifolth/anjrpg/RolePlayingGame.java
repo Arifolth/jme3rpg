@@ -19,7 +19,6 @@
 package ru.arifolth.anjrpg;
 
 import com.idflood.sky.DynamicSky;
-import com.jayfella.minimap.MiniMapState;
 import com.jme3.app.FlyCamAppState;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.ScreenshotAppState;
@@ -102,12 +101,6 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
 
     private void initializeEntities() {
         gameLogicCore.getInitializationDelegate().initialize(false);
-    }
-
-
-    protected void createMinimap() {
-        // create the minimap
-        stateManager.attach(new MiniMapState());
     }
 
     protected void setupGameLogic() {
