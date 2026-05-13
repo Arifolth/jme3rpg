@@ -76,4 +76,4 @@ Please see [CREDITS.md](CREDITS.md)
 ## License
 It is released under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.txt)
 
-#### Copyright 2014 - 2025 &copy; Alexander Nilov
+#### Copyright 2014 - 2026 &copy; Alexander Nilov
