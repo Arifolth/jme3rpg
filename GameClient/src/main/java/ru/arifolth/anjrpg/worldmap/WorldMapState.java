@@ -297,17 +297,32 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
 
     private void centerMapOnPlayer() {
         Vector3f playerPos = gameLogicCore.getPlayerCharacter().getNode().getWorldTranslation();
-        Vector2f playerScreen = worldToScreen(playerPos);
-        // Desired: player at center of mapTilesNode
-        float targetX = mapWidth / 2f;
-        float targetY = mapHeight / 2f;
-        float deltaX = targetX - playerScreen.x;
-        float deltaY = targetY - playerScreen.y;
-        panX += deltaX / subquadWidth;
-        panY += deltaY / subquadHeight;
 
-        LOGGER.info(String.format("Centered map: player screen (%.1f, %.1f), pan (%.2f, %.2f)",
-                playerScreen.x, playerScreen.y, panX, panY));
+        // Step 1: Compute absolute subquad coordinates of the player (without any pan)
+        int quadX = (int) Math.floor(playerPos.x / quadSizeWorld);
+        int quadZ = (int) Math.floor(playerPos.z / quadSizeWorld);
+        float localX = playerPos.x - quadX * quadSizeWorld;
+        float localZ = playerPos.z - quadZ * quadSizeWorld;
+        float subXf = localX / subquadSizeWorld;
+        float subZf = localZ / subquadSizeWorld;
+
+        float absoluteSubX = quadX * 2 + subXf + OFFSET_X_SUBQUADS;
+        float absoluteSubZ = quadZ * 2 + subZf + OFFSET_Y_SUBQUADS;
+
+        // Step 2: We want the player's screen position to be at the center of the visible area
+        float centerScreenX = mapWidth / 2f;   // in pixels relative to mapTilesNode
+        float centerScreenY = mapHeight / 2f;
+
+        // screenX = (absoluteSubX - panX) * subquadWidth  -> solve for panX
+        float panX_new = absoluteSubX - (centerScreenX / subquadWidth);
+        float panY_new = absoluteSubZ - (centerScreenY / subquadHeight);
+
+        // Apply directly
+        panX = panX_new;
+        panY = panY_new;
+
+        LOGGER.info(String.format("Centered map: player absoluteSub=(%.2f, %.2f) -> pan=(%.2f, %.2f)",
+                absoluteSubX, absoluteSubZ, panX, panY));
     }
 
     private void updateMarkers() {
