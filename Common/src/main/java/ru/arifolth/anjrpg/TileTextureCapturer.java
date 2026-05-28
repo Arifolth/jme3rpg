@@ -73,11 +73,6 @@ public class TileTextureCapturer {
     // Add field
     private ViewDistanceSettingsInterface currentViewSettings;
 
-    // Add setter
-    public void setViewDistanceSettings(ViewDistanceSettingsInterface settings) {
-        this.currentViewSettings = settings;
-    }
-
     // Helper to calculate expected tile size in world units
     private float getTileWorldSize() {
         if (currentViewSettings == null) {

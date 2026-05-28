@@ -125,16 +125,16 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
 
     private void addTestStaticPOIs(CharacterInterface playerCharacter, CompassInterface compass) {
         Vector3f playerPos = playerCharacter.getNode().getWorldTranslation();
-        float distance = 5000f; // distance from player
+        float distance = 50f; // distance from player
 
         testPOIs = new ArrayList<>();
 
         testPOIs.add(new POITarget("north",      playerPos.add(new Vector3f(0f, 0f,  -distance)), "NORTH",      POIType.LANDMARK));
 
         testPOIs.add(new POITarget("east",       playerPos.add(new Vector3f(distance, 0f, 0f)), "EAST",       POIType.LANDMARK));
-//        testPOIs.add(new POITarget("south",      playerPos.add(new Vector3f(0f, 0f, distance)), "SOUTH",      POIType.LANDMARK));
-//
-//        testPOIs.add(new POITarget("west",       playerPos.add(new Vector3f(-distance, 0f, 0f)), "WEST",       POIType.LANDMARK));
+        testPOIs.add(new POITarget("south",      playerPos.add(new Vector3f(0f, 0f, distance)), "SOUTH",      POIType.LANDMARK));
+
+        testPOIs.add(new POITarget("west",       playerPos.add(new Vector3f(-distance, 0f, 0f)), "WEST",       POIType.LANDMARK));
 
         // Add world markers
         addVerticalMarkersForPOIs(testPOIs);

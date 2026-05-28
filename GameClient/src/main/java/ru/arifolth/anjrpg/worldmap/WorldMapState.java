@@ -27,18 +27,38 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
+import com.jme3.math.Vector2f;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.*;
 import com.jme3.scene.shape.Quad;
+import com.jme3.scene.Mesh;
+import com.jme3.scene.VertexBuffer;
+import com.jme3.util.BufferUtils;
 import com.jme3.texture.Texture;
-import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
+import com.jme3.texture.Texture2D;
+import com.jme3.texture.Image;
 import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
+import ru.arifolth.anjrpg.interfaces.graphics.ViewDistanceSettingsInterface;
+import ru.arifolth.anjrpg.menu.SettingsUtils;
 
-import java.util.Optional;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 public class WorldMapState extends BaseAppState implements ActionListener, AnalogListener {
     private static final Logger LOGGER = Logger.getLogger(WorldMapState.class.getName());
+
+    // ========== CALIBRATION – adjust so triangle sits exactly on player ==========
+    // These values shift the entire world-to-screen mapping (in subquad units)
+    private static final float OFFSET_X_SUBQUADS = 2.0f;   // positive = right
+    private static final float OFFSET_Y_SUBQUADS = 2.0f;   // positive = up
+    // ============================================================================
 
     private static final String TOGGLE_MAP = "TOGGLE_MAP";
     private static final String ESCAPE_MAP = "ESCAPE_MAP";
@@ -51,7 +71,7 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
     private InputManager inputManager;
 
     private Node worldMapNode;
-    private Node mapTilesNode; // Holds the dynamic subquad meshes
+    private Node mapTilesNode;
     private Geometry mapBorder;
 
     private float mapWidth;
@@ -61,22 +81,44 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
     private float mapMargin;
     private boolean isMapVisible = false;
 
-    // Viewport and Panning State
-    private float panX = 0f; // in subquad units
-    private float panY = 0f; // in subquad units
-    private final float PAN_SPEED = 4.0f; // Subquads per second
+    private float panX = 0f;
+    private float panY = 0f;
+    private final float PAN_SPEED = 4.0f;
     private float subquadWidth;
     private float subquadHeight;
 
+    private ViewDistanceSettingsInterface viewDistanceSettings;
+    private float quadSizeWorld;
+    private float subquadSizeWorld;
+
+    private Node playerMarkerNode;
+    private Geometry playerMarker;
+    private float markerBaseWidth = 24f;
+    private float markerHeight = 48f;
+
+    private Node poiMarkersNode;
+    private Material poiMaterial;
+    private final Map<String, Geometry> poiGeometries = new HashMap<>();
+
     public WorldMapState(GameLogicCoreInterface gameLogicCore) {
         this.gameLogicCore = gameLogicCore;
+        this.viewDistanceSettings = SettingsUtils.getViewDistanceSettings(gameLogicCore.getApp().getContext().getSettings());
+
+        if (viewDistanceSettings != null) {
+            quadSizeWorld = viewDistanceSettings.getTerrainSize() - 1;
+            subquadSizeWorld = quadSizeWorld / 2f;
+            LOGGER.info("WorldMapState: quadSizeWorld=" + quadSizeWorld + ", subquadSizeWorld=" + subquadSizeWorld);
+        } else {
+            quadSizeWorld = 512f;
+            subquadSizeWorld = 256f;
+            LOGGER.warning("ViewDistanceSettings null, using defaults");
+        }
     }
 
     @Override
     protected void initialize(Application app) {
         this.inputManager = app.getInputManager();
 
-        // 1. Setup Input Mappings
         inputManager.addMapping(TOGGLE_MAP, new KeyTrigger(KeyInput.KEY_M));
         inputManager.addMapping(ESCAPE_MAP, new KeyTrigger(KeyInput.KEY_ESCAPE));
         inputManager.addMapping(PAN_UP, new KeyTrigger(KeyInput.KEY_W));
@@ -89,16 +131,22 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
 
         initMapDimensions();
 
-        this.worldMapNode = new Node("WorldMapNode");
-        this.worldMapNode.setLocalTranslation(0, 0, 5);
+        worldMapNode = new Node("WorldMapNode");
+        worldMapNode.setLocalTranslation(0, 0, 5);
 
         createBorder();
 
-        // 2. Container for our 16 dynamic subquad meshes
-        this.mapTilesNode = new Node("MapTilesNode");
-        // Center the tiles area within the border
-        this.mapTilesNode.setLocalTranslation(mapMargin, mapMargin, 1);
-        this.worldMapNode.attachChild(mapTilesNode);
+        mapTilesNode = new Node("MapTilesNode");
+        mapTilesNode.setLocalTranslation(mapMargin, mapMargin, 1);
+        worldMapNode.attachChild(mapTilesNode);
+
+        playerMarkerNode = new Node("PlayerMarkerNode");
+        poiMarkersNode = new Node("POIMarkersNode");
+        worldMapNode.attachChild(playerMarkerNode);
+        worldMapNode.attachChild(poiMarkersNode);
+
+        createPlayerMarker();
+        createPoiMaterial();
 
         worldMapNode.setCullHint(Node.CullHint.Always);
     }
@@ -111,13 +159,11 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
         mapWidth = screenWidth - (mapMargin * 2);
         mapHeight = screenHeight - (mapMargin * 2);
 
-        // We want exactly 4x4 subquads visible to occupy the whole screen container
         subquadWidth = mapWidth / 4f;
         subquadHeight = mapHeight / 4f;
     }
 
     private void createBorder() {
-        // Keeps your existing border setup untouched
         Quad borderQuad = new Quad(screenWidth, screenHeight);
         mapBorder = new Geometry("MapBorder", borderQuad);
         Material borderMat = new Material(getApplication().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
@@ -130,6 +176,170 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
         mapBorder.setMaterial(borderMat);
         mapBorder.setLocalTranslation(0, 0, 0);
         worldMapNode.attachChild(mapBorder);
+    }
+
+    private void createPlayerMarker() {
+        Mesh triangleMesh = new Mesh();
+
+        float halfBase = markerBaseWidth / 2f;
+        float halfHeight = markerHeight / 2f;
+        float tipY = halfHeight;
+        float baseY = -halfHeight;
+
+        Vector3f[] vertices = {
+                new Vector3f(-halfBase, baseY, 0),
+                new Vector3f( halfBase, baseY, 0),
+                new Vector3f(0, tipY, 0)
+        };
+        int[] indices = {0, 1, 2};
+        Vector3f[] normals = {
+                new Vector3f(0, 0, 1),
+                new Vector3f(0, 0, 1),
+                new Vector3f(0, 0, 1)
+        };
+        Vector2f[] texCoords = {
+                new Vector2f(0, 0),
+                new Vector2f(1, 0),
+                new Vector2f(0.5f, 1)
+        };
+
+        triangleMesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(vertices));
+        triangleMesh.setBuffer(VertexBuffer.Type.Index, 3, BufferUtils.createIntBuffer(indices));
+        triangleMesh.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(normals));
+        triangleMesh.setBuffer(VertexBuffer.Type.TexCoord, 2, BufferUtils.createFloatBuffer(texCoords));
+        triangleMesh.updateBound();
+        triangleMesh.setStatic();
+
+        playerMarker = new Geometry("PlayerMarker", triangleMesh);
+        Material mat = new Material(getApplication().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", new ColorRGBA(0.85f, 0.65f, 0.2f, 1f)); // golden
+        playerMarker.setMaterial(mat);
+
+        playerMarkerNode.attachChild(playerMarker);
+        playerMarkerNode.setLocalTranslation(0, 0, 2);
+    }
+
+    private void createPoiMaterial() {
+        int size = 32;
+        BufferedImage img = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = img.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(new Color(0, 100, 255, 200));
+        g.fillOval(0, 0, size, size);
+        g.dispose();
+
+        ByteBuffer buffer = BufferUtils.createByteBuffer(size * size * 4);
+        for (int y = 0; y < size; y++) {
+            for (int x = 0; x < size; x++) {
+                int argb = img.getRGB(x, y);
+                buffer.put((byte) ((argb >> 16) & 0xFF));
+                buffer.put((byte) ((argb >> 8) & 0xFF));
+                buffer.put((byte) (argb & 0xFF));
+                buffer.put((byte) ((argb >> 24) & 0xFF));
+            }
+        }
+        buffer.flip();
+        Image jmeImage = new Image(Image.Format.RGBA8, size, size, buffer);
+        Texture2D tex = new Texture2D(jmeImage);
+        tex.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+        tex.setMagFilter(Texture.MagFilter.Bilinear);
+
+        poiMaterial = new Material(getApplication().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+        poiMaterial.setTexture("ColorMap", tex);
+        poiMaterial.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+    }
+
+    public void addPoiMarker(String id, Vector3f worldPos) {
+        if (poiGeometries.containsKey(id)) return;
+        Geometry marker = new Geometry("POI_" + id, new Quad(24, 24));
+        marker.setMaterial(poiMaterial);
+        marker.setUserData("worldPos", worldPos.clone());
+        poiMarkersNode.attachChild(marker);
+        poiGeometries.put(id, marker);
+    }
+
+    public void removePoiMarker(String id) {
+        Geometry marker = poiGeometries.remove(id);
+        if (marker != null) marker.removeFromParent();
+    }
+
+    public void clearPoiMarkers() {
+        for (Geometry geom : poiGeometries.values()) geom.removeFromParent();
+        poiGeometries.clear();
+    }
+
+    // -------------------------------------------------------------------------
+    // World → screen with calibration offsets
+    // -------------------------------------------------------------------------
+    private Vector2f worldToScreen(Vector3f worldPos) {
+        float worldX = worldPos.x;
+        float worldZ = worldPos.z;
+
+        int quadX = (int) Math.floor(worldX / quadSizeWorld);
+        int quadZ = (int) Math.floor(worldZ / quadSizeWorld);
+        float localX = worldX - quadX * quadSizeWorld;
+        float localZ = worldZ - quadZ * quadSizeWorld;
+        float subXf = localX / subquadSizeWorld;
+        float subZf = localZ / subquadSizeWorld;
+
+        float absoluteSubX = quadX * 2 + subXf + OFFSET_X_SUBQUADS;
+        float absoluteSubZ = quadZ * 2 + subZf + OFFSET_Y_SUBQUADS;
+
+        float screenX = (absoluteSubX - panX) * subquadWidth;
+        float screenY = (absoluteSubZ - panY) * subquadHeight;
+
+        return new Vector2f(screenX, screenY);
+    }
+
+    private float getAngleFromNorth(Vector3f forward) {
+        return FastMath.atan2(forward.x, -forward.z);
+    }
+
+    private void centerMapOnPlayer() {
+        Vector3f playerPos = gameLogicCore.getPlayerCharacter().getNode().getWorldTranslation();
+        Vector2f playerScreen = worldToScreen(playerPos);
+        // Desired: player at center of mapTilesNode
+        float targetX = mapWidth / 2f;
+        float targetY = mapHeight / 2f;
+        float deltaX = targetX - playerScreen.x;
+        float deltaY = targetY - playerScreen.y;
+        panX += deltaX / subquadWidth;
+        panY += deltaY / subquadHeight;
+
+        LOGGER.info(String.format("Centered map: player screen (%.1f, %.1f), pan (%.2f, %.2f)",
+                playerScreen.x, playerScreen.y, panX, panY));
+    }
+
+    private void updateMarkers() {
+        if (!isMapVisible) return;
+
+        Vector3f playerPos = gameLogicCore.getPlayerCharacter().getNode().getWorldTranslation();
+        Vector2f screenPos = worldToScreen(playerPos);
+
+        // Debug output every few seconds
+        if (System.currentTimeMillis() % 3000 < 50) {
+            LOGGER.info(String.format("Player world (%.1f, %.1f) -> screen (%.1f, %.1f) | pan (%.2f, %.2f)",
+                    playerPos.x, playerPos.z, screenPos.x, screenPos.y, panX, panY));
+        }
+
+        float worldMapX = mapMargin + screenPos.x;
+        float worldMapY = mapMargin + screenPos.y;
+        playerMarkerNode.setLocalTranslation(worldMapX, worldMapY, 2);
+
+        Vector3f forward = gameLogicCore.getPlayerCharacter().getCharacterControl().getViewDirection();
+        float angle = getAngleFromNorth(forward);
+        playerMarkerNode.setLocalRotation(com.jme3.math.Quaternion.IDENTITY);
+        playerMarkerNode.rotate(0, 0, angle);
+
+        for (Geometry geom : poiGeometries.values()) {
+            Vector3f worldPos = geom.getUserData("worldPos");
+            if (worldPos != null) {
+                Vector2f poiScreen = worldToScreen(worldPos);
+                float poiX = mapMargin + poiScreen.x - 12;
+                float poiY = mapMargin + poiScreen.y - 12;
+                geom.setLocalTranslation(poiX, poiY, 1);
+            }
+        }
     }
 
     private void renderVisibleTiles() {
@@ -146,18 +356,13 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
 
         TextureCache cache = (TextureCache) TextureCache.getInstance();
 
-        // 5x5 grid
         for (int row = -1; row <= 4; row++) {
             for (int col = -1; col <= 4; col++) {
-
                 int worldSubX = startSubX + col;
                 int worldSubY = startSubY + row;
 
-                // BITWISE SHIFT is the only safe way to map negatives in Java
                 int quadX = worldSubX >> 1;
                 int quadY = worldSubY >> 1;
-
-                // AND operation is the only safe way to get positive remainders for negatives
                 int subX = worldSubX & 1;
                 int subY = worldSubY & 1;
 
@@ -169,8 +374,6 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
 
                 if (cache.containsTexture(tileId)) {
                     Texture texture = cache.getTexture(tileId).get();
-//                    texture.setWrap(Texture.WrapMode.Repeat);
-
                     mat.setTexture("ColorMap", texture);
                     mat.setColor("Color", ColorRGBA.White);
                 } else {
@@ -179,29 +382,36 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
                 }
 
                 geom.setMaterial(mat);
-
                 float drawX = offsetX + (col * subquadWidth);
                 float drawY = offsetY + (row * subquadHeight);
                 geom.setLocalTranslation(drawX, drawY, 0);
-
                 mapTilesNode.attachChild(geom);
             }
         }
     }
 
     @Override
+    public void update(float tpf) {
+        if (isMapVisible) {
+            renderVisibleTiles();
+            updateMarkers();
+        }
+    }
+
+    @Override
     public void onAnalog(String name, float value, float tpf) {
         if (!isMapVisible) return;
+        if (name.equals(PAN_UP)) panY += PAN_SPEED * tpf;
+        else if (name.equals(PAN_DOWN)) panY -= PAN_SPEED * tpf;
+        else if (name.equals(PAN_RIGHT)) panX += PAN_SPEED * tpf;
+        else if (name.equals(PAN_LEFT)) panX -= PAN_SPEED * tpf;
+    }
 
-        // 3. Smooth panning with W/A/S/D
-        if (name.equals(PAN_UP)) {
-            panY += PAN_SPEED * tpf;
-        } if (name.equals(PAN_DOWN)) {
-            panY -= PAN_SPEED * tpf;
-        } if (name.equals(PAN_RIGHT)) {
-            panX += PAN_SPEED * tpf;
-        } if (name.equals(PAN_LEFT)) {
-            panX -= PAN_SPEED * tpf;
+    @Override
+    public void onAction(String name, boolean isPressed, float tpf) {
+        if (isPressed) {
+            if (name.equals(TOGGLE_MAP)) toggleMap();
+            else if (name.equals(ESCAPE_MAP) && isMapVisible) hideMap();
         }
     }
 
@@ -215,9 +425,10 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
         if (worldMapNode.getParent() == null) {
             ((SimpleApplication) getApplication()).getGuiNode().attachChild(worldMapNode);
         }
+        centerMapOnPlayer();
         worldMapNode.setCullHint(Node.CullHint.Never);
         isMapVisible = true;
-        renderVisibleTiles(); // Initial render setup upon opening the map
+        renderVisibleTiles();
     }
 
     public void hideMap() {
@@ -226,24 +437,15 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
     }
 
     @Override
-    public void onAction(String name, boolean isPressed, float tpf) {
-        if (isPressed) {
-            if (name.equals(TOGGLE_MAP)) toggleMap();
-            else if (name.equals(ESCAPE_MAP) && isMapVisible) hideMap();
-        }
-    }
-
-    @Override
     protected void cleanup(Application app) {
         if (worldMapNode != null && worldMapNode.getParent() != null) {
             worldMapNode.removeFromParent();
         }
+        inputManager.removeListener(this);
     }
 
-    // Unchanged lifecycle methods...
-    @Override public void update(float tpf) {
-        renderVisibleTiles(); // Re-render / translate immediately
-    }
-    @Override protected void onEnable() {}
-    @Override protected void onDisable() { hideMap(); }
+    @Override
+    protected void onEnable() {}
+    @Override
+    protected void onDisable() { hideMap(); }
 }
