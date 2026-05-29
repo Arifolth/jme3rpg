@@ -38,6 +38,7 @@ import ru.arifolth.anjrpg.interfaces.compass.CompassInterface;
 import ru.arifolth.anjrpg.interfaces.compass.CompassStateInterface;
 import ru.arifolth.anjrpg.interfaces.compass.POIInterface;
 import ru.arifolth.anjrpg.interfaces.compass.POIType;
+import ru.arifolth.anjrpg.worldmap.WorldMapState;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -58,12 +59,15 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
     private List<POIInterface> testPOIs;
     private final Set<POIInterface> activePOIs = new HashSet<>();
     private final Set<String> activeIds = new HashSet<>();
+    private WorldMapState worldMapState;
 
 
     @Override
     protected void initialize(Application app) {
         SimpleApplication application = (SimpleApplication) app;
         this.compass = new Compass(application);
+        this.worldMapState = application.getStateManager().getState(WorldMapState.class);
+
         this.playerCharacter = ((ANJRpgInterface) application).getGameLogicCore().getPlayerCharacter();
 
         // Initialize static POI (e.g., mountains)
@@ -96,30 +100,60 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
         }
 
         if (visible) {
-            activePOIs.clear();
-            activePOIs.addAll(testPOIs);
+            initializePOI();
 
-            Map.Entry<Iterator<CharacterInterface>, CharacterInterface> lock = playerCharacter.getLockedOnCharacter();
-            if (lock != null && !lock.getValue().isDead()) {
-                Vector3f npcPos = lock.getValue().getNode().getWorldTranslation();
+            updateCompassUI();
 
-                // Store actual NPC world position, not direction
-                npcPOI.setPosition(npcPos);
+            updateWorldMapPOI();
+        }
+    }
 
-                activePOIs.add(npcPOI);
+    private void initializePOI() {
+        activePOIs.clear();
+        activePOIs.addAll(testPOIs);
+
+        Map.Entry<Iterator<CharacterInterface>, CharacterInterface> lock = playerCharacter.getLockedOnCharacter();
+        if (lock != null && !lock.getValue().isDead()) {
+            Vector3f npcPos = lock.getValue().getNode().getWorldTranslation();
+
+            // Store actual NPC world position, not direction
+            npcPOI.setPosition(npcPos);
+
+            activePOIs.add(npcPOI);
+        }
+
+        compass.setPointsOfInterest(activePOIs);
+    }
+
+    private void updateCompassUI() {
+        // Keep using camera direction for rotation
+        Vector3f cameraForward = getApplication().getCamera().getDirection().clone();
+        cameraForward.y = 0;
+        cameraForward.normalizeLocal();
+
+        float compassOffset = calculateCompassOffset(FastMath.atan2(cameraForward.x, cameraForward.z));
+        compass.updateCompassRotation(compassOffset);
+
+        updateTargetIndicators(cameraForward);
+    }
+
+    private void updateWorldMapPOI() {
+        if (worldMapState != null) {
+            // Remove POIs that are no longer active
+            Set<String> activeIds = new HashSet<>();
+            for (POIInterface poi : activePOIs) {
+                activeIds.add(poi.getId());
             }
-
-            compass.setPointsOfInterest(activePOIs);
-
-            // Keep using camera direction for rotation
-            Vector3f cameraForward = getApplication().getCamera().getDirection().clone();
-            cameraForward.y = 0;
-            cameraForward.normalizeLocal();
-
-            float compassOffset = calculateCompassOffset(FastMath.atan2(cameraForward.x, cameraForward.z));
-            compass.updateCompassRotation(compassOffset);
-
-            updateTargetIndicators(cameraForward);
+            // Remove stale markers
+            for (String existingId : worldMapState.getPoiGeometries()) {
+                if (!activeIds.contains(existingId)) {
+                    worldMapState.removePoiMarker(existingId);
+                }
+            }
+            // Add new or update existing POIs
+            for (POIInterface poi : activePOIs) {
+                worldMapState.addPoiMarker(poi.getId(), poi.getPosition());
+            }
         }
     }
 

@@ -48,7 +48,9 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 public class WorldMapState extends BaseAppState implements ActionListener, AnalogListener {
@@ -86,6 +88,9 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
     private final float PAN_SPEED = 4.0f;
     private float subquadWidth;
     private float subquadHeight;
+
+    // Increase marker size (from 24x24 to 32x32)
+    private static final float POI_MARKER_SIZE = 32f;
 
     private ViewDistanceSettingsInterface viewDistanceSettings;
     private float quadSizeWorld;
@@ -219,15 +224,24 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
         playerMarkerNode.setLocalTranslation(0, 0, 2);
     }
 
+    // In createPoiMaterial() – brighter light‑green fill, higher opacity
     private void createPoiMaterial() {
-        int size = 32;
+        int size = 64; // higher resolution for smoother circle
         BufferedImage img = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = img.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(new Color(0, 100, 255, 200));
+
+        // Light green with slight transparency (adjust alpha as needed)
+        g.setColor(new Color(100, 255, 100, 220));
         g.fillOval(0, 0, size, size);
+
+        // Optional: add a white border for contrast
+        g.setColor(new Color(255, 255, 255, 200));
+        g.setStroke(new BasicStroke(3));
+        g.drawOval(2, 2, size-4, size-4);
         g.dispose();
 
+        // Convert to JME texture (same as before)
         ByteBuffer buffer = BufferUtils.createByteBuffer(size * size * 4);
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
@@ -251,7 +265,7 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
 
     public void addPoiMarker(String id, Vector3f worldPos) {
         if (poiGeometries.containsKey(id)) return;
-        Geometry marker = new Geometry("POI_" + id, new Quad(24, 24));
+        Geometry marker = new Geometry("POI_" + id, new Quad(POI_MARKER_SIZE, POI_MARKER_SIZE));
         marker.setMaterial(poiMaterial);
         marker.setUserData("worldPos", worldPos.clone());
         poiMarkersNode.attachChild(marker);
@@ -350,11 +364,15 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
             Vector3f worldPos = geom.getUserData("worldPos");
             if (worldPos != null) {
                 Vector2f poiScreen = worldToScreen(worldPos);
-                float poiX = mapMargin + poiScreen.x - 12;
-                float poiY = mapMargin + poiScreen.y - 12;
+                float poiX = mapMargin + poiScreen.x - POI_MARKER_SIZE/2;
+                float poiY = mapMargin + poiScreen.y - POI_MARKER_SIZE/2;
                 geom.setLocalTranslation(poiX, poiY, 1);
             }
         }
+    }
+
+    public Set<String> getPoiGeometries() {
+        return new HashSet<>(poiGeometries.keySet());
     }
 
     private void renderVisibleTiles() {
