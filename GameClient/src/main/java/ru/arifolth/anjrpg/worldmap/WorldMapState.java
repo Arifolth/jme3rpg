@@ -36,11 +36,14 @@ import com.jme3.scene.*;
 import com.jme3.scene.shape.Quad;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.VertexBuffer;
+import com.jme3.system.AppSettings;
 import com.jme3.util.BufferUtils;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture2D;
 import com.jme3.texture.Image;
+import ru.arifolth.anjrpg.interfaces.BindingConstants;
 import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
+import ru.arifolth.anjrpg.interfaces.MovementControllerInterface;
 import ru.arifolth.anjrpg.interfaces.graphics.ViewDistanceSettingsInterface;
 import ru.arifolth.anjrpg.menu.SettingsUtils;
 
@@ -72,7 +75,7 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
     public static final String POINAME = "POI_";
 
     private final GameLogicCoreInterface gameLogicCore;
-    private InputManager inputManager;
+    private MovementControllerInterface movementController;
 
     private Node worldMapNode;
     private Node mapTilesNode;
@@ -109,6 +112,7 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
 
     public WorldMapState(GameLogicCoreInterface gameLogicCore) {
         this.gameLogicCore = gameLogicCore;
+        this.movementController = gameLogicCore.getMovementController();
         this.viewDistanceSettings = SettingsUtils.getViewDistanceSettings(gameLogicCore.getApp().getContext().getSettings());
 
         if (viewDistanceSettings != null) {
@@ -124,17 +128,10 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
 
     @Override
     protected void initialize(Application app) {
-        this.inputManager = app.getInputManager();
+        movementController.addMapping(TOGGLE_MAP, new KeyTrigger(KeyInput.KEY_M));
+        movementController.addMapping(ESCAPE_MAP, new KeyTrigger(KeyInput.KEY_ESCAPE));
+        movementController.addListener(this, TOGGLE_MAP, ESCAPE_MAP);
 
-        inputManager.addMapping(TOGGLE_MAP, new KeyTrigger(KeyInput.KEY_M));
-        inputManager.addMapping(ESCAPE_MAP, new KeyTrigger(KeyInput.KEY_ESCAPE));
-        inputManager.addMapping(PAN_UP, new KeyTrigger(KeyInput.KEY_W));
-        inputManager.addMapping(PAN_DOWN, new KeyTrigger(KeyInput.KEY_S));
-        inputManager.addMapping(PAN_LEFT, new KeyTrigger(KeyInput.KEY_A));
-        inputManager.addMapping(PAN_RIGHT, new KeyTrigger(KeyInput.KEY_D));
-
-        inputManager.addListener(this, TOGGLE_MAP, ESCAPE_MAP);
-        inputManager.addListener(this, PAN_UP, PAN_DOWN, PAN_LEFT, PAN_RIGHT);
 
         initMapDimensions();
 
@@ -457,6 +454,20 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
     }
 
     public void showMap() {
+        movementController.removeInputMapping(BindingConstants.UP);
+        movementController.removeInputMapping(BindingConstants.DOWN);
+        movementController.removeInputMapping(BindingConstants.LEFT);
+        movementController.removeInputMapping(BindingConstants.RIGHT);
+        movementController.removeInputMapping(BindingConstants.JUMP);
+        movementController.removeInputMapping(BindingConstants.RUN);
+
+        movementController.addMapping(PAN_UP, new KeyTrigger(KeyInput.KEY_W));
+        movementController.addMapping(PAN_DOWN, new KeyTrigger(KeyInput.KEY_S));
+        movementController.addMapping(PAN_LEFT, new KeyTrigger(KeyInput.KEY_A));
+        movementController.addMapping(PAN_RIGHT, new KeyTrigger(KeyInput.KEY_D));
+        movementController.addListener(this, PAN_UP, PAN_DOWN, PAN_LEFT, PAN_RIGHT);
+
+
         if (worldMapNode.getParent() == null) {
             ((SimpleApplication) getApplication()).getGuiNode().attachChild(worldMapNode);
         }
@@ -469,6 +480,14 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
     public void hideMap() {
         worldMapNode.setCullHint(Node.CullHint.Always);
         isMapVisible = false;
+
+        //listener is added along input mapping
+        movementController.addDefaultInputMapping(BindingConstants.UP);
+        movementController.addDefaultInputMapping(BindingConstants.DOWN);
+        movementController.addDefaultInputMapping(BindingConstants.LEFT);
+        movementController.addDefaultInputMapping(BindingConstants.RIGHT);
+        movementController.addDefaultInputMapping(BindingConstants.JUMP);
+        movementController.addDefaultInputMapping(BindingConstants.RUN);
     }
 
     @Override
@@ -476,7 +495,7 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
         if (worldMapNode != null && worldMapNode.getParent() != null) {
             worldMapNode.removeFromParent();
         }
-        inputManager.removeListener(this);
+        movementController.removeListener(this);
     }
 
     @Override

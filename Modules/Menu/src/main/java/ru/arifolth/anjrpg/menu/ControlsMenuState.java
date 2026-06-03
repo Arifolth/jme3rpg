@@ -68,12 +68,12 @@ public class ControlsMenuState extends CustomCompositeAppState {
             e.printStackTrace();
         }
 
-        movementController.addInputMapping(BindingConstants.UP, (Integer) settings.get(BindingConstants.UP.name()));
-        movementController.addInputMapping(BindingConstants.DOWN, (Integer) settings.get(BindingConstants.DOWN.name()));
-        movementController.addInputMapping(BindingConstants.LEFT, (Integer) settings.get(BindingConstants.LEFT.name()));
-        movementController.addInputMapping(BindingConstants.RIGHT, (Integer) settings.get(BindingConstants.RIGHT.name()));
-        movementController.addInputMapping(BindingConstants.JUMP, (Integer) settings.get(BindingConstants.JUMP.name()));
-        movementController.addInputMapping(BindingConstants.RUN, (Integer) settings.get(BindingConstants.RUN.name()));
+        movementController.addDefaultInputMapping(BindingConstants.UP);
+        movementController.addDefaultInputMapping(BindingConstants.DOWN);
+        movementController.addDefaultInputMapping(BindingConstants.LEFT);
+        movementController.addDefaultInputMapping(BindingConstants.RIGHT);
+        movementController.addDefaultInputMapping(BindingConstants.JUMP);
+        movementController.addDefaultInputMapping(BindingConstants.RUN);
 
         setEnabled(false);
         parent.setEnabled(false);

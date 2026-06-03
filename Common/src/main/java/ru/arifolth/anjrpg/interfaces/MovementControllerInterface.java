@@ -19,11 +19,23 @@
 package ru.arifolth.anjrpg.interfaces;
 
 import com.jme3.input.controls.ActionListener;
+import com.jme3.input.controls.InputListener;
+import com.jme3.input.controls.Trigger;
 
 public interface MovementControllerInterface extends ActionListener {
     void setUpKeys();
 
     void setPlayerCharacter(CharacterInterface playerCharacter);
 
-    void addInputMapping(BindingConstants up, int integer);
+    void addDefaultInputMapping(BindingConstants mapping);
+
+    void removeInputMapping(BindingConstants mapping);
+
+    void removeListener(InputListener listener);
+
+    void addListener(InputListener listener, String... mappingNames);
+
+    void addMapping(String mappingName, Trigger trigger);
+
+    void addInputMapping(BindingConstants up);
 }

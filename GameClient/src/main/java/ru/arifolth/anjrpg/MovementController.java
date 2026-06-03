@@ -21,10 +21,12 @@ package ru.arifolth.anjrpg;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.input.InputManager;
-import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
+import com.jme3.input.controls.InputListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
+import com.jme3.input.controls.Trigger;
+import com.jme3.system.AppSettings;
 import ru.arifolth.anjrpg.interfaces.InitStateEnum;
 import ru.arifolth.anjrpg.menu.MainMenuState;
 import ru.arifolth.anjrpg.menu.MenuUtils;
@@ -38,10 +40,12 @@ public class MovementController implements MovementControllerInterface {
     private CharacterInterface playerCharacter;
     private Application app;
     private InputManager inputManager;
+    private AppSettings settings;
 
     public MovementController(Application app, InputManager inputManager) {
         this.inputManager = inputManager;
         this.app = app;
+        this.settings = app.getContext().getSettings();
     }
 
     /** These are our custom actions triggered by key presses.
@@ -130,7 +134,7 @@ public class MovementController implements MovementControllerInterface {
     @Override
     public void setUpKeys() {
         inputManager.deleteMapping(SimpleApplication.INPUT_MAPPING_EXIT);
-        addInputMapping(ESCAPE, KeyInput.KEY_ESCAPE);
+        addInputMapping(ESCAPE);
 
         addDefaultInputMapping(LOCK);
         addDefaultInputMapping(UP);
@@ -150,6 +154,7 @@ public class MovementController implements MovementControllerInterface {
         inputManager.addListener(this, mapping.toString());
     }
 
+    @Override
     public void addDefaultInputMapping(BindingConstants mapping) {
         Integer key = (Integer) app.getContext().getSettings().get(mapping.name());
         try {
@@ -161,12 +166,47 @@ public class MovementController implements MovementControllerInterface {
     }
 
     @Override
-    public void addInputMapping(BindingConstants mapping, int key) {
+    public void removeInputMapping(BindingConstants mapping) {
         String mappingName = mapping.toString();
 
         inputManager.deleteMapping(mappingName);
-        inputManager.addMapping(mappingName, new KeyTrigger(key));
+    }
 
+    @Override
+    public void removeListener(InputListener listener) {
+        inputManager.removeListener(listener);
+    }
+
+    @Override
+    public void addListener(InputListener listener, String... mappingNames) {
+        inputManager.addListener(listener, mappingNames);
+    }
+
+    @Override
+    public void addMapping(String mappingName, Trigger trigger) {
+        inputManager.addMapping(mappingName, trigger);
+    }
+
+    public void addInputMapping(BindingConstants mapping, Integer key) {
+        String mappingName = mapping.toString();
+        inputManager.addMapping(mappingName, new KeyTrigger(key));
+        registerInputListener(mapping);
+    }
+
+    @Override
+    public void addInputMapping(BindingConstants mapping) {
+        String mappingName = mapping.toString();
+
+        inputManager.deleteMapping(mappingName);
+
+        Integer key = (Integer) app.getContext().getSettings().get(mappingName);
+        try {
+            key = (null == key) ? MenuUtils.getKey(MenuUtils.getKeyName(mappingName)) : key;
+        } catch (NoSuchFieldException|IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        inputManager.addMapping(mappingName, new KeyTrigger(key));
         registerInputListener(mapping);
     }
 
