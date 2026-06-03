@@ -68,6 +68,8 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
     private static final String PAN_DOWN = "PAN_DOWN";
     private static final String PAN_LEFT = "PAN_LEFT";
     private static final String PAN_RIGHT = "PAN_RIGHT";
+    public static final String WORLD_POS = "worldPos";
+    public static final String POINAME = "POI_";
 
     private final GameLogicCoreInterface gameLogicCore;
     private InputManager inputManager;
@@ -265,9 +267,9 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
 
     public void addPoiMarker(String id, Vector3f worldPos) {
         if (poiGeometries.containsKey(id)) return;
-        Geometry marker = new Geometry("POI_" + id, new Quad(POI_MARKER_SIZE, POI_MARKER_SIZE));
+        Geometry marker = new Geometry(POINAME + id, new Quad(POI_MARKER_SIZE, POI_MARKER_SIZE));
         marker.setMaterial(poiMaterial);
-        marker.setUserData("worldPos", worldPos.clone());
+        marker.setUserData(WORLD_POS, worldPos.clone());
         poiMarkersNode.attachChild(marker);
         poiGeometries.put(id, marker);
     }
@@ -361,7 +363,7 @@ public class WorldMapState extends BaseAppState implements ActionListener, Analo
         playerMarkerNode.rotate(0, 0, angle);
 
         for (Geometry geom : poiGeometries.values()) {
-            Vector3f worldPos = geom.getUserData("worldPos");
+            Vector3f worldPos = geom.getUserData(WORLD_POS);
             if (worldPos != null) {
                 Vector2f poiScreen = worldToScreen(worldPos);
                 float poiX = mapMargin + poiScreen.x - POI_MARKER_SIZE/2;
