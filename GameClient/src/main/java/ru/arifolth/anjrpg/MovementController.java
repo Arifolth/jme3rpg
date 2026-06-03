@@ -54,11 +54,13 @@ public class MovementController implements MovementControllerInterface {
     public void keyPressed(String binding, boolean pressed) {
         switch (BindingConstants.valueOf(binding)) {
             case LOCK:
-                if(pressed) {
+                // LOCK action should only work while game is running
+                if (isGameRunning() && pressed) {
                     playerCharacter.lockOnTarget();
                 }
                 break;
             case ESCAPE:
+                // ESCAPE toggles menu regardless of game state (even during init)
                 MainMenuState mainMenuState = app.getStateManager().getState(MainMenuState.class);
                 if(((ANJRpg) app).getInitStatus().equals(InitStateEnum.RUNNING)) {
                     if(mainMenuState.isEnabled()) {
@@ -73,19 +75,20 @@ public class MovementController implements MovementControllerInterface {
                 }
                 break;
             case LEFT:
-                playerCharacter.setLeft(pressed);
+                if (isGameRunning()) playerCharacter.setLeft(pressed);
                 break;
             case RIGHT:
-                playerCharacter.setRight(pressed);
+                if (isGameRunning()) playerCharacter.setRight(pressed);
                 break;
             case UP:
-                playerCharacter.setUp(pressed);
+                if (isGameRunning()) playerCharacter.setUp(pressed);
                 break;
             case DOWN:
-                playerCharacter.setDown(pressed);
+                if (isGameRunning()) playerCharacter.setDown(pressed);
                 break;
             case JUMP:
-                if(!playerCharacter.isJumping() && !playerCharacter.getStaminaBar().isExhausted()) {
+                if (isGameRunning() && !playerCharacter.isJumping() &&
+                        (playerCharacter.getStaminaBar() == null || !playerCharacter.getStaminaBar().isExhausted())) {
                     playerCharacter.setJump_pressed(pressed);
                     if(playerCharacter.isJump_pressed()) {
                         playerCharacter.setJumping(true);
@@ -93,10 +96,11 @@ public class MovementController implements MovementControllerInterface {
                 }
                 break;
             case RUN:
-                playerCharacter.setRunning(pressed);
+                if (isGameRunning()) playerCharacter.setRunning(pressed);
                 break;
             case BLOCK:
-                if(playerCharacter.isCapture_mouse() && !playerCharacter.isJumping() && !playerCharacter.getStaminaBar().isExhausted()) {
+                if (isGameRunning() && playerCharacter.isCapture_mouse() && !playerCharacter.isJumping() &&
+                        (playerCharacter.getStaminaBar() == null || !playerCharacter.getStaminaBar().isExhausted())) {
                     playerCharacter.setBlock_pressed(pressed);
                     if(playerCharacter.isBlock_pressed()) {
                         playerCharacter.setBlocking(true);
@@ -104,7 +108,7 @@ public class MovementController implements MovementControllerInterface {
                 }
                 break;
             case ATTACK:
-                if(playerCharacter.isCapture_mouse() && !playerCharacter.isJumping()) {
+                if (isGameRunning() && playerCharacter.isCapture_mouse() && !playerCharacter.isJumping()) {
                     playerCharacter.setAttack_pressed(pressed);
                     if(playerCharacter.isAttack_pressed()) {
                         playerCharacter.setAttacking(true);
@@ -114,6 +118,11 @@ public class MovementController implements MovementControllerInterface {
         }
     }
 
+    /** Helper to check if the game is in the RUNNING state and player character is ready. */
+    private boolean isGameRunning() {
+        ANJRpg game = (ANJRpg) app;
+        return game.getInitStatus() == InitStateEnum.RUNNING && playerCharacter != null;
+    }
 
     /** We over-write some navigational key mappings here, so we can
      * add physics-controlled walking and jumping
@@ -131,7 +140,6 @@ public class MovementController implements MovementControllerInterface {
         addDefaultInputMapping(JUMP);
         addDefaultInputMapping(RUN);
 
-
         inputManager.addMapping(ATTACK.toString(), new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
         inputManager.addMapping(BLOCK.toString(), new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
         registerInputListener(ATTACK);
@@ -146,7 +154,6 @@ public class MovementController implements MovementControllerInterface {
         Integer key = (Integer) app.getContext().getSettings().get(mapping.name());
         try {
             key = (null == key) ? MenuUtils.getKey(MenuUtils.getKeyName(mapping.getDefaultName())) : key;
-
             addInputMapping(mapping, key);
         } catch (NoSuchFieldException|IllegalAccessException e) {
             e.printStackTrace();

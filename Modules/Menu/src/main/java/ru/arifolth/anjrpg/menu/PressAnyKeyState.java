@@ -73,7 +73,6 @@ public class PressAnyKeyState extends BaseAppState implements RawInputListener {
         application = (ANJRpgInterface) app;
         gameLogicCore = application.getGameLogicCore();
         inputManager = application.getInputManager();
-        inputManager.addRawInputListener(this);  // Add raw listener for ALL keys
 
         // Initialize menu background music
         if (gameLogicCore != null && gameLogicCore.getSoundManager() != null) {
@@ -98,6 +97,7 @@ public class PressAnyKeyState extends BaseAppState implements RawInputListener {
 
     @Override
     protected void cleanup(Application app) {
+        // Final cleanup – remove listener if still attached
         if (inputManager != null) {
             inputManager.removeRawInputListener(this);
         }
@@ -105,13 +105,23 @@ public class PressAnyKeyState extends BaseAppState implements RawInputListener {
 
     @Override
     protected void onEnable() {
+        // Add raw listener only when this state becomes active
+        if (inputManager != null) {
+            inputManager.addRawInputListener(this);
+        }
         createUI();
     }
 
     @Override
     protected void onDisable() {
+        // Remove listener to avoid processing input when state is inactive
+        if (inputManager != null) {
+            inputManager.removeRawInputListener(this);
+        }
+        // Remove UI elements
         if (mainWindow != null) {
             mainWindow.removeFromParent();
+            mainWindow = null;
         }
     }
 
@@ -181,12 +191,11 @@ public class PressAnyKeyState extends BaseAppState implements RawInputListener {
         }
     }
 
-    // RawInputListener implementations - KEY ONLY triggers
+    // RawInputListener implementations – ALL keys / mouse buttons trigger
     @Override
     public void onKeyEvent(KeyInputEvent event) {
-        if (event.isPressed() && !event.isRepeating() && !isTransitioning && fadeTimer >= FADE_IN_DURATION) {
-            // ANY KEY PRESS triggers (excludes repeats, mouse)
-            LOGGER.debug("Any key pressed: keyCode={}, keyChar={}", event.getKeyCode(), event.getKeyChar());
+        if (event.isPressed() && !isTransitioning && fadeTimer >= FADE_IN_DURATION) {
+            LOGGER.debug("Key pressed: keyCode={}, keyChar={}", event.getKeyCode(), event.getKeyChar());
             transitionToMainMenu();
         }
     }
@@ -199,7 +208,6 @@ public class PressAnyKeyState extends BaseAppState implements RawInputListener {
     @Override
     public void onMouseButtonEvent(MouseButtonEvent event) {
         if (event.isPressed() && !isTransitioning && fadeTimer >= FADE_IN_DURATION) {
-            // ANY MOUSE BUTTON triggers (left, right, middle, etc.)
             LOGGER.debug("Mouse button pressed: buttonIndex={}", event.getButtonIndex());
             transitionToMainMenu();
         }
@@ -232,7 +240,6 @@ public class PressAnyKeyState extends BaseAppState implements RawInputListener {
     public float getStandardScale() {
         return application.getCamera().getHeight() / (application.getCamera().getHeight() / 2f);
     }
-
 
     private void setWindowSize(int height) {
         Vector3f pref = mainWindow.getPreferredSize().clone();
