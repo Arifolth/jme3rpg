@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
+import ru.arifolth.anjrpg.interfaces.SoundTypeEnum;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.East;
 import static com.simsilica.lemur.component.BorderLayout.Position.West;
@@ -78,6 +79,8 @@ public class GamePlayMenuState extends CustomCompositeAppState {
     protected void onEnable() {
         window = new Container();
 
+        parent.getMainWindow().clearChildren();
+
         Container contentContainer = new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even));
         contentContainer.setBackground(null);
 
@@ -98,6 +101,8 @@ public class GamePlayMenuState extends CustomCompositeAppState {
         props = joinPanel.addChild(new Container(new BorderLayout()));
         props.setBackground(null);
         props.addChild(new ActionButton(new CallMethodAction("Apply", this, "apply")), West);
+        props.addChild(new ActionButton(new CallMethodAction("Back", this, "onDisable")), East);
+
         window.setBackground(null);
 
         parent.getMainWindow().addChild(window, East);
@@ -106,7 +111,10 @@ public class GamePlayMenuState extends CustomCompositeAppState {
 
     @Override
     protected void onDisable() {
+        gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
+
         window.removeFromParent();
+        parent.onEnable();
     }
 
     public OptionsMenuState getParent() {

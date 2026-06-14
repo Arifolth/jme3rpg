@@ -86,6 +86,8 @@ public class OptionsMenuState extends CompositeAppState {
     protected void onEnable() {
         optionsWindow = new Container(new BorderLayout());
 
+        parent.getMainWindow().clearChildren();
+
         Container contentContainer = new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even));
         contentContainer.setBackground(null);
 
@@ -105,6 +107,10 @@ public class OptionsMenuState extends CompositeAppState {
 
         ActionButton gameplay = menuContainer.addChild(new ActionButton(new CallMethodAction("Gameplay", this, "gameplay")));
         gameplay.setInsets(new Insets3f(10, 10, 10, 10));
+
+        ActionButton back = menuContainer.addChild(new ActionButton(new CallMethodAction("Back", this, "onDisable")));
+        back.setInsets(new Insets3f(10, 10, 10, 10));
+
         optionsWindow.setBackground(null);
 
         parent.getMainWindow().addChild(optionsWindow, East);
@@ -116,6 +122,7 @@ public class OptionsMenuState extends CompositeAppState {
         gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
 
         optionsWindow.removeFromParent();
+        parent.onEnable();
     }
 
     public MainMenuState getParent() {

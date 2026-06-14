@@ -96,6 +96,8 @@ public class ExitMenuState extends CompositeAppState {
 
     @Override
     protected void onDisable() {
+        gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
+
         window.removeFromParent();
         parent.onEnable();
     }

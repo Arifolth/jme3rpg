@@ -142,6 +142,8 @@ public class VideoMenuState extends CustomCompositeAppState {
     protected void onEnable() {
         window = new Container();
 
+        parent.getMainWindow().clearChildren();
+
         Container contentContainer = new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even));
         contentContainer.setBackground(null);
 
@@ -194,14 +196,19 @@ public class VideoMenuState extends CustomCompositeAppState {
         props = joinPanel.addChild(new Container(new BorderLayout()));
         props.setBackground(null);
         props.addChild(new ActionButton(new CallMethodAction("Apply", this, "apply")), West);
+        props.addChild(new ActionButton(new CallMethodAction("Back", this, "onDisable")), East);
+
         window.setBackground(null);
 
-        parent.getMainWindow().addChild(window, East);
+        parent.getMainWindow().addChild(window);
         GuiGlobals.getInstance().requestFocus(window);
     }
 
     @Override
     protected void onDisable() {
+        gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
+
         window.removeFromParent();
+        parent.onEnable();
     }
 }
