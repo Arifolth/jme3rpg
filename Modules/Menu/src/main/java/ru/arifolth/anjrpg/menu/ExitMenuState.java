@@ -1,108 +1,147 @@
-/**
- *     ANJRpg - an open source Role Playing Game written in Java.
- *     Copyright (C) 2014 - 2026 Alexander Nilov
- *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
- *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 package ru.arifolth.anjrpg.menu;
 
 import com.jme3.app.Application;
-import com.jme3.math.ColorRGBA;
+import com.jme3.app.SimpleApplication;
+import com.jme3.app.state.BaseAppState;
+import com.jme3.math.Vector3f;
+import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 import com.simsilica.lemur.*;
 import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.SpringGridLayout;
-import com.simsilica.state.CompositeAppState;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
 import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
 import ru.arifolth.anjrpg.interfaces.SoundTypeEnum;
 
-import static com.simsilica.lemur.component.BorderLayout.Position.*;
+import static com.simsilica.lemur.component.BorderLayout.Position.Center;
 
-public class ExitMenuState extends CompositeAppState {
-    private final static Logger LOGGER = LoggerFactory.getLogger(OptionsMenuState.class);
-    private MainMenuState parent;
-    private Container window;
-    private ANJRpgInterface application;
+public class ExitMenuState extends BaseAppState {
+    private Container mainWindow;
+    private Container parentWindow;
+    private BaseAppState parentState;
+    private Node gui;
     private GameLogicCoreInterface gameLogicCore;
-    private String message = "Exit game?";
+    private PressAnyKeyState pressAnyKeyState;
+    private String message;
 
-    public ExitMenuState(MainMenuState parent) {
-        this.parent = parent;
+    // 1. For MainMenuState: new ExitMenuState(mainWindow, this)
+    // Changed MainMenuState to BaseAppState to fix module visibility
+    public ExitMenuState(Container parentWindow, BaseAppState parentState) {
+        this.parentWindow = parentWindow;
+        this.parentState = parentState;
+        this.message = "Exit Game?";
     }
 
-    public ExitMenuState(MainMenuState parent, String message) {
-        this.parent = parent;
+    // 2. For InGameMenuState (SystemPanel): new ExitMenuState(inGameMenu)
+    public ExitMenuState(BaseAppState parentState) {
+        this.parentState = parentState;
+        this.parentWindow = resolveParentWindow(parentState);
+        this.message = "Exit Game?";
+    }
+
+    // 3. For VideoMenuState: new ExitMenuState(parent.getParent(), "Restart required...")
+    public ExitMenuState(BaseAppState parentState, String message) {
+        this.parentState = parentState;
         this.message = message;
+        this.parentWindow = resolveParentWindow(parentState);
     }
+
+    public BaseAppState getParent() { return parentState; }
+    public Container getParentWindow() { return parentWindow; }
+    public Container getMainWindow() { return mainWindow; }
 
     @Override
     protected void initialize(Application app) {
-        application = (ANJRpgInterface) app;
+        ANJRpgInterface application = (ANJRpgInterface) app;
         gameLogicCore = application.getGameLogicCore();
+        gui = ((SimpleApplication) application).getGuiNode();
+        pressAnyKeyState = getStateManager().getState(PressAnyKeyState.class);
+        buildUI();
     }
 
-    @Override
-    protected void cleanup(Application app) {
-        getState(MainMenuState.class).setEnabled(true);
-    }
+    private void buildUI() {
+        mainWindow = new Container(new BorderLayout());
+        mainWindow.setBackground(null);
 
-    public Container getMainWindow() {
-        return window;
+        Container centerPanel = new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even));
+        centerPanel.setBackground(null);
+        mainWindow.addChild(centerPanel, Center);
+
+        Label title = centerPanel.addChild(new Label(message != null ? message : "Exit Game?"));
+        title.setFontSize(32);
+        title.setInsets(new Insets3f(10, 10, 0, 10));
+
+        ActionButton yes = centerPanel.addChild(new ActionButton(new CallMethodAction("Yes", this, "exitGame")));
+        yes.setInsets(new Insets3f(10, 10, 10, 10));
+
+        ActionButton no = centerPanel.addChild(new ActionButton(new CallMethodAction("No", this, "back")));
+        no.setInsets(new Insets3f(10, 10, 10, 10));
     }
 
     @Override
     protected void onEnable() {
-        window = new Container(new BorderLayout());
+        gameLogicCore.getFreeFollowCamera().setEnabled(false);
+        GuiGlobals.getInstance().requestCursorEnabled(this);
+        gui.attachChild(pressAnyKeyState.getBackgroundPicture());
 
-        parent.getMainWindow().clearChildren();
+        if (parentWindow != null) parentWindow.setCullHint(Spatial.CullHint.Always);
 
-        Container contentContainer = new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even));
-        contentContainer.setBackground(null);
+        setWindowSize(((ANJRpgInterface)getApplication()).getSettings().getHeight());
 
-        Container menuContainer = window.addChild(contentContainer);
-        Label title = menuContainer.addChild(new Label(message));
-        title.setFontSize(32);
-        title.setInsets(new Insets3f(0, 0, 10, 0));
-
-        Container props = menuContainer.addChild(new Container(new BorderLayout()));
-        props.setBackground(null);
-        props.addChild(new ActionButton(new CallMethodAction("Yes", this, "stop")), West);
-        props.addChild(new ActionButton(new CallMethodAction("No", this, "onDisable")), East);
-        window.setBackground(null);
-
-        parent.getMainWindow().addChild(window);
-        GuiGlobals.getInstance().requestFocus(window);
-    }
-
-    protected void stop() {
-        gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
-
-        application.stop();
+        gui.attachChild(mainWindow);
+        GuiGlobals.getInstance().requestFocus(mainWindow);
     }
 
     @Override
     protected void onDisable() {
+        gameLogicCore.getFreeFollowCamera().setEnabled(true);
+        GuiGlobals.getInstance().releaseCursorEnabled(this);
+        gui.detachChild(pressAnyKeyState.getBackgroundPicture());
+        mainWindow.removeFromParent();
+
+        if (parentWindow != null) parentWindow.setCullHint(Spatial.CullHint.Inherit);
+    }
+
+    public void back() {
         gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
-
-        window.removeFromParent();
-        parent.onEnable();
+        this.setEnabled(false);
     }
 
-    public MainMenuState getParent() {
-        return parent;
+    public void exitGame() {
+        gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
+        getApplication().stop();
     }
+
+    private void setWindowSize(int height) {
+        Vector3f pref = mainWindow.getPreferredSize().clone();
+        float standardScale = ((ANJRpgInterface)getApplication()).getCamera().getHeight() / (((ANJRpgInterface)getApplication()).getCamera().getHeight() / 2f);
+        pref.multLocal(1.5f * standardScale);
+
+        int width = ((ANJRpgInterface)getApplication()).getSettings().getWidth();
+        float x = (width - pref.x) * 0.5f;
+        float y = height * 0.5f + pref.y * 0.45f;
+
+        mainWindow.setLocalTranslation(x, y, 0);
+        mainWindow.setLocalScale(1.5f * standardScale);
+    }
+
+    /**
+     * Resolves the parent window to hide.
+     * Uses reflection as a fallback to support MainMenuState without requiring a direct module dependency.
+     */
+    private Container resolveParentWindow(BaseAppState state) {
+        if (state instanceof InGameMenuState) return ((InGameMenuState) state).getMainWindow();
+        if (state instanceof OptionsMenuState) return ((OptionsMenuState) state).getMainWindow();
+        if (state instanceof ExitMenuState) return ((ExitMenuState) state).getMainWindow();
+
+        // Fallback using reflection for MainMenuState or any other state with getMainWindow()
+        try {
+            java.lang.reflect.Method method = state.getClass().getMethod("getMainWindow");
+            return (Container) method.invoke(state);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Override protected void cleanup(Application app) {}
 }

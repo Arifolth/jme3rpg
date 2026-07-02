@@ -27,8 +27,10 @@ import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.input.controls.Trigger;
 import com.jme3.system.AppSettings;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import ru.arifolth.anjrpg.interfaces.InitStateEnum;
-import ru.arifolth.anjrpg.menu.MainMenuState;
+import ru.arifolth.anjrpg.menu.InGameMenuState;
 import ru.arifolth.anjrpg.menu.MenuUtils;
 import ru.arifolth.anjrpg.interfaces.BindingConstants;
 import ru.arifolth.anjrpg.interfaces.CharacterInterface;
@@ -37,6 +39,8 @@ import ru.arifolth.anjrpg.interfaces.MovementControllerInterface;
 import static ru.arifolth.anjrpg.interfaces.BindingConstants.*;
 
 public class MovementController implements MovementControllerInterface {
+    final private static Logger LOGGER = Logger.getLogger(MovementController.class.getName());
+
     private CharacterInterface playerCharacter;
     private Application app;
     private InputManager inputManager;
@@ -46,6 +50,9 @@ public class MovementController implements MovementControllerInterface {
         this.inputManager = inputManager;
         this.app = app;
         this.settings = app.getContext().getSettings();
+
+        InGameMenuState inGameMenuState = new InGameMenuState();
+        app.getStateManager().attach(inGameMenuState);
     }
 
     /** These are our custom actions triggered by key presses.
@@ -64,16 +71,16 @@ public class MovementController implements MovementControllerInterface {
                 }
                 break;
             case ESCAPE:
-                // ESCAPE toggles menu regardless of game state (even during init)
-                MainMenuState mainMenuState = app.getStateManager().getState(MainMenuState.class);
-                if(((ANJRpg) app).getInitStatus().equals(InitStateEnum.RUNNING)) {
-                    if(mainMenuState.isEnabled()) {
+                LOGGER.log(Level.INFO,this.getClass().getName() + " ESCAPE PRESSED");
+                InGameMenuState inGameMenuState = app.getStateManager().getState(InGameMenuState.class);
+                if (((ANJRpg) app).getInitStatus().equals(InitStateEnum.RUNNING)) {
+                    if (inGameMenuState.isEnabled()) {
                         if (pressed) {
-                            mainMenuState.setEnabled(false);
+                            inGameMenuState.setEnabled(false);
                         }
                     } else {
-                        if(pressed){
-                            mainMenuState.setEnabled(!mainMenuState.isEnabled());
+                        if (pressed) {
+                            inGameMenuState.setEnabled(true);
                         }
                     }
                 }

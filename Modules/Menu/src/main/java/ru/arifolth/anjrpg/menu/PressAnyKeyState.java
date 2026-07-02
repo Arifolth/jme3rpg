@@ -83,6 +83,7 @@ public class PressAnyKeyState extends BaseAppState implements RawInputListener {
         int width = application.getSettings().getWidth();
         int height = application.getSettings().getHeight();
         backgroundPicture = new Picture("Background");
+        backgroundPicture.setName("MainMenuBackground");
         backgroundPicture.setImage(gameLogicCore.getAssetManager(), "Interface/rpg_background.png", false);
         backgroundPicture.setWidth(width);
         backgroundPicture.setHeight(height);
@@ -251,7 +252,7 @@ public class PressAnyKeyState extends BaseAppState implements RawInputListener {
         float x = (width - pref.x) * 0.5f; // Center horizontally
         float y = height * 0.5f + pref.y * 0.45f;
 
-        mainWindow.setLocalTranslation(x, y, 0);
+        mainWindow.setLocalTranslation(x, y, 100);
         mainWindow.setLocalScale(1.5f * standardScale);
     }
 
