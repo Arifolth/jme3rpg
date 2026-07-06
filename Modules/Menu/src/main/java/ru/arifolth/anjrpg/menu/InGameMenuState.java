@@ -144,14 +144,12 @@ public class InGameMenuState extends BaseAppState {
 
     public void showPanel(String name) {
         if (currentPanel != null) {
-            currentPanel.onDeactivated();
             detailPanel.removeChild(currentPanel.getContainer());
         }
 
         currentPanel = panels.get(name);
         if (currentPanel != null) {
             detailPanel.addChild(currentPanel.getContainer(), BorderLayout.Position.Center);
-            currentPanel.onActivated();
         }
     }
 
@@ -159,6 +157,8 @@ public class InGameMenuState extends BaseAppState {
     protected void onDisable() {
         gameLogicCore.getFreeFollowCamera().setEnabled(true);
         GuiGlobals.getInstance().releaseCursorEnabled(this);
+
+        currentPanel = null;
 
         gui.detachChild(pressAnyKeyState.getBackgroundPicture());
         mainWindow.removeFromParent();
