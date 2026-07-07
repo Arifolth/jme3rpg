@@ -108,12 +108,6 @@ public class MainMenuState extends BaseAppState {
         getStateManager().attach(new ExitMenuState(this));
     }
 
-    private void resumeGame() {
-        gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
-
-        setEnabled(false);
-    }
-
     private void startNewGame() {
         gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
 
@@ -165,10 +159,6 @@ public class MainMenuState extends BaseAppState {
                 ActionButton restart = menuContainer.addChild(new ActionButton(new CallMethodAction("Restart Game", this, "restart")));
                 restart.setInsets(new Insets3f(10, 10, 10, 10));
 
-                if(!application.getGameLogicCore().getPlayerCharacter().isDead()) {
-                    ActionButton resume = menuContainer.addChild(new ActionButton(new CallMethodAction("Resume Game", this, "resumeGame")));
-                    resume.setInsets(new Insets3f(10, 10, 10, 10));
-                }
                 break;
             }
             default: {
