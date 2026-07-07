@@ -102,13 +102,10 @@ public class MainMenuState extends BaseAppState {
         setEnabled(false);
     }
 
-    public void exitGame() {
-        ExitMenuState exitState = getStateManager().getState(ExitMenuState.class);
-        if (exitState == null) {
-            exitState = new ExitMenuState(mainWindow, this);
-            getStateManager().attach(exitState);
-        }
-        exitState.setEnabled(true);
+    private void exitGame() {
+        gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
+
+        getStateManager().attach(new ExitMenuState(this));
     }
 
     private void resumeGame() {
@@ -124,13 +121,10 @@ public class MainMenuState extends BaseAppState {
         setEnabled(false);
     }
 
-    public void options() {
-        OptionsMenuState optionsState = getStateManager().getState(OptionsMenuState.class);
-        if (optionsState == null) {
-            optionsState = new OptionsMenuState(mainWindow, this);
-            getStateManager().attach(optionsState);
-        }
-        optionsState.setEnabled(true);
+    private void options() {
+        gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
+
+        getStateManager().attach(new OptionsMenuState(this));
     }
 
     public Container getMainWindow() {

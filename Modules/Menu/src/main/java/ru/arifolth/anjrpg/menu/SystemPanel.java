@@ -1,72 +1,149 @@
 package ru.arifolth.anjrpg.menu;
 
 import com.jme3.app.Application;
+import com.jme3.math.Vector3f;
 import com.simsilica.lemur.*;
+import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.SpringGridLayout;
 import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
 import ru.arifolth.anjrpg.interfaces.SoundTypeEnum;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class SystemPanel implements MenuPanel {
     private Container container;
+    private Container optionsListPanel;
+    private Container subDetailPanel;
+    private MenuPanel currentSubPanel;
+    private final Map<String, MenuPanel> subPanels = new HashMap<>();
     private Application app;
+    private InGameMenuState parentMenu;
 
-    public SystemPanel(Application app) {
+    // Stores the name of the last active sub-panel to restore it after a restart
+    private String lastSubPanel;
+
+    public SystemPanel(Application app, InGameMenuState parentMenu, String initialSubPanel) {
         this.app = app;
+        this.parentMenu = parentMenu;
+        this.lastSubPanel = initialSubPanel;
 
-        // FIX: Changed FillMode.Even to FillMode.None for the X-axis.
-        // This prevents the buttons from stretching to the full width of the panel.
-        container = new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.None));
-        container.setBackground(null);
+        // Register sub-panels
+        subPanels.put("Video", new VideoPanel(app, this));
+        subPanels.put("Audio", new AudioPanel(app, this));
+        subPanels.put("Controls", new ControlsPanel(app, this));
+        subPanels.put("Gameplay", new GameplayPanel(app, this));
 
-        Label title = container.addChild(new Label("System"));
+        // Main container uses BorderLayout to split into options list and detail area
+        container = GameUI.createPanelContainer();
+        container.setLayout(new BorderLayout());
+
+        // --- LEFT: Options buttons list ---
+        optionsListPanel = GameUI.createPanelContainer();
+        optionsListPanel.setLayout(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.None));
+        optionsListPanel.setPreferredSize(new Vector3f(200, 0, 0));
+
+        Label title = optionsListPanel.addChild(new Label("Options"));
         title.setFontSize(32);
         title.setInsets(new Insets3f(10, 10, 0, 10));
 
-        ActionButton resume = container.addChild(new ActionButton(new CallMethodAction("Resume Game", this, "resumeGame")));
-        resume.setInsets(new Insets3f(10, 10, 10, 10)); // Standard insets matching MainMenuState
+        ActionButton video = optionsListPanel.addChild(new ActionButton(new CallMethodAction("Video", this, "video")));
+        video.setInsets(new Insets3f(10, 10, 10, 10));
 
-        ActionButton restart = container.addChild(new ActionButton(new CallMethodAction("Restart Game", this, "restart")));
-        restart.setInsets(new Insets3f(10, 10, 10, 10));
+        ActionButton audio = optionsListPanel.addChild(new ActionButton(new CallMethodAction("Audio", this, "audio")));
+        audio.setInsets(new Insets3f(10, 10, 10, 10));
 
-        ActionButton options = container.addChild(new ActionButton(new CallMethodAction("Options", this, "options")));
-        options.setInsets(new Insets3f(10, 10, 10, 10));
+        ActionButton controls = optionsListPanel.addChild(new ActionButton(new CallMethodAction("Controls", this, "controls")));
+        controls.setInsets(new Insets3f(10, 10, 10, 10));
 
-        ActionButton exit = container.addChild(new ActionButton(new CallMethodAction("Exit Game", this, "exitGame")));
-        exit.setInsets(new Insets3f(10, 10, 10, 10));
+        ActionButton gameplay = optionsListPanel.addChild(new ActionButton(new CallMethodAction("Gameplay", this, "gameplay")));
+        gameplay.setInsets(new Insets3f(10, 10, 10, 10));
+
+        ActionButton resume = optionsListPanel.addChild(new ActionButton(new CallMethodAction("Resume Game", this, "resumeGame")));
+        resume.setInsets(new Insets3f(10, 10, 10, 10));
+
+        container.addChild(optionsListPanel, BorderLayout.Position.West);
+
+        // --- RIGHT: Sub-detail area for selected option ---
+        subDetailPanel = GameUI.createPanelContainer();
+        subDetailPanel.setLayout(new BorderLayout());
+        container.addChild(subDetailPanel, BorderLayout.Position.Center);
+
+        // Automatically open the last active sub-panel if one exists
+        if (lastSubPanel != null) {
+            showSubPanel(lastSubPanel);
+        }
     }
 
     @Override
-    public Container getContainer() { return container; }
+    public Container getContainer() {
+        return container;
+    }
+
+    public void video() {
+        playMenuSound();
+        showSubPanel("Video");
+    }
+
+    public void audio() {
+        playMenuSound();
+        showSubPanel("Audio");
+    }
+
+    public void controls() {
+        playMenuSound();
+        showSubPanel("Controls");
+    }
+
+    public void gameplay() {
+        playMenuSound();
+        showSubPanel("Gameplay");
+    }
 
     public void resumeGame() {
-        ((ANJRpgInterface) app).getGameLogicCore().getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
-        InGameMenuState inGameMenu = app.getStateManager().getState(InGameMenuState.class);
-        if (inGameMenu != null) inGameMenu.setEnabled(false);
+        playMenuSound();
+        parentMenu.setEnabled(false);
     }
 
-    public void restart() {
-        ((ANJRpgInterface) app).getGameLogicCore().getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
+    /**
+     * Called by sub-panels before closing the menu to remember state
+     */
+    public void setLastSubPanel(String name) {
+        this.lastSubPanel = name;
+        // Also save it to the InGameMenuState so it survives a restart
+        parentMenu.setLastSystemSubPanel(name);
     }
 
-    public void options() {
-        ((ANJRpgInterface) app).getGameLogicCore().getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
-        OptionsMenuState optionsState = app.getStateManager().getState(OptionsMenuState.class);
-        if (optionsState == null) {
-            InGameMenuState inGameMenu = app.getStateManager().getState(InGameMenuState.class);
-            optionsState = new OptionsMenuState(inGameMenu);
-            app.getStateManager().attach(optionsState);
+    /**
+     * Swaps the content in the right-side sub-detail area.
+     */
+    public void showSubPanel(String name) {
+        if (currentSubPanel != null) {
+            subDetailPanel.removeChild(currentSubPanel.getContainer());
         }
-        optionsState.setEnabled(true);
+
+        currentSubPanel = subPanels.get(name);
+        if (currentSubPanel != null) {
+            subDetailPanel.addChild(currentSubPanel.getContainer(), BorderLayout.Position.Center);
+        }
     }
 
-    public void exitGame() {
-        ((ANJRpgInterface) app).getGameLogicCore().getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
-        ExitMenuState exitState = app.getStateManager().getState(ExitMenuState.class);
-        if (exitState == null) {
-            InGameMenuState inGameMenu = app.getStateManager().getState(InGameMenuState.class);
-            exitState = new ExitMenuState(inGameMenu);
-            app.getStateManager().attach(exitState);
+    /**
+     * Clears the right-side sub-detail area.
+     */
+    public void clearSubPanel() {
+        if (currentSubPanel != null) {
+            subDetailPanel.removeChild(currentSubPanel.getContainer());
+            currentSubPanel = null;
         }
-        exitState.setEnabled(true);
+    }
+
+    @Override
+    public void onDeactivated() {
+        clearSubPanel();
+    }
+
+    private void playMenuSound() {
+        ((ANJRpgInterface) app).getGameLogicCore().getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
     }
 }

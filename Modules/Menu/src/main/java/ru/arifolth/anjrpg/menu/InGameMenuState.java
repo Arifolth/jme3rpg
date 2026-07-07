@@ -27,6 +27,9 @@ public class InGameMenuState extends BaseAppState {
     private ANJRpgInterface application;
     private PressAnyKeyState pressAnyKeyState;
 
+    // Stores the name of the last active sub-panel in the System menu
+    private String lastSystemSubPanel;
+
     public InGameMenuState() {
         setEnabled(false);
     }
@@ -34,17 +37,12 @@ public class InGameMenuState extends BaseAppState {
     @Override
     protected void initialize(Application app) {
         application = (ANJRpgInterface) app;
-
-        panels.put("Equipment", new EquipmentPanel(app));
-        panels.put("Inventory", new InventoryPanel(app));
-        panels.put("Status", new StatusPanel(app));
-        panels.put("Journal", new JournalPanel(app));
-        panels.put("Worldmap", new WorldmapPanel(app));
-        panels.put("System", new SystemPanel(app));
-
         gameLogicCore = application.getGameLogicCore();
         gui = ((SimpleApplication) application).getGuiNode();
         pressAnyKeyState = getStateManager().getState(PressAnyKeyState.class);
+
+        // Note: Panels are no longer created here. They are created in onEnable()
+        // to ensure fresh UI components and to pass the lastSystemSubPanel state.
     }
 
     @Override
@@ -58,7 +56,6 @@ public class InGameMenuState extends BaseAppState {
         float standardScale = getStandardScale();
         float totalScale = 1.5f * standardScale;
 
-        // Calculate local dimensions so that after scaling, they match the screen size
         float localWidth = screenWidth / totalScale;
         float localHeight = screenHeight / totalScale;
 
@@ -66,16 +63,27 @@ public class InGameMenuState extends BaseAppState {
         mainWindow.setBackground(null);
         mainWindow.setPreferredSize(new Vector3f(localWidth, localHeight, 0));
 
+        // --- FIX: Recreate panels on every enable to ensure fresh UI components ---
+        panels.clear();
+        panels.put("Equipment", new EquipmentPanel(application));
+        panels.put("Inventory", new InventoryPanel(application));
+        panels.put("Status", new StatusPanel(application));
+        panels.put("Journal", new JournalPanel(application));
+        panels.put("Worldmap", new WorldmapPanel(application));
+
+        // Pass the remembered sub-panel name to SystemPanel so it can restore its state
+        panels.put("System", new SystemPanel(application, this, lastSystemSubPanel));
+        panels.put("Exit", new ExitPanel(application, this));
+        // ---------------------------------------------------------------------------
+
         // --- WEST SECTION (Navigation) ---
         Container navPanel = GameUI.createPanelContainer();
         navPanel.setLayout(new BorderLayout());
 
-        // Load and apply background for the outer navPanel
         Texture bgNavPanelTexture = application.getAssetManager().loadTexture("Interface/rpg_background_panel.png");
         QuadBackgroundComponent navPanelBackground = new QuadBackgroundComponent(bgNavPanelTexture);
         navPanel.setBackground(navPanelBackground);
 
-        // Set width to exactly 15% of the screen width
         navPanel.setPreferredSize(new Vector3f(localWidth * 0.15f, localHeight, 0));
 
         navLayout = new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even));
@@ -90,30 +98,24 @@ public class InGameMenuState extends BaseAppState {
         addNavButton("Journal");
         addNavButton("Worldmap");
         addNavButton("System");
+        addNavButton("Exit");
 
         // --- CENTER SECTION (Details) ---
-        // FIX: Create an outer container to hold the background independently of the content margins
         Container detailPanelOuter = GameUI.createPanelContainer();
         detailPanelOuter.setLayout(new BorderLayout());
 
-        // Load and apply background for the central detail panel
         Texture bgDetailPanelTexture = application.getAssetManager().loadTexture("Interface/rpg_background_layout.png");
         QuadBackgroundComponent detailPanelBackground = new QuadBackgroundComponent(bgDetailPanelTexture);
         detailPanelOuter.setBackground(detailPanelBackground);
 
-        // Inner container for the actual content
         detailPanel = GameUI.createPanelContainer();
         detailPanel.setLayout(new BorderLayout());
 
-        // FIX: Add 7% margin from all borders to the content container
         float marginX = localWidth * 0.07f;
         float marginY = localHeight * 0.07f;
         detailPanel.setInsets(new Insets3f(marginY, marginX, marginY, marginX));
 
-        // Add the inner content container to the outer background container
         detailPanelOuter.addChild(detailPanel, BorderLayout.Position.Center);
-
-        // Add the outer container to the main window
         mainWindow.addChild(detailPanelOuter, BorderLayout.Position.Center);
 
         showPanel("Equipment");
@@ -130,13 +132,11 @@ public class InGameMenuState extends BaseAppState {
             public void execute(Button source) {
                 showPanel(name);
             }
-
             @Override
             public String getName() {
                 return name;
             }
         });
-
         btn.setText(name);
         GameUI.styleNavButton(btn);
         navLayout.addChild(btn);
@@ -146,7 +146,6 @@ public class InGameMenuState extends BaseAppState {
         if (currentPanel != null) {
             detailPanel.removeChild(currentPanel.getContainer());
         }
-
         currentPanel = panels.get(name);
         if (currentPanel != null) {
             detailPanel.addChild(currentPanel.getContainer(), BorderLayout.Position.Center);
@@ -157,9 +156,7 @@ public class InGameMenuState extends BaseAppState {
     protected void onDisable() {
         gameLogicCore.getFreeFollowCamera().setEnabled(true);
         GuiGlobals.getInstance().releaseCursorEnabled(this);
-
         currentPanel = null;
-
         gui.detachChild(pressAnyKeyState.getBackgroundPicture());
         mainWindow.removeFromParent();
     }
@@ -179,12 +176,16 @@ public class InGameMenuState extends BaseAppState {
 
     private void setWindowSize(int height) {
         float standardScale = getStandardScale();
-
-        // Pin the menu perfectly to the top-left corner to remove gaps
         float x = 0;
         float y = height;
-
-        mainWindow.setLocalTranslation(x, y, 10); // Z=10 ensures it renders on top of compass/bars
+        mainWindow.setLocalTranslation(x, y, 10);
         mainWindow.setLocalScale(1.5f * standardScale);
+    }
+
+    /**
+     * Called by SystemPanel to remember which sub-panel (Video, Audio, etc.) was last open.
+     */
+    public void setLastSystemSubPanel(String name) {
+        this.lastSystemSubPanel = name;
     }
 }
