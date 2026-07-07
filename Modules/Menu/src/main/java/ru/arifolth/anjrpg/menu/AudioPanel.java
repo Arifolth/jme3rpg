@@ -15,11 +15,13 @@ import static com.simsilica.lemur.component.BorderLayout.Position.West;
 
 public class AudioPanel implements MenuPanel {
     private final Application application;
-    private Container container;
-    private SystemPanel parentPanel;
-
     private final SoundManagerInterface soundManager;
     private final GameLogicCoreInterface gameLogicCore;
+    private Container container;
+
+    // Made optional to support usage in both InGameMenu (SystemPanel) and MainMenu (AudioMenuState)
+    private SystemPanel parentPanel;
+
     private RangedValueModel volumeModel = new DefaultRangedValueModel(0, 1, 0.5);
 
     public AudioPanel(Application app, SystemPanel parentPanel) {
@@ -56,6 +58,11 @@ public class AudioPanel implements MenuPanel {
         props = joinPanel.addChild(new Container(new BorderLayout()));
         props.setBackground(null);
         props.addChild(new ActionButton(new CallMethodAction("Apply", this, "apply")), West);
+
+        // Add Back button only for Main Menu context (when parentPanel is null)
+        if (parentPanel == null) {
+            props.addChild(new ActionButton(new CallMethodAction("Back", this, "back")), East);
+        }
     }
 
     @Override
@@ -66,15 +73,39 @@ public class AudioPanel implements MenuPanel {
     private void apply() {
         gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
 
-        // Apply audio settings logic from AudioMenuState
+        // Apply actual audio logic
         soundManager.setVolume((float) volumeModel.getValue());
         soundManager.reInitialize(gameLogicCore);
         gameLogicCore.reInitialize();
 
-        // Replicate VideoPanel Apply behavior to prevent UI corruption
         if (parentPanel != null) {
+            // In-Game Context: Return to SystemPanel root (options list)
             parentPanel.clearSubPanel();
+            InGameMenuState inGameMenu = application.getStateManager().getState(InGameMenuState.class);
+            if(inGameMenu == null)
+                return;
+            inGameMenu.setEnabled(false);
+            application.getContext().restart();
+            inGameMenu.setEnabled(true);
+        } else {
+            // Main Menu Context: Directly disable OptionsMenuState to return to MainMenu root
+            OptionsMenuState optionsMenu = (OptionsMenuState) application.getStateManager().getState(OptionsMenuState.class);
+            if(optionsMenu == null)
+                return;
+            optionsMenu.setEnabled(false);
+            application.getContext().restart();
+            optionsMenu.setEnabled(true);
         }
-        application.getContext().restart();
+    }
+
+    private void back() {
+        gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
+        if (parentPanel == null) {
+            // Main Menu Context: Directly disable OptionsMenuState to return to MainMenu root
+            OptionsMenuState optionsMenu = (OptionsMenuState) application.getStateManager().getState(OptionsMenuState.class);
+            if (optionsMenu != null) {
+                optionsMenu.setEnabled(false);
+            }
+        }
     }
 }

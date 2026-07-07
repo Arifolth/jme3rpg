@@ -100,6 +100,11 @@ public class ControlsPanel implements MenuPanel {
         props = joinPanel.addChild(new Container(new BorderLayout()));
         props.setBackground(null);
         props.addChild(new ActionButton(new CallMethodAction("Apply", this, "apply")), West);
+
+        // Add Back button only for Main Menu context (when parentPanel is null)
+        if (parentPanel == null) {
+            props.addChild(new ActionButton(new CallMethodAction("Back", this, "back")), East);
+        }
     }
 
     @Override
@@ -131,13 +136,33 @@ public class ControlsPanel implements MenuPanel {
 
         SettingsUtils.saveSettings(settings);
 
-        // Replicate VideoPanel Apply behavior to prevent UI corruption
         if (parentPanel != null) {
+            // In-Game Context
+            parentPanel.setLastSubPanel("Controls");
             parentPanel.clearSubPanel();
+            InGameMenuState inGameMenu = application.getStateManager().getState(InGameMenuState.class);
+            if(inGameMenu == null)
+                return;
+            inGameMenu.setEnabled(false);
+            application.getContext().restart();
+            inGameMenu.setEnabled(true);
+        } else {
+            // Main Menu Context: Directly disable OptionsMenuState to return to MainMenu root
+            OptionsMenuState optionsMenu = (OptionsMenuState) application.getStateManager().getState(OptionsMenuState.class);
+            if(optionsMenu == null)
+                return;
+            optionsMenu.setEnabled(false);
+            application.getContext().restart();
+            optionsMenu.setEnabled(true);
         }
-        InGameMenuState inGameMenu = application.getStateManager().getState(InGameMenuState.class);
-        inGameMenu.setEnabled(false);
-        application.getContext().restart();
-        inGameMenu.setEnabled(true);
+    }
+
+    private void back() {
+        ((ANJRpgInterface) application).getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
+        if (parentPanel == null) {
+            // Main Menu Context: Directly disable OptionsMenuState to return to MainMenu root
+            OptionsMenuState optionsMenu = (OptionsMenuState) application.getStateManager().getState(OptionsMenuState.class);
+            if (optionsMenu != null) optionsMenu.setEnabled(false);
+        }
     }
 }

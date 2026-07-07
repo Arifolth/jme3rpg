@@ -90,6 +90,11 @@ public class VideoPanel implements MenuPanel {
         props = joinPanel.addChild(new Container(new BorderLayout()));
         props.setBackground(null);
         props.addChild(new ActionButton(new CallMethodAction("Apply", this, "apply")), West);
+
+        // Add Back button only for Main Menu context (when parentPanel is null)
+        if (parentPanel == null) {
+            props.addChild(new ActionButton(new CallMethodAction("Back", this, "back")), East);
+        }
     }
 
     private void initialize() {
@@ -109,7 +114,6 @@ public class VideoPanel implements MenuPanel {
 
     private void apply() {
         ((ANJRpgInterface) application).getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
-
         AppSettings settings = ((ANJRpgInterface) application).getSettings();
 
         applyRenderer(settings);
@@ -124,17 +128,34 @@ public class VideoPanel implements MenuPanel {
         SettingsUtils.saveSettings(settings);
         application.getContext().setSettings(settings);
 
-        // FIX: Explicitly clear the sub-panel BEFORE restarting the context.
-        // This detaches the VideoPanel (and its Dropdowns) from the scene graph,
-        // preventing Lemur's PopupState from rendering them fully opened in the new context.
         if (parentPanel != null) {
+            // In-Game Context
             parentPanel.clearSubPanel();
+            InGameMenuState inGameMenu = application.getStateManager().getState(InGameMenuState.class);
+            if(inGameMenu == null)
+                return;
+            inGameMenu.setEnabled(false);
+            application.getContext().restart();
+            inGameMenu.setEnabled(true);
+        } else {
+            OptionsMenuState optionsMenu = (OptionsMenuState) application.getStateManager().getState(OptionsMenuState.class);
+            if(optionsMenu == null)
+                return;
+            optionsMenu.setEnabled(false);
+            application.getContext().restart();
+            optionsMenu.setEnabled(true);
         }
+    }
 
-        InGameMenuState inGameMenu = application.getStateManager().getState(InGameMenuState.class);
-        inGameMenu.setEnabled(false);
-        application.getContext().restart();
-        inGameMenu.setEnabled(true);
+    private void back() {
+        ((ANJRpgInterface) application).getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
+        if (parentPanel == null) {
+            // Main Menu Context: Disable OptionsMenuState to return to Main Menu root
+            OptionsMenuState optionsMenu = (OptionsMenuState) application.getStateManager().getState(OptionsMenuState.class);
+            if (optionsMenu != null) {
+                optionsMenu.setEnabled(false);
+            }
+        }
     }
 
     private void applyViewDistance(AppSettings settings) {

@@ -17,7 +17,7 @@ public class GameplayPanel implements MenuPanel {
     private Container container;
     private SystemPanel parentPanel;
 
-    private Checkbox debugCheckbox = new Checkbox(Constants.DEBUG);
+    private Checkbox debugCheckbox;
 
     public GameplayPanel(Application app, SystemPanel parentPanel) {
         this.application = app;
@@ -25,6 +25,7 @@ public class GameplayPanel implements MenuPanel {
 
         // Initialize checkbox with current settings
         AppSettings settings = application.getContext().getSettings();
+        debugCheckbox = new Checkbox(Constants.DEBUG);
         debugCheckbox.setChecked(settings.getBoolean(Constants.DEBUG));
 
         container = GameUI.createPanelContainer();
@@ -50,6 +51,11 @@ public class GameplayPanel implements MenuPanel {
         props = joinPanel.addChild(new Container(new BorderLayout()));
         props.setBackground(null);
         props.addChild(new ActionButton(new CallMethodAction("Apply", this, "apply")), West);
+
+        // Add Back button only for Main Menu context (when parentPanel is null)
+        if (parentPanel == null) {
+            props.addChild(new ActionButton(new CallMethodAction("Back", this, "back")), East);
+        }
     }
 
     @Override
@@ -61,22 +67,37 @@ public class GameplayPanel implements MenuPanel {
         ((ANJRpgInterface) application).getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
 
         AppSettings settings = application.getContext().getSettings();
-        applySettings(settings);
+        settings.putBoolean(Constants.DEBUG, debugCheckbox.isChecked());
 
         SettingsUtils.saveSettings(settings);
         application.getContext().setSettings(settings);
 
-        // Replicate VideoPanel Apply behavior to prevent UI corruption
         if (parentPanel != null) {
-            parentPanel.clearSubPanel();
+            // In-Game Context
+            parentPanel.setLastSubPanel("Gameplay");
+            InGameMenuState inGameMenu = (InGameMenuState) application.getStateManager().getState(InGameMenuState.class);
+            if(inGameMenu == null)
+                return;
+            inGameMenu.setEnabled(false);
+            application.getContext().restart();
+            inGameMenu.setEnabled(true);
+        } else {
+            // Main Menu Context: Directly disable OptionsMenuState to return to MainMenu root
+            OptionsMenuState optionsMenu = (OptionsMenuState) application.getStateManager().getState(OptionsMenuState.class);
+            if(optionsMenu == null)
+                return;
+            optionsMenu.setEnabled(false);
+            application.getContext().restart();
+            optionsMenu.setEnabled(true);
         }
-        InGameMenuState inGameMenu = application.getStateManager().getState(InGameMenuState.class);
-        inGameMenu.setEnabled(false);
-        application.getContext().restart();
-        inGameMenu.setEnabled(true);
     }
 
-    private void applySettings(AppSettings settings) {
-        settings.putBoolean(Constants.DEBUG, debugCheckbox.isChecked());
+    private void back() {
+        ((ANJRpgInterface) application).getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
+        if (parentPanel == null) {
+            // Main Menu Context: Directly disable OptionsMenuState to return to MainMenu root
+            OptionsMenuState optionsMenu = (OptionsMenuState) application.getStateManager().getState(OptionsMenuState.class);
+            if (optionsMenu != null) optionsMenu.setEnabled(false);
+        }
     }
 }
