@@ -39,6 +39,7 @@ public class SettingsUtils {
         DisplayMode mode = device.getDisplayMode();
         settings.setDepthBits(mode.getBitDepth());
         settings.setResolution(mode.getWidth(),mode.getHeight());
+        settings.setWindowSize(mode.getWidth(),mode.getHeight());
         settings.setRenderer(AppSettings.LWJGL_OPENGL45);
         settings.setFrequency(mode.getRefreshRate());
         settings.setGammaCorrection(true);

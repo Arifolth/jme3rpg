@@ -210,6 +210,7 @@ public class VideoPanel implements MenuPanel {
             List<String> resolution = Arrays.asList(selection.split("x"));
             resolution.replaceAll(String::trim);
             settings.setResolution(Integer.parseInt(resolution.get(WIDTH)), Integer.parseInt(resolution.get(HEIGHT)));
+            settings.setWindowSize(Integer.parseInt(resolution.get(WIDTH)), Integer.parseInt(resolution.get(HEIGHT)));
         }
     }
 }
