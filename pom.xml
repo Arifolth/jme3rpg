@@ -119,6 +119,7 @@
                     <!-- Set to true to fail the build if there are warnings -->
                     <failIfWarning>true</failIfWarning>
                 </configuration>
+                <inherited>false</inherited>
                 <executions>
                     <execution>
                         <id>generate-notice</id>
