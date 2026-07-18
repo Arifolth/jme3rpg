@@ -49,11 +49,6 @@ public class OptionsMenuState extends CompositeAppState {
         gameLogicCore = application.getGameLogicCore();
     }
 
-    @Override
-    protected void cleanup(Application app) {
-        getState(MainMenuState.class).setEnabled(true);
-    }
-
     public Container getMainWindow() {
         return optionsWindow;
     }

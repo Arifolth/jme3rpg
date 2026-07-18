@@ -53,11 +53,6 @@ public class GamePlayMenuState extends CustomCompositeAppState {
     }
 
     @Override
-    protected void cleanup(Application app) {
-        getState(MainMenuState.class).setEnabled(true);
-    }
-
-    @Override
     protected void onEnable() {
         window = new Container();
         parent.getMainWindow().clearChildren();
