@@ -27,6 +27,7 @@ import ru.arifolth.anjrpg.interfaces.bars.BarInterface;
 import ru.arifolth.anjrpg.interfaces.bars.HealthBarInterface;
 import ru.arifolth.anjrpg.interfaces.bars.ManaBarInterface;
 import ru.arifolth.anjrpg.interfaces.bars.StaminaBarInterface;
+import ru.arifolth.anjrpg.interfaces.stats.CharacterStats;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -104,7 +105,7 @@ public interface CharacterInterface {
     HealthBarInterface getHealthBar();
     StaminaBarInterface getStaminaBar();
     ManaBarInterface getManaBar();
-
+    CharacterStats getStats();
     void setInitializing(boolean initializing);
 
     boolean isDead();

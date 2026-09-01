@@ -42,7 +42,7 @@ public class PlayerHealthBar extends AbstractPlayerBar implements HealthBarInter
 
     @Override
     protected void initValues() {
-        character.setHealth(Constants.MAXIMUM_HEALTH);
+        character.setHealth(character.getStats().getMaxHealth());
     }
 
     @Override
@@ -58,7 +58,7 @@ public class PlayerHealthBar extends AbstractPlayerBar implements HealthBarInter
 
     @Override
     public void update() {
-        float healthPercentage = character.getHealth() / Constants.MAXIMUM_HEALTH;
+        float healthPercentage = character.getHealth() / character.getStats().getMaxHealth();
         barFill.setLocalScale(healthPercentage, 1f, 1f);
     }
 
@@ -66,7 +66,6 @@ public class PlayerHealthBar extends AbstractPlayerBar implements HealthBarInter
     public void applyDamage(float delta) {
         character.setHealth(Math.max(0, character.getHealth() - delta));
         character.setPlayerDamaged();
-
         if (getHealth() <= 0 && !character.isDead()) {
             character.die();
         }

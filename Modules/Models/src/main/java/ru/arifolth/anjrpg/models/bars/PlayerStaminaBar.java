@@ -32,7 +32,6 @@ import ru.arifolth.anjrpg.interfaces.bars.StaminaBarInterface;
 import ru.arifolth.anjrpg.models.PlayerCharacter;
 
 public class PlayerStaminaBar extends AbstractPlayerBar implements StaminaBarInterface {
-    private float currentStamina;
 
     public PlayerStaminaBar(AssetManager assetManager, PlayerCharacter character, SimpleApplication app) {
         super(assetManager, character, app);
@@ -47,7 +46,7 @@ public class PlayerStaminaBar extends AbstractPlayerBar implements StaminaBarInt
 
     @Override
     protected void initValues() {
-        currentStamina = Constants.MAXIMUM_STAMINA;
+        character.setStamina(character.getStats().getMaxStamina());
     }
 
     @Override
@@ -67,41 +66,42 @@ public class PlayerStaminaBar extends AbstractPlayerBar implements StaminaBarInt
 
     @Override
     public void update() {
-        if (currentStamina < Constants.MAXIMUM_STAMINA) {
+        float current = character.getStamina();
+        float max = character.getStats().getMaxStamina();
+        if (current < max) {
             float regenerationPerFrame = Constants.STAMINA_REGENERATION_RATE * 0.016f;
-            float newStamina = Math.min(Constants.MAXIMUM_STAMINA, currentStamina + regenerationPerFrame);
-
-            // Only update if stamina actually changed
-            if (newStamina != currentStamina) {
-                currentStamina = newStamina;
-                float staminaPercentage = currentStamina / Constants.MAXIMUM_STAMINA;
-                barFill.setLocalScale(staminaPercentage, 1f, 1f);
-            }
+            float newStamina = Math.min(max, current + regenerationPerFrame);
+            character.setStamina(newStamina);
+            float staminaPercentage = newStamina / max;
+            barFill.setLocalScale(staminaPercentage, 1f, 1f);
         }
     }
 
     @Override
     public void consumeStamina(float amount) {
-        currentStamina = Math.max(0, currentStamina - amount);
+        float current = character.getStamina();
+        character.setStamina(Math.max(0, current - amount));
     }
 
     @Override
     public void restoreStamina(float amount) {
-        currentStamina = Math.min(Constants.MAXIMUM_STAMINA, currentStamina + amount);
+        float current = character.getStamina();
+        float max = character.getStats().getMaxStamina();
+        character.setStamina(Math.min(max, current + amount));
     }
 
     @Override
     public float getStamina() {
-        return currentStamina;
+        return character.getStamina();
     }
 
     @Override
     public float getMaxStamina() {
-        return Constants.MAXIMUM_STAMINA;
+        return character.getStats().getMaxStamina();
     }
 
     @Override
     public boolean isExhausted() {
-        return currentStamina <= 0;
+        return character.getStamina() <= 0;
     }
 }

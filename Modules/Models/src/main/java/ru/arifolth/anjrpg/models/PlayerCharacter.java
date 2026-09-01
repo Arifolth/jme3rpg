@@ -32,6 +32,8 @@ import ru.arifolth.anjrpg.interfaces.camera.DeathAwareCameraInterface;
 import ru.arifolth.anjrpg.models.bars.PlayerHealthBar;
 import ru.arifolth.anjrpg.models.bars.PlayerManaBar;
 import ru.arifolth.anjrpg.models.bars.PlayerStaminaBar;
+import ru.arifolth.anjrpg.interfaces.stats.CharacterStats;
+import ru.arifolth.anjrpg.models.templates.CharacterTemplate;
 
 import java.util.AbstractMap;
 import java.util.Iterator;
@@ -64,10 +66,10 @@ public class PlayerCharacter extends AnimatedCharacter {
     protected float firingRange;
     protected boolean dead = false;
     protected boolean initializing = true;
-    private float health;
+    private final CharacterStats stats;
 
     private Map.Entry<Iterator<CharacterInterface>, CharacterInterface> lockedOnCharacter = null;
-    private final Ray attackRay = new Ray();
+
     public PlayerCharacter() {
         this.setModel(PLAYER_CHARACTER_MODEL);
         this.setName(this.getClass().getName());
@@ -75,8 +77,9 @@ public class PlayerCharacter extends AnimatedCharacter {
         this.firingRange = Constants.MELEE_DISTANCE_LIMIT;
         this.shootDelay = Constants.SHOOT_DELAY;
         this.shootRate = Constants.SHOOT_RATE;
-
         this.turnRate = Constants.TURN_RATE;
+
+        this.stats = CharacterTemplate.PLAYER.createStats();
     }
 
     @Override
@@ -678,12 +681,9 @@ public class PlayerCharacter extends AnimatedCharacter {
         this.dead = dead;
     }
 
-    public void setHealth(float health) {
-        this.health = health;
-    }
-
-    public float getHealth() {
-        return health;
+    @Override
+    public CharacterStats getStats() {
+        return stats;
     }
 
     @Override
@@ -737,5 +737,29 @@ public class PlayerCharacter extends AnimatedCharacter {
 
     public void setStaminaBar(PlayerStaminaBar staminaBar) {
         this.staminaBar = staminaBar;
+    }
+
+    public float getHealth() {
+        return stats.getHealth();
+    }
+
+    public void setHealth(float health) {
+        stats.setHealth(health);
+    }
+
+    public float getMana() {
+        return stats.getMana();
+    }
+
+    public void setMana(float newMana) {
+        stats.setMana(newMana);
+    }
+
+    public float getStamina() {
+        return stats.getStamina();
+    }
+
+    public void setStamina(float stamina) {
+        stats.setStamina(stamina);
     }
 }

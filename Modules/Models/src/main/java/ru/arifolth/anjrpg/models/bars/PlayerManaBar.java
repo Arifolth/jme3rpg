@@ -28,7 +28,6 @@ import ru.arifolth.anjrpg.interfaces.bars.ManaBarInterface;
 import ru.arifolth.anjrpg.models.PlayerCharacter;
 
 public class PlayerManaBar extends AbstractPlayerBar implements ManaBarInterface {
-    private float currentMana;
 
     public PlayerManaBar(AssetManager assetManager, PlayerCharacter character, SimpleApplication app) {
         super(assetManager, character, app);
@@ -43,7 +42,7 @@ public class PlayerManaBar extends AbstractPlayerBar implements ManaBarInterface
 
     @Override
     protected void initValues() {
-        currentMana = Constants.MAXIMUM_MANA;
+        character.setMana(character.getStats().getMaxMana());
     }
 
     @Override
@@ -63,30 +62,35 @@ public class PlayerManaBar extends AbstractPlayerBar implements ManaBarInterface
     @Override
     public void update() {
         // Auto-regenerate mana
-        float regenerationPerFrame = Constants.MANA_REGENERATION_RATE * 0.016f; // assuming ~60fps
-        currentMana = Math.min(Constants.MAXIMUM_MANA, currentMana + regenerationPerFrame);
-
-        float manaPercentage = currentMana / Constants.MAXIMUM_MANA;
+        float current = character.getMana();
+        float max = character.getStats().getMaxMana();
+        float regenerationPerFrame = Constants.MANA_REGENERATION_RATE * 0.016f;
+        float newMana = Math.min(max, current + regenerationPerFrame);
+        character.setMana(newMana);
+        float manaPercentage = newMana / max;
         barFill.setLocalScale(manaPercentage, 1f, 1f);
     }
 
     @Override
     public void consumeMana(float amount) {
-        currentMana = Math.max(0, currentMana - amount);
+        float current = character.getMana();
+        character.setMana(Math.max(0, current - amount));
     }
 
     @Override
     public void restoreMana(float amount) {
-        currentMana = Math.min(Constants.MAXIMUM_MANA, currentMana + amount);
+        float current = character.getMana();
+        float max = character.getStats().getMaxMana();
+        character.setMana(Math.min(max, current + amount));
     }
 
     @Override
     public float getMana() {
-        return currentMana;
+        return character.getMana();
     }
 
     @Override
     public float getMaxMana() {
-        return Constants.MAXIMUM_MANA;
+        return character.getStats().getMaxMana();
     }
 }
