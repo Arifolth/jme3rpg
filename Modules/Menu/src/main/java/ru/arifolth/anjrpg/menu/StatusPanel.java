@@ -53,7 +53,8 @@ public class StatusPanel implements MenuPanel {
         props.addChild(labelValue, East);
     }
 
-    private void buildUI() {
+    @Override
+    public void buildUI() {
         Container panelContainer = new Container();
         panelContainer.setBackground(null);
         Container joinPanel = container.addChild(panelContainer);

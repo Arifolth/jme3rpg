@@ -17,6 +17,7 @@
  */
 package ru.arifolth.anjrpg.interfaces.stats;
 
+//Class containin original values to calculate impact deltas and buffs
 public class BaseStats {
     protected float maxHealth;
     protected float maxMana;

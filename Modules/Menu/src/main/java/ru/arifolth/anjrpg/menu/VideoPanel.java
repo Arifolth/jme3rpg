@@ -65,7 +65,8 @@ public class VideoPanel implements MenuPanel {
         buildUI();
     }
 
-    private void buildUI() {
+    @Override
+    public void buildUI() {
         Container props;
         Container panelContainer = new Container();
         panelContainer.setBackground(null);

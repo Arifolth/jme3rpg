@@ -26,9 +26,10 @@ public class CharacterStats extends BaseStats {
 
     public CharacterStats(float maxHealth, float maxMana, float maxStamina, int level) {
         super(maxHealth, maxMana, maxStamina);
-        this.health = maxHealth;
-        this.mana = maxMana;
-        this.stamina = maxStamina;
+
+        this.health = this.maxHealth;
+        this.mana = this.maxMana;
+        this.stamina = this.maxStamina;
     }
 
     // Getters & setters (no logic)
