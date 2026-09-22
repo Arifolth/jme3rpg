@@ -20,9 +20,12 @@ package ru.arifolth.anjrpg.interfaces;
 
 import com.jme3.app.Application;
 import com.jme3.scene.Node;
+import ru.arifolth.anjrpg.events.EventBus;
 
 public interface RolePlayingGameInterface extends Application {
     GameLogicCoreInterface getGameLogicCore();
+
+    EventBus getEventBus();
 
     Node getRootNode();
 

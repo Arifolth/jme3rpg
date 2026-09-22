@@ -20,6 +20,10 @@ package ru.arifolth.sound;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.audio.AudioNode;
+import com.jme3.audio.AudioSource;
+import ru.arifolth.anjrpg.events.EventBus;
+import ru.arifolth.anjrpg.events.GameEventListener;
+import ru.arifolth.anjrpg.events.GameStateChangedEvent;
 import ru.arifolth.anjrpg.interfaces.*;
 
 import java.util.EnumSet;
@@ -40,6 +44,15 @@ public class SoundManager implements SoundManagerInterface {
 
     private float fadeOut;
 
+    private EventBus eventBus;
+
+    // Field-held listener (Pattern A): required so it can be unsubscribed
+    // via attachEventBus() if this SoundManager is ever re-wired to a
+    // different bus. An inline lambda passed straight to subscribe() could
+    // not be unsubscribed later.
+    private final GameEventListener<GameStateChangedEvent> stateListener =
+            this::onGameStateChanged;
+
     @Override
     public AudioNode getCurrentMusicNode() {
         return currentMusicNode;
@@ -58,6 +71,37 @@ public class SoundManager implements SoundManagerInterface {
         if(null != nextAmbientSound) {
             this.nextAmbientSoundType = nextAmbientSound;
         }
+    }
+
+    @Override
+    public void attachEventBus(EventBus eventBus) {
+        if(this.eventBus != null) {
+            this.eventBus.unsubscribe(GameStateChangedEvent.class, stateListener);
+        }
+        this.eventBus = eventBus;
+        eventBus.subscribe(GameStateChangedEvent.class, stateListener);
+    }
+
+    /**
+     * Reacts to a committed {@link GameStateChangedEvent}. This is the same
+     * fade-decision logic and the same two calls that used to live directly
+     * in {@code GameStateManager.changeState(float)}; only the trigger
+     * changed, from a direct method call to a subscribed event.
+     */
+    private void onGameStateChanged(GameStateChangedEvent event) {
+        GameState to = event.getTo();
+
+        boolean shouldFade =
+                AudioSource.Status.Stopped.equals(currentMusicNode != null ? currentMusicNode.getStatus() : null)
+                || to.equals(GameState.BATTLE)
+                || to.equals(GameState.CALM)
+                || to.equals(GameState.DEATH);
+
+        if(shouldFade) {
+            fadeMusicOut(Constants.CHANGE_GAME_STATE_TPF, to.getMusicType());
+        }
+
+        changeAmbientSound(Constants.CHANGE_GAME_STATE_TPF, to.getAmbientSound());
     }
 
     public SoundManager(AssetManager assetManager) {

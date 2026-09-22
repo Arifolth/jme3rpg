@@ -27,6 +27,7 @@ import com.jme3.input.InputManager;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.ui.Picture;
+import ru.arifolth.anjrpg.events.EventBus;
 import ru.arifolth.anjrpg.interfaces.camera.FollowCameraInterface;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.interfaces.worldmap.ITextureCache;
@@ -66,6 +67,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
     private SkyInterface sky;
     private Picture gameOverIndicator;
     private WeatherManagerInterface weatherManager;
+    private KillTracker killTracker;
 
     private CharacterInterface playerCharacter = null;
     private Picture damageIndicator = null;
@@ -90,6 +92,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
 
     public void initialize() {
         weatherManager = new WeatherManager(this);
+        killTracker = new KillTracker(getEventBus());
         /*
         * Initialization order is important: first we create Player Entity and Camera, later we initialize other stuff
         * */
@@ -224,6 +227,16 @@ public class GameLogicCore implements GameLogicCoreInterface {
     @Override
     public Application getApp() {
         return app;
+    }
+
+    @Override
+    public EventBus getEventBus() {
+        return ((RolePlayingGameInterface) app).getEventBus();
+    }
+
+    @Override
+    public int getKillCount() {
+        return killTracker.getKillCount();
     }
 
     @Override

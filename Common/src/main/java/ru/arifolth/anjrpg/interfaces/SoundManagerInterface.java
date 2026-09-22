@@ -19,8 +19,15 @@
 package ru.arifolth.anjrpg.interfaces;
 
 import com.jme3.audio.AudioNode;
+import ru.arifolth.anjrpg.events.EventBus;
 
 public interface SoundManagerInterface {
+    /**
+     * Wire this SoundManager to the application event bus. Must be called
+     * once during initialization, before the first frame update.
+     */
+    void attachEventBus(EventBus eventBus);
+
     AudioNode getMenuNode();
 
     void update(float tpf);

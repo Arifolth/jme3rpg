@@ -27,6 +27,7 @@ import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.jme3.system.AppSettings;
+import ru.arifolth.anjrpg.events.NpcKilledEvent;
 import ru.arifolth.anjrpg.interfaces.CharacterInterface;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.Debug;
@@ -234,5 +235,9 @@ public class NonPlayerCharacter extends PlayerCharacter {
         animationDelegate.deathAnimation();
 
         setDead(true);
+
+        gameLogicCore.getEventBus().publish(
+                new NpcKilledEvent(this, characterControl.getPhysicsLocation())
+        );
     }
 }

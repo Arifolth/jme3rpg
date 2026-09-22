@@ -32,6 +32,7 @@ import com.simsilica.lemur.event.PopupState;
 import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.tools.SizeValue;
+import ru.arifolth.anjrpg.events.EventBus;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.menu.PressAnyKeyState;
 import ru.arifolth.sound.SoundManager;
@@ -55,6 +56,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     protected GameLogicCoreInterface gameLogicCore;
     private final Node terrainNode = new Node("Terrain");
     private ThrottledSceneGraphQueue throttledQueue;
+    protected EventBus eventBus;
 
     public RolePlayingGame() {
         super(new FlyCamAppState(),
@@ -75,9 +77,24 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     @Override
     public void simpleInitApp() {
         /* Game stuff */
+        setupEventBus();
+
         setupAssetManager();
 
         setupThrottledQueue();
+    }
+
+    /**
+     * Creates and attaches the {@link EventBus}. This must run before any
+     * subsystem that might publish or subscribe is constructed - in
+     * particular before {@link #setupSound()}, which wires {@code
+     * SoundManager} to it directly. There is no {@code initialize()}
+     * override in this class, so {@code simpleInitApp()} - and specifically
+     * its very first line - is that point.
+     */
+    private void setupEventBus() {
+        eventBus = new EventBus();
+        stateManager.attach(eventBus);
     }
 
     private void setupThrottledQueue() {
@@ -192,6 +209,7 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
 
     void setupSound() {
         soundManager = new SoundManager(assetManager);
+        soundManager.attachEventBus(eventBus);
         soundManager.initialize();
 //        setProgress(new Object(){}.getClass().getEnclosingMethod().getName());
     }
@@ -247,5 +265,10 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     @Override
     public ThrottledSceneGraphQueueInterface getThrottledQueue() {
         return throttledQueue;
+    }
+
+    @Override
+    public EventBus getEventBus() {
+        return eventBus;
     }
 }

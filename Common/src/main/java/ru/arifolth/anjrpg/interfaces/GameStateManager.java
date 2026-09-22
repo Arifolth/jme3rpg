@@ -19,6 +19,7 @@
 package ru.arifolth.anjrpg.interfaces;
 
 import com.jme3.audio.AudioSource;
+import ru.arifolth.anjrpg.events.GameStateChangedEvent;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -60,16 +61,14 @@ public class GameStateManager implements GameStateManagerInterface {
         if(nextGameState == null)
             return;
 
-        if(AudioSource.Status.Stopped.equals(gameLogicCore.getSoundManager().getCurrentMusicNode().getStatus()) ||
-                nextGameState.equals(GameState.BATTLE) ||
-                nextGameState.equals(GameState.CALM) ||
-                nextGameState.equals(GameState.DEATH)) {
-            gameLogicCore.getSoundManager().fadeMusicOut(tpf, nextGameState.getMusicType());
-        }
-        LOGGER.log(Level.INFO, "Change GameState: " + currentGameState + " to " + nextGameState);
-        currentGameState = nextGameState;
-        gameLogicCore.getSoundManager().changeAmbientSound(tpf, nextGameState.getAmbientSound());
+        GameState from = currentGameState;
+        GameState to = nextGameState;
+
+        LOGGER.log(Level.INFO, "Change GameState: " + from + " to " + to);
+        currentGameState = to;
         nextGameState = null;
+
+        gameLogicCore.getEventBus().publish(new GameStateChangedEvent(from, to));
     }
     @Override
     public void checkTime() {
