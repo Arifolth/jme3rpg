@@ -18,6 +18,9 @@
 
 package ru.arifolth.anjrpg.menu;
 
+import com.simsilica.lemur.Container;
+import com.simsilica.lemur.component.BorderLayout;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -85,5 +88,9 @@ public class MenuUtils {
         keys.remove("KEY_UNKNOWN");
 
         return keys;
+    }
+
+    static Container createContainerWithBorderLayout() {
+        return new Container(new BorderLayout());
     }
 }

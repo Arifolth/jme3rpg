@@ -25,6 +25,7 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.math.*;
 import com.jme3.renderer.Camera;
 import com.jme3.ui.Picture;
+import ru.arifolth.anjrpg.events.PlayerDiedEvent;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.interfaces.bars.ManaBarInterface;
 import ru.arifolth.anjrpg.interfaces.bars.StaminaBarInterface;
@@ -212,8 +213,6 @@ public class PlayerCharacter extends AnimatedCharacter {
     public void update(float k) {
         if(dead)
             return;
-
-        combatTracker.update(k);
 
         barsUpdate(k);
 
@@ -523,7 +522,7 @@ public class PlayerCharacter extends AnimatedCharacter {
     @Override
     public void die() {
         dead = true;
-        combatTracker.reset();
+        gameLogicCore.getEventBus().publish(new PlayerDiedEvent(this));
         gameLogicCore.getGameStateManager().setGameState(GameState.DEATH);
 
         Vector3f deathPosition = characterControl.getPhysicsLocation().clone();

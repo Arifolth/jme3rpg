@@ -30,6 +30,8 @@ import com.jme3.ui.Picture;
 import ru.arifolth.anjrpg.events.EventBus;
 import ru.arifolth.anjrpg.interfaces.camera.FollowCameraInterface;
 import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.anjrpg.interfaces.quest.JournalServiceInterface;
+import ru.arifolth.anjrpg.interfaces.quest.QuestServiceInterface;
 import ru.arifolth.anjrpg.interfaces.worldmap.ITextureCache;
 import ru.arifolth.anjrpg.weather.WeatherManager;
 import ru.arifolth.anjrpg.worldmap.TextureCache;
@@ -68,6 +70,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
     private Picture gameOverIndicator;
     private WeatherManagerInterface weatherManager;
     private KillTracker killTracker;
+    private GameDirectorInterface gameDirector;
 
     private CharacterInterface playerCharacter = null;
     private Picture damageIndicator = null;
@@ -93,6 +96,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
     public void initialize() {
         weatherManager = new WeatherManager(this);
         killTracker = new KillTracker(getEventBus());
+        gameDirector = new GameDirector(getEventBus(), getGameStateManager());
         /*
         * Initialization order is important: first we create Player Entity and Camera, later we initialize other stuff
         * */
@@ -237,6 +241,26 @@ public class GameLogicCore implements GameLogicCoreInterface {
     @Override
     public int getKillCount() {
         return killTracker.getKillCount();
+    }
+
+    @Override
+    public CombatTrackerInterface getCombatTracker() {
+        return gameDirector.getCombatTracker();
+    }
+
+    @Override
+    public QuestServiceInterface getQuestService() {
+        return gameDirector.getQuestService();
+    }
+
+    @Override
+    public JournalServiceInterface getJournalService() {
+        return gameDirector.getJournalService();
+    }
+
+    @Override
+    public GameDirectorInterface getGameDirector() {
+        return gameDirector;
     }
 
     @Override

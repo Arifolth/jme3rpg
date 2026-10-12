@@ -19,7 +19,6 @@ package ru.arifolth.anjrpg.menu;
 
 import com.jme3.app.Application;
 import com.simsilica.lemur.*;
-import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.SpringGridLayout;
 import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
 import ru.arifolth.anjrpg.interfaces.stats.CharacterStats;
@@ -61,14 +60,10 @@ public class StatusPanel implements MenuPanel {
         joinPanel.setInsets(new Insets3f(10, 10, 10, 10));
 
         CharacterStats playerCharacterStats = application.getGameLogicCore().getPlayerCharacter().getStats();
-        addStat(joinPanel.addChild(createContainerWithBorderLayout()), "Level", playerCharacterStats.getLevel());
-        addStat(joinPanel.addChild(createContainerWithBorderLayout()), "Health", playerCharacterStats.getHealth());
-        addStat(joinPanel.addChild(createContainerWithBorderLayout()), "Mana", playerCharacterStats.getMana());
-        addStat(joinPanel.addChild(createContainerWithBorderLayout()), "Stamina", playerCharacterStats.getStamina());
-    }
-
-    private static Container createContainerWithBorderLayout() {
-        return new Container(new BorderLayout());
+        addStat(joinPanel.addChild(MenuUtils.createContainerWithBorderLayout()), "Level", playerCharacterStats.getLevel());
+        addStat(joinPanel.addChild(MenuUtils.createContainerWithBorderLayout()), "Health", playerCharacterStats.getHealth());
+        addStat(joinPanel.addChild(MenuUtils.createContainerWithBorderLayout()), "Mana", playerCharacterStats.getMana());
+        addStat(joinPanel.addChild(MenuUtils.createContainerWithBorderLayout()), "Stamina", playerCharacterStats.getStamina());
     }
 
     @Override

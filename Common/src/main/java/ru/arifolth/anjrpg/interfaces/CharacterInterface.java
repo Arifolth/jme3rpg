@@ -33,7 +33,6 @@ import java.util.Iterator;
 import java.util.Map;
 
 public interface CharacterInterface {
-    CombatTracker combatTracker = new CombatTracker();
 
     void removeCharacter();
 

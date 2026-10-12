@@ -43,8 +43,6 @@ import ru.arifolth.anjrpg.worldmap.WorldMapState;
 import java.util.*;
 import java.util.logging.Logger;
 
-import static ru.arifolth.anjrpg.interfaces.Constants.INITIAL_MOUNTAINS_DIRECTION;
-
 public class CompassState extends BaseAppState implements CompassStateInterface {
     final private static Logger LOGGER = Logger.getLogger(CompassState.class.getName());
 
@@ -54,9 +52,7 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
 
     private Node guiNode;
 
-    private POITarget npcPOI;
-    private POIInterface staticPOI;
-    private List<POIInterface> testPOIs;
+    private Set<POIInterface> initialPOIs;
     private final Set<POIInterface> activePOIs = new HashSet<>();
     private final Set<String> activeIds = new HashSet<>();
     private WorldMapState worldMapState;
@@ -67,21 +63,9 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
         SimpleApplication application = (SimpleApplication) app;
         this.compass = new Compass(application);
         this.worldMapState = application.getStateManager().getState(WorldMapState.class);
-
         this.playerCharacter = ((ANJRpgInterface) application).getGameLogicCore().getPlayerCharacter();
 
-        // Initialize static POI (e.g., mountains)
-        staticPOI = new POITarget("mountains", INITIAL_MOUNTAINS_DIRECTION.clone().normalizeLocal(), "Mountains", POIType.LANDMARK);
-
-        // Initialize NPC POI with dummy position (will update dynamically)
-        npcPOI = new POITarget("npc_target", Vector3f.ZERO, "NPC", POIType.NPC);
-
-        // Set initial POIs to just the static one
-        /*compass.setPointsOfInterest(new ArrayList<POITarget>() {{
-            add(staticPOI);
-        }});*/
-
-        addTestStaticPOIs(playerCharacter, compass);
+        addInitialPOIs(playerCharacter, compass);
 
         guiNode = ((SimpleApplication)app).getGuiNode();
     }
@@ -110,17 +94,7 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
 
     private void initializePOI() {
         activePOIs.clear();
-        activePOIs.addAll(testPOIs);
-
-        Map.Entry<Iterator<CharacterInterface>, CharacterInterface> lock = playerCharacter.getLockedOnCharacter();
-        if (lock != null && !lock.getValue().isDead()) {
-            Vector3f npcPos = lock.getValue().getNode().getWorldTranslation();
-
-            // Store actual NPC world position, not direction
-            npcPOI.setPosition(npcPos);
-
-            activePOIs.add(npcPOI);
-        }
+        activePOIs.addAll(initialPOIs);
 
         compass.setPointsOfInterest(activePOIs);
     }
@@ -157,24 +131,35 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
         }
     }
 
-    private void addTestStaticPOIs(CharacterInterface playerCharacter, CompassInterface compass) {
+    public void addPOI(POITarget poiTarget) {
+        Set<POIInterface> poiTargets = Set.of(poiTarget);
+
+        activePOIs.addAll(poiTargets);
+        compass.setPointsOfInterest(poiTargets);
+
+        addVerticalMarkersForPOIs(poiTargets);
+    }
+
+    private void addInitialPOIs(CharacterInterface playerCharacter, CompassInterface compass) {
         Vector3f playerPos = playerCharacter.getNode().getWorldTranslation();
         float distance = 50f; // distance from player
 
-        testPOIs = new ArrayList<>();
+        initialPOIs = new HashSet<>();
 
-        testPOIs.add(new POITarget("north",      playerPos.add(new Vector3f(0f, 0f,  -distance)), "NORTH",      POIType.LANDMARK));
+        /*
+        initialPOIs.add(new POITarget("north",      playerPos.add(new Vector3f(0f, 0f,  -distance)), "NORTH",      POIType.LANDMARK));
 
-        testPOIs.add(new POITarget("east",       playerPos.add(new Vector3f(distance, 0f, 0f)), "EAST",       POIType.LANDMARK));
-        testPOIs.add(new POITarget("south",      playerPos.add(new Vector3f(0f, 0f, distance)), "SOUTH",      POIType.LANDMARK));
+        initialPOIs.add(new POITarget("east",       playerPos.add(new Vector3f(distance, 0f, 0f)), "EAST",       POIType.LANDMARK));
+        initialPOIs.add(new POITarget("south",      playerPos.add(new Vector3f(0f, 0f, distance)), "SOUTH",      POIType.LANDMARK));
 
-        testPOIs.add(new POITarget("west",       playerPos.add(new Vector3f(-distance, 0f, 0f)), "WEST",       POIType.LANDMARK));
+        initialPOIs.add(new POITarget("west",       playerPos.add(new Vector3f(-distance, 0f, 0f)), "WEST",       POIType.LANDMARK));
+        */
 
         // Add world markers
-        addVerticalMarkersForPOIs(testPOIs);
+        addVerticalMarkersForPOIs(initialPOIs);
     }
 
-    private void addVerticalMarkersForPOIs(List<POIInterface> pois) {
+    private void addVerticalMarkersForPOIs(Collection<POIInterface> pois) {
         Node rootNode = ((SimpleApplication)getApplication()).getRootNode();
         Node markersNode = new Node("Markers");
         float height = 180f; // Tall so visible from afar

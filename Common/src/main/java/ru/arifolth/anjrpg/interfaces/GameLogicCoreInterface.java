@@ -28,6 +28,8 @@ import com.jme3.scene.Node;
 import com.jme3.ui.Picture;
 import ru.arifolth.anjrpg.events.EventBus;
 import ru.arifolth.anjrpg.interfaces.camera.FollowCameraInterface;
+import ru.arifolth.anjrpg.interfaces.quest.JournalServiceInterface;
+import ru.arifolth.anjrpg.interfaces.quest.QuestServiceInterface;
 import ru.arifolth.anjrpg.interfaces.worldmap.ITextureCache;
 
 import java.util.Map;
@@ -38,6 +40,14 @@ public interface GameLogicCoreInterface {
     EventBus getEventBus();
 
     int getKillCount();
+
+    CombatTrackerInterface getCombatTracker();
+
+    QuestServiceInterface getQuestService();
+
+    JournalServiceInterface getJournalService();
+
+    GameDirectorInterface getGameDirector();
 
     GameStateManagerInterface getGameStateManager();
 

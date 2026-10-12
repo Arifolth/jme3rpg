@@ -1,0 +1,57 @@
+/**
+ *     ANJRpg - an open source Role Playing Game written in Java.
+ *     Copyright (C) 2014 - 2026 Alexander Nilov
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package ru.arifolth.anjrpg.quest;
+
+/**
+ * One line of the player's journal. Immutable.
+ */
+public final class JournalEntry {
+    private final String questId;
+    private final String title;
+    private final String content;
+    private final long timestamp; // epoch ms
+
+    public JournalEntry(String questId, String title, String content) {
+        this.questId = questId;
+        this.title = title;
+        this.content = content;
+        this.timestamp = System.currentTimeMillis();
+    }
+
+    public String getQuestId() {
+        return questId;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    @Override
+    public String toString() {
+        return "JournalEntry{" + questId + ": " + title + "}";
+    }
+}

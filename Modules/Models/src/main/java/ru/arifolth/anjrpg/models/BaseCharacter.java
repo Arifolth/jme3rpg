@@ -99,8 +99,6 @@ public abstract class BaseCharacter implements CharacterInterface {
     public void initialize(GameLogicCoreInterface gameLogicCore) {
         this.gameLogicCore = gameLogicCore;
 
-        combatTracker.setGameLogicCore(gameLogicCore);
-
         initializePhysixControl();
 
         initializeCharacterModel();
@@ -145,6 +143,6 @@ public abstract class BaseCharacter implements CharacterInterface {
 
     @Override
     public boolean isInCombat() {
-        return combatTracker.isInCombat();
+        return gameLogicCore.getCombatTracker().isInCombat();
     }
 }

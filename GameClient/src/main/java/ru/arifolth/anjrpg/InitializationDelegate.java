@@ -25,11 +25,22 @@ import com.jme3.scene.Node;
 import com.jme3.ui.Picture;
 import ru.arifolth.anjrpg.camera.DeathAwareCamera;
 import ru.arifolth.anjrpg.camera.EnhancedFreeFollowCamera;
+import ru.arifolth.anjrpg.compass.CompassState;
+import ru.arifolth.anjrpg.compass.POITarget;
 import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.anjrpg.interfaces.compass.POIType;
 import ru.arifolth.anjrpg.models.NonPlayerCharacter;
 import ru.arifolth.anjrpg.models.PlayerCharacter;
+import ru.arifolth.anjrpg.quest.Quest;
+import ru.arifolth.anjrpg.quest.StorySegment;
+import ru.arifolth.anjrpg.quest.task.FindTask;
+import ru.arifolth.anjrpg.quest.task.KillTask;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
@@ -95,7 +106,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         initializePlayer(positionCharacters);
 
         //position NPCs around the Player
-        //initializeNPCs(positionCharacters);
+        initializeNPCs(positionCharacters);
     }
 
     @Override
@@ -244,6 +255,7 @@ public class InitializationDelegate implements InitializationDelegateInterface {
         for(CharacterInterface character: gameLogicCore.getCharacterMap().values()) {
             if(character.isInitializing()) {
                 character.setInitializing(false);
+                LOGGER.log(Level.INFO, "NPC init COMPLETED");
             }
         }
     }

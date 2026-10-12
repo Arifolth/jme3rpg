@@ -27,6 +27,8 @@ import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.jme3.system.AppSettings;
+import ru.arifolth.anjrpg.events.CombatDisengagedEvent;
+import ru.arifolth.anjrpg.events.CombatEngagedEvent;
 import ru.arifolth.anjrpg.events.NpcKilledEvent;
 import ru.arifolth.anjrpg.interfaces.CharacterInterface;
 import ru.arifolth.anjrpg.interfaces.Constants;
@@ -44,6 +46,7 @@ public class NonPlayerCharacter extends PlayerCharacter {
     protected float walkSpeed;
     protected Vector3f walkDirection;
     protected CharacterInterface playerCharacter;
+    private boolean engagedInCombat = false;
 
     public NonPlayerCharacter() {
         super();
@@ -79,8 +82,13 @@ public class NonPlayerCharacter extends PlayerCharacter {
 
     @Override
     public void update(float tpf) {
-        if(isDead() || playerCharacter.isDead())
+        if(isDead())
             return;
+
+        if(playerCharacter.isDead()) {
+            disengageIfNeeded();
+            return;
+        }
 
         shootUpdate(tpf);
 
@@ -92,9 +100,11 @@ public class NonPlayerCharacter extends PlayerCharacter {
                 attack();
             } else {
                 walkForward();
+                disengageIfNeeded();
             }
         } else {
             stop();
+            disengageIfNeeded();
         }
 
         barsUpdate(tpf);
@@ -117,9 +127,19 @@ public class NonPlayerCharacter extends PlayerCharacter {
     @Override
     public void attack() {
         if (isReady()) {
-            combatTracker.incCounter(this);
+            if (!engagedInCombat) {
+                engagedInCombat = true;
+                gameLogicCore.getEventBus().publish(new CombatEngagedEvent(this));
+            }
             useWeapon();
             resetShootCounter();
+        }
+    }
+
+    private void disengageIfNeeded() {
+        if (engagedInCombat) {
+            engagedInCombat = false;
+            gameLogicCore.getEventBus().publish(new CombatDisengagedEvent(this));
         }
     }
 
@@ -230,8 +250,6 @@ public class NonPlayerCharacter extends PlayerCharacter {
 
     @Override
     public void die() {
-        combatTracker.decCounter(this);
-
         animationDelegate.deathAnimation();
 
         setDead(true);

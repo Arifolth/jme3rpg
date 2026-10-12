@@ -100,7 +100,6 @@ public class SoundManager implements SoundManagerInterface {
         if(shouldFade) {
             fadeMusicOut(Constants.CHANGE_GAME_STATE_TPF, to.getMusicType());
         }
-
         changeAmbientSound(Constants.CHANGE_GAME_STATE_TPF, to.getAmbientSound());
     }
 

@@ -66,6 +66,7 @@ public class Constants {
     public static final String QUAD_MUSHROOMS = "quadMushrooms";
     public static final float FIRING_RANGE = 5f;
     public static final float WALKING_RANGE = 500f;
+    public static final float LOCATION_FOUND_RANGE = 10f;
     public static final float WALK_SPEED = .3f;
     public static final String GRASS_NODE = "Grass";
     public static final String MUSHROOMS_NODE = "Mushrooms";

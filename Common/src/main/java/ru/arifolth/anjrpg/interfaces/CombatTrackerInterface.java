@@ -18,12 +18,6 @@
 
 package ru.arifolth.anjrpg.interfaces;
 
-public interface CombatTrackerInterface extends TrackerInterface {
-    void decCounter(CharacterInterface enemy);
-
-    void incCounter(CharacterInterface enemy);
-
+public interface CombatTrackerInterface {
     boolean isInCombat();
-
-    void reset();
 }

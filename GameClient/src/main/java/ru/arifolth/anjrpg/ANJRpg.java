@@ -34,12 +34,21 @@ import de.lessvoid.nifty.input.NiftyInputEvent;
 import de.lessvoid.nifty.screen.Screen;
 import ru.arifolth.anjrpg.bars.PlayerBarsState;
 import ru.arifolth.anjrpg.compass.CompassState;
+import ru.arifolth.anjrpg.compass.POITarget;
 import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.anjrpg.interfaces.compass.POIType;
 import ru.arifolth.anjrpg.menu.SettingsUtils;
+import ru.arifolth.anjrpg.quest.Quest;
+import ru.arifolth.anjrpg.quest.StorySegment;
+import ru.arifolth.anjrpg.quest.task.FindTask;
+import ru.arifolth.anjrpg.quest.task.KillTask;
 import ru.arifolth.anjrpg.worldmap.WorldMapState;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -162,20 +171,16 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
             case INITIALIZED: {
                 //wait until land appears in Physics Space
                 if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == app.getTerrainManager().getRigidBodiesSize()) {
+                    createCompass();
+                    createPlayerBars();
+                    createWorldMap();
+
                     //place player at the start location
                     initializationDelegate.positionPlayer();
                     initializationDelegate.initPlayerComplete();
                     //position NPCs around the Player
                     initializationDelegate.positionNPCs(getGameLogicCore().getCharacterMap());
                     initializationDelegate.initNPCsComplete();
-
-                    //these calls have to be done on the update loop thread,
-                    //especially attaching the terrain to the rootNode
-                    //after it is attached, it's managed by the update loop thread
-                    // and may not be modified from any other thread anymore!
-                    createCompass();
-                    createPlayerBars();
-                    createWorldMap();
 
                     setProgress("Loading complete");
                     nifty.gotoScreen("end");

@@ -18,7 +18,6 @@
 
 package ru.arifolth.anjrpg.interfaces;
 
-import com.jme3.audio.AudioSource;
 import ru.arifolth.anjrpg.events.GameStateChangedEvent;
 
 import java.util.logging.Level;
@@ -28,8 +27,8 @@ public class GameStateManager implements GameStateManagerInterface {
     final private static Logger LOGGER = Logger.getLogger(GameStateManager.class.getName());
 
     private GameLogicCoreInterface gameLogicCore;
-    private GameState currentGameState = GameState.MENU;
-    private GameState nextGameState;
+    private volatile GameState currentGameState = GameState.MENU;
+    private volatile GameState nextGameState;
 
     public GameStateManager(GameLogicCoreInterface gameLogicCore) {
         this.gameLogicCore = gameLogicCore;
