@@ -100,6 +100,95 @@ public class Constants {
     public static final float STAMINA_CONSUMPTION_RUN = 20f; // per second when running
     public static final float STAMINA_CONSUMPTION_JUMP = 15f; // per jump
 
+    // GPU grass (layered shell technique, ported from jme3-grass-shader)
+    // Master switch: renders GPU grass shells on top of the terrain
+    public static final boolean GPU_GRASS_ENABLED = true;
+    // When true, the billboard grass builder is skipped for new terrain tiles
+    public static final boolean GPU_GRASS_REPLACES_BILLBOARD_GRASS = true;
+    // Number of grass layers (shells). More layers = denser/longer grass but slower
+    public static final int GPU_GRASS_LAYERS = 45;
+    // Grass is rendered within this radius around the player (~500 feet)
+    public static final float GPU_GRASS_DISTANCE = 200f;
+    // Grass starts to thin out at this fraction of the grass distance
+    public static final float GPU_GRASS_FADE_START_RATIO = 0.65f;
+    // Adaptive layer LOD: full layers within this fraction of the radius...
+    public static final float GPU_GRASS_FULL_LAYERS_RATIO = 0.35f;
+    // ...down to this fraction of layers at the edge, never fewer than MIN
+    public static final float GPU_GRASS_MIN_LAYERS_RATIO = 0.25f;
+    public static final int GPU_GRASS_MIN_LAYERS = 6;
+    // Maximum grass height in world units (blade length). The original demo
+    // used 0.4 on an unscaled terrain; 0.8 reads well in this world (2x scale)
+    public static final float GPU_GRASS_LENGTH = 0.8f;
+    // Wind sway tuning
+    public static final float GPU_GRASS_WAVE_SPEED = 4f;
+    public static final float GPU_GRASS_WAVE_SIZE = 0.5f;
+    // Mask pattern frequency per terrain patch (blade density)
+    public static final float GPU_GRASS_MASK_SCALE = 256f;
+    // World-space Y safety cap above which grass never grows. The REAL
+    // grass/dirt/rock placement is decided by the texture-dominance gate
+    // below, which replicates the HeightBasedTerrain region blending - this
+    // cap only guards against pathological cases. Terrain heights top out
+    // around 128, so 150 keeps the cap out of the way while still catching
+    // extreme terrain setups.
+    public static final float GPU_GRASS_MAX_HEIGHT = 250f;
+    // Minimum world-space up component of the ground normal (1 = flat);
+    // ground tilted more than this is considered a cliff and gets no grass.
+    // Secondary safety net - the texture-share gate already removes grass on
+    // slopes steep enough for the rock slope texture to win.
+    public static final float GPU_GRASS_MIN_GROUND_UP = 0.72f;
+    // Smooth shoreline transition margin above the water level
+    public static final float GPU_GRASS_SHORE_MARGIN = 0.5f;
+    // ===== Phase 3: texture-aware placement =====
+    // The grass shader replicates the exact region weights of the stock
+    // HeightBasedTerrain shader (grass/dirt/rock height ranges + slope blend)
+    // and grows grass wherever NO other texture outweighs the grass texture:
+    //   - dirt region weight > grass weight  -> dirt/sand band: no grass
+    //   - rock region weight > grass weight  -> rock band: no grass
+    //   - slope-rock share  > grass weight   -> cliffs: no grass
+    // BEWARE with THIS game's region setup: region1 = (15, 200) makes the
+    // stock formula paint the grass texture only ABOVE height 15 (rising
+    // towards 200), region2 = (0, 20) paints dirt only in the 0..40 band and
+    // region3/4 = (198, 260) are unreachable. Below height 0 - the shoreline
+    // and lowlands the player walks on - the stock shader paints NO region
+    // texture at all. The next switch decides whether grass may grow there.
+    public static final boolean GPU_GRASS_ALLOW_ON_UNTEXTURED = true;
+    // Width of the smooth transition band of the texture-dominance tests:
+    // blades thin out gradually over this range while another texture takes
+    // over the ground. Higher = softer borders between grass and dirt/rock.
+    public static final float GPU_GRASS_TEXTURE_SHARE_FADE = 0.15f;
+    // ALPHA CUTOUT threshold (0..1). The grass renders WITHOUT blending and
+    // WITH depth write: fragments whose mask alpha is below this value are
+    // discarded, everything else is drawn opaque and occupies real depth
+    // buffer space. This makes the player, trees and other objects interleave
+    // correctly with the grass (some blades in front of the player's legs,
+    // some behind). Higher = thinner/harder blades, lower = denser/softer.
+    public static final float GPU_GRASS_ALPHA_CUTOFF = 0.35f;
+    // Texture used to color the grass shells. DEFAULT = the terrain's own
+    // grass region texture (Textures/Terrain/splat/grass.jpg), sampled with
+    // the exact UV mapping of the terrain shader - the blade palette is then
+    // pixel-identical to the landscape palette. An empty string falls back
+    // to the procedural green noise of the original example project.
+    public static final String GPU_GRASS_TEXTURE_PATH = "Textures/Terrain/splat/grass.jpg";
+
+    // ===== GPU grass diagnostics (temporary - switch off once grass is confirmed working) =====
+    // Throttled INFO logging from GpuGrassMaterial: one summary line per interval,
+    // never per frame. Reports exactly which guard skips the grass (if any).
+    public static final boolean GPU_GRASS_DEBUG = false;
+    // Bypass the ENVIRONMENT gates in the shader (water level, altitude, slope,
+    // texture share) - grass renders everywhere inside the player radius,
+    // exactly like the original example project. The 3D blade mask is always
+    // applied (it is what shapes individual blades; skipping it renders solid
+    // walls instead). Leave FALSE for normal play; set to true only to verify
+    // the shader pipeline without any environment filtering.
+    public static final boolean GPU_GRASS_DEBUG_FORCE_ALL = false;
+    // Brightness multiplier applied to the grass shells.
+    // 1.0 = EXACTLY the terrain texture palette (recommended now that the
+    // shells sample the terrain grass texture anyway). Raise it (e.g. 1.3)
+    // only if the grass should stay visible on very dark nights.
+    public static final float GPU_GRASS_DEBUG_BRIGHTNESS = 1.0f;
+    // Minimal interval between two GPU grass debug log lines (milliseconds)
+    public static final long GPU_GRASS_DEBUG_LOG_INTERVAL_MS = 5000;
+
     //HKEY_CURRENT_USER\Software\JavaSoft\Prefs\
 
     private Constants() {

@@ -1,0 +1,135 @@
+MaterialDef Layered {
+
+    // GPU layered-shell grass material for ANJRpg.
+    // Ported from https://github.com/Arifolth/jme3-grass-shader (jME 3.1 - 3.7 era)
+    // to jMonkeyEngine 3.9.0-stable.
+    //
+    // The terrain geometry is re-rendered once per grass layer. Every layer is
+    // displaced vertically in the vertex shader and masked in the fragment
+    // shader with a 3D mask texture (one slice per layer), producing dense
+    // swaying grass. The grass is only drawn:
+    //  - inside a radius around the player (GrassDistance, smooth fade from FadeStart)
+    //  - above the water level (WaterLevel)
+    //  - below the hill/mountain cutoff (GrassMaxHeight)
+    //  - on flat-enough ground (MinGroundUp, 1 = perfectly flat)
+    //  - ONLY where the terrain TEXTURE allows it: the same height/normal
+    //    region weights the stock HeightBasedTerrain.frag uses to blend the
+    //    grass/dirt/rock textures are replicated in the vertex shader; grass
+    //    is only grown where NO other texture (dirt/rock/slope-rock)
+    //    outweighs the grass texture (smooth GrassShareFade band). Ground
+    //    painted with NO region texture at all is grass-eligible when
+    //    AllowOnUntextured is on.
+    //
+    // The grass is drawn as an ALPHA-CUTOUT surface (no blending, depth
+    // write ON): fully transparent parts are discarded in the fragment
+    // shader below AlphaCutoff. Because the blades write real depth, the
+    // player, trees and all other objects interleave correctly with the
+    // grass (some blades in front of the player's legs, some behind).
+
+    MaterialParameters {
+        Float Layer
+        Float Length
+        Float MaskScale
+        Float Time
+        //HeightBasedTerrain synchronization (auto-copied from the base
+        //terrain material by GpuGrassMaterial.setBaseMaterial())
+        Float TerrainSize
+        Float GrassUVScale
+        Float GrassRegionMin
+        Float GrassRegionMax
+        Float DirtRegionMin
+        Float DirtRegionMax
+        Float RockRegionMin
+        Float RockRegionMax
+        //grass must not be outweighed by dirt/rock/slope-rock to grow here;
+        //AllowOnUntextured decides whether untextured ground (no region
+        //weight) may carry grass too
+        Float AllowOnUntextured
+        Float GrassShareFade
+        //alpha-cutout threshold (0..1); fragments below it are discarded
+        Float AlphaCutoff
+        Float WaveSpeed
+        Float WaveSize
+        Float GrassDistance
+        Float FadeStart
+        Float WaterLevel
+        Float GrassMaxHeight
+        Float MinGroundUp
+        Vector3 PlayerPosition
+        Texture2D GrassMask
+        Texture2D GrassTexture
+        Texture3D ThreeDTex
+        Boolean Wave
+        //Diagnostics: 1.0 = bypass water/height/slope/mask gates (example project mode)
+        Float DebugForceAll
+        //Diagnostics: brightness multiplier for the unlit shells (1.0 = off)
+        Float DebugBrightness
+    }
+
+    Technique {
+
+        VertexShader GLSL130:   MatDefs/Grass/Layered.vert
+        FragmentShader GLSL130: MatDefs/Grass/Layered.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldViewMatrix
+            WorldMatrix
+        }
+
+        Defines {
+            WAVE : Wave
+            THREEDTEX : ThreeDTex
+        }
+
+        RenderState {
+            //Alpha cutout: no blending, blades write depth so scene objects
+            //(player, trees, ...) depth-sort against them per fragment
+            DepthTest On
+            DepthWrite On
+            FaceCull Off
+        }
+    }
+
+    Technique PreShadow {
+
+        VertexShader GLSL100 :   Common/MatDefs/Shadow/PreShadow.vert
+        FragmentShader GLSL100 : Common/MatDefs/Shadow/PreShadow.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldViewMatrix
+        }
+
+        RenderState {
+            FaceCull Off
+            DepthTest On
+            DepthWrite On
+            PolyOffset 5 0
+            ColorWrite Off
+        }
+
+    }
+
+    // Required so the terrain keeps being rendered into the SSAO normal pass
+    // (the SSAO filter forces the "PreNormalPass" technique by name; materials
+    // that do not declare it are skipped by the normal pass).
+    // Same technique the engine's own Lighting.j3md declares.
+    Technique PreNormalPass {
+
+        VertexShader GLSL100 :   Common/MatDefs/SSAO/normal.vert
+        FragmentShader GLSL100 : Common/MatDefs/SSAO/normal.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldViewMatrix
+            NormalMatrix
+        }
+
+        RenderState {
+
+        }
+
+    }
+
+}

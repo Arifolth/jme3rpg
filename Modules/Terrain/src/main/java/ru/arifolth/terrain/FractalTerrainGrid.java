@@ -44,7 +44,10 @@ import com.jme3.texture.Texture;
 import ru.arifolth.anjrpg.TileTextureCapturer;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.menu.SettingsUtils;
+import ru.arifolth.terrain.grass.GpuGrassMaterial;
+import ru.arifolth.terrain.grass.GrassTextureFactory;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class FractalTerrainGrid implements FractalTerrainGridInterface {
@@ -55,6 +58,9 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
     private final AssetManager assetManager;
     private final BulletAppState bulletAppState;
     private final RolePlayingGameInterface app;
+    private GpuGrassMaterial gpuGrassMaterial;
+    private int gpuGrassUpdateFailures = 0;
+    private long gpuGrassLastFailureLogNanos = 0L;
 
     private final int rigidBodiesSize = Constants.RIGID_BODIES_SIZE;
 
@@ -125,6 +131,23 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
 
         matTerrain.setFloat("terrainSize", viewDistanceSettings.getTerrainSize());
 
+        //GPU grass: wrap the terrain material with the layered grass material
+        //so the terrain is rendered once as the base and once per grass layer
+        Material terrainMaterial = matTerrain;
+        if (Constants.GPU_GRASS_ENABLED) {
+            try {
+                gpuGrassMaterial = new GpuGrassMaterial(assetManager, Constants.GPU_GRASS_LAYERS, Constants.GPU_GRASS_DISTANCE);
+                gpuGrassMaterial.setBaseMaterial(matTerrain);
+                gpuGrassMaterial.setGrassTexture(GrassTextureFactory.loadGrassTexture(assetManager));
+                gpuGrassMaterial.setThreeDTexture(GrassTextureFactory.createThreeDLayerMask(Constants.GPU_GRASS_LAYERS));
+                terrainMaterial = gpuGrassMaterial;
+            } catch (Exception e) {
+                LOGGER.log(Level.SEVERE, "GPU grass material setup failed, falling back to plain terrain material", e);
+                gpuGrassMaterial = null;
+                terrainMaterial = matTerrain;
+            }
+        }
+
         this.base = new FractalSum();
         this.base.setRoughness(0.82f);
         this.base.setFrequency(1.2f);
@@ -163,7 +186,7 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
 
         this.terrain = new TerrainGrid("Terrain", viewDistanceSettings.getPatchSize(), viewDistanceSettings.getTerrainSize(), new FractalTileLoader(ground, 128f));
 
-        this.terrain.setMaterial(matTerrain);
+        this.terrain.setMaterial(terrainMaterial);
 
         setupPosition();
 
@@ -220,8 +243,10 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
                     initializationDelegate.setGameLogicCore(app.getGameLogicCore());
                     //plant trees
                     initializationDelegate.positionTrees(quad);
-                    //plant grass
-                    initializationDelegate.positionGrass(quad);
+                    //plant grass (skipped when the GPU grass shader renders it)
+                    if (!Constants.GPU_GRASS_ENABLED || !Constants.GPU_GRASS_REPLACES_BILLBOARD_GRASS) {
+                        initializationDelegate.positionGrass(quad);
+                    }
                     //plant bushes
                     initializationDelegate.positionBushes(quad);
                     //plant bushes
@@ -288,11 +313,44 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
     @Override
     public void update() {
         processPendingTileCaptures();
+        updateGpuGrass();
+    }
+
+    private void updateGpuGrass() {
+        if (gpuGrassMaterial == null) {
+            return;
+        }
+        try {
+            gpuGrassMaterial.update(app.getTimer().getTimeInSeconds(),
+                    app.getGameLogicCore().getPlayerCharacter().getNode().getWorldTranslation());
+            gpuGrassUpdateFailures = 0;
+        } catch (Exception e) {
+            //player is not available yet (loading phase) - keep last known values,
+            //but do not stay fully silent: grass silently not appearing is exactly
+            //the class of bug that is impossible to diagnose from the outside
+            gpuGrassUpdateFailures++;
+            long now = System.nanoTime();
+            if (gpuGrassUpdateFailures == 1) {
+                LOGGER.log(Level.SEVERE, "GPU grass update failed - grass will not appear while this persists", e);
+            } else if (now - gpuGrassLastFailureLogNanos > Constants.GPU_GRASS_DEBUG_LOG_INTERVAL_MS * 1_000_000L) {
+                LOGGER.warning("GPU grass update still failing (" + gpuGrassUpdateFailures + " failures): " + e);
+            }
+            if (gpuGrassUpdateFailures == 1
+                    || now - gpuGrassLastFailureLogNanos > Constants.GPU_GRASS_DEBUG_LOG_INTERVAL_MS * 1_000_000L) {
+                gpuGrassLastFailureLogNanos = now;
+            }
+        }
     }
 
     private void processPendingTileCaptures() {
         if (tileCapturer != null) {
-            tileCapturer.processPendingSubTileCaptures();  // Process one queued tile per frame
+            //the world map must capture the bare terrain - no grass shells
+            GpuGrassMaterial.setLayersGloballyEnabled(false);
+            try {
+                tileCapturer.processPendingSubTileCaptures();  // Process one queued tile per frame
+            } finally {
+                GpuGrassMaterial.setLayersGloballyEnabled(true);
+            }
         }
     }
     
