@@ -41,6 +41,8 @@ import ru.arifolth.anjrpg.interfaces.compass.POIType;
 import ru.arifolth.anjrpg.worldmap.WorldMapState;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class CompassState extends BaseAppState implements CompassStateInterface {
@@ -53,6 +55,11 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
     private Node guiNode;
 
     private Set<POIInterface> initialPOIs;
+    // POIs added at runtime (quest waypoints...). initializePOI() rebuilds activePOIs from scratch every
+    // frame, so a POI that is only put into activePOIs is gone again one frame later - these stay until removePOI().
+    private final Map<String, POIInterface> addedPOIs = new ConcurrentHashMap<>();
+    // the 3D beacon of every added POI, kept so removePOI() can take it out of the scene again
+    private final Map<String, Node> poiBeacons = new HashMap<>();
     private final Set<POIInterface> activePOIs = new HashSet<>();
     private final Set<String> activeIds = new HashSet<>();
     private WorldMapState worldMapState;
@@ -95,6 +102,7 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
     private void initializePOI() {
         activePOIs.clear();
         activePOIs.addAll(initialPOIs);
+        activePOIs.addAll(addedPOIs.values());
 
         compass.setPointsOfInterest(activePOIs);
     }
@@ -131,13 +139,41 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
         }
     }
 
+    /**
+     * Puts a POI on the compass and the world map and a beacon into the world, until {@link #removePOI}.
+     * Must be called on the render thread: it attaches the beacon to the scene graph. Adding the same
+     * id twice does nothing.
+     */
     public void addPOI(POITarget poiTarget) {
-        Set<POIInterface> poiTargets = Set.of(poiTarget);
+        if (addedPOIs.putIfAbsent(poiTarget.getId(), poiTarget) != null) {
+            return;
+        }
+        LOGGER.log(Level.INFO, "POI added: " + poiTarget.getId() + " at " + poiTarget.getPosition());
 
-        activePOIs.addAll(poiTargets);
-        compass.setPointsOfInterest(poiTargets);
+        poiBeacons.put(poiTarget.getId(), addVerticalMarkersForPOIs(Set.of(poiTarget)));
+    }
 
-        addVerticalMarkersForPOIs(poiTargets);
+    /**
+     * Takes a POI added with {@link #addPOI} off the compass, the world map and out of the world.
+     * Must be called on the render thread. Unknown ids are ignored.
+     */
+    public void removePOI(String poiId) {
+        if (addedPOIs.remove(poiId) == null) {
+            return;
+        }
+        LOGGER.log(Level.INFO, "POI removed: " + poiId);
+
+        Node beacon = poiBeacons.remove(poiId);
+        if (beacon != null) {
+            beacon.removeFromParent();
+        }
+
+        // The world map marker is dropped by updateWorldMapPOI() next frame, and updateTargetIndicators()
+        // would only hide the compass indicator, so dispose of that one here.
+        Geometry indicator = compass.getTargetIndicators().remove(poiId);
+        if (indicator != null) {
+            indicator.removeFromParent();
+        }
     }
 
     private void addInitialPOIs(CharacterInterface playerCharacter, CompassInterface compass) {
@@ -159,7 +195,7 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
         addVerticalMarkersForPOIs(initialPOIs);
     }
 
-    private void addVerticalMarkersForPOIs(Collection<POIInterface> pois) {
+    private Node addVerticalMarkersForPOIs(Collection<POIInterface> pois) {
         Node rootNode = ((SimpleApplication)getApplication()).getRootNode();
         Node markersNode = new Node("Markers");
         float height = 180f; // Tall so visible from afar
@@ -186,6 +222,7 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
         }
 
         rootNode.attachChild(markersNode);
+        return markersNode;
     }
 
     /**

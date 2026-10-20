@@ -133,7 +133,8 @@ public class JournalPanel implements MenuPanel {
     }
 
     private void onEntryAdded(JournalEntryAddedEvent event) {
-        addEntry(event.getEntry());
+        // runs on the event bus dispatcher thread; shownEntries and the list model belong to the render thread
+        app.enqueue(() -> addEntry(event.getEntry()));
     }
 
     /**
