@@ -138,6 +138,18 @@ public class Constants {
     public static final float GPU_GRASS_MIN_GROUND_UP = 0.72f;
     // Smooth shoreline transition margin above the water level
     public static final float GPU_GRASS_SHORE_MARGIN = 0.5f;
+    // Height above the water level that stays (almost) bare: blades fade in
+    // smoothly from zero at the waterline to full density at this height -
+    // a Morrowind-style wet shoreline without grass. 0 = grass right up to
+    // the water.
+    public static final float GPU_GRASS_SHORE_BAND = 10f;
+    // ===== Field shape tweak =====
+    // Blades start sinking into the ground at this fraction of the grass
+    // radius and are fully sunken at the edge: the grass field melts into
+    // the ground texture at the circle border instead of ending abruptly.
+    // (A noise-patch height variation was tried and REVERTED - it made the
+    // field look like a rugged carpet. Blade lengths are uniform.)
+    public static final float GPU_GRASS_EDGE_HEIGHT_START_RATIO = 0.45f;
     // ===== Phase 3: texture-aware placement =====
     // The grass shader replicates the exact region weights of the stock
     // HeightBasedTerrain shader (grass/dirt/rock height ranges + slope blend)

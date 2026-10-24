@@ -53,6 +53,12 @@ MaterialDef Layered {
         Float GrassDistance
         Float FadeStart
         Float WaterLevel
+        //bare band above the water level: blades fade in from the waterline
+        //up to WaterLevel + ShoreBand (0 = grass right up to the water)
+        Float ShoreBand
+        //field shape: blades sink into the ground from EdgeHeightStart
+        //(world units from the player) out to GrassDistance
+        Float EdgeHeightStart
         Float GrassMaxHeight
         Float MinGroundUp
         Vector3 PlayerPosition

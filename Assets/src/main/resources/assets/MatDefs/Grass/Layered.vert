@@ -26,6 +26,10 @@
 //    grass region (worldPos.xz / terrainSize * grassScale), so the grass
 //    shells sample the very same texels the ground below them shows -> the
 //    blade palette matches the landscape palette exactly.
+//  - ANJRpg Phase 4 (field shape): the blades SINK INTO THE GROUND towards
+//    the edge of the grass circle (from EdgeHeightStart out to
+//    GrassDistance) so the field melts into the terrain texture instead of
+//    ending at a visible wall.
 
 #import "Common/ShaderLib/GLSLCompat.glsllib"
 
@@ -45,6 +49,8 @@ uniform float m_Layer;
 uniform float m_GrassDistance;
 uniform float m_FadeStart;
 uniform vec3 m_PlayerPosition;
+//field shape: edge sink
+uniform float m_EdgeHeightStart;
 
 //HeightBasedTerrain synchronization (values copied from the base material)
 uniform float m_TerrainSize;
@@ -155,6 +161,13 @@ void main() {
     float distToPlayer = distance(m_PlayerPosition, worldPos);
     fadeFactor = 1.0 - smoothstep(m_FadeStart, m_GrassDistance, distToPlayer);
 
+    // Blades also SINK into the ground towards the edge of the circle:
+    // full height inside EdgeHeightStart, smoothly shrinking to zero height
+    // at GrassDistance. Collapsed shells render the ground texel color at
+    // ground level - the grass visually melts into the terrain texture.
+    float edgeStart = min(m_EdgeHeightStart, m_GrassDistance * 0.99);
+    float edgeShrink = 1.0 - smoothstep(edgeStart, m_GrassDistance, distToPlayer);
+
     // World-space ground normal, correct under the non-uniform terrain
     // scale (TERRAIN_SCALE_X/Y/Z). transpose(inverse()) of the upper-left
     // 3x3 is the proper normal matrix for world space; GLSLCompat.glsllib
@@ -168,8 +181,12 @@ void main() {
     // Stable per-cell tint so blade clusters differ slightly in brightness.
     grassTint = hash13(floor(worldPos.xzy * 0.5));
 
+    // Blade height scale: only the edge sink. Blade lengths stay uniform (a
+    // noise-patch height variation was tried and reverted: rugged carpet).
+    float bladeScale = edgeShrink;
+
     // Vertical shell displacement: every layer is lifted towards the grass tip.
-    vec3 P = inPosition + vec3(0.0, 1.0, 0.0) * (m_Length * m_Layer);
+    vec3 P = inPosition + vec3(0.0, 1.0, 0.0) * (m_Length * m_Layer * bladeScale);
 
 #ifdef WAVE
     // Use a noise function to choose a movement group.
@@ -196,7 +213,8 @@ void main() {
 
     // The higher the exponent is, the closer to the tip the grass will start curving.
     float k = pow(m_Layer, 4.0);
-    P = P + vGravity * k;
+    //Sway scales with the same blade height (collapsed blades do not sway).
+    P = P + vGravity * k * bladeScale;
 
     gl_Position = g_WorldViewProjectionMatrix * vec4(P, 1.0);
 }

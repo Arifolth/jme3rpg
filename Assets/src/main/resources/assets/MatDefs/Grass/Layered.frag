@@ -50,6 +50,8 @@ uniform sampler3D m_ThreeDTex;
 uniform float m_MaskScale;
 uniform float m_Layer;
 uniform float m_WaterLevel;
+//bare band above the water level (blades fade in up to WaterLevel+ShoreBand)
+uniform float m_ShoreBand;
 uniform float m_GrassMaxHeight;
 uniform float m_MinGroundUp;
 uniform float m_DebugForceAll;
@@ -103,9 +105,10 @@ void main() {
             discard;
         }
 
-        // Smooth transitions: blades thin out towards the shoreline and
-        // towards the grass line.
-        float heightFade = smoothstep(m_WaterLevel - 3.0, m_WaterLevel + 3.0, worldHeight)
+        // Smooth transitions: blades thin out towards the shoreline (an
+        // (almost) bare band of ShoreBand height above the water level,
+        // Morrowind style) and towards the grass line.
+        float heightFade = smoothstep(m_WaterLevel, m_WaterLevel + max(m_ShoreBand, 0.0001), worldHeight)
                 * (1.0 - smoothstep(m_GrassMaxHeight - 15.0, m_GrassMaxHeight, worldHeight));
 
         // Phase 3: texture gate. Grass grows wherever NO other terrain

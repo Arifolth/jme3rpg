@@ -118,6 +118,9 @@ public class GpuGrassMaterial extends Material {
         setFloat("WaveSize", Constants.GPU_GRASS_WAVE_SIZE);
         setFloat("MaskScale", Constants.GPU_GRASS_MASK_SCALE);
         setFloat("WaterLevel", Constants.WATER_LEVEL_HEIGHT + Constants.GPU_GRASS_SHORE_MARGIN);
+        setFloat("ShoreBand", Constants.GPU_GRASS_SHORE_BAND);
+        //field shape: edge sink
+        setFloat("EdgeHeightStart", grassDistance * Constants.GPU_GRASS_EDGE_HEIGHT_START_RATIO);
         setFloat("GrassMaxHeight", Constants.GPU_GRASS_MAX_HEIGHT);
         setFloat("MinGroundUp", Constants.GPU_GRASS_MIN_GROUND_UP);
         setFloat("AllowOnUntextured", Constants.GPU_GRASS_ALLOW_ON_UNTEXTURED ? 1f : 0f);
