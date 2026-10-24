@@ -132,6 +132,70 @@ public class GpuGrassMaterial extends Material {
         setFloat("DebugBrightness", Constants.GPU_GRASS_DEBUG_BRIGHTNESS);
     }
 
+    /**
+     * PssmShadowRenderer receive pass (forced technique "PostShadow").
+     *
+     * Draw order and layer values mirror the main pass exactly:
+     *  - Layer 0 (base): the undisplaced, unmasked ground quad. Darkens the
+     *    bare ground between the blades exactly once (where a blade owns the
+     *    depth buffer, the base fragment fails the depth test instead).
+     *  - Layers 1..n: the same shell stack as the main pass. The post shadow
+     *    vertex shader replicates the main displacement bit for bit and the
+     *    post shadow fragment shader replicates every discard gate, so only
+     *    the shell that actually owns a pixel darkens it - no double (or 45x)
+     *    darkening, no bright rings.
+     */
+    private void renderPostShadowPass(Geometry geometry, LightList lights, RenderManager renderManager) {
+        //Base (ground) pass: Layer == 0 -> undisplaced + unmasked in the shader
+        setFloat("Layer", 0f);
+        super.render(geometry, lights, renderManager);
+        dbgBaseRenders++;
+
+        if (numLayers <= 0 || !layersGloballyEnabled) {
+            return;
+        }
+
+        BoundingVolume bound = geometry.getWorldBound();
+        if (bound == null || !sharedInitialized) {
+            return;
+        }
+
+        //Push the shared per-frame state into THIS instance's uniforms so the
+        //displacement (wind time, player position) matches the main pass
+        playerPositionVector.set(sharedPlayerPosition);
+        setVector3("PlayerPosition", playerPositionVector);
+        setFloat("Time", sharedTimeSeconds);
+
+        float distFromPlayer = bound.distanceToEdge(playerPositionVector);
+        if (distFromPlayer >= grassDistance) {
+            //main pass drew no layers here either (fadeFactor would be 0)
+            return;
+        }
+
+        int layersForGeometry = adaptiveLayerCount(distFromPlayer);
+        int curDiffLayer = 0;
+        int layerChangeInterval = (layerMasks == null || layerMasks.isEmpty())
+                ? Integer.MAX_VALUE
+                : (int) FastMath.ceil(numLayers / (float) layerMasks.size());
+
+        //Shell pass loop: same layer values as the main pass
+        for (int i = 1; i <= layersForGeometry; i++) {
+            float layer = i / (float) layersForGeometry;
+
+            //Move to the next layer mask if several 2D masks are in use
+            //(with the 3D texture path the masks are not sampled)
+            if (i % layerChangeInterval == 0 && layerMasks != null && !layerMasks.isEmpty()) {
+                setTexture("GrassMask", layerMasks.get(Math.min(curDiffLayer, layerMasks.size() - 1)));
+                curDiffLayer++;
+            }
+
+            setFloat("Layer", layer);
+            super.render(geometry, lights, renderManager);
+            dbgLayerRenders++;
+        }
+        setFloat("Layer", 0f);
+    }
+
     public static boolean isLayersGloballyEnabled() {
         return layersGloballyEnabled;
     }
@@ -267,12 +331,23 @@ public class GpuGrassMaterial extends Material {
             debugTick();
         }
 
-        if (renderManager.getForcedTechnique() != null) {
+        String forcedTechnique = renderManager.getForcedTechnique();
+        if (forcedTechnique != null && !forcedTechnique.equals("PostShadow")) {
             //A forced-technique pass is in progress (SSAO normal pass, etc.):
             //render a single plain pass with the forced technique - no base
             //material and no grass layers must leak into that buffer
             dbgSkippedForcedTech++;
             super.render(geometry, lights, renderManager);
+            return;
+        }
+
+        if (forcedTechnique != null) {
+            //PssmShadowRenderer receive pass: the forced technique switched
+            //THIS material to the PostShadow technique. Re-draw the ground
+            //and every grass shell exactly like the main pass, outputting
+            //the shadow factor (modulate blend) - that is what makes the
+            //grass respect shadows cast by trees, the player, houses, ...
+            renderPostShadowPass(geometry, lights, renderManager);
             return;
         }
 

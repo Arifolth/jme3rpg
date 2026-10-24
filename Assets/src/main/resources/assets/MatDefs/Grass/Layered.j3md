@@ -70,6 +70,24 @@ MaterialDef Layered {
         Float DebugForceAll
         //Diagnostics: brightness multiplier for the unlit shells (1.0 = off)
         Float DebugBrightness
+        // ===== PSSM shadow receiving (PostShadow technique) =====
+        // These are pushed onto this material by PssmShadowRenderer.setMatParams()
+        // every frame; the values mirror the engine's Common/MatDefs/Shadow/PostShadow.j3md.
+        Texture2D ShadowMap0
+        Texture2D ShadowMap1
+        Texture2D ShadowMap2
+        Texture2D ShadowMap3
+        Matrix4 LightViewProjectionMatrix0
+        Matrix4 LightViewProjectionMatrix1
+        Matrix4 LightViewProjectionMatrix2
+        Matrix4 LightViewProjectionMatrix3
+        Vector4 Splits
+        Float ShadowIntensity
+        Float PCFEdge
+        Float ShadowMapSize
+        Int FilterMode
+        Boolean HardwareShadows
+        Vector2 FadeInfo
     }
 
     Technique {
@@ -136,6 +154,48 @@ MaterialDef Layered {
 
         }
 
+    }
+
+    // Shadow RECEIVING for the PssmShadowRenderer post pass. The renderer
+    // forces the "PostShadow" technique by name on every shadow-receiving
+    // geometry (terrain tiles are CastAndReceive) and pushes the shadow map
+    // / split parameters (above) onto this material. Our shader re-draws the
+    // ground (Layer == 0) and every grass shell (Layer > 0) with the SAME
+    // displacement and the SAME discard gates as the main technique, so the
+    // shadow factor lands exactly on the pixels the main pass drew.
+    Technique PostShadow {
+
+        VertexShader GLSL130:   MatDefs/Grass/LayeredPostShadow.vert
+        FragmentShader GLSL130: MatDefs/Grass/LayeredPostShadow.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldViewMatrix
+            WorldMatrix
+        }
+
+        Defines {
+            WAVE : Wave
+            THREEDTEX : ThreeDTex
+            HARDWARE_SHADOWS : HardwareShadows
+            FILTER_MODE : FilterMode
+            PCFEDGE : PCFEdge
+            SHADOWMAP_SIZE : ShadowMapSize
+            FADE : FadeInfo
+            PSSM : Splits
+        }
+
+        RenderState {
+            //Same post-pass state the engine's PostShadow.j3md uses:
+            //multiply the shadow factor into the rendered frame, do not
+            //touch depth (PolyOffset wins the equal-depth fight for the
+            //shell that owns the pixel)
+            Blend Modulate
+            DepthTest On
+            DepthWrite Off
+            PolyOffset -0.1 0
+            FaceCull Off
+        }
     }
 
 }
