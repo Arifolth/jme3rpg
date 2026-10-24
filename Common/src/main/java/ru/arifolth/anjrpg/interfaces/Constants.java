@@ -106,9 +106,9 @@ public class Constants {
     // When true, the billboard grass builder is skipped for new terrain tiles
     public static final boolean GPU_GRASS_REPLACES_BILLBOARD_GRASS = true;
     // Number of grass layers (shells). More layers = denser/longer grass but slower
-    public static final int GPU_GRASS_LAYERS = 45;
+    public static final int GPU_GRASS_LAYERS = 25;
     // Grass is rendered within this radius around the player (~500 feet)
-    public static final float GPU_GRASS_DISTANCE = 200f;
+    public static final float GPU_GRASS_DISTANCE = 275f;
     // Grass starts to thin out at this fraction of the grass distance
     public static final float GPU_GRASS_FADE_START_RATIO = 0.65f;
     // Adaptive layer LOD: full layers within this fraction of the radius...
