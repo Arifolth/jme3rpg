@@ -61,6 +61,16 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
     private GpuGrassMaterial gpuGrassMaterial;
     private int gpuGrassUpdateFailures = 0;
     private long gpuGrassLastFailureLogNanos = 0L;
+    //GPU grass death-camera anchor: when the player dies, the corpse node is
+    //detached from the scene right after the death animation, while the death
+    //camera keeps observing the place of death from above. The grass circle
+    //must stay rendered there, so the last valid player position is remembered
+    //and fed to the material until the player respawns (spawn() re-attaches
+    //the node, possibly at a different place - tracking then resumes
+    //automatically from there).
+    private final Vector3f gpuGrassLastValidAnchor = new Vector3f();
+    private boolean gpuGrassHasValidAnchor = false;
+    private boolean gpuGrassAnchorHolding = false;
 
     private final int rigidBodiesSize = Constants.RIGID_BODIES_SIZE;
 
@@ -321,8 +331,40 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
             return;
         }
         try {
-            gpuGrassMaterial.update(app.getTimer().getTimeInSeconds(),
-                    app.getGameLogicCore().getPlayerCharacter().getNode().getWorldTranslation());
+            Spatial playerNode = app.getGameLogicCore().getPlayerCharacter().getNode();
+            Vector3f playerPosition = playerNode.getWorldTranslation();
+            boolean playerAttached = playerNode.getParent() != null;
+            boolean positionFinite = isFinite(playerPosition);
+
+            if (playerAttached && positionFinite) {
+                //Normal tracking: the grass circle follows the player and the
+                //last valid position is remembered for the death-camera hold.
+                gpuGrassLastValidAnchor.set(playerPosition);
+                gpuGrassHasValidAnchor = true;
+                if (gpuGrassAnchorHolding) {
+                    gpuGrassAnchorHolding = false;
+                    //fires once per respawn (including a respawn at a different place)
+                    LOGGER.info("GPU grass anchor tracking the player again at ("
+                            + formatPosition(playerPosition) + ")");
+                }
+                gpuGrassMaterial.update(app.getTimer().getTimeInSeconds(), playerPosition);
+            } else if (gpuGrassHasValidAnchor) {
+                //Player node detached (death: the corpse node leaves the scene
+                //after the death animation while the death camera observes the
+                //spot from above) or the position is not usable (NaN/Infinity
+                //would poison every grass vertex). Hold the grass circle at the
+                //place of death: the field stays rendered for the death camera,
+                //and tracking resumes automatically on respawn.
+                if (!gpuGrassAnchorHolding) {
+                    gpuGrassAnchorHolding = true;
+                    LOGGER.info("GPU grass anchor HOLDING at (" + formatPosition(gpuGrassLastValidAnchor)
+                            + ") - " + (playerAttached ? "player position invalid" : "player node detached")
+                            + ", grass stays at the place of death");
+                }
+                gpuGrassMaterial.update(app.getTimer().getTimeInSeconds(), gpuGrassLastValidAnchor);
+            }
+            //else: no valid anchor yet (loading phase) - keep the shared state
+            //untouched instead of feeding (0,0,0) or an invalid position.
             gpuGrassUpdateFailures = 0;
         } catch (Exception e) {
             //player is not available yet (loading phase) - keep last known values,
@@ -340,6 +382,15 @@ public class FractalTerrainGrid implements FractalTerrainGridInterface {
                 gpuGrassLastFailureLogNanos = now;
             }
         }
+    }
+
+    private static boolean isFinite(Vector3f v) {
+        return !Float.isNaN(v.x) && !Float.isNaN(v.y) && !Float.isNaN(v.z)
+                && !Float.isInfinite(v.x) && !Float.isInfinite(v.y) && !Float.isInfinite(v.z);
+    }
+
+    private static String formatPosition(Vector3f v) {
+        return String.format(java.util.Locale.ROOT, "%.1f, %.1f, %.1f", v.x, v.y, v.z);
     }
 
     private void processPendingTileCaptures() {

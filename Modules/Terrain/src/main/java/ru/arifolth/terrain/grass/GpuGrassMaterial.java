@@ -95,8 +95,10 @@ public class GpuGrassMaterial extends Material {
 
     //Diagnostics: static counters merge the dispatches of ALL material clones
     //into one throttled summary line (checked against a wall-clock interval,
-    //never per frame)
-    private final boolean debugEnabled = Constants.GPU_GRASS_DEBUG;
+    //never per frame). The summary line is ALWAYS on (never gated by
+    //GPU_GRASS_DEBUG): if the grass ever silently disappears, this line names
+    //the guard that skips it (tooFar / layersDisabled / notInitialized / ...)
+    //instead of leaving the failure undiagnosable from the outside.
     private static long debugLastLogNanos = 0L;
     private static boolean debugFirstDispatchLogged = false;
     private static int dbgDispatches, dbgBaseRenders, dbgLayerRenders, dbgPatches,
@@ -327,9 +329,7 @@ public class GpuGrassMaterial extends Material {
      */
     @Override
     public void render(Geometry geometry, LightList lights, RenderManager renderManager) {
-        if (debugEnabled) {
-            debugTick();
-        }
+        debugTick();
 
         String forcedTechnique = renderManager.getForcedTechnique();
         if (forcedTechnique != null && !forcedTechnique.equals("PostShadow")) {
@@ -416,7 +416,7 @@ public class GpuGrassMaterial extends Material {
         }
         setFloat("Layer", 0);
 
-        if (debugEnabled && !debugFirstDispatchLogged) {
+        if (!debugFirstDispatchLogged) {
             debugFirstDispatchLogged = true;
             Object threeDTex = getParam("ThreeDTex") == null ? null : getParam("ThreeDTex").getValue();
             Object grassTex = getParam("GrassTexture") == null ? null : getParam("GrassTexture").getValue();
