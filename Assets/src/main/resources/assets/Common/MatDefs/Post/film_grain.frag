@@ -63,7 +63,7 @@ void main() {
     vec2 uv = texCoord; // assuming texCoord in [0,1]
 
     // Noise strength (adjust for desired grain amount)
-    float strength = 0.102;
+    float strength = 0.092;
 
     // Generate animated noise vector from time and uv
     vec4 noise = vec4(
