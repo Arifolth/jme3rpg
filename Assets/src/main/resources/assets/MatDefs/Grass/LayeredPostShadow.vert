@@ -20,6 +20,12 @@
 uniform mat4 g_WorldViewProjectionMatrix;
 uniform mat4 g_WorldViewMatrix;
 uniform mat4 g_WorldMatrix;
+//CPU-computed inverse-transpose of the world matrix upper-left 3x3
+//(engine UniformBinding: worldMatrix.toRotationMatrix().invert().transpose()).
+//Mathematically identical to the transpose(inverse(mat3(g_WorldMatrix))) the
+//vertex shader used to build per vertex - but computed once per frame on the
+//CPU instead of ~100 ALU ops per vertex (x layers x passes).
+uniform mat3 g_WorldNormalMatrix;
 
 attribute vec3 inPosition;
 attribute vec3 inNormal;
@@ -140,9 +146,13 @@ void main() {
     float edgeShrink = 1.0 - smoothstep(edgeStart, m_GrassDistance, distToPlayer);
 
     // World-space ground normal, correct under the non-uniform terrain
-    // scale (TERRAIN_SCALE_X/Y/Z).
-    mat3 worldMat3 = mat3(g_WorldMatrix);
-    vec3 wNormal = normalize(transpose(inverse(worldMat3)) * inNormal);
+    // scale (TERRAIN_SCALE_X/Y/Z). g_WorldNormalMatrix is the engine's
+    // CPU-computed transpose(inverse(mat3(g_WorldMatrix))) of the upper-left
+    // 3x3 - the exact matrix the per-vertex expression below used to build
+    // (inverse() is a ~100 ALU cofactor expansion, per vertex, per layer,
+    // per pass), now computed once per frame on the CPU and applied with a
+    // single mat3 multiply.
+    vec3 wNormal = normalize(g_WorldNormalMatrix * inNormal);
     groundUp = wNormal.y;
 
     worldHeight = worldPos.y;
@@ -152,7 +162,11 @@ void main() {
 
     // Vertical shell displacement: every layer is lifted towards the grass tip.
     // m_Layer == 0 is the BASE (ground) pass: undisplaced, unmasked.
-    vec3 P = inPosition + vec3(0.0, 1.0, 0.0) * (m_Length * m_Layer * bladeScale);
+    // (m_Length * m_Layer) is uniform-only: hoisted once, reused for the
+    // shadow projection below (identical association, bit-for-bit).
+    float layerLift = m_Length * m_Layer;
+    vec3 liftVec = vec3(0.0, 1.0, 0.0) * (layerLift * bladeScale);
+    vec3 P = inPosition + liftVec;
 
 #ifdef WAVE
     // Use a noise function to choose a movement group.
@@ -177,7 +191,10 @@ void main() {
 #endif
 
     // The higher the exponent is, the closer to the tip the grass will start curving.
-    float k = pow(m_Layer, 4.0);
+    // pow(x, 4.0) rewritten as two squarings: identical value up to 1 ulp,
+    // much cheaper than the exp2/log2 pair pow() lowers to.
+    float k = m_Layer * m_Layer;
+    k *= k;
     //Sway scales with the same blade height (collapsed blades do not sway).
     P = P + vGravity * k * bladeScale;
 
@@ -191,7 +208,7 @@ void main() {
 #if defined(PSSM) || defined(FADE)
     shadowPosition = gl_Position.z;
 #endif
-    vec3 shadowWorldPos = worldPos + vec3(0.0, 1.0, 0.0) * (m_Length * m_Layer * bladeScale);
+    vec3 shadowWorldPos = worldPos + liftVec;
     projCoord0 = biasMat * m_LightViewProjectionMatrix0 * vec4(shadowWorldPos, 1.0);
     projCoord1 = biasMat * m_LightViewProjectionMatrix1 * vec4(shadowWorldPos, 1.0);
     projCoord2 = biasMat * m_LightViewProjectionMatrix2 * vec4(shadowWorldPos, 1.0);

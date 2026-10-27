@@ -19,6 +19,7 @@
 package ru.arifolth.anjrpg;
 
 import com.jme3.app.FlyCamAppState;
+import com.jme3.app.StatsAppState;
 import com.jme3.cursors.plugins.JmeCursor;
 import com.jme3.niftygui.NiftyJmeDisplay;
 import com.jme3.system.AppSettings;

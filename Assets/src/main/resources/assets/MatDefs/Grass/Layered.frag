@@ -78,11 +78,25 @@ void main() {
         discard;
     }
 
+    // Performance: every fragment with fadeFactor below the alpha cutoff dies
+    // by the final "min(maskAlpha, fadeFactor) < AlphaCutoff" test anyway
+    // (maskAlpha is always >= 0), so it can be discarded HERE - before the 3D
+    // mask fetch and the fade math. Same set of surviving fragments, same
+    // pixels: strictly less work per discarded fragment.
+    if (fadeFactor < m_AlphaCutoff) {
+        discard;
+    }
+
     // The 3D mask carves the stacked shells into individual grass blades.
     // It is ALWAYS applied (also in debug mode): without it every shell
     // renders as a solid surface and the stack looks like a wall.
 #ifdef THREEDTEX
-    float sampledAlpha = texture3D(m_ThreeDTex, vec3(texCoord * m_MaskScale, m_Layer)).a;
+    // explicit LOD 0: the grass textures use BilinearNoMipMaps filtering
+    // (GrassTextureFactory), so this returns the exact same texel as the
+    // implicit-LOD fetch - without the screen-space derivative computation
+    // on the hottest fetch in the shader (most fragments discard right
+    // after it).
+    float sampledAlpha = textureLod(m_ThreeDTex, vec3(texCoord * m_MaskScale, m_Layer), 0.0).a;
 #else
     float sampledAlpha = texture2D(m_GrassMask, texCoord * m_MaskScale).a;
 #endif
@@ -146,7 +160,8 @@ void main() {
 
     // The very same texture the terrain's grass region shows, with the very
     // same UV mapping -> pixel-perfect palette match with the landscape.
-    vec4 color = texture2D(m_GrassTexture, groundUV);
+    // explicit LOD 0 - same bit-exact texel for BilinearNoMipMaps (see above).
+    vec4 color = textureLod(m_GrassTexture, groundUV, 0.0);
 
     // Vertical gradient: darker near the ground, slightly brighter at the
     // tips, with a per-blade-cluster brightness variation. This keeps the

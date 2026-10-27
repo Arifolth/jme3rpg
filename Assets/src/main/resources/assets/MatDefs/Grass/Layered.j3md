@@ -99,6 +99,7 @@ MaterialDef Layered {
             WorldViewProjectionMatrix
             WorldViewMatrix
             WorldMatrix
+            WorldNormalMatrix
         }
 
         Defines {
@@ -172,6 +173,7 @@ MaterialDef Layered {
             WorldViewProjectionMatrix
             WorldViewMatrix
             WorldMatrix
+            WorldNormalMatrix
         }
 
         Defines {
