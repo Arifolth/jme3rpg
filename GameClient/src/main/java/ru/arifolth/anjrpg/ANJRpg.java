@@ -173,6 +173,9 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
                     initializationDelegate.positionNPCs(getGameLogicCore().getCharacterMap());
                     initializationDelegate.initNPCsComplete();
 
+                    //hardcoded test quest, until quests are started by NPC dialogue
+                    getGameLogicCore().getQuestInitialization().startQuest("test_quest");
+
                     setProgress("Loading complete");
                     nifty.gotoScreen("end");
                     nifty.exit();

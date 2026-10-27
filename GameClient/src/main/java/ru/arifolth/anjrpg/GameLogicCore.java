@@ -31,6 +31,7 @@ import ru.arifolth.anjrpg.events.EventBus;
 import ru.arifolth.anjrpg.interfaces.camera.FollowCameraInterface;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.interfaces.quest.JournalServiceInterface;
+import ru.arifolth.anjrpg.interfaces.quest.QuestInitializationInterface;
 import ru.arifolth.anjrpg.interfaces.quest.QuestServiceInterface;
 import ru.arifolth.anjrpg.interfaces.worldmap.ITextureCache;
 import ru.arifolth.anjrpg.weather.WeatherManager;
@@ -96,7 +97,7 @@ public class GameLogicCore implements GameLogicCoreInterface {
     public void initialize() {
         weatherManager = new WeatherManager(this);
         killTracker = new KillTracker(getEventBus());
-        gameDirector = new GameDirector(getEventBus(), getGameStateManager());
+        gameDirector = new GameDirector(this);
         /*
         * Initialization order is important: first we create Player Entity and Camera, later we initialize other stuff
         * */
@@ -251,6 +252,11 @@ public class GameLogicCore implements GameLogicCoreInterface {
     @Override
     public QuestServiceInterface getQuestService() {
         return gameDirector.getQuestService();
+    }
+
+    @Override
+    public QuestInitializationInterface getQuestInitialization() {
+        return gameDirector.getQuestInitialization();
     }
 
     @Override

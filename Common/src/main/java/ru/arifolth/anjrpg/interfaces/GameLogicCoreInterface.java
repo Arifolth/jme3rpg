@@ -29,6 +29,7 @@ import com.jme3.ui.Picture;
 import ru.arifolth.anjrpg.events.EventBus;
 import ru.arifolth.anjrpg.interfaces.camera.FollowCameraInterface;
 import ru.arifolth.anjrpg.interfaces.quest.JournalServiceInterface;
+import ru.arifolth.anjrpg.interfaces.quest.QuestInitializationInterface;
 import ru.arifolth.anjrpg.interfaces.quest.QuestServiceInterface;
 import ru.arifolth.anjrpg.interfaces.worldmap.ITextureCache;
 
@@ -44,6 +45,8 @@ public interface GameLogicCoreInterface {
     CombatTrackerInterface getCombatTracker();
 
     QuestServiceInterface getQuestService();
+
+    QuestInitializationInterface getQuestInitialization();
 
     JournalServiceInterface getJournalService();
 

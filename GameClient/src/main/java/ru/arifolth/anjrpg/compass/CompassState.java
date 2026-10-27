@@ -31,6 +31,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Cylinder;
+import com.jme3.terrain.geomipmap.TerrainQuad;
 import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
 import ru.arifolth.anjrpg.interfaces.CharacterInterface;
 import ru.arifolth.anjrpg.interfaces.Constants;
@@ -47,6 +48,8 @@ import java.util.logging.Logger;
 
 public class CompassState extends BaseAppState implements CompassStateInterface {
     final private static Logger LOGGER = Logger.getLogger(CompassState.class.getName());
+    private static final float BEACON_HEIGHT = 180f; // Tall so visible from afar
+    private static final float BEACON_RADIUS = 0.2f; // Thin
 
     private CompassInterface compass;
     private CharacterInterface playerCharacter;
@@ -59,7 +62,13 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
     // frame, so a POI that is only put into activePOIs is gone again one frame later - these stay until removePOI().
     private final Map<String, POIInterface> addedPOIs = new ConcurrentHashMap<>();
     // the 3D beacon of every added POI, kept so removePOI() can take it out of the scene again
-    private final Map<String, Node> poiBeacons = new HashMap<>();
+    private final Map<String, Geometry> poiBeacons = new HashMap<>();
+    // All beacons hang under one node that is attached to the root node once, in initialize(), and share
+    // one mesh and one material per colour - adding a POI allocates nothing but its Geometry.
+    private Node markersNode;
+    private Cylinder beaconMesh;
+    private Material beaconMaterial;
+    private Material npcBeaconMaterial;
     private final Set<POIInterface> activePOIs = new HashSet<>();
     private final Set<String> activeIds = new HashSet<>();
     private WorldMapState worldMapState;
@@ -72,7 +81,13 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
         this.worldMapState = application.getStateManager().getState(WorldMapState.class);
         this.playerCharacter = ((ANJRpgInterface) application).getGameLogicCore().getPlayerCharacter();
 
+        createMarkersNode(application);
         addInitialPOIs(playerCharacter, compass);
+
+        // POIs added before this state was initialized have no beacon yet
+        for (POIInterface poi : addedPOIs.values()) {
+            poiBeacons.put(poi.getId(), addBeacon(poi));
+        }
 
         guiNode = ((SimpleApplication)app).getGuiNode();
     }
@@ -142,15 +157,20 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
     /**
      * Puts a POI on the compass and the world map and a beacon into the world, until {@link #removePOI}.
      * Must be called on the render thread: it attaches the beacon to the scene graph. Adding the same
-     * id twice does nothing.
+     * id twice does nothing. Safe to call before this state has been initialized: the beacon is then
+     * created by {@link #initialize(Application)}.
      */
-    public void addPOI(POITarget poiTarget) {
-        if (addedPOIs.putIfAbsent(poiTarget.getId(), poiTarget) != null) {
+    public void addPOI(POIInterface poi) {
+        if (addedPOIs.putIfAbsent(poi.getId(), poi) != null) {
             return;
         }
-        LOGGER.log(Level.INFO, "POI added: " + poiTarget.getId() + " at " + poiTarget.getPosition());
+        LOGGER.log(Level.INFO, "POI added: " + poi.getId() + " at " + poi.getPosition());
 
-        poiBeacons.put(poiTarget.getId(), addVerticalMarkersForPOIs(Set.of(poiTarget)));
+        if (isInitialized()) {
+            long started = System.nanoTime();
+            poiBeacons.put(poi.getId(), addBeacon(poi));
+            LOGGER.log(Level.INFO, String.format("POI beacon placed in %.2f ms", (System.nanoTime() - started) / 1_000_000.0));
+        }
     }
 
     /**
@@ -163,16 +183,18 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
         }
         LOGGER.log(Level.INFO, "POI removed: " + poiId);
 
-        Node beacon = poiBeacons.remove(poiId);
+        Geometry beacon = poiBeacons.remove(poiId);
         if (beacon != null) {
             beacon.removeFromParent();
         }
 
         // The world map marker is dropped by updateWorldMapPOI() next frame, and updateTargetIndicators()
         // would only hide the compass indicator, so dispose of that one here.
-        Geometry indicator = compass.getTargetIndicators().remove(poiId);
-        if (indicator != null) {
-            indicator.removeFromParent();
+        if (compass != null) {
+            Geometry indicator = compass.getTargetIndicators().remove(poiId);
+            if (indicator != null) {
+                indicator.removeFromParent();
+            }
         }
     }
 
@@ -192,47 +214,74 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
         */
 
         // Add world markers
-        addVerticalMarkersForPOIs(initialPOIs);
-    }
-
-    private Node addVerticalMarkersForPOIs(Collection<POIInterface> pois) {
-        Node rootNode = ((SimpleApplication)getApplication()).getRootNode();
-        Node markersNode = new Node("Markers");
-        float height = 180f; // Tall so visible from afar
-        float radius = 0.2f; // Thin
-
-        for (POIInterface poi : pois) {
-            Cylinder cyl = new Cylinder(8, 16, radius, height, true);
-            Geometry geom = new Geometry("POIVertical_" + poi.getId(), cyl);
-
-            // Rotate cylinder from Z (default) to Y (vertical)
-            geom.rotate(FastMath.HALF_PI, 0, 0);
-
-            Material mat = new Material(getApplication().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-            mat.setColor("Color", poi.getType() == POIType.NPC ? ColorRGBA.Red : ColorRGBA.Blue);
-            geom.setMaterial(mat);
-
-            // Get ground-adjusted position using raycast
-            Vector3f groundPosition = getGroundPosition(poi.getPosition());
-
-            // Place base at ground position, raise so it stands vertically
-            geom.setLocalTranslation(groundPosition.x, groundPosition.y + height / 2f, groundPosition.z);
-
-            markersNode.attachChild(geom);
+        for (POIInterface poi : initialPOIs) {
+            addBeacon(poi);
         }
-
-        rootNode.attachChild(markersNode);
-        return markersNode;
     }
 
     /**
-     * Uses raycast to find the ground level at a given world position
-     * @param targetPosition The world position to check
-     * @return Ground-adjusted position
+     * Creates the one node all beacons hang under, plus the mesh and the two materials they share, and
+     * attaches the node to the root node. Called once.
+     *
+     * <p>The shader of the beacon material is compiled and the mesh uploaded to the GPU the first time
+     * a geometry using them is rendered, which for a beacon would be the middle of the first frame that
+     * shows one. {@code preloadScene} does that now, while the game is still loading.</p>
      */
+    private void createMarkersNode(SimpleApplication application) {
+        markersNode = new Node("Markers");
+        beaconMesh = new Cylinder(8, 16, BEACON_RADIUS, BEACON_HEIGHT, true);
+        beaconMaterial = createBeaconMaterial(ColorRGBA.Blue);
+        npcBeaconMaterial = createBeaconMaterial(ColorRGBA.Red);
+
+        Node warmUp = new Node("BeaconWarmUp");
+        for (Material material : new Material[]{beaconMaterial, npcBeaconMaterial}) {
+            Geometry geom = new Geometry("BeaconWarmUp", beaconMesh);
+            geom.setMaterial(material);
+            warmUp.attachChild(geom);
+        }
+        try {
+            application.getRenderManager().preloadScene(warmUp);
+        } catch (RuntimeException e) {
+            // only an optimization: the beacons work without it, they just pay the cost on first use
+            LOGGER.log(Level.WARNING, "Could not warm up the beacon resources", e);
+        }
+
+        application.getRootNode().attachChild(markersNode);
+    }
+
+    private Material createBeaconMaterial(ColorRGBA color) {
+        Material mat = new Material(getApplication().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", color);
+        return mat;
+    }
+
+    /**
+     * Stands a beacon on the ground at the POI. Adds one Geometry to the shared markers node; the mesh
+     * and the material are shared.
+     */
+    private Geometry addBeacon(POIInterface poi) {
+        Geometry geom = new Geometry("POIVertical_" + poi.getId(), beaconMesh);
+
+        // Rotate cylinder from Z (default) to Y (vertical)
+        geom.rotate(FastMath.HALF_PI, 0, 0);
+
+        geom.setMaterial(poi.getType() == POIType.NPC ? npcBeaconMaterial : beaconMaterial);
+
+        // Get ground-adjusted position using raycast
+        Vector3f groundPosition = getGroundPosition(poi.getPosition());
+
+        // Place base at ground position, raise so it stands vertically
+        geom.setLocalTranslation(groundPosition.x, groundPosition.y + BEACON_HEIGHT / 2f, groundPosition.z);
+
+        markersNode.attachChild(geom);
+        return geom;
+    }
+
     private Vector3f getGroundPosition(Vector3f targetPosition) {
-        // Get the terrain from the root node
-        Node rootNode = ((SimpleApplication)getApplication()).getRootNode();
+        // Only the terrain is asked, the way InitializationDelegate places the player and the NPCs and the
+        // vegetation builders place the trees. The root node also holds every batched tree, bush and blade
+        // of grass, and a ray cast against it walks all of those meshes on the render thread.
+        TerrainQuad terrain = ((ANJRpgInterface) getApplication()).getTerrainManager().getTerrain();
 
         // Start raycast from high above the target position
         Vector3f rayStart = new Vector3f(targetPosition.x, targetPosition.y + Constants.TREE_PLANTING_HEIGHT, targetPosition.z);
@@ -241,7 +290,7 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
         CollisionResults results = new CollisionResults();
 
         // Cast ray against terrain
-        rootNode.collideWith(ray, results);
+        terrain.collideWith(ray, results);
 
         CollisionResult hit = results.getClosestCollision();
         if (hit != null) {
@@ -351,6 +400,10 @@ public class CompassState extends BaseAppState implements CompassStateInterface 
     @Override
     protected void cleanup(Application app) {
         // Remove compass visuals if needed
+        if (markersNode != null) {
+            markersNode.removeFromParent();
+        }
+        poiBeacons.clear();
     }
 
     @Override

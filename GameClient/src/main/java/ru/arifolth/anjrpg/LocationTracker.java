@@ -19,33 +19,20 @@
 package ru.arifolth.anjrpg;
 
 import com.jme3.math.Vector3f;
-import ru.arifolth.anjrpg.compass.CompassState;
-import ru.arifolth.anjrpg.compass.POITarget;
 import ru.arifolth.anjrpg.events.LocationFoundEvent;
 import ru.arifolth.anjrpg.interfaces.CharacterInterface;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
 import ru.arifolth.anjrpg.interfaces.TrackerInterface;
 import ru.arifolth.anjrpg.interfaces.compass.POIInterface;
-import ru.arifolth.anjrpg.interfaces.compass.POIType;
-import ru.arifolth.anjrpg.quest.Quest;
-import ru.arifolth.anjrpg.quest.StorySegment;
-import ru.arifolth.anjrpg.quest.task.FindTask;
-import ru.arifolth.anjrpg.quest.task.KillTask;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class LocationTracker implements TrackerInterface {
-    final private static Logger LOGGER = Logger.getLogger(LocationTracker.class.getName());
-
     private GameLogicCoreInterface gameLogicCore;
     // POIs the player is currently standing in; a LocationFoundEvent is published only on entering, not every frame
     private final Set<String> reportedPOIs = new HashSet<>();
-    private boolean firstRun = true;
 
     public LocationTracker(GameLogicCoreInterface gameLogicCore) {
         this.gameLogicCore = gameLogicCore;
@@ -53,8 +40,6 @@ public class LocationTracker implements TrackerInterface {
 
     @Override
     public void update(float tpf) {
-        checkNPCs();
-
         checkQuestLocations();
     }
 
@@ -90,50 +75,4 @@ public class LocationTracker implements TrackerInterface {
 
         reportedPOIs.retainAll(inRange);
     }
-
-    private void checkNPCs() {
-        if(firstRun) {
-            startTestQuest();
-            firstRun = false;
-        }
-    }
-
-    /**
-     * Throwaway, hardcoded quest so the whole loop (events -> tasks -> journal)
-     * can be exercised before any quest-giver system exists. Segment 1: kill up
-     * to three of the NPCs standing around right now; segment 2: walk to a
-     * waystone a short way from the start. Remove once quests are started by
-     * NPC dialogue.
-     */
-    private void startTestQuest() {
-        Set<CharacterInterface> targets = new HashSet<>();
-        for (CharacterInterface npc : gameLogicCore.getCharacterMap().values()) {
-            if (targets.size() < 3) {
-                targets.add(npc);
-            }
-        }
-
-        if (targets.isEmpty()) {
-            LOGGER.log(Level.INFO, "No NPCs present - test quest not started");
-            return;
-        }
-
-        POITarget waystone = new POITarget("test_waystone",
-                gameLogicCore.getPlayerCharacter().getCharacterControl().getPhysicsLocation().add(300f, 0f, 0),
-                "Old Waystone", POIType.LANDMARK);
-        LOGGER.log(Level.INFO, "Test quest waystone at " + waystone.getPosition());
-
-        CompassState compassState = gameLogicCore.getApp().getStateManager().getState(CompassState.class);
-        compassState.addPOI(waystone);
-
-        Quest quest = new Quest("test_quest", "Test Quest", List.of(
-                new StorySegment("Clear the way", "Hostile creatures roam nearby. Defeat them.")
-                        .addRequiredTask(new KillTask("test_kill", "defeat " + targets.size() + " hostile creatures", targets)),
-                new StorySegment("The waystone", "Find the Old Waystone.")
-                        .addRequiredTask(new FindTask("test_find", "find the Old Waystone", waystone))
-        ));
-
-        gameLogicCore.getQuestService().startQuest(quest);
-    }
-
 }

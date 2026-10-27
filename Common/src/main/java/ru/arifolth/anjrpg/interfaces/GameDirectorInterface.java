@@ -19,6 +19,7 @@
 package ru.arifolth.anjrpg.interfaces;
 
 import ru.arifolth.anjrpg.interfaces.quest.JournalServiceInterface;
+import ru.arifolth.anjrpg.interfaces.quest.QuestInitializationInterface;
 import ru.arifolth.anjrpg.interfaces.quest.QuestServiceInterface;
 
 /**
@@ -30,6 +31,8 @@ public interface GameDirectorInterface {
     CombatTrackerInterface getCombatTracker();
 
     QuestServiceInterface getQuestService();
+
+    QuestInitializationInterface getQuestInitialization();
 
     JournalServiceInterface getJournalService();
 }

@@ -29,6 +29,7 @@ import ru.arifolth.anjrpg.events.JournalEntryAddedEvent;
 import ru.arifolth.anjrpg.events.LocationFoundEvent;
 import ru.arifolth.anjrpg.events.NpcKilledEvent;
 import ru.arifolth.anjrpg.events.NpcTalkedToEvent;
+import ru.arifolth.anjrpg.events.TaskActivatedEvent;
 import ru.arifolth.anjrpg.interfaces.CharacterInterface;
 import ru.arifolth.anjrpg.interfaces.compass.POIType;
 import ru.arifolth.anjrpg.quest.task.DeliverTask;
@@ -105,6 +106,8 @@ public class QuestMechanicsTest {
 
         List<JournalEntry> announced = new CopyOnWriteArrayList<>();
         bus.subscribe(JournalEntryAddedEvent.class, (GameEventListener<JournalEntryAddedEvent>) e -> announced.add(e.getEntry()));
+        List<String> activated = new CopyOnWriteArrayList<>();
+        bus.subscribe(TaskActivatedEvent.class, (GameEventListener<TaskActivatedEvent>) e -> activated.add(e.getTask().getTaskId()));
 
         KillTask kill = new KillTask("kill", "kill both bosses", Set.of(boss1, boss2));
         FindTask find = new FindTask("find", "find the waystone", waystone);
@@ -113,6 +116,7 @@ public class QuestMechanicsTest {
                 new StorySegment("Walk", "Find it.").addRequiredTask(find)));
 
         quests.startQuest(quest);
+        waitUntil(() -> activated.equals(List.of("kill")), "only the first segment's task may be announced as activated at start, got " + activated);
         assertEquals(QuestState.ACTIVE, quest.getState(), "quest should be ACTIVE after start");
         assertEquals(1, quests.getActiveQuests().size(), "one active quest");
         assertTrue(quests.getActiveLocationTargets().isEmpty(), "find task is not active yet, so no location target");
@@ -126,6 +130,7 @@ public class QuestMechanicsTest {
         bus.publish(new NpcKilledEvent(boss2, new Vector3f()));
         waitUntil(() -> TaskStatus.COMPLETED.equals(kill.getStatus()), "kill task did not complete");
         waitUntil(() -> TaskStatus.ACTIVE.equals(find.getStatus()), "second segment's find task was not activated");
+        waitUntil(() -> activated.equals(List.of("kill", "find")), "second segment's task was not announced as activated, got " + activated);
         assertEquals(1, quests.getActiveLocationTargets().size(), "waystone should now be a location target");
         assertEquals("waystone", quests.getActiveLocationTargets().get(0).getId(), "target should be the waystone");
 

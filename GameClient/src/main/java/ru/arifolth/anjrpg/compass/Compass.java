@@ -42,6 +42,9 @@ public class Compass implements CompassInterface {
     private Material frameMaterial;
     private Collection<POIInterface> pointsOfInterest;
     private Map<String, Geometry> targetIndicators;
+    // Shared by every target indicator and built with the compass, while the game loads: the texture is
+    // read from disk and decoded here instead of when the first indicator appears.
+    private Material targetIndicatorMaterial;
     private float screenWidth;
     private float screenHeight;
     private float compassWidth;
@@ -66,8 +69,16 @@ public class Compass implements CompassInterface {
 
         initializeCompassWheel();
         initializeCompassFrame();
+        initializeTargetIndicatorMaterial();
         positionCompass();
         createTopBarMiddlePointer();
+    }
+
+    private void initializeTargetIndicatorMaterial() {
+        targetIndicatorMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+        Texture indicatorTex = app.getAssetManager().loadTexture("Textures/Compass/compass_target_marker.png");
+        targetIndicatorMaterial.setTexture("ColorMap", indicatorTex);
+        targetIndicatorMaterial.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
     }
 
 
@@ -185,12 +196,8 @@ public class Compass implements CompassInterface {
         Quad indicatorQuad = new Quad(indicatorSize, indicatorSize);
         Geometry indicatorGeom = new Geometry("TargetIndicator_" + poiId, indicatorQuad);
 
-        // Load or create a material for the target indicator (e.g., a red arrow or marker)
-        Material indicatorMat = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-        Texture indicatorTex = app.getAssetManager().loadTexture("Textures/Compass/compass_target_marker.png");
-        indicatorMat.setTexture("ColorMap", indicatorTex);
-        indicatorMat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-        indicatorGeom.setMaterial(indicatorMat);
+        // The material (and with it the texture) is shared by all indicators, see initializeTargetIndicatorMaterial()
+        indicatorGeom.setMaterial(targetIndicatorMaterial);
 
         // Set initial position; will be updated each frame
         indicatorGeom.setLocalTranslation(0, 0, 0.2f); // slightly in front of compass wheel

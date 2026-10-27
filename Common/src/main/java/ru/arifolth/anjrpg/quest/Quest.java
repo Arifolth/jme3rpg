@@ -20,6 +20,7 @@ package ru.arifolth.anjrpg.quest;
 
 import ru.arifolth.anjrpg.events.EventBus;
 import ru.arifolth.anjrpg.events.QuestCompletedEvent;
+import ru.arifolth.anjrpg.events.TaskActivatedEvent;
 import ru.arifolth.anjrpg.interfaces.quest.JournalServiceInterface;
 import ru.arifolth.anjrpg.quest.task.QuestTask;
 
@@ -141,6 +142,7 @@ public class Quest {
     private void activateCurrentSegment(EventBus eventBus) {
         for (QuestTask task : getCurrentSegment().getRequiredTasks()) {
             task.activate(eventBus, this);
+            eventBus.publish(new TaskActivatedEvent(this, task));
         }
     }
 }

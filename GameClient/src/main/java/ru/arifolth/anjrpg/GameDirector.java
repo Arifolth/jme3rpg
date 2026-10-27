@@ -22,8 +22,9 @@ import ru.arifolth.anjrpg.events.EventBus;
 import ru.arifolth.anjrpg.interfaces.CombatTracker;
 import ru.arifolth.anjrpg.interfaces.CombatTrackerInterface;
 import ru.arifolth.anjrpg.interfaces.GameDirectorInterface;
-import ru.arifolth.anjrpg.interfaces.GameStateManagerInterface;
+import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
 import ru.arifolth.anjrpg.interfaces.quest.JournalServiceInterface;
+import ru.arifolth.anjrpg.interfaces.quest.QuestInitializationInterface;
 import ru.arifolth.anjrpg.interfaces.quest.QuestServiceInterface;
 import ru.arifolth.anjrpg.quest.JournalService;
 import ru.arifolth.anjrpg.quest.QuestService;
@@ -31,7 +32,8 @@ import ru.arifolth.anjrpg.quest.QuestService;
 /**
  * Constructs and composes the focused game-flow subsystems rather than any of
  * them absorbing another: {@code CombatTracker} stays about combat
- * engagement, {@code QuestService} stays about quests. Mirrors how
+ * engagement, {@code QuestService} stays about running quests and {@code
+ * QuestInitialization} about setting them up. Mirrors how
  * {@code VegetationInitialization} assembles its distributed builders.
  *
  * <p>{@code GameLogicCore} owns the one instance and delegates its existing
@@ -41,11 +43,19 @@ public class GameDirector implements GameDirectorInterface {
     private final CombatTracker combatTracker;
     private final JournalService journalService;
     private final QuestService questService;
+    private final QuestInitialization questInitialization;
 
-    public GameDirector(EventBus eventBus, GameStateManagerInterface gameStateManager) {
-        this.combatTracker = new CombatTracker(gameStateManager, eventBus);
+    /**
+     * Takes the core rather than the bare event bus and state manager because the
+     * setup half ({@code QuestInitialization}) has to reach the world. Only stores
+     * references and subscribes - nothing here needs the core fully initialized.
+     */
+    public GameDirector(GameLogicCoreInterface gameLogicCore) {
+        EventBus eventBus = gameLogicCore.getEventBus();
+        this.combatTracker = new CombatTracker(gameLogicCore.getGameStateManager(), eventBus);
         this.journalService = new JournalService(eventBus);
         this.questService = new QuestService(eventBus, journalService);
+        this.questInitialization = new QuestInitialization(gameLogicCore, questService);
         // future: NpcPopulationService, LandscapeDirector construct and plug in here,
         // once either has a defined shape - nothing above this line needs to change
         // when that happens
@@ -59,6 +69,11 @@ public class GameDirector implements GameDirectorInterface {
     @Override
     public QuestServiceInterface getQuestService() {
         return questService;
+    }
+
+    @Override
+    public QuestInitializationInterface getQuestInitialization() {
+        return questInitialization;
     }
 
     @Override
