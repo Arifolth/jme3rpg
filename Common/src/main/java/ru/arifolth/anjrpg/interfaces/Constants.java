@@ -106,16 +106,16 @@ public class Constants {
     // When true, the billboard grass builder is skipped for new terrain tiles
     public static final boolean GPU_GRASS_REPLACES_BILLBOARD_GRASS = true;
     // Number of grass layers (shells). More layers = denser/longer grass but slower
-    public static final int GPU_GRASS_LAYERS = 25;
+    public static final int GPU_GRASS_LAYERS = 12;
     // Grass is rendered within this radius around the player (~500 feet)
     public static final float GPU_GRASS_DISTANCE = 275f;
     // Grass starts to thin out at this fraction of the grass distance
-    public static final float GPU_GRASS_FADE_START_RATIO = 0.55f;
+    public static final float GPU_GRASS_FADE_START_RATIO = 0.85f;
     // Adaptive layer LOD: full layers within this fraction of the radius...
-    public static final float GPU_GRASS_FULL_LAYERS_RATIO = 0.55f;
+    public static final float GPU_GRASS_FULL_LAYERS_RATIO = 0.35f;
     // ...down to this fraction of layers at the edge, never fewer than MIN
     public static final float GPU_GRASS_MIN_LAYERS_RATIO = 0.25f;
-    public static final int GPU_GRASS_MIN_LAYERS = 6;
+    public static final int GPU_GRASS_MIN_LAYERS = 2;
     // Maximum grass height in world units (blade length). The original demo
     // used 0.4 on an unscaled terrain; 0.8 reads well in this world (2x scale)
     public static final float GPU_GRASS_LENGTH = 0.8f;
