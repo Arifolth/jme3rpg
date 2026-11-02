@@ -88,6 +88,14 @@ MaterialDef Layered {
         Int FilterMode
         Boolean HardwareShadows
         Vector2 FadeInfo
+        // ===== Backlight translucency (sun through the blade tips) =====
+        // Pushed onto the material by GpuGrassMaterial on every main-pass
+        // render (CPU-side computation: see setSharedSunDirection).
+        Vector3 TransSunH
+        Vector3 TransSunColor
+        Float TransStrength
+        Float TransPower
+        Float TransTipStart
     }
 
     Technique {
@@ -100,6 +108,8 @@ MaterialDef Layered {
             WorldViewMatrix
             WorldMatrix
             WorldNormalMatrix
+            //per-vertex view direction for the backlight translucency glow
+            CameraPosition
         }
 
         Defines {

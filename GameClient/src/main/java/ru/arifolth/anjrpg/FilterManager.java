@@ -33,6 +33,7 @@ import com.jme3.water.WaterFilter;
 import ru.arifolth.anjrpg.filters.FSRCASFilter;
 import ru.arifolth.anjrpg.filters.FilmGrainFilter;
 import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.terrain.grass.GpuGrassMaterial;
 
 public class FilterManager implements FilterManagerInterface {
 
@@ -215,5 +216,9 @@ public class FilterManager implements FilterManagerInterface {
         lsf.setLightPosition(sky.getSunDirection().normalize().normalize().mult(500));
         pssmRenderer.setDirection(sky.getSunDirection().negate().normalize().mult(500));
         waterFilter.setLightDirection(sky.getSunDirection().normalize().mult(500));
+        //Backlight translucency: same live sun direction source as the other
+        //sun-driven effects; GpuGrassMaterial computes the glow axis and the
+        //day-night fade once per frame for all material clones.
+        GpuGrassMaterial.setSharedSunDirection(sky.getSunDirection());
     }
 }

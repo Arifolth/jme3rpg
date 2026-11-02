@@ -83,6 +83,25 @@ public class GpuGrassMaterial extends Material {
     private static volatile boolean sharedInitialized = false;
     /** 1 original instance + one clone per attached terrain tile. */
     private static volatile int instancesCreated = 0;
+    /** Live sun direction (towards the sun), pushed by FilterManager every frame. */
+    private static final com.jme3.math.Vector3f sharedSunDirection = new com.jme3.math.Vector3f(0f, 1f, 0f);
+    /**
+     * CPU-computed glow axis for the backlight translucency: the sun
+     * direction with the elevation clamped to
+     * Constants.GPU_GRASS_TRANSLUCENCY_SUN_ELEVATION_FLOOR (a high noon sun
+     * can never produce a backlit response) plus the distortion bias, applied
+     * to the ALIGNMENT only - the true sun keeps driving shadows, sky and
+     * water. Computed once per frame for all material clones.
+     */
+    private static final com.jme3.math.Vector3f sharedGlowAxis = new com.jme3.math.Vector3f(0f, 1f, 0f);
+    /**
+     * Effective glow strength: Constants.GPU_GRASS_TRANSLUCENCY_STRENGTH
+     * scaled by a day-night fade (0 while the sun is at/below the horizon,
+     * so the glow never fires at night).
+     */
+    private static volatile float sharedGlowStrength = 0f;
+    /** One-time INFO line that confirms the translucency wiring is live. */
+    private static boolean translucencyStateLogged = false;
     //------------------------------------------------------------------------
 
     private final int maxLayers;
@@ -92,13 +111,23 @@ public class GpuGrassMaterial extends Material {
     private float grassDistance;
     private float fadeStart;
     private final com.jme3.math.Vector3f playerPositionVector = new com.jme3.math.Vector3f();
+    //Per-instance uniform carriers for the backlight translucency (each
+    //TerrainGrid tile owns a material clone with its own uniform storage;
+    //the values are refreshed from the static state on every main-pass render).
+    private final com.jme3.math.Vector3f glowAxisVector = new com.jme3.math.Vector3f();
+    private final com.jme3.math.Vector3f glowColorVector = new com.jme3.math.Vector3f(
+            Constants.GPU_GRASS_TRANSLUCENCY_COLOR.x,
+            Constants.GPU_GRASS_TRANSLUCENCY_COLOR.y,
+            Constants.GPU_GRASS_TRANSLUCENCY_COLOR.z);
 
     //Diagnostics: static counters merge the dispatches of ALL material clones
     //into one throttled summary line (checked against a wall-clock interval,
-    //never per frame). The summary line is ALWAYS on (never gated by
-    //GPU_GRASS_DEBUG): if the grass ever silently disappears, this line names
-    //the guard that skips it (tooFar / layersDisabled / notInitialized / ...)
-    //instead of leaving the failure undiagnosable from the outside.
+    //never per frame). The summary line is emitted ONLY when
+    //Constants.GPU_GRASS_DEBUG is true: if the grass ever silently
+    //disappears, switching the flag on makes this line name the guard that
+    //skips it (tooFar / layersDisabled / notInitialized / ...) instead of
+    //leaving the failure undiagnosable from the outside. Normal play with
+    //the flag off pays no logging cost at all.
     private static long debugLastLogNanos = 0L;
     private static boolean debugFirstDispatchLogged = false;
     private static int dbgDispatches, dbgBaseRenders, dbgLayerRenders, dbgPatches,
@@ -308,6 +337,78 @@ public class GpuGrassMaterial extends Material {
     }
 
     /**
+     * Feeds the live sun direction (towards the sun) - called from
+     * FilterManager.update(), which already refreshes the PSSM, water and
+     * light scattering directions from the same source every frame.
+     *
+     * Computes the per-frame glow state for ALL material clones:
+     *  - glow axis: sun elevation clamped to the translucency floor plus
+     *    the distortion bias (alignment axis only; shadows keep the true
+     *    sun), with a degenerate-azimuth fallback for a sun almost straight
+     *    overhead;
+     *  - glow strength: Constants strength scaled by a day-night fade, so a
+     *    below-horizon sun lights nothing.
+     * A NaN/Infinity sun direction is ignored (it would poison every grass
+     * fragment); the last valid state is kept instead.
+     */
+    public static void setSharedSunDirection(com.jme3.math.Vector3f sunDirection) {
+        if (sunDirection == null) {
+            return;
+        }
+        float x = sunDirection.x;
+        float y = sunDirection.y;
+        float z = sunDirection.z;
+        if (!Float.isFinite(x) || !Float.isFinite(y) || !Float.isFinite(z)) {
+            return;
+        }
+        sharedSunDirection.set(x, y, z);
+
+        if (!Constants.GPU_GRASS_TRANSLUCENCY) {
+            return;
+        }
+
+        float clampedY = FastMath.clamp(y,
+                Constants.GPU_GRASS_TRANSLUCENCY_SUN_ELEVATION_FLOOR, 1f);
+        float horiz = FastMath.sqrt(x * x + z * z);
+        if (horiz < 0.05f) {
+            //Sun almost straight overhead: fall back to the previous
+            //azimuth (or -Z on the very first call) so the glow axis keeps
+            //a usable horizontal component instead of collapsing onto the
+            //zenith.
+            x = sharedGlowAxis.x;
+            z = sharedGlowAxis.z;
+            horiz = FastMath.sqrt(x * x + z * z);
+            if (horiz < 0.05f) {
+                x = 0f;
+                z = -1f;
+            }
+        }
+        sharedGlowAxis.set(x, clampedY, z).normalizeLocal();
+        sharedGlowAxis.addLocal(0f, Constants.GPU_GRASS_TRANSLUCENCY_DISTORTION, 0f)
+                .normalizeLocal();
+
+        //Day-night fade: full effect once the true sun is above the
+        //elevation floor, smoothly zero at/below the horizon.
+        float fade = FastMath.clamp(
+                (y + 0.1f) / (Constants.GPU_GRASS_TRANSLUCENCY_SUN_ELEVATION_FLOOR + 0.1f),
+                0f, 1f);
+        sharedGlowStrength = Constants.GPU_GRASS_TRANSLUCENCY_STRENGTH * fade;
+
+        if (!translucencyStateLogged) {
+            translucencyStateLogged = true;
+            //One-time confirmation line: if the glow ever shows no visible
+            //effect, this line proves the CPU side computes and feeds it.
+            LOGGER.info("GPU grass translucency active: axis=("
+                    + String.format("%.2f, %.2f, %.2f",
+                            sharedGlowAxis.x, sharedGlowAxis.y, sharedGlowAxis.z)
+                    + ") strength=" + String.format("%.3f", sharedGlowStrength)
+                    + " power=" + Constants.GPU_GRASS_TRANSLUCENCY_POWER
+                    + " tipStart=" + Constants.GPU_GRASS_TRANSLUCENCY_TIP_START
+                    + " color=" + Constants.GPU_GRASS_TRANSLUCENCY_COLOR);
+        }
+    }
+
+    /**
      * Adaptive layer LOD: patches right around the player get the full layer
      * stack, distant patches get a reduced stack. This keeps the draw call and
      * vertex load manageable for a 500 units grass radius.
@@ -374,6 +475,18 @@ public class GpuGrassMaterial extends Material {
         setVector3("PlayerPosition", playerPositionVector);
         setFloat("Time", sharedTimeSeconds);
 
+        //Backlight translucency (main pass only: the PostShadow pass runs
+        //AFTER the main pass and modulates the already-glowing pixels with
+        //the shadow factor, so the glow respects PSSM shadows for free and
+        //needs no extra terms in the post pass).
+        if (Constants.GPU_GRASS_TRANSLUCENCY) {
+            glowAxisVector.set(sharedGlowAxis);
+            setVector3("TransSunH", glowAxisVector);
+            setVector3("TransSunColor", glowColorVector);
+            setFloat("TransStrength", sharedGlowStrength);
+            setFloat("TransPower", Constants.GPU_GRASS_TRANSLUCENCY_POWER);
+        }
+
         //distance from the player to the closest edge of this terrain patch;
         //0 when the player stands on the patch
         float distFromPlayer = bound.distanceToEdge(playerPositionVector);
@@ -416,7 +529,7 @@ public class GpuGrassMaterial extends Material {
         }
         setFloat("Layer", 0);
 
-        if (!debugFirstDispatchLogged) {
+        if (Constants.GPU_GRASS_DEBUG && !debugFirstDispatchLogged) {
             debugFirstDispatchLogged = true;
             Object threeDTex = getParam("ThreeDTex") == null ? null : getParam("ThreeDTex").getValue();
             Object grassTex = getParam("GrassTexture") == null ? null : getParam("GrassTexture").getValue();
@@ -436,8 +549,15 @@ public class GpuGrassMaterial extends Material {
      * GPU_GRASS_DEBUG_LOG_INTERVAL_MS with the per-guard skip counters, so a
      * silent guard ("why is there no grass?") becomes visible in the log
      * without spamming one line per frame.
+     *
+     * Active only when Constants.GPU_GRASS_DEBUG is true. With the flag
+     * false this method returns immediately, so normal play does not even
+     * pay the per-dispatch System.nanoTime() call.
      */
     private void debugTick() {
+        if (!Constants.GPU_GRASS_DEBUG) {
+            return;
+        }
         dbgDispatches++;
 
         long now = System.nanoTime();

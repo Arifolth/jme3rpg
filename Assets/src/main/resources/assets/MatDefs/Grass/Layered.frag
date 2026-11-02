@@ -62,6 +62,20 @@ uniform float m_AllowOnUntextured;
 uniform float m_GrassShareFade;
 uniform float m_AlphaCutoff;
 
+//Backlight translucency (sun through the thin blade tips). All values are
+//CPU-computed per frame in GpuGrassMaterial (setSharedSunDirection):
+//  m_TransSunH     - glow alignment axis (sun direction + elevation floor
+//                    + distortion bias);
+//  m_TransSunColor - warm sun tint of the glow;
+//  m_TransStrength - overall strength incl. the day-night fade (0 = off);
+//  m_TransPower    - sharpness of the view alignment response;
+//  m_TransTipStart - shell height where the tip glow starts fading in.
+uniform vec3 m_TransSunH;
+uniform vec3 m_TransSunColor;
+uniform float m_TransStrength;
+uniform float m_TransPower;
+uniform float m_TransTipStart;
+
 varying vec2 texCoord;
 varying vec2 groundUV;
 varying float fadeFactor;
@@ -71,6 +85,9 @@ varying float grassTint;
 //x = grass region weight, y = dirt region weight, z = 2x rock region weight,
 //w = slope-rock share of the terrain color (see Layered.vert)
 varying vec4 groundMix;
+//Backlight translucency: direction from the shell to the camera
+//(per-vertex, see Layered.vert; normalized per fragment below).
+varying vec3 viewDirW;
 
 void main() {
     // Beyond the grass radius around the player - always enforced.
@@ -171,6 +188,32 @@ void main() {
     //Brightness multiplier (1.0 = exactly the terrain palette; raise it if
     //the grass should stay visible on very dark nights).
     color.rgb *= m_DebugBrightness;
+
+    // ------------------------------------------------------------------
+    // BACKLIGHT TRANSLUCENCY: sun shining through the thin blade tips.
+    // Additive warm term, concentrated on the UPPER shells (tip mask) and
+    // strongest when looking towards the sun (view alignment):
+    //  - align = pow(max(dot(V, -H), 0), power): H is the CPU-computed glow
+    //    axis (sun direction with an elevation floor + distortion bias), so
+    //    the response stays alive around noon;
+    //  - tip = smoothstep over the shell height (m_Layer 0 = ground shell,
+    //    1 = top shell): only the upper part of every blade lights up - the
+    //    field keeps its color, the tips catch the light;
+    //  - (1 - color.rgb): thin/light texels transmit more light than dense
+    //    dark ones.
+    // m_TransStrength carries the day-night fade, so a below-horizon sun
+    // lights nothing. PSSM shadows apply automatically: this pass renders
+    // before the shadow post pass, which modulates the whole pixel (glow
+    // included) by the shadow factor afterwards.
+    // Cost: ~15 ALU per surviving blade fragment, no new texture fetches.
+    // ------------------------------------------------------------------
+    if (m_TransStrength > 0.0) {
+        vec3 viewDir = viewDirW / max(length(viewDirW), 0.0001);
+        float align = max(dot(viewDir, -m_TransSunH), 0.0);
+        float tip = smoothstep(min(m_TransTipStart, 0.999), 1.0, m_Layer);
+        color.rgb += pow(align, m_TransPower) * (tip * m_TransStrength)
+                * m_TransSunColor * (vec3(1.0) - color.rgb);
+    }
 
     //No blending (alpha cutout): alpha is irrelevant, keep it opaque.
     gl_FragColor = vec4(color.rgb, 1.0);

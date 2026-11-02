@@ -43,6 +43,10 @@ uniform mat4 g_WorldMatrix;
 //CPU instead of ~100 ALU ops per vertex (x layers x passes).
 uniform mat3 g_WorldNormalMatrix;
 
+//Camera world position (engine WorldParameters binding) - source of the
+//per-vertex view direction for the backlight translucency glow.
+uniform vec3 g_CameraPosition;
+
 attribute vec3 inPosition;
 attribute vec3 inNormal;
 attribute vec2 inTexCoord;
@@ -78,6 +82,11 @@ varying float grassTint;
 //(region3 + region4 are both the rock texture), w = slope-rock share of the
 //terrain color (computed from the MODEL-space normal like the stock shader)
 varying vec4 groundMix;
+//Backlight translucency: direction from the shell to the camera. The field
+//is smooth over the (large) terrain triangles and is normalized per fragment
+//in Layered.frag. NEW varying - it does not touch the semantics of any
+//existing per-fragment computation (the iter11 quad-pattern rule).
+varying vec3 viewDirW;
 
 // Integer-free hash: returns a pseudo random value in the 0..1 range.
 // Replacement for the original LFSR_Rand_Gen which required integer bit
@@ -185,6 +194,12 @@ void main() {
     groundUp = wNormal.y;
 
     worldHeight = worldPos.y;
+
+    //Backlight translucency: per-vertex direction to the camera. Left
+    //un-normalized here; Layered.frag divides by max(length, eps) per
+    //fragment (interpolation over the big terrain triangles only shortens
+    //the vector, the direction stays smooth).
+    viewDirW = g_CameraPosition - worldPos;
 
     // Stable per-cell tint so blade clusters differ slightly in brightness.
     grassTint = hash13(floor(worldPos.xzy * 0.5));

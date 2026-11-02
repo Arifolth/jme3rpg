@@ -201,6 +201,43 @@ public class Constants {
     // Minimal interval between two GPU grass debug log lines (milliseconds)
     public static final long GPU_GRASS_DEBUG_LOG_INTERVAL_MS = 5000;
 
+    // ===== GPU grass backlight translucency (sun through the blade tips) =====
+    // Master switch for the additive backlight glow on the upper blade shells
+    // (Layered.frag). The term is view-dependent (strongest looking towards
+    // the sun), concentrated on the blade tips by the shell-height mask and
+    // scaled by the terrain texel color (thin/light parts transmit more
+    // light). It respects PSSM shadows for free: the glow is added in the
+    // main pass and the shadow post pass modulates the whole pixel after.
+    // Cost: ~15 ALU per surviving blade fragment, no new texture fetches,
+    // no new passes, no new geometry.
+    public static final boolean GPU_GRASS_TRANSLUCENCY = true;
+    // Overall glow strength (0 = off). 0.35 = subtle reference-image look;
+    // the term is additionally scaled by (1 - texel color) and concentrated
+    // on the tips, so even 1.0 must not wash the field out.
+    public static final float GPU_GRASS_TRANSLUCENCY_STRENGTH = 0.35f;
+    // Sharpness of the view alignment response. 1.0 = soft half-field glow,
+    // 2.0 = clear hotspot towards the sun (recommended), 3.0+ = narrow beam
+    // (that narrowness - plus the noon sun killing the alignment - is why
+    // power 3.0 looked like "nothing" before the tip mask and the elevation
+    // floor existed).
+    public static final float GPU_GRASS_TRANSLUCENCY_POWER = 0.5f;
+    // Vertical bias added to the glow axis (pulls the response away from the
+    // pure sun direction towards the zenith).
+    public static final float GPU_GRASS_TRANSLUCENCY_DISTORTION = 0.35f;
+    // Shell height (0 = ground shell, 1 = top shell) where the tip glow
+    // starts to fade in. 0.55 = only the upper ~45% of every blade lights up.
+    // THE "tops of the blades are lit" dial: lower it to light more of each
+    // blade, raise it to keep only the very tips glowing.
+    public static final float GPU_GRASS_TRANSLUCENCY_TIP_START = 0.55f;
+    // Floor for the sun elevation used by the GLOW AXIS ONLY (the true sun
+    // keeps driving shadows/sky/water). Keeps the view alignment alive
+    // around noon, when the real sun is too high to ever give a backlit
+    // response. Must be >= 0 and < 1.
+    public static final float GPU_GRASS_TRANSLUCENCY_SUN_ELEVATION_FLOOR = 0.45f;
+    // Warm sun tint of the glow (late-afternoon sunlight through grass).
+    public static final com.jme3.math.Vector3f GPU_GRASS_TRANSLUCENCY_COLOR =
+            new com.jme3.math.Vector3f(1.0f, 0.86f, 0.62f);
+
     //HKEY_CURRENT_USER\Software\JavaSoft\Prefs\
 
     private Constants() {
