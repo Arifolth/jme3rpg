@@ -76,9 +76,11 @@ public class FilterManager implements FilterManagerInterface {
         setupBloomFilter();
         setupToneMapFilter();
 
-        setupFilmGrainFilter();
-        setupFSRCASFilter();
         setupFXAAFilter();
+
+        setupFSRCASFilter();
+        setupFilmGrainFilter();
+        setupGammaCorrectionFilter();
 
         viewPort.addProcessor(fpp);
 
@@ -117,12 +119,11 @@ public class FilterManager implements FilterManagerInterface {
         setupLightScatteringFilter();
 
         setupWaterFilter();
-
-        setupGammaCorrectionFilter();
     }
 
     private void setupFilmGrainFilter() {
         filmGrainFilter = new FilmGrainFilter(application);
+        filmGrainFilter.setGrainRate(30f);
         fpp.addFilter(filmGrainFilter);
     }
 

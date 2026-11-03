@@ -2,14 +2,17 @@ MaterialDef FilmGrain {
     MaterialParameters {
         Int NumSamples
         Texture2D Texture
-        Float Time
+        Float Strength
+        Float Confetti
+        Float GrainRate
+        Float GrainSize
     }
     Technique {
         VertexShader GLSL330: Common/MatDefs/Post/film_grain.vert
         FragmentShader GLSL330: Common/MatDefs/Post/film_grain.frag
 
         WorldParameters {
-            WorldViewProjectionMatrix
+            Time
         }
     }
 }
