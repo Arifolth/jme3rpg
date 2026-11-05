@@ -157,6 +157,12 @@ public class GpuGrassMaterial extends Material {
         setFloat("AllowOnUntextured", Constants.GPU_GRASS_ALLOW_ON_UNTEXTURED ? 1f : 0f);
         setFloat("GrassShareFade", Constants.GPU_GRASS_TEXTURE_SHARE_FADE);
         setFloat("AlphaCutoff", Constants.GPU_GRASS_ALPHA_CUTOFF);
+        //grass v1: tone pairing, world-anchored blade mask, distance density
+        setFloat("ToneMatch", Constants.GPU_GRASS_TONE_MATCH);
+        setFloat("MaskWorldSpan", Constants.GPU_GRASS_MASK_WORLD_SPAN);
+        setFloat("DensityStart", Constants.GPU_GRASS_DENSITY_START);
+        setFloat("DensityEnd", grassDistance * Constants.GPU_GRASS_DENSITY_END_RATIO);
+        setFloat("DensityMin", Constants.GPU_GRASS_DENSITY_MIN);
         setBoolean("Wave", true);
         setVector3("PlayerPosition", playerPositionVector);
         setFloat("DebugForceAll", Constants.GPU_GRASS_DEBUG_FORCE_ALL ? 1f : 0f);
@@ -320,6 +326,7 @@ public class GpuGrassMaterial extends Material {
         this.fadeStart = dist * Constants.GPU_GRASS_FADE_START_RATIO;
         setFloat("GrassDistance", dist);
         setFloat("FadeStart", fadeStart);
+        setFloat("DensityEnd", dist * Constants.GPU_GRASS_DENSITY_END_RATIO);
     }
 
     /**

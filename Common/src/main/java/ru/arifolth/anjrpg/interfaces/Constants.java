@@ -106,24 +106,34 @@ public class Constants {
     // When true, the billboard grass builder is skipped for new terrain tiles
     public static final boolean GPU_GRASS_REPLACES_BILLBOARD_GRASS = true;
     // Number of grass layers (shells). More layers = denser/longer grass but slower
-    public static final int GPU_GRASS_LAYERS = 12;
+    public static final int GPU_GRASS_LAYERS = 25;
     // Grass is rendered within this radius around the player (~500 feet)
-    public static final float GPU_GRASS_DISTANCE = 275f;
+    public static final float GPU_GRASS_DISTANCE = 200f;
     // Grass starts to thin out at this fraction of the grass distance
     public static final float GPU_GRASS_FADE_START_RATIO = 0.85f;
     // Adaptive layer LOD: full layers within this fraction of the radius...
     public static final float GPU_GRASS_FULL_LAYERS_RATIO = 0.35f;
     // ...down to this fraction of layers at the edge, never fewer than MIN
-    public static final float GPU_GRASS_MIN_LAYERS_RATIO = 0.25f;
+    public static final float GPU_GRASS_MIN_LAYERS_RATIO = 0.125f;
     public static final int GPU_GRASS_MIN_LAYERS = 2;
     // Maximum grass height in world units (blade length). The original demo
     // used 0.4 on an unscaled terrain; 0.8 reads well in this world (2x scale)
-    public static final float GPU_GRASS_LENGTH = 0.8f;
+    public static final float GPU_GRASS_LENGTH = 1.125f;
     // Wind sway tuning
     public static final float GPU_GRASS_WAVE_SPEED = 4f;
     public static final float GPU_GRASS_WAVE_SIZE = 0.5f;
     // Mask pattern frequency per terrain patch (blade density)
-    public static final float GPU_GRASS_MASK_SCALE = 256f;
+    public static final float GPU_GRASS_MASK_SCALE = 32f;
+    // World size of ONE mask tile (the 200x200 texel random point pattern).
+    // 8 world units -> one mask texel = 4 cm -> a full-radius mask dot
+    // (radius 1.6 texels, drawn by GrassTextureFactory) is ~13 cm wide,
+    // which is wider than the vertical shell spacing (Length / layers =
+    // 10 cm): neighbouring shell dots overlap and every blade reads as ONE
+    // continuous straight stroke instead of a stack of detached dashes.
+    // The mask is sampled through WORLD-space coordinates (see the
+    // maskUV varying), so blade width and shape are independent of the
+    // terrain patch size and of the view distance settings.
+    public static final float GPU_GRASS_MASK_WORLD_SPAN = 8.0f;
     // World-space Y safety cap above which grass never grows. The REAL
     // grass/dirt/rock placement is decided by the texture-dominance gate
     // below, which replicates the HeightBasedTerrain region blending - this
@@ -198,6 +208,28 @@ public class Constants {
     // shells sample the terrain grass texture anyway). Raise it (e.g. 1.3)
     // only if the grass should stay visible on very dark nights.
     public static final float GPU_GRASS_DEBUG_BRIGHTNESS = 1.0f;
+
+    // ===== GPU grass tone pairing + distance density (grass v1) =====
+    // Global multiplier that pairs the rendered grass tone with the
+    // distant landscape grass texture. The distant terrain reads darker
+    // than its raw texels (slope-rock blending + shadows), while the
+    // shells rendered the raw texel brightness (tips up to 1.22x + glow),
+    // which made the near field look brighter than the landscape around
+    // it. 0.85 pulls the blade tone down into the landscape tone while
+    // the base terrain pass (the ground between the blades) stays
+    // pixel-identical to the plain HeightBasedTerrain render.
+    public static final float GPU_GRASS_TONE_MATCH = 0.85f;
+    // Grass density distance falloff: blades are culled WHOLE (per mask
+    // column, stable hash - no flicker) beyond DensityStart world units
+    // from the player, thinning smoothly down to DensityMin of the blade
+    // count at DensityEnd and staying that sparse to the grass edge.
+    // Fixes the "ocean of floating dots" look of the 50..200 band; the
+    // near field (<= 50) keeps full density.
+    public static final float GPU_GRASS_DENSITY_START = 50f;
+    // Distance (as a fraction of GrassDistance) where the thinning ends.
+    public static final float GPU_GRASS_DENSITY_END_RATIO = 0.75f;
+    // Fraction of blades kept in the sparse zone (0.3 = 70% culled).
+    public static final float GPU_GRASS_DENSITY_MIN = 0.3f;
     // Minimal interval between two GPU grass debug log lines (milliseconds)
     public static final long GPU_GRASS_DEBUG_LOG_INTERVAL_MS = 5000;
 

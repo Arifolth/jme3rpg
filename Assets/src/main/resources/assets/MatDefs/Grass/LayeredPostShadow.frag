@@ -36,6 +36,9 @@ varying float fadeFactor;
 varying float worldHeight;
 varying float groundUp;
 varying vec4 groundMix;
+//grass v1 (see Layered.vert/Layered.frag)
+varying vec2 maskUV;
+varying float distToPlayer;
 
 //0 = base (ground) pass, > 0 = blade shell pass
 uniform float m_Layer;
@@ -51,6 +54,10 @@ uniform float m_MinGroundUp;
 uniform float m_AllowOnUntextured;
 uniform float m_GrassShareFade;
 uniform float m_AlphaCutoff;
+//grass v1: whole-blade density culling (mirrors Layered.frag exactly)
+uniform float m_DensityStart;
+uniform float m_DensityEnd;
+uniform float m_DensityMin;
 #ifdef THREEDTEX
 uniform sampler3D m_ThreeDTex;
 #else
@@ -60,6 +67,18 @@ uniform sampler2D m_GrassMask;
 #ifdef FADE
 uniform vec2 m_FadeInfo;
 #endif
+
+// Integer-free hash (same function as in Layered.vert): stable
+// per-column random values for the density culling.
+float hash13(vec3 p) {
+    p = fract(p * 0.3183099 + vec3(0.1, 0.2, 0.3));
+    p *= 17.0;
+    return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+}
+
+//mask texture resolution and the density hash cell size (mask texels)
+const float MASK_TEXELS = 200.0;
+const float MASK_CELL_TEXELS = 3.0;
 
 void main() {
     if (m_Layer > 0.0) {
@@ -88,12 +107,24 @@ void main() {
     // implicit-LOD fetch - without the screen-space derivative computation
     // on the hottest fetch in the shader (most fragments discard right
     // after it).
-        float sampledAlpha = textureLod(m_ThreeDTex, vec3(texCoord * m_MaskScale, m_Layer), 0.0).a;
+        float sampledAlpha = textureLod(m_ThreeDTex, vec3(maskUV, m_Layer), 0.0).a;
 #else
         float sampledAlpha = texture2D(m_GrassMask, texCoord * m_MaskScale).a;
 #endif
         if (sampledAlpha == 0.0) {
             discard;
+        }
+
+        //grass v1: distance density falloff - MUST mirror Layered.frag
+        //bit for bit so the shadow pass skips exactly the blades the main
+        //pass culled (no double darkening, no ghost shadows of culled grass).
+        float densityKeep = mix(1.0, m_DensityMin,
+                smoothstep(m_DensityStart, max(m_DensityEnd, m_DensityStart + 0.001), distToPlayer));
+        if (densityKeep < 1.0) {
+            vec2 maskCell = floor(maskUV * MASK_TEXELS / MASK_CELL_TEXELS);
+            if (hash13(vec3(maskCell, 7.0)) > densityKeep) {
+                discard;
+            }
         }
 
         float maskAlpha = sampledAlpha;

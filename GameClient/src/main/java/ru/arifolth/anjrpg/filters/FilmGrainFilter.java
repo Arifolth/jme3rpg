@@ -71,7 +71,7 @@ public class FilmGrainFilter extends Filter {
      * default, 0.08 = sharp and aggressive, 0.12+ = full-screen strobe (the
      * flickering value of the previous build).
      */
-    public static final float DEFAULT_STRENGTH = 0.08f;
+    public static final float DEFAULT_STRENGTH = 0.072f;
 
     /**
      * 0.0 = pure monochrome film grain (the Lords of the Fallen look),

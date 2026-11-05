@@ -48,6 +48,17 @@ MaterialDef Layered {
         Float GrassShareFade
         //alpha-cutout threshold (0..1); fragments below it are discarded
         Float AlphaCutoff
+        //grass v1: global tone multiplier pairing the blade color with the
+        //distant landscape grass texture (1.0 = raw terrain texel palette)
+        Float ToneMatch
+        //grass v1: world size of ONE blade-mask tile (blade width/shape
+        //scale; the mask is sampled world-anchored, settings-independent)
+        Float MaskWorldSpan
+        //grass v1: whole-blade density culling from DensityStart out to
+        //DensityEnd world units from the player, down to DensityMin
+        Float DensityStart
+        Float DensityEnd
+        Float DensityMin
         Float WaveSpeed
         Float WaveSize
         Float GrassDistance

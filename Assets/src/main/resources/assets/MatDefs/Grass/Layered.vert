@@ -61,6 +61,9 @@ uniform float m_FadeStart;
 uniform vec3 m_PlayerPosition;
 //field shape: edge sink
 uniform float m_EdgeHeightStart;
+//grass v1: world size of ONE mask tile. The mask is sampled through
+//world-anchored coordinates, so blade width and shape stay constant
+uniform float m_MaskWorldSpan;
 
 //HeightBasedTerrain synchronization (values copied from the base material)
 uniform float m_TerrainSize;
@@ -87,6 +90,10 @@ varying vec4 groundMix;
 //in Layered.frag. NEW varying - it does not touch the semantics of any
 //existing per-fragment computation (the iter11 quad-pattern rule).
 varying vec3 viewDirW;
+//grass v1: world-anchored mask coordinates + player distance for the
+//whole-blade density culling in the fragment shader
+varying vec2 maskUV;
+varying float distToPlayer;
 
 // Integer-free hash: returns a pseudo random value in the 0..1 range.
 // Replacement for the original LFSR_Rand_Gen which required integer bit
@@ -125,6 +132,10 @@ void main() {
     // Sampling the grass region texture with these UVs makes every blade
     // carry exactly the ground color it stands on.
     groundUV = worldPos.xz / max(m_TerrainSize, 1.0) * m_GrassUVScale;
+
+    //grass v1: world-anchored mask coordinates - one tile per
+    //m_MaskWorldSpan world units, independent of per-tile texcoords
+    maskUV = worldPos.xz / max(m_MaskWorldSpan, 0.0001);
 
     // ------------------------------------------------------------------
     // Replicate the HeightBasedTerrain texture region weights 1:1 so the
@@ -173,7 +184,7 @@ void main() {
 
     // Grass circle is centered on the player, not on the camera:
     // blades smoothly thin out between FadeStart and GrassDistance.
-    float distToPlayer = distance(m_PlayerPosition, worldPos);
+    distToPlayer = distance(m_PlayerPosition, worldPos);
     fadeFactor = 1.0 - smoothstep(m_FadeStart, m_GrassDistance, distToPlayer);
 
     // Blades also SINK into the ground towards the edge of the circle:

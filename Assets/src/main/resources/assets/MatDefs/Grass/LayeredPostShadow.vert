@@ -41,6 +41,8 @@ uniform float m_FadeStart;
 uniform vec3 m_PlayerPosition;
 //field shape: edge sink
 uniform float m_EdgeHeightStart;
+//grass v1: world size of ONE mask tile (see Layered.vert)
+uniform float m_MaskWorldSpan;
 
 //HeightBasedTerrain synchronization (values copied from the base material;
 //needed to replicate the texture-dominance gates of the main pass)
@@ -66,6 +68,11 @@ varying float groundUp;
 //x = grass region weight, y = dirt region weight, z = 2x rock region weight,
 //w = slope-rock share of the terrain color (see Layered.vert)
 varying vec4 groundMix;
+
+//grass v1: world-anchored mask coordinates + player distance for the
+//whole-blade density culling in the fragment shader
+varying vec2 maskUV;
+varying float distToPlayer;
 
 //shadow varyings (see engine PostShadow.vert)
 varying vec4 projCoord0;
@@ -113,6 +120,9 @@ void main() {
 
     texCoord = inTexCoord;
 
+    //grass v1: world-anchored mask coordinates (see Layered.vert)
+    maskUV = worldPos.xz / max(m_MaskWorldSpan, 0.0001);
+
     // ------------------------------------------------------------------
     // Region weights + normals + fades: EXACT copy of Layered.vert so the
     // fragment shader can apply the very same discard decisions as the
@@ -138,7 +148,7 @@ void main() {
     groundMix = vec4(wGrass, wDirt, 2.0 * wRock, tblend.x + tblend.z);
 
     // Grass circle is centered on the player, not on the camera.
-    float distToPlayer = distance(m_PlayerPosition, worldPos);
+    distToPlayer = distance(m_PlayerPosition, worldPos);
     fadeFactor = 1.0 - smoothstep(m_FadeStart, m_GrassDistance, distToPlayer);
 
     // Blades also SINK into the ground towards the edge of the circle.

@@ -79,8 +79,15 @@ public class FilterManager implements FilterManagerInterface {
         setupFXAAFilter();
 
         setupFSRCASFilter();
-        setupFilmGrainFilter();
         setupGammaCorrectionFilter();
+        // NOTE: the film grain filter is deliberately NOT added here.
+        // FilterPostProcessor executes filters in the order they were
+        // added and the last enabled filter's output goes to the screen,
+        // so anything appended later composites OVER the grained image.
+        // The WaterFilter is appended later (initialize()), so grain
+        // added here ran before the water and the water pass kept
+        // repainting clean, ungrained pixels over it - the "water is not
+        // affected by film grain" bug. See initialize().
 
         viewPort.addProcessor(fpp);
 
@@ -119,6 +126,16 @@ public class FilterManager implements FilterManagerInterface {
         setupLightScatteringFilter();
 
         setupWaterFilter();
+
+        // Film grain goes LAST, after the water: the add order above is
+        // the render order, so the grain is now applied to the FINAL
+        // image - scene, water and god rays - instead of being painted
+        // over by the water pass. As the final filter it also receives
+        // display-ready (already gamma-encoded) colors, which is the
+        // space film_grain.frag v5 weights its grain in. Fog, appended at
+        // runtime by the weather, blends toward fog color only where the
+        // fog is dense and passes the grained pixels through untouched.
+        setupFilmGrainFilter();
     }
 
     private void setupFilmGrainFilter() {

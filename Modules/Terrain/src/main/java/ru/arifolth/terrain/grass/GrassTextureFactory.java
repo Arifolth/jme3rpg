@@ -55,6 +55,17 @@ public class GrassTextureFactory {
     private static final int MASK_SIZE = 200;
     private static final int MASK_AREA = MASK_SIZE * MASK_SIZE;
 
+    // grass v1 blade shape: every mask point is drawn as a small DISC
+    // (in mask texels) whose radius SHRINKS towards the tip slices, so a
+    // blade column tapers into a thin straight triangle instead of a
+    // stack of equal-width dashes. Base radius 1.6 texels x 4 cm texel
+    // (GPU_GRASS_MASK_WORLD_SPAN = 8) = ~13 cm blade base width, which is
+    // wider than the shell spacing (Length / layers = 10 cm) -> the shell
+    // dots overlap vertically and read as ONE continuous blade from any
+    // distance; only extreme zoom resolves the stacked shells.
+    private static final float MASK_BLADE_BASE_RADIUS = 1.6f;
+    private static final float MASK_BLADE_TAPER = 0.72f;
+
     private GrassTextureFactory() {
     }
 
@@ -105,8 +116,9 @@ public class GrassTextureFactory {
 
     /**
      * Builds the 3D layer mask: depth slices, slice i (0 = ground layer,
-     * depth-1 = tip layer) holds a subset of the points of slice i-1 with a
-     * lower alpha value, so blades taper and thin towards the tip.
+     * depth-1 = tip layer) holds a subset of the points of slice i-1 drawn
+     * with a lower alpha value and a SMALLER DISC RADIUS, so blades taper
+     * and thin towards the tip (grass v1: straight tapering blades).
      */
     public static Texture3D createThreeDLayerMask(int depth) {
         ByteBuffer texBuf3D = ByteBuffer.allocateDirect(MASK_AREA * depth);
@@ -126,12 +138,34 @@ public class GrassTextureFactory {
             //alpha also decreases with height so the tips blend out.
             //NOTE: the material renders as alpha CUTOUT (fragments below
             //GPU_GRASS_ALPHA_CUTOFF are discarded), so the minimum tip alpha
-            //must stay comfortably above that cutoff - hence 0.55, not 0.25.
-            int alphaVal = (int) (255 * (1f - 0.55f * density));
+            //must stay comfortably above that cutoff - hence 0.45, not 0.25.
+            int alphaVal = (int) (255 * (1f - 0.45f * density));
+
+            //grass v1: the disc radius shrinks towards the tip slices, so the
+            //visible silhouette of a blade column narrows into a triangle
+            //(base ~1.6 texels wide, tip ~0.45 texels). Same seed per slice
+            //keeps the point positions nested across slices: the disc of one
+            //blade always sits at the same (x, y) - only its size changes.
+            float radius = MASK_BLADE_BASE_RADIUS * (1f - MASK_BLADE_TAPER * density);
+            int r = (int) Math.ceil(radius);
+            float rSq = radius * radius;
 
             for (int j = 0; j < numGrass; j++) {
                 int curPoint = rand.nextInt(MASK_AREA);
-                texBuf3D.put(i * MASK_AREA + curPoint, (byte) alphaVal);
+                int px = curPoint % MASK_SIZE;
+                int py = curPoint / MASK_SIZE;
+                //filled disc, wrapping at the tile edges (the mask repeats
+                //S/T, so wrapped dots keep the pattern seamless)
+                for (int dy = -r; dy <= r; dy++) {
+                    int yy = (py + dy + MASK_SIZE) % MASK_SIZE;
+                    for (int dx = -r; dx <= r; dx++) {
+                        if (dx * dx + dy * dy > rSq) {
+                            continue;
+                        }
+                        int xx = (px + dx + MASK_SIZE) % MASK_SIZE;
+                        texBuf3D.put(i * MASK_AREA + yy * MASK_SIZE + xx, (byte) alphaVal);
+                    }
+                }
             }
         }
 
@@ -171,9 +205,25 @@ public class GrassTextureFactory {
             int numGrass = (int) (5000 - (4200 * density));
             int alphaVal = (int) (255 * (1f - 0.75f * density));
 
+            //grass v1: same tapering discs as the 3D mask (see above)
+            float radius = MASK_BLADE_BASE_RADIUS * (1f - MASK_BLADE_TAPER * density);
+            int r = (int) Math.ceil(radius);
+            float rSq = radius * radius;
+
             for (int j = 0; j < numGrass; j++) {
                 int curPoint = rand.nextInt(MASK_AREA);
-                data.put(curPoint, (byte) alphaVal);
+                int px = curPoint % MASK_SIZE;
+                int py = curPoint / MASK_SIZE;
+                for (int dy = -r; dy <= r; dy++) {
+                    int yy = (py + dy + MASK_SIZE) % MASK_SIZE;
+                    for (int dx = -r; dx <= r; dx++) {
+                        if (dx * dx + dy * dy > rSq) {
+                            continue;
+                        }
+                        int xx = (px + dx + MASK_SIZE) % MASK_SIZE;
+                        data.put(yy * MASK_SIZE + xx, (byte) alphaVal);
+                    }
+                }
             }
 
             Image grassMask = new Image(Image.Format.Alpha8, MASK_SIZE, MASK_SIZE, data,

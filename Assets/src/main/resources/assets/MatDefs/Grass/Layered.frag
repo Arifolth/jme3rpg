@@ -41,6 +41,22 @@
 //    the landscape palette. A vertical gradient (darker stems, lighter
 //    tips) plus a per-blade-cluster tint keep the blades distinguishable
 //    from the ground.
+//  - GRASS V1 (tone pairing / blade shape / density falloff):
+//    * TONE: the vertical gradient is softened (stems 0.74, tips
+//      1.02..1.14 instead of 0.66..1.22) and the whole blade color is
+//      scaled by ToneMatch (0.85). The distant terrain reads ~0.73x of
+//      its raw texels (slope-rock blending + shadows); the shells used
+//      to render up to 1.22x + glow, which floated the field ABOVE the
+//      landscape tone. Now the blade tone sits inside it.
+//    * BLADE SHAPE: the mask is sampled through the WORLD-anchored
+//      maskUV varying (one tile per MaskWorldSpan world units) and the
+//      mask generator draws tapering discs, so every blade reads as one
+//      straight thin triangle; the stacked shells only show at extreme
+//      zoom.
+//    * DENSITY: whole blades are culled by a stable per-column hash
+//      between DensityStart and DensityEnd world units from the player
+//      (50..150 by default) - the far field gets sparse instead of an
+//      ocean of dots, without touching the picture pipeline.
 
 #import "Common/ShaderLib/GLSLCompat.glsllib"
 
@@ -61,6 +77,12 @@ uniform float m_DebugBrightness;
 uniform float m_AllowOnUntextured;
 uniform float m_GrassShareFade;
 uniform float m_AlphaCutoff;
+//grass v1: tone pairing with the distant landscape texture
+uniform float m_ToneMatch;
+//grass v1: whole-blade density culling beyond DensityStart units
+uniform float m_DensityStart;
+uniform float m_DensityEnd;
+uniform float m_DensityMin;
 
 //Backlight translucency (sun through the thin blade tips). All values are
 //CPU-computed per frame in GpuGrassMaterial (setSharedSunDirection):
@@ -88,6 +110,22 @@ varying vec4 groundMix;
 //Backlight translucency: direction from the shell to the camera
 //(per-vertex, see Layered.vert; normalized per fragment below).
 varying vec3 viewDirW;
+//grass v1 (see Layered.vert)
+varying vec2 maskUV;
+varying float distToPlayer;
+
+// Integer-free hash (same function as in Layered.vert): stable
+// per-column random values for the density culling.
+float hash13(vec3 p) {
+    p = fract(p * 0.3183099 + vec3(0.1, 0.2, 0.3));
+    p *= 17.0;
+    return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+}
+
+//mask texture resolution (GrassTextureFactory MASK_SIZE) and the
+//density hash cell size in mask texels (~ one blade dot footprint)
+const float MASK_TEXELS = 200.0;
+const float MASK_CELL_TEXELS = 3.0;
 
 void main() {
     // Beyond the grass radius around the player - always enforced.
@@ -113,12 +151,26 @@ void main() {
     // implicit-LOD fetch - without the screen-space derivative computation
     // on the hottest fetch in the shader (most fragments discard right
     // after it).
-    float sampledAlpha = textureLod(m_ThreeDTex, vec3(texCoord * m_MaskScale, m_Layer), 0.0).a;
+    float sampledAlpha = textureLod(m_ThreeDTex, vec3(maskUV, m_Layer), 0.0).a;
 #else
     float sampledAlpha = texture2D(m_GrassMask, texCoord * m_MaskScale).a;
 #endif
     if (sampledAlpha == 0.0) {
         discard;
+    }
+
+    //grass v1: distance density falloff - cull WHOLE blades beyond
+    //DensityStart world units from the player. One hash cell ~= one blade
+    //dot footprint; the nested mask slices keep every blade's dots at the
+    //same (x, y), so the cell hash is constant per blade column and whole
+    //blades vanish (no per-shell flicker, pattern frozen in world space).
+    float densityKeep = mix(1.0, m_DensityMin,
+            smoothstep(m_DensityStart, max(m_DensityEnd, m_DensityStart + 0.001), distToPlayer));
+    if (densityKeep < 1.0) {
+        vec2 maskCell = floor(maskUV * MASK_TEXELS / MASK_CELL_TEXELS);
+        if (hash13(vec3(maskCell, 7.0)) > densityKeep) {
+            discard;
+        }
     }
 
     float maskAlpha = sampledAlpha;
@@ -183,7 +235,11 @@ void main() {
     // Vertical gradient: darker near the ground, slightly brighter at the
     // tips, with a per-blade-cluster brightness variation. This keeps the
     // blades readable against the identically colored ground.
-    color.rgb *= mix(0.66, 1.06 + grassTint * 0.16, m_Layer);
+    //grass v1 tone pairing: softer gradient (stems 0.74, tips 1.02..1.14,
+    //was 0.66..1.22) x ToneMatch (0.85) puts the blade tone inside the
+    //distant landscape tone; the tips no longer render brighter than
+    //the terrain texel itself (was up to 1.22x + glow).
+    color.rgb *= mix(0.74, 1.02 + grassTint * 0.12, m_Layer) * m_ToneMatch;
 
     //Brightness multiplier (1.0 = exactly the terrain palette; raise it if
     //the grass should stay visible on very dark nights).
