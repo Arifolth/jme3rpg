@@ -108,7 +108,7 @@ public class Constants {
     // Number of grass layers (shells). More layers = denser/longer grass but slower
     public static final int GPU_GRASS_LAYERS = 25;
     // Grass is rendered within this radius around the player (~500 feet)
-    public static final float GPU_GRASS_DISTANCE = 200f;
+    public static final float GPU_GRASS_DISTANCE = 350f;
     // Grass starts to thin out at this fraction of the grass distance
     public static final float GPU_GRASS_FADE_START_RATIO = 0.85f;
     // Adaptive layer LOD: full layers within this fraction of the radius...

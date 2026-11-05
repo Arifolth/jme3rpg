@@ -71,14 +71,14 @@ public class FilmGrainFilter extends Filter {
      * default, 0.08 = sharp and aggressive, 0.12+ = full-screen strobe (the
      * flickering value of the previous build).
      */
-    public static final float DEFAULT_STRENGTH = 0.072f;
+    public static final float DEFAULT_STRENGTH = 0.0625f;
 
     /**
      * 0.0 = pure monochrome film grain (the Lords of the Fallen look),
      * 1.0 = full RGB confetti. 0.5 keeps the filmic feel with a visible
      * colored sparkle, which is the shipped default.
      */
-    public static final float DEFAULT_CONFETTI = 0.6f;
+    public static final float DEFAULT_CONFETTI = 0.65f;
 
     /**
      * How many times per second the whole grain pattern re-rolls (Hz).
