@@ -57,6 +57,13 @@
 //      between DensityStart and DensityEnd world units from the player
 //      (50..150 by default) - the far field gets sparse instead of an
 //      ocean of dots, without touching the picture pipeline.
+//  - GRASS V3 (continuous shell LOD): the shell stack uses a FIXED grid
+//    (Layer = i / MaxLayers for every patch) and every shell's alpha is
+//    faded out continuously where the shell budget LodA - LodB * dist
+//    crosses its index. The per-patch layer-count steps of the old
+//    normalized grid - visible as patch-shaped detail bands ("waves") at
+//    the inner LOD border, flickering at night - are gone; the field now
+//    thins smoothly with distance. Mirrored 1:1 in LayeredPostShadow.frag.
 
 #import "Common/ShaderLib/GLSLCompat.glsllib"
 
@@ -83,6 +90,17 @@ uniform float m_ToneMatch;
 uniform float m_DensityStart;
 uniform float m_DensityEnd;
 uniform float m_DensityMin;
+
+//grass v3: continuous shell-budget LOD. budget(d) = LodA - LodB * d =
+//the number of shells the field shows at d world units from the player
+//(full MaxLayers inside the inner LOD circle, down to
+//MaxLayers * MIN_LAYERS_RATIO at GrassDistance). Shell i (on the fixed
+//grid Layer = i / MaxLayers) fades out over the ~10 unit band where the
+//budget crosses i. The CPU renders a matching per-patch prefix of the
+//fixed grid, skipping only shells that are already fully faded.
+uniform float m_LodA;
+uniform float m_LodB;
+uniform float m_MaxLayers;
 
 //Backlight translucency (sun through the thin blade tips). All values are
 //CPU-computed per frame in GpuGrassMaterial (setSharedSunDirection):
@@ -139,6 +157,17 @@ void main() {
     // mask fetch and the fade math. Same set of surviving fragments, same
     // pixels: strictly less work per discarded fragment.
     if (fadeFactor < m_AlphaCutoff) {
+        discard;
+    }
+
+    //grass v3: the shell budget of this fragment (see the uniform comment
+//above). Shell index = m_Layer * MaxLayers on the fixed shell grid; the
+//base ground pass (m_Layer == 0) always passes. Discarding here skips
+//the mask fetch for every fully-faded shell, so the prefix shells the
+//CPU still renders for far patches cost almost no fragment work.
+    float shellFade = clamp(m_LodA - m_LodB * distToPlayer
+            - m_Layer * m_MaxLayers + 1.0, 0.0, 1.0);
+    if (shellFade < m_AlphaCutoff) {
         discard;
     }
 
@@ -217,6 +246,10 @@ void main() {
 
         maskAlpha = sampledAlpha * heightFade * texFade;
     }
+
+    //grass v3: continuous distance LOD - the shell fades out where the
+    //budget crosses its index (see the uniform comment above).
+    maskAlpha *= shellFade;
 
     // Blades thin out towards the edge of the grass radius (always enforced).
     maskAlpha = min(maskAlpha, fadeFactor);

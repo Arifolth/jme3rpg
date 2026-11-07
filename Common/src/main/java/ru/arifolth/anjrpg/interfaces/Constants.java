@@ -106,24 +106,31 @@ public class Constants {
     // When true, the billboard grass builder is skipped for new terrain tiles
     public static final boolean GPU_GRASS_REPLACES_BILLBOARD_GRASS = true;
     // Number of grass layers (shells). More layers = denser/longer grass but slower
-    public static final int GPU_GRASS_LAYERS = 25;
+    public static final int GPU_GRASS_LAYERS = 45;
     // Grass is rendered within this radius around the player (~500 feet)
     public static final float GPU_GRASS_DISTANCE = 350f;
     // Grass starts to thin out at this fraction of the grass distance
-    public static final float GPU_GRASS_FADE_START_RATIO = 0.85f;
+    public static final float GPU_GRASS_FADE_START_RATIO = 0.25f;
     // Adaptive layer LOD: full layers within this fraction of the radius...
-    public static final float GPU_GRASS_FULL_LAYERS_RATIO = 0.35f;
+    public static final float GPU_GRASS_FULL_LAYERS_RATIO = 0.15f;
+    // grass v2: wind sway dies out AT the full-layers border. The sway
+    // amplitude is full up to (GPU_GRASS_FULL_LAYERS_RATIO -
+    // GPU_GRASS_SWAY_FADE_RATIO) of the grass distance, then fades
+    // smoothly to EXACTLY zero at GPU_GRASS_FULL_LAYERS_RATIO - every
+    // shell beyond the inner circle stands perfectly still (no
+    // wind-driven "moving dots" at high distance).
+    public static final float GPU_GRASS_SWAY_FADE_RATIO = 0.06f;
     // ...down to this fraction of layers at the edge, never fewer than MIN
     public static final float GPU_GRASS_MIN_LAYERS_RATIO = 0.125f;
-    public static final int GPU_GRASS_MIN_LAYERS = 2;
+    public static final int GPU_GRASS_MIN_LAYERS = 1;
     // Maximum grass height in world units (blade length). The original demo
     // used 0.4 on an unscaled terrain; 0.8 reads well in this world (2x scale)
     public static final float GPU_GRASS_LENGTH = 1.125f;
     // Wind sway tuning
-    public static final float GPU_GRASS_WAVE_SPEED = 4f;
+    public static final float GPU_GRASS_WAVE_SPEED = 3.78f;
     public static final float GPU_GRASS_WAVE_SIZE = 0.5f;
     // Mask pattern frequency per terrain patch (blade density)
-    public static final float GPU_GRASS_MASK_SCALE = 32f;
+    public static final float GPU_GRASS_MASK_SCALE = 64f;
     // World size of ONE mask tile (the 200x200 texel random point pattern).
     // 8 world units -> one mask texel = 4 cm -> a full-radius mask dot
     // (radius 1.6 texels, drawn by GrassTextureFactory) is ~13 cm wide,
@@ -133,7 +140,7 @@ public class Constants {
     // The mask is sampled through WORLD-space coordinates (see the
     // maskUV varying), so blade width and shape are independent of the
     // terrain patch size and of the view distance settings.
-    public static final float GPU_GRASS_MASK_WORLD_SPAN = 8.0f;
+    public static final float GPU_GRASS_MASK_WORLD_SPAN = 16.0f;
     // World-space Y safety cap above which grass never grows. The REAL
     // grass/dirt/rock placement is decided by the texture-dominance gate
     // below, which replicates the HeightBasedTerrain region blending - this

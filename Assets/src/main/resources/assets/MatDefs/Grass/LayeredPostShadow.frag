@@ -58,6 +58,13 @@ uniform float m_AlphaCutoff;
 uniform float m_DensityStart;
 uniform float m_DensityEnd;
 uniform float m_DensityMin;
+
+//grass v3: continuous shell-budget LOD (see Layered.frag; MUST stay
+//identical to the main pass so the receive pass discards exactly the
+//fragments the main pass discarded)
+uniform float m_LodA;
+uniform float m_LodB;
+uniform float m_MaxLayers;
 #ifdef THREEDTEX
 uniform sampler3D m_ThreeDTex;
 #else
@@ -97,6 +104,16 @@ void main() {
         // mask fetch and the fade math. Same set of surviving fragments, same
         // pixels: strictly less work per discarded fragment.
         if (fadeFactor < m_AlphaCutoff) {
+                discard;
+        }
+
+        //grass v3: the shell budget of this fragment - identical formula,
+//uniforms and distToPlayer as Layered.vert/Layered.frag so the two
+//passes stay bit-exact (the base ground pass never reaches this branch
+//and is unaffected).
+        float shellFade = clamp(m_LodA - m_LodB * distToPlayer
+                - m_Layer * m_MaxLayers + 1.0, 0.0, 1.0);
+        if (shellFade < m_AlphaCutoff) {
                 discard;
         }
 
@@ -156,6 +173,9 @@ void main() {
 
             maskAlpha = sampledAlpha * heightFade * texFade;
         }
+
+        //grass v3: continuous distance LOD (see the uniform comment above).
+        maskAlpha *= shellFade;
 
         // Blades thin out towards the edge of the grass radius.
         maskAlpha = min(maskAlpha, fadeFactor);

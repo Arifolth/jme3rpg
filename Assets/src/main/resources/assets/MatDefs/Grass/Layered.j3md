@@ -59,6 +59,17 @@ MaterialDef Layered {
         Float DensityStart
         Float DensityEnd
         Float DensityMin
+        //grass v2: wind sway fades out between SwayFadeStart and
+        //SwayFadeEnd world units from the player and is exactly zero
+        //beyond SwayFadeEnd (= GrassDistance * GPU_GRASS_FULL_LAYERS_RATIO)
+        Float SwayFadeStart
+        Float SwayFadeEnd
+        //grass v3: continuous shell-budget LOD (see Layered.frag).
+        //budget(d) = LodA - LodB * d = shells visible at d world units;
+        //MaxLayers = the numLayers the fixed shell grid is normalized by.
+        Float LodA
+        Float LodB
+        Float MaxLayers
         Float WaveSpeed
         Float WaveSize
         Float GrassDistance

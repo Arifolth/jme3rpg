@@ -134,6 +134,14 @@ public class GpuGrassMaterial extends Material {
                 dbgSkippedNotInit, dbgSkippedDistance, dbgSkippedNoTechnique,
                 dbgSkippedDisabled, dbgSkippedForcedTech;
 
+    //grass v3: continuous shell-budget LOD line budget(d) = lodA - lodB * d
+    //(world units from the player). Full numLayers inside the inner LOD
+    //circle, down to numLayers * GPU_GRASS_MIN_LAYERS_RATIO at GrassDistance.
+    //Pushed to the fragment shaders (LodA/LodB/MaxLayers) and used here to
+    //derive the per-patch shell prefix. See Layered.frag + updateLodUniforms().
+    private float lodA;
+    private float lodB;
+
     public GpuGrassMaterial(AssetManager am, int numLayers, float grassDistance) {
         super(am, "MatDefs/Grass/Layered.j3md");
         instancesCreated++;
@@ -147,6 +155,15 @@ public class GpuGrassMaterial extends Material {
         setFloat("Length", Constants.GPU_GRASS_LENGTH);
         setFloat("WaveSpeed", Constants.GPU_GRASS_WAVE_SPEED);
         setFloat("WaveSize", Constants.GPU_GRASS_WAVE_SIZE);
+        //grass v2: wind sway only inside the full-layers circle. The
+        //amplitude fades out BEFORE the border and is exactly zero from
+        //GrassDistance * GPU_GRASS_FULL_LAYERS_RATIO outwards, so the
+        //distant shells can never read as moving dots. The max(1f, ...)
+        //keeps the smoothstep edges strictly ordered (no GLSL NaN).
+        float swayEnd = grassDistance * Constants.GPU_GRASS_FULL_LAYERS_RATIO;
+        setFloat("SwayFadeEnd", swayEnd);
+        setFloat("SwayFadeStart",
+                swayEnd - Math.max(1f, grassDistance * Constants.GPU_GRASS_SWAY_FADE_RATIO));
         setFloat("MaskScale", Constants.GPU_GRASS_MASK_SCALE);
         setFloat("WaterLevel", Constants.WATER_LEVEL_HEIGHT + Constants.GPU_GRASS_SHORE_MARGIN);
         setFloat("ShoreBand", Constants.GPU_GRASS_SHORE_BAND);
@@ -164,6 +181,8 @@ public class GpuGrassMaterial extends Material {
         setFloat("DensityEnd", grassDistance * Constants.GPU_GRASS_DENSITY_END_RATIO);
         setFloat("DensityMin", Constants.GPU_GRASS_DENSITY_MIN);
         setBoolean("Wave", true);
+        //grass v3: continuous shell-budget LOD uniforms
+        updateLodUniforms();
         setVector3("PlayerPosition", playerPositionVector);
         setFloat("DebugForceAll", Constants.GPU_GRASS_DEBUG_FORCE_ALL ? 1f : 0f);
         setFloat("DebugBrightness", Constants.GPU_GRASS_DEBUG_BRIGHTNESS);
@@ -216,8 +235,9 @@ public class GpuGrassMaterial extends Material {
                 : (int) FastMath.ceil(numLayers / (float) layerMasks.size());
 
         //Shell pass loop: same layer values as the main pass
+        //(grass v3: the same FIXED shell grid, Layer = i / numLayers)
         for (int i = 1; i <= layersForGeometry; i++) {
-            float layer = i / (float) layersForGeometry;
+            float layer = i / (float) numLayers;
 
             //Move to the next layer mask if several 2D masks are in use
             //(with the 3D texture path the masks are not sampled)
@@ -311,6 +331,8 @@ public class GpuGrassMaterial extends Material {
 
     public void setNumLayers(int numLayers) {
         this.numLayers = (int) FastMath.clamp(numLayers, 0, maxLayers);
+        //grass v3: the shell-budget line depends on numLayers
+        updateLodUniforms();
     }
 
     public int getNumLayers() {
@@ -327,6 +349,13 @@ public class GpuGrassMaterial extends Material {
         setFloat("GrassDistance", dist);
         setFloat("FadeStart", fadeStart);
         setFloat("DensityEnd", dist * Constants.GPU_GRASS_DENSITY_END_RATIO);
+        //grass v2: keep the sway border in sync when the distance changes
+        float swayEnd = dist * Constants.GPU_GRASS_FULL_LAYERS_RATIO;
+        setFloat("SwayFadeEnd", swayEnd);
+        setFloat("SwayFadeStart",
+                swayEnd - Math.max(1f, dist * Constants.GPU_GRASS_SWAY_FADE_RATIO));
+        //grass v3: the shell-budget line depends on grassDistance
+        updateLodUniforms();
     }
 
     /**
@@ -416,19 +445,37 @@ public class GpuGrassMaterial extends Material {
     }
 
     /**
-     * Adaptive layer LOD: patches right around the player get the full layer
-     * stack, distant patches get a reduced stack. This keeps the draw call and
-     * vertex load manageable for a 500 units grass radius.
+     * grass v3: recomputes and pushes the shell-budget LOD line. Must be
+     * called whenever numLayers or grassDistance changes (the budget is
+     * defined by both).
+     */
+    private void updateLodUniforms() {
+        float lodStart = grassDistance * Constants.GPU_GRASS_FULL_LAYERS_RATIO;
+        float lodSpan = Math.max(1f, grassDistance - lodStart);
+        lodB = numLayers * (1f - Constants.GPU_GRASS_MIN_LAYERS_RATIO) / lodSpan;
+        lodA = numLayers + lodB * lodStart;
+        setFloat("LodA", lodA);
+        setFloat("LodB", lodB);
+        setFloat("MaxLayers", numLayers);
+    }
+
+    /**
+     * Adaptive layer LOD (grass v3): patches render a PREFIX of the FIXED
+     * shell grid (Layer = i / numLayers). The fragment shaders fade shell i
+     * out continuously where the shell budget crosses its index, so a shell
+     * may be skipped only when it is already fully transparent for the WHOLE
+     * patch. The bounding-box edge distance is at most the distance of
+     * every real fragment of the patch (the box contains the mesh), so the
+     * budget at the edge is an upper bound and rounding UP never skips a
+     * visible shell. The old per-patch shell-count steps of the normalized
+     * grid - visible as patch-shaped detail bands ("waves") at the inner
+     * LOD border, flickering at night - are gone; the field now thins
+     * continuously inside the shaders.
      */
     private int adaptiveLayerCount(float distanceToEdge) {
-        float t = distanceToEdge / grassDistance;
-        if (t <= Constants.GPU_GRASS_FULL_LAYERS_RATIO) {
-            return numLayers;
-        }
-        float ratio = 1f - ((t - Constants.GPU_GRASS_FULL_LAYERS_RATIO)
-                / (1f - Constants.GPU_GRASS_FULL_LAYERS_RATIO))
-                * (1f - Constants.GPU_GRASS_MIN_LAYERS_RATIO);
-        return Math.max(Constants.GPU_GRASS_MIN_LAYERS, (int) (numLayers * ratio));
+        float budget = lodA - lodB * distanceToEdge;
+        return Math.max(Constants.GPU_GRASS_MIN_LAYERS,
+                Math.min(numLayers, (int) Math.ceil(budget - 0.001f)));
     }
 
     /**
@@ -518,9 +565,14 @@ public class GpuGrassMaterial extends Material {
 
         dbgPatches++;
 
-        //Main layer render loop: render the same geometry once per layer
+        //Main layer render loop: render the same geometry once per layer.
+        //grass v3: FIXED shell grid - the layer value must not depend on
+        //layersForGeometry, otherwise every shell of a reduced patch sits at
+        //a different height and samples different mask slices than its full
+        //neighbors (that was the patch-shaped "wave" at the inner LOD border).
+        //layersForGeometry now only trims already-faded shells off the top.
         for (int i = 1; i <= layersForGeometry; i++) {
-            float layer = i / (float) layersForGeometry;
+            float layer = i / (float) numLayers;
 
             //Move to the next layer mask if several 2D masks are in use
             //(with the 3D texture path the masks are not sampled)

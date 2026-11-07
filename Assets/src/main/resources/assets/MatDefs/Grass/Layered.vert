@@ -30,6 +30,10 @@
 //    the edge of the grass circle (from EdgeHeightStart out to
 //    GrassDistance) so the field melts into the terrain texture instead of
 //    ending at a visible wall.
+//  - grass v2: wind sway only inside the full-layers circle. The sway
+//    amplitude fades to EXACTLY zero at SwayFadeEnd (= GrassDistance *
+//    GPU_GRASS_FULL_LAYERS_RATIO) and every shell beyond it stands
+//    perfectly still - distant grass can no longer read as moving dots.
 
 #import "Common/ShaderLib/GLSLCompat.glsllib"
 
@@ -64,6 +68,13 @@ uniform float m_EdgeHeightStart;
 //grass v1: world size of ONE mask tile. The mask is sampled through
 //world-anchored coordinates, so blade width and shape stay constant
 uniform float m_MaskWorldSpan;
+
+//grass v2: wind sway distance fade. Full sway up to m_SwayFadeStart,
+//smoothly fading, EXACTLY 0.0 from m_SwayFadeEnd outwards. Kept in
+//lockstep with LayeredPostShadow.vert (the displacement must stay a
+//bit-exact copy between the two passes).
+uniform float m_SwayFadeStart;
+uniform float m_SwayFadeEnd;
 
 //HeightBasedTerrain synchronization (values copied from the base material)
 uniform float m_TerrainSize;
@@ -242,8 +253,13 @@ void main() {
         swayDir = vec3(0.0, 0.0, 1.0);
     }
 
+    //grass v2: distance fade of the sway. distToPlayer is already computed
+    //above (the same value the density cull uses); 1.0 inside the inner
+    //circle, exactly 0.0 beyond SwayFadeEnd.
+    float swayFade = 1.0 - smoothstep(m_SwayFadeStart, m_SwayFadeEnd, distToPlayer);
+
     // Bend in world space (X or Z), converted to view space.
-    vec3 vGravity = (vec4(swayDir * (bendAmt * 0.1 * m_WaveSize), 0.0) * g_WorldViewMatrix).xyz;
+    vec3 vGravity = (vec4(swayDir * (bendAmt * 0.1 * m_WaveSize * swayFade), 0.0) * g_WorldViewMatrix).xyz;
 #else
     vec3 vGravity = (vec4(-0.1, 0.0, 0.0, 0.0) * g_WorldViewMatrix).xyz;
 #endif

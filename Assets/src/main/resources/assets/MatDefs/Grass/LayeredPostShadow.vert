@@ -5,7 +5,8 @@
 // scene.
 //
 // The vertex displacement below is a BIT-EXACT copy of Layered.vert (shell
-// lifting, edge sink, wind sway). This is what makes the shadow pass land
+// lifting, edge sink, wind sway + the v2 sway distance fade, applied at the
+// same places with the same uniforms). This is what makes the shadow pass land
 // exactly on the pixels the main pass drew: the depth test (LEQUAL + the
 // small PolyOffset from the technique render state) then lets exactly ONE
 // shell per pixel through - the one that actually owns the frame buffer
@@ -43,6 +44,11 @@ uniform vec3 m_PlayerPosition;
 uniform float m_EdgeHeightStart;
 //grass v1: world size of ONE mask tile (see Layered.vert)
 uniform float m_MaskWorldSpan;
+
+//grass v2: wind sway distance fade (see Layered.vert; MUST stay identical
+//to the main pass so the receive pass lands on the same pixels)
+uniform float m_SwayFadeStart;
+uniform float m_SwayFadeEnd;
 
 //HeightBasedTerrain synchronization (values copied from the base material;
 //needed to replicate the texture-dominance gates of the main pass)
@@ -194,8 +200,12 @@ void main() {
         swayDir = vec3(0.0, 0.0, 1.0);
     }
 
+    //grass v2: distance fade of the sway - identical formula, uniforms and
+    //distToPlayer as Layered.vert so the two passes stay bit-exact.
+    float swayFade = 1.0 - smoothstep(m_SwayFadeStart, m_SwayFadeEnd, distToPlayer);
+
     // Bend in world space (X or Z), converted to view space.
-    vec3 vGravity = (vec4(swayDir * (bendAmt * 0.1 * m_WaveSize), 0.0) * g_WorldViewMatrix).xyz;
+    vec3 vGravity = (vec4(swayDir * (bendAmt * 0.1 * m_WaveSize * swayFade), 0.0) * g_WorldViewMatrix).xyz;
 #else
     vec3 vGravity = (vec4(-0.1, 0.0, 0.0, 0.0) * g_WorldViewMatrix).xyz;
 #endif
