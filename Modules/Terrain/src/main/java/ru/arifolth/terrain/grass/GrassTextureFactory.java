@@ -63,8 +63,36 @@ public class GrassTextureFactory {
     // wider than the shell spacing (Length / layers = 10 cm) -> the shell
     // dots overlap vertically and read as ONE continuous blade from any
     // distance; only extreme zoom resolves the stacked shells.
+    //
+    // grass v5 blade shape fix (the "quadratish blades"): the v1 discs
+    // were drawn BINARY with an integer ceil() radius - every radius
+    // below 1 texel collapsed to the same single-texel dot, so the upper
+    // ~60% of every blade was one constant-width ~7 cm stick with hard
+    // vertical edges; at night the blades read as long rectangular quads
+    // instead of grass. Two changes:
+    //  - the taper now runs LINEARLY TO ZERO (TAPER 1.0): disc radius =
+    //    BASE * (1 - heightFraction), so the silhouette is a straight
+    //    triangle from the ~13 cm base to an actual point at the top;
+    //  - the discs are drawn as ANTI-ALIASED COVERAGE (see
+    //    createThreeDLayerMask): each texel stores the fraction of it the
+    //    disc covers, so widths below one texel survive as reduced alpha
+    //    and die exactly at the alpha cutout - the blade closes into a
+    //    point instead of stopping at a 1-texel stick. Base radius and
+    //    point counts are unchanged, so blade density and the v4
+    //    see-through-patch tuning are preserved.
     private static final float MASK_BLADE_BASE_RADIUS = 1.6f;
-    private static final float MASK_BLADE_TAPER = 0.72f;
+    private static final float MASK_BLADE_TAPER = 1.0f;
+
+    // grass v4: blade dots per mask tile (8 x 8 world units). The old 5000
+    // points covered ~100% of the ground with the ~13 cm blade bases - a
+    // solid carpet with the ground texture never visible between the
+    // blades. 4500 points keep the dense patches lush (~90% base coverage)
+    // while the v4 patch density noise (Layered.frag) opens recurring
+    // see-through gaps down to half the blade count in the sparsest
+    // patches. The top slice count keeps the same 84% ratio (4200/5000),
+    // so the taper profile of every blade column is unchanged.
+    private static final int MASK_POINTS_BASE = 4500;
+    private static final int MASK_POINTS_TAPER = 3780;
 
     private GrassTextureFactory() {
     }
@@ -118,7 +146,10 @@ public class GrassTextureFactory {
      * Builds the 3D layer mask: depth slices, slice i (0 = ground layer,
      * depth-1 = tip layer) holds a subset of the points of slice i-1 drawn
      * with a lower alpha value and a SMALLER DISC RADIUS, so blades taper
-     * and thin towards the tip (grass v1: straight tapering blades).
+     * and thin towards the tip (grass v1: straight tapering blades; grass
+     * v5: the discs taper linearly to a point and are anti-aliased, so a
+     * blade reads as one triangular blade instead of a constant-width
+     * quad).
      */
     public static Texture3D createThreeDLayerMask(int depth) {
         ByteBuffer texBuf3D = ByteBuffer.allocateDirect(MASK_AREA * depth);
@@ -133,37 +164,60 @@ public class GrassTextureFactory {
 
             float density = (depth <= 1) ? 0f : i / (float) (depth - 1);
             //bottom layer: the most points; top layer: the fewest
-            int numGrass = (int) (5000 - (4200 * density));
+            int numGrass = (int) (MASK_POINTS_BASE - (MASK_POINTS_TAPER * density));
 
             //alpha also decreases with height so the tips blend out.
             //NOTE: the material renders as alpha CUTOUT (fragments below
             //GPU_GRASS_ALPHA_CUTOFF are discarded), so the minimum tip alpha
             //must stay comfortably above that cutoff - hence 0.45, not 0.25.
+            //(grass v5: the blade TIP itself closes via the disc coverage -
+            //the slice alpha floor only keeps the surviving texels above
+            //the cutoff.)
             int alphaVal = (int) (255 * (1f - 0.45f * density));
 
             //grass v1: the disc radius shrinks towards the tip slices, so the
-            //visible silhouette of a blade column narrows into a triangle
-            //(base ~1.6 texels wide, tip ~0.45 texels). Same seed per slice
-            //keeps the point positions nested across slices: the disc of one
-            //blade always sits at the same (x, y) - only its size changes.
+            //visible silhouette of a blade column narrows into a triangle.
+            //grass v5: the radius now runs LINEARLY TO ZERO at the top slice
+            //(straight triangle silhouette) and each disc is drawn as
+            //ANTI-ALIASED COVERAGE: a texel well inside the disc stores the
+            //full slice alpha, a texel at the disc rim stores the covered
+            //FRACTION of itself (1-texel smooth edge) - so sub-texel blade
+            //widths survive as reduced alpha and the blade closes into an
+            //actual point at the tip (the old binary ceil() drawing
+            //collapsed every radius below 1 texel to the same single-texel
+            //dot: a constant-width stick, readable as long rectangular
+            //quads at night). Same seed per slice keeps the point positions
+            //nested across slices: the disc of one blade always sits at the
+            //same (x, y) - only its size changes. Overlapping dots keep the
+            //MAXIMUM coverage (a texel covered by any disc stays covered).
             float radius = MASK_BLADE_BASE_RADIUS * (1f - MASK_BLADE_TAPER * density);
-            int r = (int) Math.ceil(radius);
-            float rSq = radius * radius;
+            int r = (int) Math.ceil(radius + 0.5f);
+            int sliceBase = i * MASK_AREA;
 
             for (int j = 0; j < numGrass; j++) {
                 int curPoint = rand.nextInt(MASK_AREA);
                 int px = curPoint % MASK_SIZE;
                 int py = curPoint / MASK_SIZE;
-                //filled disc, wrapping at the tile edges (the mask repeats
-                //S/T, so wrapped dots keep the pattern seamless)
+                //anti-aliased disc, wrapping at the tile edges (the mask
+                //repeats S/T, so wrapped dots keep the pattern seamless)
                 for (int dy = -r; dy <= r; dy++) {
                     int yy = (py + dy + MASK_SIZE) % MASK_SIZE;
                     for (int dx = -r; dx <= r; dx++) {
-                        if (dx * dx + dy * dy > rSq) {
+                        float dist = (float) Math.sqrt(dx * dx + dy * dy);
+                        //1-texel smooth edge: full coverage inside, the
+                        //covered fraction at the rim, nothing outside
+                        float coverage = radius - dist + 0.5f;
+                        if (coverage <= 0f) {
                             continue;
+                        } else if (coverage > 1f) {
+                            coverage = 1f;
                         }
-                        int xx = (px + dx + MASK_SIZE) % MASK_SIZE;
-                        texBuf3D.put(i * MASK_AREA + yy * MASK_SIZE + xx, (byte) alphaVal);
+                        int a = (int) (alphaVal * coverage);
+                        int idx = sliceBase + yy * MASK_SIZE
+                                + (px + dx + MASK_SIZE) % MASK_SIZE;
+                        if ((texBuf3D.get(idx) & 0xff) < a) {
+                            texBuf3D.put(idx, (byte) a);
+                        }
                     }
                 }
             }
@@ -202,13 +256,14 @@ public class GrassTextureFactory {
             ByteBuffer data = ByteBuffer.allocateDirect(MASK_AREA);
 
             float density = (numMasks <= 1) ? 0f : i / (float) (numMasks - 1);
-            int numGrass = (int) (5000 - (4200 * density));
+            int numGrass = (int) (MASK_POINTS_BASE - (MASK_POINTS_TAPER * density));
             int alphaVal = (int) (255 * (1f - 0.75f * density));
 
-            //grass v1: same tapering discs as the 3D mask (see above)
+            //grass v1: same tapering discs as the 3D mask (see above).
+            //grass v5: linear-to-zero radius + anti-aliased coverage dots,
+            //identical to the 3D mask path (triangular blades, no quads).
             float radius = MASK_BLADE_BASE_RADIUS * (1f - MASK_BLADE_TAPER * density);
-            int r = (int) Math.ceil(radius);
-            float rSq = radius * radius;
+            int r = (int) Math.ceil(radius + 0.5f);
 
             for (int j = 0; j < numGrass; j++) {
                 int curPoint = rand.nextInt(MASK_AREA);
@@ -217,11 +272,18 @@ public class GrassTextureFactory {
                 for (int dy = -r; dy <= r; dy++) {
                     int yy = (py + dy + MASK_SIZE) % MASK_SIZE;
                     for (int dx = -r; dx <= r; dx++) {
-                        if (dx * dx + dy * dy > rSq) {
+                        float dist = (float) Math.sqrt(dx * dx + dy * dy);
+                        float coverage = radius - dist + 0.5f;
+                        if (coverage <= 0f) {
                             continue;
+                        } else if (coverage > 1f) {
+                            coverage = 1f;
                         }
-                        int xx = (px + dx + MASK_SIZE) % MASK_SIZE;
-                        data.put(yy * MASK_SIZE + xx, (byte) alphaVal);
+                        int a = (int) (alphaVal * coverage);
+                        int idx = yy * MASK_SIZE + (px + dx + MASK_SIZE) % MASK_SIZE;
+                        if ((data.get(idx) & 0xff) < a) {
+                            data.put(idx, (byte) a);
+                        }
                     }
                 }
             }
