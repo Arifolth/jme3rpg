@@ -48,23 +48,23 @@ MaterialDef Layered {
         Float GrassShareFade
         //alpha-cutout threshold (0..1); fragments below it are discarded
         Float AlphaCutoff
-        //grass v1: global tone multiplier pairing the blade color with the
-        //distant landscape grass texture (1.0 = raw terrain texel palette)
+        //global tone multiplier pairing the blade color with the distant
+        //landscape grass texture (1.0 = raw terrain texel palette)
         Float ToneMatch
-        //grass v1: world size of ONE blade-mask tile (blade width/shape
-        //scale; the mask is sampled world-anchored, settings-independent)
+        //world size of ONE blade-mask tile (blade width/shape scale; the
+        //mask is sampled world-anchored, settings-independent)
         Float MaskWorldSpan
-        //grass v1: whole-blade density culling from DensityStart out to
-        //DensityEnd world units from the player, down to DensityMin
+        //whole-blade density culling from DensityStart out to DensityEnd
+        //world units from the player, down to DensityMin
         Float DensityStart
         Float DensityEnd
         Float DensityMin
-        //grass v2: wind sway fades out between SwayFadeStart and
-        //SwayFadeEnd world units from the player and is exactly zero
-        //beyond SwayFadeEnd (= GrassDistance * GPU_GRASS_FULL_LAYERS_RATIO)
+        //wind sway fades out between SwayFadeStart and SwayFadeEnd world
+        //units from the player and is exactly zero beyond SwayFadeEnd
+        //(= GrassDistance * GPU_GRASS_FULL_LAYERS_RATIO)
         Float SwayFadeStart
         Float SwayFadeEnd
-        //grass v3: continuous shell-budget LOD (see Layered.frag).
+        //continuous shell-budget LOD (see Layered.frag).
         //budget(d) = LodA - LodB * d = shells visible at d world units;
         //MaxLayers = the numLayers the fixed shell grid is normalized by.
         Float LodA

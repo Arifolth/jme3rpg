@@ -36,7 +36,7 @@ varying float fadeFactor;
 varying float worldHeight;
 varying float groundUp;
 varying vec4 groundMix;
-//grass v1 (see Layered.vert/Layered.frag)
+//(see Layered.vert/Layered.frag)
 varying vec2 maskUV;
 varying float distToPlayer;
 
@@ -54,14 +54,14 @@ uniform float m_MinGroundUp;
 uniform float m_AllowOnUntextured;
 uniform float m_GrassShareFade;
 uniform float m_AlphaCutoff;
-//grass v1: whole-blade density culling (mirrors Layered.frag exactly)
+//whole-blade density culling (mirrors Layered.frag exactly)
 uniform float m_DensityStart;
 uniform float m_DensityEnd;
 uniform float m_DensityMin;
 
-//grass v3: continuous shell-budget LOD (see Layered.frag; MUST stay
-//identical to the main pass so the receive pass discards exactly the
-//fragments the main pass discarded)
+//continuous shell-budget LOD (see Layered.frag; MUST stay identical to
+//the main pass so the receive pass discards exactly the fragments the
+//main pass discarded)
 uniform float m_LodA;
 uniform float m_LodB;
 uniform float m_MaxLayers;
@@ -107,10 +107,9 @@ void main() {
                 discard;
         }
 
-        //grass v3: the shell budget of this fragment - identical formula,
-//uniforms and distToPlayer as Layered.vert/Layered.frag so the two
-//passes stay bit-exact (the base ground pass never reaches this branch
-//and is unaffected).
+        //Shell budget of this fragment - identical formula, uniforms and
+        //distToPlayer as Layered.frag so the two passes stay bit-exact
+        //(the base ground pass never reaches this branch and is unaffected).
         float shellFade = clamp(m_LodA - m_LodB * distToPlayer
                 - m_Layer * m_MaxLayers + 1.0, 0.0, 1.0);
         if (shellFade < m_AlphaCutoff) {
@@ -132,9 +131,9 @@ void main() {
             discard;
         }
 
-        //grass v1: distance density falloff - MUST mirror Layered.frag
-        //bit for bit so the shadow pass skips exactly the blades the main
-        //pass culled (no double darkening, no ghost shadows of culled grass).
+        //Distance density falloff - MUST mirror Layered.frag bit for bit
+        //so the shadow pass skips exactly the blades the main pass culled
+        //(no double darkening, no ghost shadows of culled grass).
         float densityKeep = mix(1.0, m_DensityMin,
                 smoothstep(m_DensityStart, max(m_DensityEnd, m_DensityStart + 0.001), distToPlayer));
         if (densityKeep < 1.0) {
@@ -147,7 +146,7 @@ void main() {
         float maskAlpha = sampledAlpha;
 
         if (m_DebugForceAll <= 0.5) {
-            // Phase 2: altitude gating.
+            // Altitude gating.
             if (worldHeight < m_WaterLevel - 3.0 || worldHeight > m_GrassMaxHeight) {
                 discard;
             }
@@ -161,7 +160,7 @@ void main() {
             float heightFade = smoothstep(m_WaterLevel, m_WaterLevel + max(m_ShoreBand, 0.0001), worldHeight)
                     * (1.0 - smoothstep(m_GrassMaxHeight - 15.0, m_GrassMaxHeight, worldHeight));
 
-            // Phase 3: texture gate (weights replicated in the vertex shader).
+            // Texture gate (weights replicated in the vertex shader).
             float band = max(m_GrassShareFade, 0.0001);
             float texFade = (1.0 - smoothstep(0.0, band, groundMix.y - groundMix.x))
                           * (1.0 - smoothstep(0.0, band, groundMix.z - groundMix.x))
@@ -174,7 +173,7 @@ void main() {
             maskAlpha = sampledAlpha * heightFade * texFade;
         }
 
-        //grass v3: continuous distance LOD (see the uniform comment above).
+        //Continuous distance LOD (see the uniform comment above).
         maskAlpha *= shellFade;
 
         // Blades thin out towards the edge of the grass radius.

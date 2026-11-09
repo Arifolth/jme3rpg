@@ -1,69 +1,25 @@
-// Layered shell grass - fragment shader.
-// Ported from https://github.com/Arifolth/jme3-grass-shader (GLSL 1.10/1.30 era)
-// to jMonkeyEngine 3.9.0-stable.
+// Layered shell grass - fragment shader (jME 3.9, GLSL 130).
+// Ported from https://github.com/Arifolth/jme3-grass-shader.
+// GLSL version differences (outFragColor, texture2D/texture3D -> texture)
+// are mapped by the imported Common/ShaderLib/GLSLCompat.glsllib.
 //
-// Key changes versus the original shader:
-//  - imports Common/ShaderLib/GLSLCompat.glsllib (provides the outFragColor
-//    declaration and the texture2D/texture3D -> texture mappings for any
-//    GLSL version the engine selects);
-//  - the hard distance discard was replaced by a smooth density fade
-//    (fadeFactor computed in the vertex shader from the player position);
-//  - ANJRpg specific gating (Phase 1 + Phase 2):
-//      * grass is discarded under the water level (m_WaterLevel = -70);
-//      * grass is discarded on hills/mountains (above m_GrassMaxHeight)
-//        and thins out smoothly below that cutoff;
-//      * grass is discarded on steep slopes (m_MinGroundUp threshold on
-//        the world-space up component of the ground normal);
-//  - DEBUG MODE (m_DebugForceAll = 1): the environment gates (water level,
-//    altitude, slope) are bypassed - grass is drawn everywhere inside the
-//    player radius, exactly the behaviour of the original example project.
-//    The 3D blade mask is ALWAYS applied, in debug mode too: it is what
-//    carves the shells into individual blades (skipping it renders every
-//    shell as a solid wall of ground - that was the "grass wall" bug).
-//  - TEXTURE GATE (Phase 3): the vertex shader replicates the exact
-//    HeightBasedTerrain region weights (grass/dirt/rock height ranges + the
-//    slope blend) and passes them in the groundMix varying. Grass grows
-//    unless one of the OTHER textures outweighs the grass texture on the
-//    ground below: dirt region wins -> dirt/sand band, no grass; rock region
-//    wins -> no grass; slope blend wins -> rocky cliffs, no grass. Ground
-//    the stock shader paints with NO region texture at all (this game's
-//    shoreline below height 0 with regions grass 15..200 / dirt 0..20 /
-//    rock 198..260) is grass-eligible when AllowOnUntextured is on.
-//    Result: no grass on dirt, sand or rock - but grass everywhere else,
-//    including the lowlands the player actually walks on.
-//  - ALPHA CUTOUT: fragments below m_AlphaCutoff are discarded and the
-//    material renders WITHOUT blending and WITH depth write. The blades
-//    therefore occupy real depth buffer space: the player, trees and all
-//    other objects interleave with the grass correctly (some blades in
-//    front of the player's legs, some behind them).
-//  - COLOR: the shells sample the terrain's own grass region texture with
-//    the exact UV mapping of the terrain shader, so the grass palette is
-//    the landscape palette. A vertical gradient (darker stems, lighter
-//    tips) plus a per-blade-cluster tint keep the blades distinguishable
-//    from the ground.
-//  - GRASS V1 (tone pairing / blade shape / density falloff):
-//    * TONE: the vertical gradient is softened (stems 0.74, tips
-//      1.02..1.14 instead of 0.66..1.22) and the whole blade color is
-//      scaled by ToneMatch (0.85). The distant terrain reads ~0.73x of
-//      its raw texels (slope-rock blending + shadows); the shells used
-//      to render up to 1.22x + glow, which floated the field ABOVE the
-//      landscape tone. Now the blade tone sits inside it.
-//    * BLADE SHAPE: the mask is sampled through the WORLD-anchored
-//      maskUV varying (one tile per MaskWorldSpan world units) and the
-//      mask generator draws tapering discs, so every blade reads as one
-//      straight thin triangle; the stacked shells only show at extreme
-//      zoom.
-//    * DENSITY: whole blades are culled by a stable per-column hash
+// Every fragment of a shell pass runs this gate pipeline, in order:
+//   1. player-radius fade (fadeFactor) + alpha-cutoff early-outs
+//   2. shell-budget LOD: shell i fades out where the shell budget
+//      (LodA - LodB * distToPlayer) crosses its index (fixed grid
+//      Layer = i / MaxLayers, pushed by GpuGrassMaterial)
+//   3. 3D blade mask (one slice per shell, world-anchored maskUV) carves
+//      the stacked shells into individual blades
+//   4. whole-blade density cull: a stable per-column hash removes blades
 //      between DensityStart and DensityEnd world units from the player
-//      (50..150 by default) - the far field gets sparse instead of an
-//      ocean of dots, without touching the picture pipeline.
-//  - GRASS V3 (continuous shell LOD): the shell stack uses a FIXED grid
-//    (Layer = i / MaxLayers for every patch) and every shell's alpha is
-//    faded out continuously where the shell budget LodA - LodB * dist
-//    crosses its index. The per-patch layer-count steps of the old
-//    normalized grid - visible as patch-shaped detail bands ("waves") at
-//    the inner LOD border, flickering at night - are gone; the field now
-//    thins smoothly with distance. Mirrored 1:1 in LayeredPostShadow.frag.
+//   5. environment gates (unless DebugForceAll): water level + shore band,
+//      altitude cutoff, slope, terrain-texture dominance (groundMix)
+//   6. alpha cutout (no blending, depth write ON), then terrain-palette
+//      coloring: vertical gradient + per-cluster tint + ToneMatch, plus
+//      the backlight translucency glow on the upper shells
+//
+// The shadow-receiving twin LayeredPostShadow.frag replicates steps 1-6
+// bit for bit, so shadows land exactly on the drawn blades.
 
 #import "Common/ShaderLib/GLSLCompat.glsllib"
 
@@ -84,20 +40,21 @@ uniform float m_DebugBrightness;
 uniform float m_AllowOnUntextured;
 uniform float m_GrassShareFade;
 uniform float m_AlphaCutoff;
-//grass v1: tone pairing with the distant landscape texture
+//tone pairing with the distant landscape texture (1.0 = raw terrain palette)
 uniform float m_ToneMatch;
-//grass v1: whole-blade density culling beyond DensityStart units
+//whole-blade density culling beyond DensityStart units from the player
 uniform float m_DensityStart;
 uniform float m_DensityEnd;
 uniform float m_DensityMin;
 
-//grass v3: continuous shell-budget LOD. budget(d) = LodA - LodB * d =
-//the number of shells the field shows at d world units from the player
-//(full MaxLayers inside the inner LOD circle, down to
-//MaxLayers * MIN_LAYERS_RATIO at GrassDistance). Shell i (on the fixed
-//grid Layer = i / MaxLayers) fades out over the ~10 unit band where the
-//budget crosses i. The CPU renders a matching per-patch prefix of the
-//fixed grid, skipping only shells that are already fully faded.
+//continuous shell-budget LOD. budget(d) = LodA - LodB * d = the number of
+//shells the field shows at d world units from the player (full MaxLayers
+//inside the inner LOD circle, down to MaxLayers * MIN_LAYERS_RATIO at
+//GrassDistance). Shell i (on the fixed grid Layer = i / MaxLayers) fades
+//out over the band where the budget crosses i (band width = 1/LodB world
+//units). The CPU renders a
+//matching per-patch prefix of the fixed grid, skipping only shells that
+//are already fully faded (see GpuGrassMaterial.adaptiveLayerCount).
 uniform float m_LodA;
 uniform float m_LodB;
 uniform float m_MaxLayers;
@@ -128,7 +85,7 @@ varying vec4 groundMix;
 //Backlight translucency: direction from the shell to the camera
 //(per-vertex, see Layered.vert; normalized per fragment below).
 varying vec3 viewDirW;
-//grass v1 (see Layered.vert)
+//(see Layered.vert)
 varying vec2 maskUV;
 varying float distToPlayer;
 
@@ -160,11 +117,11 @@ void main() {
         discard;
     }
 
-    //grass v3: the shell budget of this fragment (see the uniform comment
-//above). Shell index = m_Layer * MaxLayers on the fixed shell grid; the
-//base ground pass (m_Layer == 0) always passes. Discarding here skips
-//the mask fetch for every fully-faded shell, so the prefix shells the
-//CPU still renders for far patches cost almost no fragment work.
+    //Shell budget of this fragment (see the uniform comment above). Shell
+    //index = m_Layer * MaxLayers on the fixed shell grid; the base ground
+    //pass (m_Layer == 0) always passes. Discarding here skips the mask
+    //fetch for every fully-faded shell, so the prefix shells the CPU still
+    //renders for far patches cost almost no fragment work.
     float shellFade = clamp(m_LodA - m_LodB * distToPlayer
             - m_Layer * m_MaxLayers + 1.0, 0.0, 1.0);
     if (shellFade < m_AlphaCutoff) {
@@ -188,11 +145,11 @@ void main() {
         discard;
     }
 
-    //grass v1: distance density falloff - cull WHOLE blades beyond
-    //DensityStart world units from the player. One hash cell ~= one blade
-    //dot footprint; the nested mask slices keep every blade's dots at the
-    //same (x, y), so the cell hash is constant per blade column and whole
-    //blades vanish (no per-shell flicker, pattern frozen in world space).
+    //Distance density falloff: cull WHOLE blades beyond DensityStart world
+    //units from the player. One hash cell ~= one blade dot footprint; the
+    //nested mask slices keep every blade's dots at the same (x, y), so the
+    //cell hash is constant per blade column and whole blades vanish (no
+    //per-shell flicker, pattern frozen in world space).
     float densityKeep = mix(1.0, m_DensityMin,
             smoothstep(m_DensityStart, max(m_DensityEnd, m_DensityStart + 0.001), distToPlayer));
     if (densityKeep < 1.0) {
@@ -205,9 +162,9 @@ void main() {
     float maskAlpha = sampledAlpha;
 
     if (m_DebugForceAll <= 0.5) {
-        // Phase 2: altitude gating.
-        // Below the water level (with a small smooth shoreline transition)
-        // and on hills/mountains above the grass line - no grass at all.
+        // Altitude gating: below the water level (with a small smooth
+        // shoreline transition) and on hills/mountains above the grass
+        // line - no grass at all.
         if (worldHeight < m_WaterLevel - 3.0 || worldHeight > m_GrassMaxHeight) {
             discard;
         }
@@ -223,10 +180,10 @@ void main() {
         float heightFade = smoothstep(m_WaterLevel, m_WaterLevel + max(m_ShoreBand, 0.0001), worldHeight)
                 * (1.0 - smoothstep(m_GrassMaxHeight - 15.0, m_GrassMaxHeight, worldHeight));
 
-        // Phase 3: texture gate. Grass grows wherever NO other terrain
-        // texture outweighs the grass texture on this ground texel (the
-        // weights were replicated 1:1 from the HeightBasedTerrain fragment
-        // shader in the vertex shader):
+        // Texture gate: grass grows wherever NO other terrain texture
+        // outweighs the grass texture on this ground texel (the weights
+        // were replicated 1:1 from the HeightBasedTerrain fragment shader
+        // in the vertex shader):
         //  - dirt region weight wins  -> dirt/sand band: no grass;
         //  - rock region weight wins  -> rock band: no grass;
         //  - slope-rock share wins    -> cliffs painted with the slope rock
@@ -247,8 +204,8 @@ void main() {
         maskAlpha = sampledAlpha * heightFade * texFade;
     }
 
-    //grass v3: continuous distance LOD - the shell fades out where the
-    //budget crosses its index (see the uniform comment above).
+    //Continuous distance LOD: the shell fades out where the budget crosses
+    //its index (see the uniform comment above).
     maskAlpha *= shellFade;
 
     // Blades thin out towards the edge of the grass radius (always enforced).
@@ -266,12 +223,11 @@ void main() {
     vec4 color = textureLod(m_GrassTexture, groundUV, 0.0);
 
     // Vertical gradient: darker near the ground, slightly brighter at the
-    // tips, with a per-blade-cluster brightness variation. This keeps the
-    // blades readable against the identically colored ground.
-    //grass v1 tone pairing: softer gradient (stems 0.74, tips 1.02..1.14,
-    //was 0.66..1.22) x ToneMatch (0.85) puts the blade tone inside the
-    //distant landscape tone; the tips no longer render brighter than
-    //the terrain texel itself (was up to 1.22x + glow).
+    // tips (stems 0.74, tips 1.02..1.14 x ToneMatch), with a per-blade-
+    // cluster brightness variation. This keeps the blades readable against
+    // the identically colored ground and puts the blade tone inside the
+    // distant landscape tone (the terrain reads ~0.73x of its raw texels
+    // through slope blending + shadows).
     color.rgb *= mix(0.74, 1.02 + grassTint * 0.12, m_Layer) * m_ToneMatch;
 
     //Brightness multiplier (1.0 = exactly the terrain palette; raise it if

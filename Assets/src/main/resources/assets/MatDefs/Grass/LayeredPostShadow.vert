@@ -5,7 +5,7 @@
 // scene.
 //
 // The vertex displacement below is a BIT-EXACT copy of Layered.vert (shell
-// lifting, edge sink, wind sway + the v2 sway distance fade, applied at the
+// lifting, edge sink, wind sway + the sway distance fade, applied at the
 // same places with the same uniforms). This is what makes the shadow pass land
 // exactly on the pixels the main pass drew: the depth test (LEQUAL + the
 // small PolyOffset from the technique render state) then lets exactly ONE
@@ -42,11 +42,11 @@ uniform float m_FadeStart;
 uniform vec3 m_PlayerPosition;
 //field shape: edge sink
 uniform float m_EdgeHeightStart;
-//grass v1: world size of ONE mask tile (see Layered.vert)
+//world size of ONE mask tile (see Layered.vert)
 uniform float m_MaskWorldSpan;
 
-//grass v2: wind sway distance fade (see Layered.vert; MUST stay identical
-//to the main pass so the receive pass lands on the same pixels)
+//wind sway distance fade (see Layered.vert; MUST stay identical to the
+//main pass so the receive pass lands on the same pixels)
 uniform float m_SwayFadeStart;
 uniform float m_SwayFadeEnd;
 
@@ -75,8 +75,8 @@ varying float groundUp;
 //w = slope-rock share of the terrain color (see Layered.vert)
 varying vec4 groundMix;
 
-//grass v1: world-anchored mask coordinates + player distance for the
-//whole-blade density culling in the fragment shader
+//world-anchored mask coordinates + player distance for the whole-blade
+//density culling in the fragment shader
 varying vec2 maskUV;
 varying float distToPlayer;
 
@@ -126,7 +126,7 @@ void main() {
 
     texCoord = inTexCoord;
 
-    //grass v1: world-anchored mask coordinates (see Layered.vert)
+    //world-anchored mask coordinates (see Layered.vert)
     maskUV = worldPos.xz / max(m_MaskWorldSpan, 0.0001);
 
     // ------------------------------------------------------------------
@@ -200,7 +200,7 @@ void main() {
         swayDir = vec3(0.0, 0.0, 1.0);
     }
 
-    //grass v2: distance fade of the sway - identical formula, uniforms and
+    //Distance fade of the sway - identical formula, uniforms and
     //distToPlayer as Layered.vert so the two passes stay bit-exact.
     float swayFade = 1.0 - smoothstep(m_SwayFadeStart, m_SwayFadeEnd, distToPlayer);
 

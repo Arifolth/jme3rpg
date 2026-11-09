@@ -108,18 +108,18 @@ public class Constants {
     // Number of grass layers (shells). More layers = denser/longer grass but slower
     public static final int GPU_GRASS_LAYERS = 45;
     // Grass is rendered within this radius around the player (~500 feet)
-    public static final float GPU_GRASS_DISTANCE = 350f;
+    public static final float GPU_GRASS_DISTANCE = 275f;
     // Grass starts to thin out at this fraction of the grass distance
-    public static final float GPU_GRASS_FADE_START_RATIO = 0.15f;
+    public static final float GPU_GRASS_FADE_START_RATIO = 0.85f;
     // Adaptive layer LOD: full layers within this fraction of the radius...
-    public static final float GPU_GRASS_FULL_LAYERS_RATIO = 0.15f;
+    public static final float GPU_GRASS_FULL_LAYERS_RATIO = 0.25f;
     // grass v2: wind sway dies out AT the full-layers border. The sway
     // amplitude is full up to (GPU_GRASS_FULL_LAYERS_RATIO -
     // GPU_GRASS_SWAY_FADE_RATIO) of the grass distance, then fades
     // smoothly to EXACTLY zero at GPU_GRASS_FULL_LAYERS_RATIO - every
     // shell beyond the inner circle stands perfectly still (no
     // wind-driven "moving dots" at high distance).
-    public static final float GPU_GRASS_SWAY_FADE_RATIO = 0.06f;
+    public static final float GPU_GRASS_SWAY_FADE_RATIO = 0.05f;
     // ...down to this fraction of layers at the edge, never fewer than MIN
     public static final float GPU_GRASS_MIN_LAYERS_RATIO = 0.125f;
     public static final int GPU_GRASS_MIN_LAYERS = 1;
@@ -140,7 +140,7 @@ public class Constants {
     // The mask is sampled through WORLD-space coordinates (see the
     // maskUV varying), so blade width and shape are independent of the
     // terrain patch size and of the view distance settings.
-    public static final float GPU_GRASS_MASK_WORLD_SPAN = 16.0f;
+    public static final float GPU_GRASS_MASK_WORLD_SPAN = 8.0f;
     // World-space Y safety cap above which grass never grows. The REAL
     // grass/dirt/rock placement is decided by the texture-dominance gate
     // below, which replicates the HeightBasedTerrain region blending - this
@@ -232,7 +232,7 @@ public class Constants {
     // count at DensityEnd and staying that sparse to the grass edge.
     // Fixes the "ocean of floating dots" look of the 50..200 band; the
     // near field (<= 50) keeps full density.
-    public static final float GPU_GRASS_DENSITY_START = 50f;
+    public static final float GPU_GRASS_DENSITY_START = 30f;
     // Distance (as a fraction of GrassDistance) where the thinning ends.
     public static final float GPU_GRASS_DENSITY_END_RATIO = 0.75f;
     // Fraction of blades kept in the sparse zone (0.3 = 70% culled).

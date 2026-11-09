@@ -1,39 +1,26 @@
-// Layered shell grass - vertex shader.
-// Ported from https://github.com/Arifolth/jme3-grass-shader (GLSL 1.10/1.30 era)
-// to jMonkeyEngine 3.9.0-stable.
+// Layered shell grass - vertex shader (jME 3.9, GLSL 130).
+// Ported from https://github.com/Arifolth/jme3-grass-shader.
+// GLSL version differences (attribute/varying/texture2D/gl_FragColor) are
+// mapped by the imported Common/ShaderLib/GLSLCompat.glsllib.
 //
-// Key changes versus the original shader:
-//  - imports Common/ShaderLib/GLSLCompat.glsllib so the same source compiles
-//    cleanly for any GLSL version the engine selects (attribute/varying/
-//    texture2D/gl_FragColor are mapped by the compat layer);
-//  - the GL_EXT_gpu_shader4 extension was removed: the random noise was
-//    rewritten with extension-free float math (int bit operations are the
-//    reason the original failed to compile on modern drivers / Mesa);
-//  - grass is now centered on the PLAYER (m_PlayerPosition) instead of the
-//    camera and fades out smoothly between m_FadeStart and m_GrassDistance;
-//  - world height and the world-space ground normal are passed to the
-//    fragment shader so grass can be restricted to flat green lowlands
-//    (no grass on hills/mountains and under the water level);
-//  - the per-light vertex lighting was removed: the original computed
-//    lightIntensity from g_LightPosition but the fragment shader never used it.
-//  - ANJRpg Phase 3: the vertex shader replicates the EXACT texture region
-//    weights of the stock HeightBasedTerrain fragment shader (same linear
-//    region falloff over world height, same model-space-normal slope blend)
-//    and passes them to the fragment shader (varying groundMix), so grass
-//    only grows where the terrain actually shows the grass texture - or no
-//    region texture at all - and never where dirt, rock or slope-rock wins.
-//  - it also computes the same texture UV the terrain shader uses for the
-//    grass region (worldPos.xz / terrainSize * grassScale), so the grass
-//    shells sample the very same texels the ground below them shows -> the
-//    blade palette matches the landscape palette exactly.
-//  - ANJRpg Phase 4 (field shape): the blades SINK INTO THE GROUND towards
-//    the edge of the grass circle (from EdgeHeightStart out to
-//    GrassDistance) so the field melts into the terrain texture instead of
-//    ending at a visible wall.
-//  - grass v2: wind sway only inside the full-layers circle. The sway
-//    amplitude fades to EXACTLY zero at SwayFadeEnd (= GrassDistance *
-//    GPU_GRASS_FULL_LAYERS_RATIO) and every shell beyond it stands
-//    perfectly still - distant grass can no longer read as moving dots.
+// One grass blade is built by stacking displaced copies of the terrain mesh
+// ("shells"): every shell is lifted towards the blade tip, bent by the wind
+// and masked per fragment with one slice of a 3D blade mask (Layered.frag).
+//
+// This vertex shader, in order:
+//   1. world position of the vertex
+//   2. groundUV  - the terrain shader's own grass-region UV, so every shell
+//      samples the same texel the ground below it shows (palette match)
+//   3. maskUV    - world-anchored blade-mask coordinates (one tile per
+//      MaskWorldSpan world units, independent of the terrain texcoords)
+//   4. groundMix - the HeightBasedTerrain region weights, replicated 1:1
+//      (height falloff over WORLD height + MODEL-space-normal slope blend),
+//      so Layered.frag grows grass exactly where the terrain paints grass
+//   5. distToPlayer + fadeFactor - smooth thinning of the field between
+//      FadeStart and GrassDistance (grass circle centered on the PLAYER)
+//   6. edgeShrink - blades sink into the ground towards the field edge
+//   7. shell lift (Layer * Length) + wind sway (noise-patched direction,
+//      distance-faded) + tip curve, then clip space
 
 #import "Common/ShaderLib/GLSLCompat.glsllib"
 
@@ -41,10 +28,10 @@ uniform mat4 g_WorldViewProjectionMatrix;
 uniform mat4 g_WorldViewMatrix;
 uniform mat4 g_WorldMatrix;
 //CPU-computed inverse-transpose of the world matrix upper-left 3x3
-//(engine UniformBinding: worldMatrix.toRotationMatrix().invert().transpose()).
-//Mathematically identical to the transpose(inverse(mat3(g_WorldMatrix))) the
-//vertex shader used to build per vertex - but computed once per frame on the
-//CPU instead of ~100 ALU ops per vertex (x layers x passes).
+//(engine UniformBinding: worldMatrix.toRotationMatrix().invert().transpose()),
+//i.e. transpose(inverse(mat3(g_WorldMatrix))): maps model-space normals to
+//world space correctly under the non-uniform terrain scale, as a single
+//mat3 multiply per vertex.
 uniform mat3 g_WorldNormalMatrix;
 
 //Camera world position (engine WorldParameters binding) - source of the
@@ -65,14 +52,16 @@ uniform float m_FadeStart;
 uniform vec3 m_PlayerPosition;
 //field shape: edge sink
 uniform float m_EdgeHeightStart;
-//grass v1: world size of ONE mask tile. The mask is sampled through
-//world-anchored coordinates, so blade width and shape stay constant
+//world size of ONE mask tile. The mask is sampled through world-anchored
+//coordinates, so blade width, shape and placement stay fixed to the
+//landscape and never swim with the per-tile texcoords
 uniform float m_MaskWorldSpan;
 
-//grass v2: wind sway distance fade. Full sway up to m_SwayFadeStart,
-//smoothly fading, EXACTLY 0.0 from m_SwayFadeEnd outwards. Kept in
-//lockstep with LayeredPostShadow.vert (the displacement must stay a
-//bit-exact copy between the two passes).
+//wind sway distance fade. Full sway up to m_SwayFadeStart, smoothly
+//fading to EXACTLY 0.0 from m_SwayFadeEnd outwards (= GrassDistance *
+//GPU_GRASS_FULL_LAYERS_RATIO, the full-layers border). Kept in lockstep
+//with LayeredPostShadow.vert (the displacement must stay a bit-exact
+//copy between the two passes).
 uniform float m_SwayFadeStart;
 uniform float m_SwayFadeEnd;
 
@@ -98,17 +87,15 @@ varying float grassTint;
 varying vec4 groundMix;
 //Backlight translucency: direction from the shell to the camera. The field
 //is smooth over the (large) terrain triangles and is normalized per fragment
-//in Layered.frag. NEW varying - it does not touch the semantics of any
-//existing per-fragment computation (the iter11 quad-pattern rule).
+//in Layered.frag.
 varying vec3 viewDirW;
-//grass v1: world-anchored mask coordinates + player distance for the
-//whole-blade density culling in the fragment shader
+//world-anchored mask coordinates + player distance for the whole-blade
+//density culling in the fragment shader
 varying vec2 maskUV;
 varying float distToPlayer;
 
-// Integer-free hash: returns a pseudo random value in the 0..1 range.
-// Replacement for the original LFSR_Rand_Gen which required integer bit
-// operations from the GL_EXT_gpu_shader4 extension.
+// Integer-free hash: returns a pseudo random value in the 0..1 range
+// using float math only (no integer bit operations, no extensions).
 float hash13(vec3 p) {
     p = fract(p * 0.3183099 + vec3(0.1, 0.2, 0.3));
     p *= 17.0;
@@ -144,8 +131,8 @@ void main() {
     // carry exactly the ground color it stands on.
     groundUV = worldPos.xz / max(m_TerrainSize, 1.0) * m_GrassUVScale;
 
-    //grass v1: world-anchored mask coordinates - one tile per
-    //m_MaskWorldSpan world units, independent of per-tile texcoords
+    //world-anchored mask coordinates - one tile per m_MaskWorldSpan world
+    //units, independent of the per-tile texcoords
     maskUV = worldPos.xz / max(m_MaskWorldSpan, 0.0001);
 
     // ------------------------------------------------------------------
@@ -166,10 +153,8 @@ void main() {
     // With THIS game's regions (grass 15..200, dirt 0..20, rock 198..260)
     // the weights are: grass = 0 below height 15 (rising towards 200),
     // dirt = only the 0..40 band, rock = unreachable. The shoreline below
-    // height 0 gets NO region texture at all. The fragment shader therefore
-    // lets grass grow where no texture outweighs the grass texture, instead
-    // of demanding a normalized grass share (which wiped out every blade in
-    // the lowlands - the "no grass at all" regression).
+    // height 0 gets NO region texture at all. Layered.frag therefore lets
+    // grass grow wherever no other texture outweighs the grass texture.
     // ------------------------------------------------------------------
     float height = worldPos.y;
 
@@ -206,12 +191,9 @@ void main() {
     float edgeShrink = 1.0 - smoothstep(edgeStart, m_GrassDistance, distToPlayer);
 
     // World-space ground normal, correct under the non-uniform terrain
-    // scale (TERRAIN_SCALE_X/Y/Z). g_WorldNormalMatrix is the engine's
-    // CPU-computed transpose(inverse(mat3(g_WorldMatrix))) of the upper-left
-    // 3x3 - the exact matrix the per-vertex expression below used to build
-    // (inverse() is a ~100 ALU cofactor expansion, per vertex, per layer,
-    // per pass), now computed once per frame on the CPU and applied with a
-    // single mat3 multiply.
+    // scale (TERRAIN_SCALE_X/Y/Z): g_WorldNormalMatrix is the engine's
+    // CPU-computed transpose(inverse(mat3(g_WorldMatrix))) of the
+    // upper-left 3x3.
     vec3 wNormal = normalize(g_WorldNormalMatrix * inNormal);
     groundUp = wNormal.y;
 
@@ -226,8 +208,7 @@ void main() {
     // Stable per-cell tint so blade clusters differ slightly in brightness.
     grassTint = hash13(floor(worldPos.xzy * 0.5));
 
-    // Blade height scale: only the edge sink. Blade lengths stay uniform (a
-    // noise-patch height variation was tried and reverted: rugged carpet).
+    // Blade height scale: only the edge sink (blade lengths stay uniform).
     float bladeScale = edgeShrink;
 
     // Vertical shell displacement: every layer is lifted towards the grass tip.
@@ -253,9 +234,9 @@ void main() {
         swayDir = vec3(0.0, 0.0, 1.0);
     }
 
-    //grass v2: distance fade of the sway. distToPlayer is already computed
-    //above (the same value the density cull uses); 1.0 inside the inner
-    //circle, exactly 0.0 beyond SwayFadeEnd.
+    //Distance fade of the sway: full sway inside the inner circle, exactly
+    //0.0 beyond SwayFadeEnd (distToPlayer is already computed above - the
+    //same value the density cull uses).
     float swayFade = 1.0 - smoothstep(m_SwayFadeStart, m_SwayFadeEnd, distToPlayer);
 
     // Bend in world space (X or Z), converted to view space.
