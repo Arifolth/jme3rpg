@@ -33,6 +33,7 @@ import com.jme3.water.WaterFilter;
 import ru.arifolth.anjrpg.filters.FSRCASFilter;
 import ru.arifolth.anjrpg.filters.FilmGrainFilter;
 import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.terrain.grass.GpuGrassMaterial;
 
 public class FilterManager implements FilterManagerInterface {
 
@@ -75,9 +76,18 @@ public class FilterManager implements FilterManagerInterface {
         setupBloomFilter();
         setupToneMapFilter();
 
-        setupFilmGrainFilter();
-        setupFSRCASFilter();
         setupFXAAFilter();
+
+        setupFSRCASFilter();
+        setupGammaCorrectionFilter();
+        // NOTE: the film grain filter is deliberately NOT added here.
+        // FilterPostProcessor executes filters in the order they were
+        // added and the last enabled filter's output goes to the screen,
+        // so anything appended later composites OVER the grained image.
+        // The WaterFilter is appended later (initialize()), so grain
+        // added here ran before the water and the water pass kept
+        // repainting clean, ungrained pixels over it - the "water is not
+        // affected by film grain" bug. See initialize().
 
         viewPort.addProcessor(fpp);
 
@@ -117,11 +127,20 @@ public class FilterManager implements FilterManagerInterface {
 
         setupWaterFilter();
 
-        setupGammaCorrectionFilter();
+        // Film grain goes LAST, after the water: the add order above is
+        // the render order, so the grain is now applied to the FINAL
+        // image - scene, water and god rays - instead of being painted
+        // over by the water pass. As the final filter it also receives
+        // display-ready (already gamma-encoded) colors, which is the
+        // space film_grain.frag v5 weights its grain in. Fog, appended at
+        // runtime by the weather, blends toward fog color only where the
+        // fog is dense and passes the grained pixels through untouched.
+        setupFilmGrainFilter();
     }
 
     private void setupFilmGrainFilter() {
         filmGrainFilter = new FilmGrainFilter(application);
+        filmGrainFilter.setGrainRate(30f);
         fpp.addFilter(filmGrainFilter);
     }
 
@@ -215,5 +234,9 @@ public class FilterManager implements FilterManagerInterface {
         lsf.setLightPosition(sky.getSunDirection().normalize().normalize().mult(500));
         pssmRenderer.setDirection(sky.getSunDirection().negate().normalize().mult(500));
         waterFilter.setLightDirection(sky.getSunDirection().normalize().mult(500));
+        //Backlight translucency: same live sun direction source as the other
+        //sun-driven effects; GpuGrassMaterial computes the glow axis and the
+        //day-night fade once per frame for all material clones.
+        GpuGrassMaterial.setSharedSunDirection(sky.getSunDirection());
     }
 }

@@ -1,0 +1,235 @@
+MaterialDef Layered {
+
+    // GPU layered-shell grass material for ANJRpg.
+    // Ported from https://github.com/Arifolth/jme3-grass-shader (jME 3.1 - 3.7 era)
+    // to jMonkeyEngine 3.9.0-stable.
+    //
+    // The terrain geometry is re-rendered once per grass layer. Every layer is
+    // displaced vertically in the vertex shader and masked in the fragment
+    // shader with a 3D mask texture (one slice per layer), producing dense
+    // swaying grass. The grass is only drawn:
+    //  - inside a radius around the player (GrassDistance, smooth fade from FadeStart)
+    //  - above the water level (WaterLevel)
+    //  - below the hill/mountain cutoff (GrassMaxHeight)
+    //  - on flat-enough ground (MinGroundUp, 1 = perfectly flat)
+    //  - ONLY where the terrain TEXTURE allows it: the same height/normal
+    //    region weights the stock HeightBasedTerrain.frag uses to blend the
+    //    grass/dirt/rock textures are replicated in the vertex shader; grass
+    //    is only grown where NO other texture (dirt/rock/slope-rock)
+    //    outweighs the grass texture (smooth GrassShareFade band). Ground
+    //    painted with NO region texture at all is grass-eligible when
+    //    AllowOnUntextured is on.
+    //
+    // The grass is drawn as an ALPHA-CUTOUT surface (no blending, depth
+    // write ON): fully transparent parts are discarded in the fragment
+    // shader below AlphaCutoff. Because the blades write real depth, the
+    // player, trees and all other objects interleave correctly with the
+    // grass (some blades in front of the player's legs, some behind).
+
+    MaterialParameters {
+        Float Layer
+        Float Length
+        Float MaskScale
+        Float Time
+        //HeightBasedTerrain synchronization (auto-copied from the base
+        //terrain material by GpuGrassMaterial.setBaseMaterial())
+        Float TerrainSize
+        Float GrassUVScale
+        Float GrassRegionMin
+        Float GrassRegionMax
+        Float DirtRegionMin
+        Float DirtRegionMax
+        Float RockRegionMin
+        Float RockRegionMax
+        //grass must not be outweighed by dirt/rock/slope-rock to grow here;
+        //AllowOnUntextured decides whether untextured ground (no region
+        //weight) may carry grass too
+        Float AllowOnUntextured
+        Float GrassShareFade
+        //alpha-cutout threshold (0..1); fragments below it are discarded
+        Float AlphaCutoff
+        //global tone multiplier pairing the blade color with the distant
+        //landscape grass texture (1.0 = raw terrain texel palette)
+        Float ToneMatch
+        //world size of ONE blade-mask tile (blade width/shape scale; the
+        //mask is sampled world-anchored, settings-independent)
+        Float MaskWorldSpan
+        //whole-blade density culling from DensityStart out to DensityEnd
+        //world units from the player, down to DensityMin
+        Float DensityStart
+        Float DensityEnd
+        Float DensityMin
+        //wind sway fades out between SwayFadeStart and SwayFadeEnd world
+        //units from the player and is exactly zero beyond SwayFadeEnd
+        //(= GrassDistance * GPU_GRASS_FULL_LAYERS_RATIO)
+        Float SwayFadeStart
+        Float SwayFadeEnd
+        //continuous shell-budget LOD (see Layered.frag).
+        //budget(d) = LodA - LodB * d = shells visible at d world units;
+        //MaxLayers = the numLayers the fixed shell grid is normalized by.
+        Float LodA
+        Float LodB
+        Float MaxLayers
+        Float WaveSpeed
+        Float WaveSize
+        Float GrassDistance
+        Float FadeStart
+        Float WaterLevel
+        //bare band above the water level: blades fade in from the waterline
+        //up to WaterLevel + ShoreBand (0 = grass right up to the water)
+        Float ShoreBand
+        //field shape: blades sink into the ground from EdgeHeightStart
+        //(world units from the player) out to GrassDistance
+        Float EdgeHeightStart
+        Float GrassMaxHeight
+        Float MinGroundUp
+        Vector3 PlayerPosition
+        Texture2D GrassMask
+        Texture2D GrassTexture
+        Texture3D ThreeDTex
+        Boolean Wave
+        //Diagnostics: 1.0 = bypass water/height/slope/mask gates (example project mode)
+        Float DebugForceAll
+        //Diagnostics: brightness multiplier for the unlit shells (1.0 = off)
+        Float DebugBrightness
+        // ===== PSSM shadow receiving (PostShadow technique) =====
+        // These are pushed onto this material by PssmShadowRenderer.setMatParams()
+        // every frame; the values mirror the engine's Common/MatDefs/Shadow/PostShadow.j3md.
+        Texture2D ShadowMap0
+        Texture2D ShadowMap1
+        Texture2D ShadowMap2
+        Texture2D ShadowMap3
+        Matrix4 LightViewProjectionMatrix0
+        Matrix4 LightViewProjectionMatrix1
+        Matrix4 LightViewProjectionMatrix2
+        Matrix4 LightViewProjectionMatrix3
+        Vector4 Splits
+        Float ShadowIntensity
+        Float PCFEdge
+        Float ShadowMapSize
+        Int FilterMode
+        Boolean HardwareShadows
+        Vector2 FadeInfo
+        // ===== Backlight translucency (sun through the blade tips) =====
+        // Pushed onto the material by GpuGrassMaterial on every main-pass
+        // render (CPU-side computation: see setSharedSunDirection).
+        Vector3 TransSunH
+        Vector3 TransSunColor
+        Float TransStrength
+        Float TransPower
+        Float TransTipStart
+    }
+
+    Technique {
+
+        VertexShader GLSL130:   MatDefs/Grass/Layered.vert
+        FragmentShader GLSL130: MatDefs/Grass/Layered.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldViewMatrix
+            WorldMatrix
+            WorldNormalMatrix
+            //per-vertex view direction for the backlight translucency glow
+            CameraPosition
+        }
+
+        Defines {
+            WAVE : Wave
+            THREEDTEX : ThreeDTex
+        }
+
+        RenderState {
+            //Alpha cutout: no blending, blades write depth so scene objects
+            //(player, trees, ...) depth-sort against them per fragment
+            DepthTest On
+            DepthWrite On
+            FaceCull Off
+        }
+    }
+
+    Technique PreShadow {
+
+        VertexShader GLSL100 :   Common/MatDefs/Shadow/PreShadow.vert
+        FragmentShader GLSL100 : Common/MatDefs/Shadow/PreShadow.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldViewMatrix
+        }
+
+        RenderState {
+            FaceCull Off
+            DepthTest On
+            DepthWrite On
+            PolyOffset 5 0
+            ColorWrite Off
+        }
+
+    }
+
+    // Required so the terrain keeps being rendered into the SSAO normal pass
+    // (the SSAO filter forces the "PreNormalPass" technique by name; materials
+    // that do not declare it are skipped by the normal pass).
+    // Same technique the engine's own Lighting.j3md declares.
+    Technique PreNormalPass {
+
+        VertexShader GLSL100 :   Common/MatDefs/SSAO/normal.vert
+        FragmentShader GLSL100 : Common/MatDefs/SSAO/normal.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldViewMatrix
+            NormalMatrix
+        }
+
+        RenderState {
+
+        }
+
+    }
+
+    // Shadow RECEIVING for the PssmShadowRenderer post pass. The renderer
+    // forces the "PostShadow" technique by name on every shadow-receiving
+    // geometry (terrain tiles are CastAndReceive) and pushes the shadow map
+    // / split parameters (above) onto this material. Our shader re-draws the
+    // ground (Layer == 0) and every grass shell (Layer > 0) with the SAME
+    // displacement and the SAME discard gates as the main technique, so the
+    // shadow factor lands exactly on the pixels the main pass drew.
+    Technique PostShadow {
+
+        VertexShader GLSL130:   MatDefs/Grass/LayeredPostShadow.vert
+        FragmentShader GLSL130: MatDefs/Grass/LayeredPostShadow.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldViewMatrix
+            WorldMatrix
+            WorldNormalMatrix
+        }
+
+        Defines {
+            WAVE : Wave
+            THREEDTEX : ThreeDTex
+            HARDWARE_SHADOWS : HardwareShadows
+            FILTER_MODE : FilterMode
+            PCFEDGE : PCFEdge
+            SHADOWMAP_SIZE : ShadowMapSize
+            FADE : FadeInfo
+            PSSM : Splits
+        }
+
+        RenderState {
+            //Same post-pass state the engine's PostShadow.j3md uses:
+            //multiply the shadow factor into the rendered frame, do not
+            //touch depth (PolyOffset wins the equal-depth fight for the
+            //shell that owns the pixel)
+            Blend Modulate
+            DepthTest On
+            DepthWrite Off
+            PolyOffset -0.1 0
+            FaceCull Off
+        }
+    }
+
+}

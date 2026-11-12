@@ -100,6 +100,183 @@ public class Constants {
     public static final float STAMINA_CONSUMPTION_RUN = 20f; // per second when running
     public static final float STAMINA_CONSUMPTION_JUMP = 15f; // per jump
 
+    // GPU grass (layered shell technique, ported from jme3-grass-shader)
+    // Master switch: renders GPU grass shells on top of the terrain
+    public static final boolean GPU_GRASS_ENABLED = true;
+    // When true, the billboard grass builder is skipped for new terrain tiles
+    public static final boolean GPU_GRASS_REPLACES_BILLBOARD_GRASS = true;
+    // Number of grass layers (shells). More layers = denser/longer grass but slower
+    public static final int GPU_GRASS_LAYERS = 45;
+    // Grass is rendered within this radius around the player (~500 feet)
+    public static final float GPU_GRASS_DISTANCE = 275f;
+    // Grass starts to thin out at this fraction of the grass distance
+    public static final float GPU_GRASS_FADE_START_RATIO = 0.85f;
+    // Adaptive layer LOD: full layers within this fraction of the radius...
+    public static final float GPU_GRASS_FULL_LAYERS_RATIO = 0.25f;
+    // grass v2: wind sway dies out AT the full-layers border. The sway
+    // amplitude is full up to (GPU_GRASS_FULL_LAYERS_RATIO -
+    // GPU_GRASS_SWAY_FADE_RATIO) of the grass distance, then fades
+    // smoothly to EXACTLY zero at GPU_GRASS_FULL_LAYERS_RATIO - every
+    // shell beyond the inner circle stands perfectly still (no
+    // wind-driven "moving dots" at high distance).
+    public static final float GPU_GRASS_SWAY_FADE_RATIO = 0.05f;
+    // ...down to this fraction of layers at the edge, never fewer than MIN
+    public static final float GPU_GRASS_MIN_LAYERS_RATIO = 0.125f;
+    public static final int GPU_GRASS_MIN_LAYERS = 1;
+    // Maximum grass height in world units (blade length). The original demo
+    // used 0.4 on an unscaled terrain; 0.8 reads well in this world (2x scale)
+    public static final float GPU_GRASS_LENGTH = 1.125f;
+    // Wind sway tuning
+    public static final float GPU_GRASS_WAVE_SPEED = 3.78f;
+    public static final float GPU_GRASS_WAVE_SIZE = 0.5f;
+    // Mask pattern frequency per terrain patch (blade density)
+    public static final float GPU_GRASS_MASK_SCALE = 64f;
+    // World size of ONE mask tile (the 200x200 texel random point pattern).
+    // 8 world units -> one mask texel = 4 cm -> a full-radius mask dot
+    // (radius 1.6 texels, drawn by GrassTextureFactory) is ~13 cm wide,
+    // which is wider than the vertical shell spacing (Length / layers =
+    // 10 cm): neighbouring shell dots overlap and every blade reads as ONE
+    // continuous straight stroke instead of a stack of detached dashes.
+    // The mask is sampled through WORLD-space coordinates (see the
+    // maskUV varying), so blade width and shape are independent of the
+    // terrain patch size and of the view distance settings.
+    public static final float GPU_GRASS_MASK_WORLD_SPAN = 8.0f;
+    // World-space Y safety cap above which grass never grows. The REAL
+    // grass/dirt/rock placement is decided by the texture-dominance gate
+    // below, which replicates the HeightBasedTerrain region blending - this
+    // cap only guards against pathological cases. Terrain heights top out
+    // around 128, so 150 keeps the cap out of the way while still catching
+    // extreme terrain setups.
+    public static final float GPU_GRASS_MAX_HEIGHT = 250f;
+    // Minimum world-space up component of the ground normal (1 = flat);
+    // ground tilted more than this is considered a cliff and gets no grass.
+    // Secondary safety net - the texture-share gate already removes grass on
+    // slopes steep enough for the rock slope texture to win.
+    public static final float GPU_GRASS_MIN_GROUND_UP = 0.72f;
+    // Smooth shoreline transition margin above the water level
+    public static final float GPU_GRASS_SHORE_MARGIN = 0.5f;
+    // Height above the water level that stays (almost) bare: blades fade in
+    // smoothly from zero at the waterline to full density at this height -
+    // a Morrowind-style wet shoreline without grass. 0 = grass right up to
+    // the water.
+    public static final float GPU_GRASS_SHORE_BAND = 10f;
+    // ===== Field shape tweak =====
+    // Blades start sinking into the ground at this fraction of the grass
+    // radius and are fully sunken at the edge: the grass field melts into
+    // the ground texture at the circle border instead of ending abruptly.
+    // (A noise-patch height variation was tried and REVERTED - it made the
+    // field look like a rugged carpet. Blade lengths are uniform.)
+    public static final float GPU_GRASS_EDGE_HEIGHT_START_RATIO = 0.45f;
+    // ===== Phase 3: texture-aware placement =====
+    // The grass shader replicates the exact region weights of the stock
+    // HeightBasedTerrain shader (grass/dirt/rock height ranges + slope blend)
+    // and grows grass wherever NO other texture outweighs the grass texture:
+    //   - dirt region weight > grass weight  -> dirt/sand band: no grass
+    //   - rock region weight > grass weight  -> rock band: no grass
+    //   - slope-rock share  > grass weight   -> cliffs: no grass
+    // BEWARE with THIS game's region setup: region1 = (15, 200) makes the
+    // stock formula paint the grass texture only ABOVE height 15 (rising
+    // towards 200), region2 = (0, 20) paints dirt only in the 0..40 band and
+    // region3/4 = (198, 260) are unreachable. Below height 0 - the shoreline
+    // and lowlands the player walks on - the stock shader paints NO region
+    // texture at all. The next switch decides whether grass may grow there.
+    public static final boolean GPU_GRASS_ALLOW_ON_UNTEXTURED = true;
+    // Width of the smooth transition band of the texture-dominance tests:
+    // blades thin out gradually over this range while another texture takes
+    // over the ground. Higher = softer borders between grass and dirt/rock.
+    public static final float GPU_GRASS_TEXTURE_SHARE_FADE = 0.15f;
+    // ALPHA CUTOUT threshold (0..1). The grass renders WITHOUT blending and
+    // WITH depth write: fragments whose mask alpha is below this value are
+    // discarded, everything else is drawn opaque and occupies real depth
+    // buffer space. This makes the player, trees and other objects interleave
+    // correctly with the grass (some blades in front of the player's legs,
+    // some behind). Higher = thinner/harder blades, lower = denser/softer.
+    public static final float GPU_GRASS_ALPHA_CUTOFF = 0.35f;
+    // Texture used to color the grass shells. DEFAULT = the terrain's own
+    // grass region texture (Textures/Terrain/splat/grass.jpg), sampled with
+    // the exact UV mapping of the terrain shader - the blade palette is then
+    // pixel-identical to the landscape palette. An empty string falls back
+    // to the procedural green noise of the original example project.
+    public static final String GPU_GRASS_TEXTURE_PATH = "Textures/Terrain/splat/grass.jpg";
+
+    // ===== GPU grass diagnostics (temporary - switch off once grass is confirmed working) =====
+    // Throttled INFO logging from GpuGrassMaterial: one summary line per interval,
+    // never per frame. Reports exactly which guard skips the grass (if any).
+    public static final boolean GPU_GRASS_DEBUG = false;
+    // Bypass the ENVIRONMENT gates in the shader (water level, altitude, slope,
+    // texture share) - grass renders everywhere inside the player radius,
+    // exactly like the original example project. The 3D blade mask is always
+    // applied (it is what shapes individual blades; skipping it renders solid
+    // walls instead). Leave FALSE for normal play; set to true only to verify
+    // the shader pipeline without any environment filtering.
+    public static final boolean GPU_GRASS_DEBUG_FORCE_ALL = false;
+    // Brightness multiplier applied to the grass shells.
+    // 1.0 = EXACTLY the terrain texture palette (recommended now that the
+    // shells sample the terrain grass texture anyway). Raise it (e.g. 1.3)
+    // only if the grass should stay visible on very dark nights.
+    public static final float GPU_GRASS_DEBUG_BRIGHTNESS = 1.0f;
+
+    // ===== GPU grass tone pairing + distance density (grass v1) =====
+    // Global multiplier that pairs the rendered grass tone with the
+    // distant landscape grass texture. The distant terrain reads darker
+    // than its raw texels (slope-rock blending + shadows), while the
+    // shells rendered the raw texel brightness (tips up to 1.22x + glow),
+    // which made the near field look brighter than the landscape around
+    // it. 0.85 pulls the blade tone down into the landscape tone while
+    // the base terrain pass (the ground between the blades) stays
+    // pixel-identical to the plain HeightBasedTerrain render.
+    public static final float GPU_GRASS_TONE_MATCH = 0.85f;
+    // Grass density distance falloff: blades are culled WHOLE (per mask
+    // column, stable hash - no flicker) beyond DensityStart world units
+    // from the player, thinning smoothly down to DensityMin of the blade
+    // count at DensityEnd and staying that sparse to the grass edge.
+    // Fixes the "ocean of floating dots" look of the 50..200 band; the
+    // near field (<= 50) keeps full density.
+    public static final float GPU_GRASS_DENSITY_START = 30f;
+    // Distance (as a fraction of GrassDistance) where the thinning ends.
+    public static final float GPU_GRASS_DENSITY_END_RATIO = 0.75f;
+    // Fraction of blades kept in the sparse zone (0.3 = 70% culled).
+    public static final float GPU_GRASS_DENSITY_MIN = 0.3f;
+    // Minimal interval between two GPU grass debug log lines (milliseconds)
+    public static final long GPU_GRASS_DEBUG_LOG_INTERVAL_MS = 5000;
+
+    // ===== GPU grass backlight translucency (sun through the blade tips) =====
+    // Master switch for the additive backlight glow on the upper blade shells
+    // (Layered.frag). The term is view-dependent (strongest looking towards
+    // the sun), concentrated on the blade tips by the shell-height mask and
+    // scaled by the terrain texel color (thin/light parts transmit more
+    // light). It respects PSSM shadows for free: the glow is added in the
+    // main pass and the shadow post pass modulates the whole pixel after.
+    // Cost: ~15 ALU per surviving blade fragment, no new texture fetches,
+    // no new passes, no new geometry.
+    public static final boolean GPU_GRASS_TRANSLUCENCY = true;
+    // Overall glow strength (0 = off). 0.35 = subtle reference-image look;
+    // the term is additionally scaled by (1 - texel color) and concentrated
+    // on the tips, so even 1.0 must not wash the field out.
+    public static final float GPU_GRASS_TRANSLUCENCY_STRENGTH = 0.35f;
+    // Sharpness of the view alignment response. 1.0 = soft half-field glow,
+    // 2.0 = clear hotspot towards the sun (recommended), 3.0+ = narrow beam
+    // (that narrowness - plus the noon sun killing the alignment - is why
+    // power 3.0 looked like "nothing" before the tip mask and the elevation
+    // floor existed).
+    public static final float GPU_GRASS_TRANSLUCENCY_POWER = 0.5f;
+    // Vertical bias added to the glow axis (pulls the response away from the
+    // pure sun direction towards the zenith).
+    public static final float GPU_GRASS_TRANSLUCENCY_DISTORTION = 0.35f;
+    // Shell height (0 = ground shell, 1 = top shell) where the tip glow
+    // starts to fade in. 0.55 = only the upper ~45% of every blade lights up.
+    // THE "tops of the blades are lit" dial: lower it to light more of each
+    // blade, raise it to keep only the very tips glowing.
+    public static final float GPU_GRASS_TRANSLUCENCY_TIP_START = 0.55f;
+    // Floor for the sun elevation used by the GLOW AXIS ONLY (the true sun
+    // keeps driving shadows/sky/water). Keeps the view alignment alive
+    // around noon, when the real sun is too high to ever give a backlit
+    // response. Must be >= 0 and < 1.
+    public static final float GPU_GRASS_TRANSLUCENCY_SUN_ELEVATION_FLOOR = 0.45f;
+    // Warm sun tint of the glow (late-afternoon sunlight through grass).
+    public static final com.jme3.math.Vector3f GPU_GRASS_TRANSLUCENCY_COLOR =
+            new com.jme3.math.Vector3f(1.0f, 0.86f, 0.62f);
+
     //HKEY_CURRENT_USER\Software\JavaSoft\Prefs\
 
     private Constants() {
