@@ -26,15 +26,12 @@ import com.simsilica.lemur.component.SpringGridLayout;
 import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
 import ru.arifolth.anjrpg.interfaces.SoundTypeEnum;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class SystemPanel implements MenuPanel {
     private Container container;
     private Container optionsListPanel;
     private Container subDetailPanel;
     private MenuPanel currentSubPanel;
-    private final Map<String, MenuPanel> subPanels = new HashMap<>();
+    private final LazyPanels subPanels = new LazyPanels();
     private Application app;
     private InGameMenuState parentMenu;
 
@@ -46,11 +43,12 @@ public class SystemPanel implements MenuPanel {
         this.parentMenu = parentMenu;
         this.lastSubPanel = initialSubPanel;
 
-        // Register sub-panels
-        subPanels.put("Video", new VideoPanel(app, this));
-        subPanels.put("Audio", new AudioPanel(app, this));
-        subPanels.put("Controls", new ControlsPanel(app, this));
-        subPanels.put("Gameplay", new GameplayPanel(app, this));
+        // Register sub-panels - built when first shown (see LazyPanels); Video and Controls alone are
+        // thirteen dropdowns, and at most one sub-panel is on screen at a time
+        subPanels.register("Video", () -> new VideoPanel(app, this));
+        subPanels.register("Audio", () -> new AudioPanel(app, this));
+        subPanels.register("Controls", () -> new ControlsPanel(app, this));
+        subPanels.register("Gameplay", () -> new GameplayPanel(app, this));
 
         // Main container uses BorderLayout to split into options list and detail area
         container = GameUI.createPanelContainer();

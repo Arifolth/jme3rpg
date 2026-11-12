@@ -24,15 +24,36 @@ import com.simsilica.lemur.component.BorderLayout;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MenuUtils {
-    private static Class clazz;
+    // KeyInput's constants never change, so they are read once instead of walking its fields with reflection on
+    // every call - the Controls panel alone made about two dozen such calls (one pass over every field of
+    // KeyInput, with setAccessible on each) every time it was built. The lookups return the first match, so all
+    // of these keep the order the fields are declared in.
+    private static final List<String> FIELD_NAMES = new ArrayList<>();        // every declared field
+    private static final List<String> STATIC_FIELD_NAMES = new ArrayList<>(); // the static ones
+    private static final Map<String, Integer> NAME_TO_KEY = new HashMap<>();
+    private static final Map<Integer, String> KEY_TO_NAME = new HashMap<>();
 
     static {
         try {
-            clazz = Class.forName("com.jme3.input.KeyInput");
-        } catch (ClassNotFoundException e) {
+            Class<?> clazz = Class.forName("com.jme3.input.KeyInput");
+            for (Field field : clazz.getDeclaredFields()) {
+                FIELD_NAMES.add(field.getName());
+                if (Modifier.isStatic(field.getModifiers())) {
+                    STATIC_FIELD_NAMES.add(field.getName());
+                }
+                if (field.getType() == int.class) {
+                    field.setAccessible(true);
+                    int value = field.getInt(clazz);
+                    NAME_TO_KEY.putIfAbsent(field.getName(), value);
+                    KEY_TO_NAME.putIfAbsent(value, field.getName());
+                }
+            }
+        } catch (ClassNotFoundException | IllegalAccessException e) {
             e.printStackTrace();
         }
     }
@@ -40,49 +61,32 @@ public class MenuUtils {
     private MenuUtils() {}
 
     public static String getKeyName(String name) throws NoSuchFieldException {
-        Field[] declaredFields = clazz.getDeclaredFields();
-        for (Field field : declaredFields) {
-            field.setAccessible(true);
-            if( field.getName().contains("_" + name)){
-                return field.getName();
+        for (String fieldName : FIELD_NAMES) {
+            if (fieldName.contains("_" + name)) {
+                return fieldName;
             }
         }
         throw new NoSuchFieldException(name);
     }
 
     public static String getKeyName(int key) throws NoSuchFieldException, IllegalAccessException {
-        Field[] declaredFields = clazz.getDeclaredFields();
-        for (Field field : declaredFields) {
-            field.setAccessible(true);
-            if( field.getInt(clazz) == key){
-                return field.getName();
-            }
+        String name = KEY_TO_NAME.get(key);
+        if (name == null) {
+            throw new NoSuchFieldException(String.valueOf(key));
         }
-        throw new NoSuchFieldException(String.valueOf(key));
+        return name;
     }
 
     public static int getKey(String name) throws NoSuchFieldException, IllegalAccessException {
-        Field[] declaredFields = clazz.getDeclaredFields();
-        for (Field field : declaredFields) {
-            field.setAccessible(true);
-            if( field.getName().equals(name)){
-                return field.getInt(clazz);
-            }
+        Integer key = NAME_TO_KEY.get(name);
+        if (key == null) {
+            throw new NoSuchFieldException(name);
         }
-        throw new NoSuchFieldException(name);
+        return key;
     }
 
     public static List<String> getAllKeyboardKeys() {
-        List<String> keys = new ArrayList<>();
-
-        Field[] declaredFields = clazz.getDeclaredFields();
-        for (Field field : declaredFields) {
-            field.setAccessible(true);
-            if( Modifier.isStatic(field.getModifiers())){
-//                System.out.println(field.getName());
-                keys.add(field.getName());
-            }
-        }
+        List<String> keys = new ArrayList<>(STATIC_FIELD_NAMES);
 
         keys.remove("KEY_ESCAPE");
         keys.remove("KEY_UNKNOWN");

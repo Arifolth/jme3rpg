@@ -30,20 +30,24 @@ import com.simsilica.lemur.component.QuadBackgroundComponent;
 import com.simsilica.lemur.component.SpringGridLayout;
 import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
 import ru.arifolth.anjrpg.interfaces.GameLogicCoreInterface;
+import ru.arifolth.anjrpg.interfaces.SoundTypeEnum;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class InGameMenuState extends BaseAppState {
     private Container mainWindow;
     private Container navLayout;
     private Container detailPanel;
     private MenuPanel currentPanel;
-    private final Map<String, MenuPanel> panels = new HashMap<>();
+    private final LazyPanels panels = new LazyPanels();
     private Node gui;
+    final private static Logger LOGGER = Logger.getLogger(InGameMenuState.class.getName());
     private GameLogicCoreInterface gameLogicCore;
     private ANJRpgInterface application;
     private PressAnyKeyState pressAnyKeyState;
+    private Texture bgNavPanelTexture;
+    private Texture bgDetailPanelTexture;
 
     // Stores the name of the last active sub-panel in the System menu
     private String lastSystemSubPanel;
@@ -59,12 +63,18 @@ public class InGameMenuState extends BaseAppState {
         gui = ((SimpleApplication) application).getGuiNode();
         pressAnyKeyState = getStateManager().getState(PressAnyKeyState.class);
 
+        // Read and decode the two background images now, while the game loads, not in the middle of the frame
+        // that handles ESC. Holding on to them also keeps the asset cache from letting them go.
+        bgNavPanelTexture = application.getAssetManager().loadTexture("Interface/rpg_background_panel.png");
+        bgDetailPanelTexture = application.getAssetManager().loadTexture("Interface/rpg_background_layout.png");
+
         // Note: Panels are no longer created here. They are created in onEnable()
         // to ensure fresh UI components and to pass the lastSystemSubPanel state.
     }
 
     @Override
     protected void onEnable() {
+        long started = System.nanoTime();
         gameLogicCore.getFreeFollowCamera().setEnabled(false);
         GuiGlobals.getInstance().requestCursorEnabled(this);
         gui.attachChild(pressAnyKeyState.getBackgroundPicture());
@@ -82,23 +92,23 @@ public class InGameMenuState extends BaseAppState {
         mainWindow.setPreferredSize(new Vector3f(localWidth, localHeight, 0));
 
         // --- FIX: Recreate panels on every enable to ensure fresh UI components ---
+        // Only registered here; each one is built the first time it is shown (see LazyPanels), so
+        // pressing ESC no longer builds the System panel's thirteen dropdowns that nobody is looking at.
         panels.clear();
-        panels.put("Equipment", new EquipmentPanel(application));
-        panels.put("Inventory", new InventoryPanel(application));
-        panels.put("Status", new StatusPanel(application));
-        panels.put("Journal", new JournalPanel(application));
-        panels.put("Worldmap", new WorldmapPanel(application));
+        panels.register("Equipment", () -> new EquipmentPanel(application));
+        panels.register("Inventory", () -> new InventoryPanel(application));
+        panels.register("Status", () -> new StatusPanel(application));
+        panels.register("Journal", () -> new JournalPanel(application));
 
         // Pass the remembered sub-panel name to SystemPanel so it can restore its state
-        panels.put("System", new SystemPanel(application, this, lastSystemSubPanel));
-        panels.put("Exit", new ExitPanel(application, this));
+        panels.register("System", () -> new SystemPanel(application, this, lastSystemSubPanel));
+        panels.register("Exit", () -> new ExitPanel(application, this));
         // ---------------------------------------------------------------------------
 
         // --- WEST SECTION (Navigation) ---
         Container navPanel = GameUI.createPanelContainer();
         navPanel.setLayout(new BorderLayout());
 
-        Texture bgNavPanelTexture = application.getAssetManager().loadTexture("Interface/rpg_background_panel.png");
         QuadBackgroundComponent navPanelBackground = new QuadBackgroundComponent(bgNavPanelTexture);
         navPanel.setBackground(navPanelBackground);
 
@@ -113,6 +123,7 @@ public class InGameMenuState extends BaseAppState {
         ActionButton backBtn = new ActionButton(new Action() {
             @Override
             public void execute(Button source) {
+                playMenuSound();
                 InGameMenuState.this.setEnabled(false);
             }
 
@@ -129,7 +140,6 @@ public class InGameMenuState extends BaseAppState {
         addNavButton("Inventory");
         addNavButton("Status");
         addNavButton("Journal");
-        addNavButton("Worldmap");
         addNavButton("System");
         addNavButton("Exit");
 
@@ -137,7 +147,6 @@ public class InGameMenuState extends BaseAppState {
         Container detailPanelOuter = GameUI.createPanelContainer();
         detailPanelOuter.setLayout(new BorderLayout());
 
-        Texture bgDetailPanelTexture = application.getAssetManager().loadTexture("Interface/rpg_background_layout.png");
         QuadBackgroundComponent detailPanelBackground = new QuadBackgroundComponent(bgDetailPanelTexture);
         detailPanelOuter.setBackground(detailPanelBackground);
 
@@ -157,12 +166,15 @@ public class InGameMenuState extends BaseAppState {
 
         gui.attachChild(mainWindow);
         GuiGlobals.getInstance().requestFocus(mainWindow);
+
+        LOGGER.log(Level.INFO, String.format("In-game menu built in %.2f ms", (System.nanoTime() - started) / 1_000_000.0));
     }
 
     private void addNavButton(String name) {
         ActionButton btn = new ActionButton(new Action() {
             @Override
             public void execute(Button source) {
+                playMenuSound();
                 showPanel(name);
             }
             @Override
@@ -175,13 +187,24 @@ public class InGameMenuState extends BaseAppState {
         navLayout.addChild(btn);
     }
 
+    private void playMenuSound() {
+        gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
+    }
+
     public void showPanel(String name) {
+        long started = System.nanoTime();
         if (currentPanel != null) {
             detailPanel.removeChild(currentPanel.getContainer());
         }
         currentPanel = panels.get(name);
         if (currentPanel != null) {
             detailPanel.addChild(currentPanel.getContainer(), BorderLayout.Position.Center);
+        }
+
+        // a panel is built the first time it is shown; say so if that took longer than a frame
+        double millis = (System.nanoTime() - started) / 1_000_000.0;
+        if (millis > 16.0) {
+            LOGGER.log(Level.INFO, String.format("Menu panel '%s' took %.2f ms to show", name, millis));
         }
     }
 
