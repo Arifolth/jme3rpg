@@ -29,9 +29,6 @@ import com.jme3.scene.Node;
 import com.jme3.system.AppSettings;
 import com.simsilica.lemur.OptionPanelState;
 import com.simsilica.lemur.event.PopupState;
-import de.lessvoid.nifty.elements.Element;
-import de.lessvoid.nifty.elements.render.TextRenderer;
-import de.lessvoid.nifty.tools.SizeValue;
 import ru.arifolth.anjrpg.events.EventBus;
 import ru.arifolth.anjrpg.interfaces.*;
 import ru.arifolth.anjrpg.menu.PressAnyKeyState;
@@ -44,9 +41,8 @@ import java.util.logging.Logger;
 
 public abstract class RolePlayingGame extends SimpleApplication implements RolePlayingGameInterface {
     protected String version;
-    protected Element progressBarElement;
-    protected TextRenderer textRenderer;
     private volatile float progress;
+    private LoadingProgressSink progressSink;
     final private static Logger LOGGER = Logger.getLogger(RolePlayingGame.class.getName());
     protected SkyInterface sky;
     private TerrainManagerInterface terrainManager;
@@ -101,7 +97,8 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
         throttledQueue = new ThrottledSceneGraphQueue(this);
     }
 
-    protected void loadResources() {
+    @Override
+    public void loadResources() {
         setupScreenCapture();
 
         attachTerrain();
@@ -221,25 +218,14 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     }
 
     public void setProgress(final String loadingText) {
-        if(loadingText.equals("Loading complete"))
+        if (loadingText.equals("Loading complete"))
             progress = 1f;
         else
-            progress += 0.1;
+            progress += 0.1f;
 
-        //Since this method is called from another thread, we enqueue the
-        //changes to the progressbar to the update loop thread.
-        enqueue(() -> {
-            final int MIN_WIDTH = 32;
-            int pixelWidth = (int) (MIN_WIDTH + (progressBarElement.getParent().getWidth() - MIN_WIDTH) * progress) * 2;
-            if(pixelWidth > progressBarElement.getParent().getWidth())
-                pixelWidth = progressBarElement.getParent().getWidth();
-            progressBarElement.setConstraintWidth(new SizeValue(pixelWidth + "px"));
-            progressBarElement.getParent().layoutElements();
-
-            textRenderer.setText(loadingText);
-
-            return null;
-        });
+        if (progressSink != null) {
+            progressSink.onProgress(progress, loadingText);
+        }
     }
 
     @Override
@@ -270,5 +256,15 @@ public abstract class RolePlayingGame extends SimpleApplication implements RoleP
     @Override
     public EventBus getEventBus() {
         return eventBus;
+    }
+
+    @Override
+    public BulletAppState getBulletAppState() {
+        return bulletAppState;
+    }
+
+    @Override
+    public void setProgressSink(LoadingProgressSink sink) {
+        this.progressSink = sink;
     }
 }

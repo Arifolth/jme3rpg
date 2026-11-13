@@ -13,113 +13,107 @@
   <name>Game Libraries</name>
 
     <properties>
-		<log4j-api.version>2.25.5</log4j-api.version>
-		<groovy.version>5.0.0-beta-1</groovy.version>
-		<sio2.version>1.8.0</sio2.version>
-		<guava.version>33.2.1-jre</guava.version>
-		<java.main.class>ru.arifolth.anjrpg.ANJRpg</java.main.class>
-	</properties>
+                <log4j-api.version>2.25.5</log4j-api.version>
+                <groovy.version>5.0.0-beta-1</groovy.version>
+                <sio2.version>1.8.0</sio2.version>
+                <guava.version>33.2.1-jre</guava.version>
+                <java.main.class>ru.arifolth.anjrpg.ANJRpg</java.main.class>
+        </properties>
 
-	<parent>
+        <parent>
     <groupId>ru.arifolth.game</groupId>
     <artifactId>Game</artifactId>
     <version>1.0-SNAPSHOT</version>
   </parent>
 
     <dependencies>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-slf4j-impl</artifactId>
-		</dependency>
+                <dependency>
+                        <groupId>org.apache.logging.log4j</groupId>
+                        <artifactId>log4j-api</artifactId>
+                </dependency>
+                <dependency>
+                        <groupId>org.apache.logging.log4j</groupId>
+                        <artifactId>log4j-core</artifactId>
+                </dependency>
+                <dependency>
+                        <groupId>org.apache.logging.log4j</groupId>
+                        <artifactId>log4j-slf4j-impl</artifactId>
+                </dependency>
 
-		<!-- The core library -->
-		<dependency>
-			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-core</artifactId>
-		</dependency>		
-		
-		<!-- LWJGL stuff -->
-		<dependency>
-			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-lwjgl3</artifactId>
-		</dependency>
+                <!-- The core library -->
+                <dependency>
+                        <groupId>${jme3.groupId}</groupId>
+                        <artifactId>jme3-core</artifactId>
+                </dependency>           
+                
+                <!-- LWJGL stuff -->
+                <dependency>
+                        <groupId>${jme3.groupId}</groupId>
+                        <artifactId>jme3-lwjgl3</artifactId>
+                </dependency>
 
-		<!-- Bullet stuff -->
-		<dependency>
-			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-jbullet</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-desktop</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-effects</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-networking</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-plugins</artifactId>
-		</dependency>		
-		<dependency>
-			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-terrain</artifactId>
-		</dependency>	
-		
-		<!-- Ogg audio stuff -->
-		<dependency>
-			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-jogg</artifactId>
-		</dependency>
+                <!-- Bullet stuff -->
+                <dependency>
+                        <groupId>${jme3.groupId}</groupId>
+                        <artifactId>jme3-jbullet</artifactId>
+                </dependency>
+                <dependency>
+                        <groupId>${jme3.groupId}</groupId>
+                        <artifactId>jme3-desktop</artifactId>
+                </dependency>
+                <dependency>
+                        <groupId>${jme3.groupId}</groupId>
+                        <artifactId>jme3-effects</artifactId>
+                </dependency>
+                <dependency>
+                        <groupId>${jme3.groupId}</groupId>
+                        <artifactId>jme3-networking</artifactId>
+                </dependency>
+                <dependency>
+                        <groupId>${jme3.groupId}</groupId>
+                        <artifactId>jme3-plugins</artifactId>
+                </dependency>           
+                <dependency>
+                        <groupId>${jme3.groupId}</groupId>
+                        <artifactId>jme3-terrain</artifactId>
+                </dependency>   
+                
+                <!-- Ogg audio stuff -->
+                <dependency>
+                        <groupId>${jme3.groupId}</groupId>
+                        <artifactId>jme3-jogg</artifactId>
+                </dependency>
 
-		<!-- Nifty GUI -->
-		<dependency>
-			<groupId>${jme3.groupId}</groupId>
-			<artifactId>jme3-niftygui</artifactId>
-		</dependency>
+                <!-- Lemur -->
+                <dependency>
+                        <groupId>com.simsilica</groupId>
+                        <artifactId>lemur</artifactId>
+                </dependency>
+                <dependency>
+                        <groupId>com.simsilica</groupId>
+                        <artifactId>lemur-proto</artifactId>
+                </dependency>
+                <dependency>
+                        <groupId>org.apache.groovy</groupId>
+                        <artifactId>groovy-jsr223</artifactId>
+                </dependency>
 
-		<!-- Lemur -->
-		<dependency>
-			<groupId>com.simsilica</groupId>
-			<artifactId>lemur</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.simsilica</groupId>
-			<artifactId>lemur-proto</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.groovy</groupId>
-			<artifactId>groovy-jsr223</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.simsilica</groupId>
-			<artifactId>sio2</artifactId>
-		</dependency>
+                <dependency>
+                        <groupId>com.simsilica</groupId>
+                        <artifactId>sio2</artifactId>
+                </dependency>
     </dependencies>
 
 <repositories>
-	<repository>
-		<id>jmonkey engine</id>
-		<name>jmonkey engine</name>
-		<url>https://dl.bintray.com/jmonkeyengine/${jme3.groupId}</url>
-	</repository>
-	<repository>
-		<id>jcenter</id>
-		<url>https://jcenter.bintray.com/</url>
-	</repository>
+        <repository>
+                <id>jmonkey engine</id>
+                <name>jmonkey engine</name>
+                <url>https://dl.bintray.com/jmonkeyengine/${jme3.groupId}</url>
+        </repository>
+        <repository>
+                <id>jcenter</id>
+                <url>https://jcenter.bintray.com/</url>
+        </repository>
 </repositories>
 
   <profiles>
@@ -130,134 +124,127 @@
         <activeByDefault>true</activeByDefault>
       </activation>
 
-	  <!-- online dependencies -->
-	  <dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.apache.logging.log4j</groupId>
-				<artifactId>log4j-api</artifactId>
-				<version>${log4j-api.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.logging.log4j</groupId>
-				<artifactId>log4j-core</artifactId>
-				<version>${log4j-api.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.logging.log4j</groupId>
-				<artifactId>log4j-slf4j-impl</artifactId>
-				<version>${log4j-api.version}</version>
-			</dependency>
-			<!-- The core library -->
-			<dependency>
-				<groupId>${jme3.groupId}</groupId>
-				<artifactId>jme3-core</artifactId>
-				<version>${jmonkey.version}</version>
-			</dependency>
+          <!-- online dependencies -->
+          <dependencyManagement>
+                <dependencies>
+                        <dependency>
+                                <groupId>org.apache.logging.log4j</groupId>
+                                <artifactId>log4j-api</artifactId>
+                                <version>${log4j-api.version}</version>
+                        </dependency>
+                        <dependency>
+                                <groupId>org.apache.logging.log4j</groupId>
+                                <artifactId>log4j-core</artifactId>
+                                <version>${log4j-api.version}</version>
+                        </dependency>
+                        <dependency>
+                                <groupId>org.apache.logging.log4j</groupId>
+                                <artifactId>log4j-slf4j-impl</artifactId>
+                                <version>${log4j-api.version}</version>
+                        </dependency>
+                        <!-- The core library -->
+                        <dependency>
+                                <groupId>${jme3.groupId}</groupId>
+                                <artifactId>jme3-core</artifactId>
+                                <version>${jmonkey.version}</version>
+                        </dependency>
 
-			<!-- LWJGL stuff -->
-			<dependency>
-				<groupId>${jme3.groupId}</groupId>
-				<artifactId>jme3-lwjgl3</artifactId>
-				<version>${jmonkey.version}</version>
-			</dependency>
+                        <!-- LWJGL stuff -->
+                        <dependency>
+                                <groupId>${jme3.groupId}</groupId>
+                                <artifactId>jme3-lwjgl3</artifactId>
+                                <version>${jmonkey.version}</version>
+                        </dependency>
 
-			<!-- Bullet stuff -->
-			<dependency>
-				<groupId>${jme3.groupId}</groupId>
-				<artifactId>jme3-jbullet</artifactId>
-				<version>${jmonkey.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>${jme3.groupId}</groupId>
-				<artifactId>jme3-desktop</artifactId>
-				<version>${jmonkey.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>${jme3.groupId}</groupId>
-				<artifactId>jme3-effects</artifactId>
-				<version>${jmonkey.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>${jme3.groupId}</groupId>
-				<artifactId>jme3-networking</artifactId>
-				<version>${jmonkey.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>${jme3.groupId}</groupId>
-				<artifactId>jme3-plugins</artifactId>
-				<version>${jmonkey.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>${jme3.groupId}</groupId>
-				<artifactId>jme3-terrain</artifactId>
-				<version>${jmonkey.version}</version>
-			</dependency>
+                        <!-- Bullet stuff -->
+                        <dependency>
+                                <groupId>${jme3.groupId}</groupId>
+                                <artifactId>jme3-jbullet</artifactId>
+                                <version>${jmonkey.version}</version>
+                        </dependency>
+                        <dependency>
+                                <groupId>${jme3.groupId}</groupId>
+                                <artifactId>jme3-desktop</artifactId>
+                                <version>${jmonkey.version}</version>
+                        </dependency>
+                        <dependency>
+                                <groupId>${jme3.groupId}</groupId>
+                                <artifactId>jme3-effects</artifactId>
+                                <version>${jmonkey.version}</version>
+                        </dependency>
+                        <dependency>
+                                <groupId>${jme3.groupId}</groupId>
+                                <artifactId>jme3-networking</artifactId>
+                                <version>${jmonkey.version}</version>
+                        </dependency>
+                        <dependency>
+                                <groupId>${jme3.groupId}</groupId>
+                                <artifactId>jme3-plugins</artifactId>
+                                <version>${jmonkey.version}</version>
+                        </dependency>
+                        <dependency>
+                                <groupId>${jme3.groupId}</groupId>
+                                <artifactId>jme3-terrain</artifactId>
+                                <version>${jmonkey.version}</version>
+                        </dependency>
 
-			<!-- Ogg audio stuff -->
-			<dependency>
-				<groupId>${jme3.groupId}</groupId>
-				<artifactId>jme3-jogg</artifactId>
-				<version>${jmonkey.version}</version>
-			</dependency>
+                        <!-- Ogg audio stuff -->
+                        <dependency>
+                                <groupId>${jme3.groupId}</groupId>
+                                <artifactId>jme3-jogg</artifactId>
+                                <version>${jmonkey.version}</version>
+                        </dependency>
 
-			<!-- Nifty GUI -->
-			<dependency>
-				<groupId>${jme3.groupId}</groupId>
-				<artifactId>jme3-niftygui</artifactId>
-				<version>${jmonkey.version}</version>
-			</dependency>
+                        <!-- Lemur -->
+                        <dependency>
+                                <groupId>com.simsilica</groupId>
+                                <artifactId>lemur</artifactId>
+                                <version>${lemur.version}</version>
+                                <exclusions>
+                                        <exclusion>
+                                                <groupId>com.google.guava</groupId>
+                                                <artifactId>guava</artifactId>
+                                        </exclusion>
+                                </exclusions>
+                        </dependency>
+                        <dependency>
+                                <groupId>com.simsilica</groupId>
+                                <artifactId>lemur-proto</artifactId>
+                                <version>${lemur-proto.version}</version>
+                                <exclusions>
+                                        <exclusion>
+                                                <groupId>com.google.guava</groupId>
+                                                <artifactId>guava</artifactId>
+                                        </exclusion>
+                                </exclusions>
+                        </dependency>
 
-			<!-- Lemur -->
-			<dependency>
-				<groupId>com.simsilica</groupId>
-				<artifactId>lemur</artifactId>
-				<version>${lemur.version}</version>
-				<exclusions>
-					<exclusion>
-						<groupId>com.google.guava</groupId>
-						<artifactId>guava</artifactId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-			<dependency>
-				<groupId>com.simsilica</groupId>
-				<artifactId>lemur-proto</artifactId>
-				<version>${lemur-proto.version}</version>
-				<exclusions>
-					<exclusion>
-						<groupId>com.google.guava</groupId>
-						<artifactId>guava</artifactId>
-					</exclusion>
-				</exclusions>
-			</dependency>
+                        <dependency>
+                                <groupId>org.apache.groovy</groupId>
+                                <artifactId>groovy-jsr223</artifactId>
+                                <version>${groovy.version}</version>
+                        </dependency>
 
-			<dependency>
-				<groupId>org.apache.groovy</groupId>
-				<artifactId>groovy-jsr223</artifactId>
-				<version>${groovy.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.simsilica</groupId>
-				<artifactId>sio2</artifactId>
-				<version>${sio2.version}</version>
-				<exclusions>
-					<exclusion>
-						<groupId>org.codehaus.groovy</groupId>
-						<artifactId>groovy-all</artifactId>
-					</exclusion>
-					<exclusion>
-						<groupId>com.google.guava</groupId>
-						<artifactId>guava</artifactId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-		</dependencies>
-	  </dependencyManagement>
+                        <dependency>
+                                <groupId>com.simsilica</groupId>
+                                <artifactId>sio2</artifactId>
+                                <version>${sio2.version}</version>
+                                <exclusions>
+                                        <exclusion>
+                                                <groupId>org.codehaus.groovy</groupId>
+                                                <artifactId>groovy-all</artifactId>
+                                        </exclusion>
+                                        <exclusion>
+                                                <groupId>com.google.guava</groupId>
+                                                <artifactId>guava</artifactId>
+                                        </exclusion>
+                                </exclusions>
+                        </dependency>
+                </dependencies>
+          </dependencyManagement>
     </profile>
   </profiles>
 
-	<url>https://github.com/Arifolth/jme3rpg</url>
+        <url>https://github.com/Arifolth/jme3rpg</url>
 
 </project>

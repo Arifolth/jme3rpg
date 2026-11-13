@@ -21,23 +21,14 @@ package ru.arifolth.anjrpg;
 import com.jme3.app.FlyCamAppState;
 import com.jme3.app.StatsAppState;
 import com.jme3.cursors.plugins.JmeCursor;
-import com.jme3.niftygui.NiftyJmeDisplay;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeContext;
 import com.jme3.texture.Texture;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.style.BaseStyles;
-import de.lessvoid.nifty.Nifty;
-import de.lessvoid.nifty.controls.Parameters;
-import de.lessvoid.nifty.elements.Element;
-import de.lessvoid.nifty.elements.render.TextRenderer;
-import de.lessvoid.nifty.input.NiftyInputEvent;
-import de.lessvoid.nifty.screen.Screen;
-import ru.arifolth.anjrpg.bars.PlayerBarsState;
-import ru.arifolth.anjrpg.compass.CompassState;
 import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.anjrpg.loading.LoadingState;
 import ru.arifolth.anjrpg.menu.SettingsUtils;
-import ru.arifolth.anjrpg.worldmap.WorldMapState;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -45,17 +36,9 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
-import static com.jme3.niftygui.NiftyJmeDisplay.newNiftyJmeDisplay;
-
-/*
-* https://ev1lbl0w.github.io/jme-wiki-pt-pt/jme3/advanced/loading_screen.html
-* */
 public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
-    private NiftyJmeDisplay niftyDisplay;
-    private Nifty nifty;
     private InitStateEnum initialization = InitStateEnum.PENDING;
     final private static Logger LOGGER = Logger.getLogger(ANJRpg.class.getName());
-    private boolean startNewGame = false;
 
     private static RolePlayingGameInterface app;
 
@@ -142,127 +125,32 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
 
     @Override
     public void simpleUpdate(float tpf) {
-        InitializationDelegateInterface initializationDelegate = gameLogicCore.getInitializationDelegate();
         switch (initialization) {
-            case STOP:
-                break;
-            case PENDING: {
-                if(!startNewGame) {
-                    gameLogicCore.getSoundManager().update(tpf);
-                    return;
-                }
-
-                Element element = nifty.getScreen("loadlevel").findElementById("loadingtext");
-                textRenderer = element.getRenderer(TextRenderer.class);
-
-                loadResources();
-
-                initialization = InitStateEnum.INITIALIZED;
-                break;
-            }
-            case INITIALIZED: {
-                //wait until land appears in Physics Space
-                if (bulletAppState.getPhysicsSpace().getRigidBodyList().size() == app.getTerrainManager().getRigidBodiesSize()) {
-                    createCompass();
-                    createPlayerBars();
-                    createWorldMap();
-
-                    //place player at the start location
-                    initializationDelegate.positionPlayer();
-                    initializationDelegate.initPlayerComplete();
-                    //position NPCs around the Player
-                    initializationDelegate.positionNPCs(getGameLogicCore().getCharacterMap());
-                    initializationDelegate.initNPCsComplete();
-
-                    //hardcoded test quest, until quests are started by NPC dialogue
-                    getGameLogicCore().getQuestInitialization().startQuest("test_quest");
-
-                    setProgress("Loading complete");
-                    nifty.gotoScreen("end");
-                    nifty.exit();
-
-                    guiViewPort.removeProcessor(niftyDisplay);
-
-                    initialization = InitStateEnum.RUNNING;
-                }
-                break;
-            }
-            case RUNNING: {
-                //run the game
+            case RUNNING:
                 super.simpleUpdate(tpf);
-            }
+                break;
+            case PENDING:
+                // Only update sound while the menu is showing and no loading has begun.
+                if (stateManager.getState(LoadingState.class) == null) {
+                    gameLogicCore.getSoundManager().update(tpf);
+                }
+                break;
+            case INITIALIZED:
+            case STOP:
+            default:
+                break;
         }
-    }
-
-    private void createWorldMap() {
-        stateManager.attach(new WorldMapState(gameLogicCore));
-    }
-
-    private void createCompass() {
-        stateManager.attach(new CompassState());
-    }
-
-    private void createPlayerBars() {
-        stateManager.attach(new PlayerBarsState());
-    }
-
-    public void showLoadingMenu() {
-        nifty.gotoScreen("loadlevel");
-    }
-
-    @Override
-    public void onStartScreen() {
-    }
-
-    @Override
-    public void onEndScreen() {
-    }
-
-    @Override
-    public void bind(Nifty nifty, Screen screen) {
-        progressBarElement = nifty.getScreen("loadlevel").findElementById("progressbar");
-    }
-
-    // methods for Controller
-    @Override
-    public boolean inputEvent(final NiftyInputEvent inputEvent) {
-        return false;
-    }
-
-    @Override
-    public void onFocus(boolean getFocus) {
-    }
-
-    @Override
-    public void destroy() {
-        super.destroy();
-    }
-
-    @Override
-    public void bind(Nifty nifty, Screen screen, Element elmnt,
-                     Parameters prmtrs) {
-        progressBarElement = elmnt.findElementById("progressbar");
-    }
-
-    @Override
-    public void init(Parameters prmtrs) {
     }
 
     @Override
     public void setUpGUI() {
-        /* Game stuff */
-        niftyDisplay = newNiftyJmeDisplay(assetManager,
-                inputManager,
-                audioRenderer,
-                guiViewPort);
-        nifty = niftyDisplay.getNifty();
-        nifty.registerScreenController(this);
-        nifty.fromXml("Interface/nifty_loading.xml", "loadlevel", this);
+        initialization = InitStateEnum.INITIALIZED;
+        stateManager.attach(new LoadingState());
+    }
 
-        guiViewPort.addProcessor(niftyDisplay);
-
-        showLoadingMenu();
-        startNewGame = true;
+    @Override
+    public void onLoadingComplete() {
+        initialization = InitStateEnum.RUNNING;
     }
 
     @Override
@@ -273,6 +161,11 @@ public class ANJRpg extends RolePlayingGame implements ANJRpgInterface {
     @Override
     public AppSettings getSettings(){
         return this.settings;
+    }
+
+    @Override
+    public void destroy() {
+        super.destroy();
     }
 
     @Override

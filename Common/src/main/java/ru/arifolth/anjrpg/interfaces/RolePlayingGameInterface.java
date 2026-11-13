@@ -19,6 +19,7 @@
 package ru.arifolth.anjrpg.interfaces;
 
 import com.jme3.app.Application;
+import com.jme3.bullet.BulletAppState;
 import com.jme3.scene.Node;
 import ru.arifolth.anjrpg.events.EventBus;
 
@@ -38,4 +39,10 @@ public interface RolePlayingGameInterface extends Application {
     String getVersion();
 
     ThrottledSceneGraphQueueInterface getThrottledQueue();
+
+    void loadResources();
+
+    BulletAppState getBulletAppState();
+
+    void setProgressSink(LoadingProgressSink sink);
 }
