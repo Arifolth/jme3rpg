@@ -18,6 +18,9 @@
 
 package ru.arifolth.anjrpg.quest;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 import com.jme3.math.Vector3f;
 import ru.arifolth.anjrpg.compass.POITarget;
 import ru.arifolth.anjrpg.events.EventBus;
@@ -44,57 +47,23 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BooleanSupplier;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 /**
- * Manual smoke test for the quest, task and journal code, in
- * the same style as {@code EventBusTest}: no JUnit dependency exists in this
- * project, so this is a plain class with a {@code main()}; every check is a
- * no-arg method that throws {@link AssertionError} on failure.
+ * JUnit test for the quest, task and journal code.
  *
  * <p>Everything runs against a real {@link EventBus} (started the same way
  * {@code EventBusTest} does) and the real services; the only fake is a
  * {@link CharacterInterface} proxy (identity is all the code under test uses).
  * The combat tracker has its own test, {@code CombatTrackerTest}.</p>
- *
- * <p>Run from an IDE (run {@code main}), or from the command line:
- * {@code mvn -pl GameClient test-compile exec:java
- * -Dexec.classpathScope=test -Dexec.mainClass=ru.arifolth.anjrpg.quest.QuestMechanicsTest}</p>
  */
 public class QuestMechanicsTest {
 
-    public static void main(String[] args) {
-        Runnable[] checks = {
-                QuestMechanicsTest::testKillThenFindQuestEndToEnd,
-                QuestMechanicsTest::testParallelTasksFindNpcItemAndDeliver,
-                QuestMechanicsTest::testNonMatchingEventsAreIgnored,
-                QuestMechanicsTest::testQuestValidationAndDoubleStart
-        };
-        String[] names = {
-                "quest: kill segment then find-location segment, journal and completion",
-                "quest: find item + talk to NPC + deliver item in one segment, any order",
-                "quest: non-matching events do not complete tasks",
-                "quest: empty quests rejected, double start ignored"
-        };
-
-        int passed = 0;
-        for (int i = 0; i < checks.length; i++) {
-            try {
-                checks[i].run();
-                System.out.println("PASS: " + names[i]);
-                passed++;
-            } catch (Throwable t) {
-                System.out.println("FAIL: " + names[i] + " -> " + t);
-            }
-        }
-
-        System.out.println(passed + "/" + checks.length + " checks passed");
-        if (passed != checks.length) {
-            System.exit(1);
-        }
-    }
-
-    // -------------------------------------------------------------- quests
-
-    private static void testKillThenFindQuestEndToEnd() {
+    @Test
+    @DisplayName("quest: kill segment then find-location segment, journal and completion")
+    void testKillThenFindQuestEndToEnd() {
         EventBus bus = newStartedBus();
         JournalService journal = new JournalService(bus);
         QuestService quests = new QuestService(bus, journal);
@@ -149,7 +118,9 @@ public class QuestMechanicsTest {
         assertEquals("Quest One - Completed", journal.getAllEntries().get(journal.getAllEntries().size() - 1).getTitle(), "last entry should be the completion entry");
     }
 
-    private static void testParallelTasksFindNpcItemAndDeliver() {
+    @Test
+    @DisplayName("quest: find item + talk to NPC + deliver item in one segment, any order")
+    void testParallelTasksFindNpcItemAndDeliver() {
         EventBus bus = newStartedBus();
         JournalService journal = new JournalService(bus);
         QuestService quests = new QuestService(bus, journal);
@@ -174,7 +145,9 @@ public class QuestMechanicsTest {
         waitUntil(quest::isCompleted, "quest did not complete after the last task");
     }
 
-    private static void testNonMatchingEventsAreIgnored() {
+    @Test
+    @DisplayName("quest: non-matching events do not complete tasks")
+    void testNonMatchingEventsAreIgnored() {
         EventBus bus = newStartedBus();
         JournalService journal = new JournalService(bus);
         QuestService quests = new QuestService(bus, journal);
@@ -203,9 +176,11 @@ public class QuestMechanicsTest {
         assertEquals(QuestState.ACTIVE, quest.getState(), "quest stays active");
     }
 
-    private static void testQuestValidationAndDoubleStart() {
-        expectIllegalArgument(() -> new Quest("empty", "Empty", List.of()), "a quest without segments must be rejected");
-        expectIllegalArgument(() -> new Quest("hollow", "Hollow", List.of(new StorySegment("No tasks", "Never advances"))),
+    @Test
+    @DisplayName("quest: empty quests rejected, double start ignored")
+    void testQuestValidationAndDoubleStart() {
+        assertThrows(IllegalArgumentException.class, () -> new Quest("empty", "Empty", List.of()), "a quest without segments must be rejected");
+        assertThrows(IllegalArgumentException.class, () -> new Quest("hollow", "Hollow", List.of(new StorySegment("No tasks", "Never advances"))),
                 "a segment without tasks must be rejected");
 
         EventBus bus = newStartedBus();
@@ -258,27 +233,6 @@ public class QuestMechanicsTest {
             }
         }
         throw new AssertionError(failureMessage + " (timed out)");
-    }
-
-    private static void assertTrue(boolean condition, String message) {
-        if (!condition) {
-            throw new AssertionError(message);
-        }
-    }
-
-    private static void assertEquals(Object expected, Object actual, String message) {
-        if (expected == null ? actual != null : !expected.equals(actual)) {
-            throw new AssertionError(message + " (expected <" + expected + ">, was <" + actual + ">)");
-        }
-    }
-
-    private static void expectIllegalArgument(Runnable action, String message) {
-        try {
-            action.run();
-        } catch (IllegalArgumentException expected) {
-            return;
-        }
-        throw new AssertionError(message);
     }
 
     /** Only identity matters to the code under test, so a bare proxy is enough. */

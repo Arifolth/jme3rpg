@@ -102,6 +102,13 @@
                         <groupId>com.simsilica</groupId>
                         <artifactId>sio2</artifactId>
                 </dependency>
+
+                <!-- JUnit testing -->
+                <dependency>
+                        <groupId>org.junit.jupiter</groupId>
+                        <artifactId>junit-jupiter</artifactId>
+                        <scope>test</scope>
+                </dependency>
     </dependencies>
 
 <repositories>
@@ -239,6 +246,13 @@
                                                 <artifactId>guava</artifactId>
                                         </exclusion>
                                 </exclusions>
+                        </dependency>
+
+                        <!-- JUnit testing -->
+                        <dependency>
+                                <groupId>org.junit.jupiter</groupId>
+                                <artifactId>junit-jupiter</artifactId>
+                                <version>${junit.version}</version>
                         </dependency>
                 </dependencies>
           </dependencyManagement>

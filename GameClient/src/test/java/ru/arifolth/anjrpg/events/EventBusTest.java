@@ -18,6 +18,9 @@
 
 package ru.arifolth.anjrpg.events;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 import ru.arifolth.anjrpg.interfaces.GameState;
 
 import java.util.concurrent.CountDownLatch;
@@ -25,60 +28,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 /**
- * Manual smoke test for {@link EventBus}, covering the six cases from the
+ * JUnit test for {@link EventBus}, covering the six cases from the
  * EventBus specification, section 6.1.
  *
- * <p>No pom in this project declares a JUnit dependency (verified with
- * {@code grep -rn "junit" --include=pom.xml .} before writing this file),
- * and the existing tests under {@code GameClient/src/test/java}
- * (TerrainGridTileLoaderTest, TestGltfLoading, ...) are all plain classes
- * with a {@code main()}, not JUnit cases. This follows that convention
- * rather than introducing a new test framework as a side effect of this
- * change. Each check is a no-arg, no-checked-exception method so it can be
- * used as a {@link Runnable} below; a failing check throws
- * {@link AssertionError}.</p>
- *
- * <p>Run it from an IDE (just run {@code main}), or from the command line:
- * {@code mvn -pl GameClient test-compile exec:java
- * -Dexec.classpathScope=test -Dexec.mainClass=ru.arifolth.anjrpg.events.EventBusTest}</p>
+ * <p>Run it with {@code mvn -pl GameClient test}, or from an IDE.</p>
  */
 public class EventBusTest {
-
-    public static void main(String[] args) {
-        Runnable[] checks = {
-                EventBusTest::testSubscribeAndPublishIsAsync,
-                EventBusTest::testInterfaceDispatch,
-                EventBusTest::testSuperclassDispatch,
-                EventBusTest::testUnsubscribeStopsDelivery,
-                EventBusTest::testListenerFailureIsIsolated,
-                EventBusTest::testPublishFromAnotherThread
-        };
-        String[] names = {
-                "subscribe + publish delivers asynchronously, on the dispatcher thread",
-                "interface dispatch (GameEvent.class catches every event)",
-                "superclass dispatch (abstract base catches its subtypes)",
-                "unsubscribe stops delivery",
-                "listener failure is isolated",
-                "publish from another thread is still delivered on the dispatcher thread"
-        };
-
-        int passed = 0;
-        for (int i = 0; i < checks.length; i++) {
-            try {
-                checks[i].run();
-                System.out.println("PASS: " + names[i]);
-                passed++;
-            } catch (Throwable t) {
-                System.out.println("FAIL: " + names[i] + " -> " + t);
-            }
-        }
-
-        System.out.println(passed + "/" + checks.length + " checks passed");
-        if (passed != checks.length) {
-            System.exit(1);
-        }
-    }
 
     /**
      * Starts the dispatcher thread the same way the real jME AppState
@@ -94,7 +53,9 @@ public class EventBusTest {
         return bus;
     }
 
-    private static void testSubscribeAndPublishIsAsync() {
+    @Test
+    @DisplayName("subscribe + publish delivers asynchronously, on the dispatcher thread")
+    void testSubscribeAndPublishIsAsync() {
         EventBus bus = newStartedBus();
         CountDownLatch latch = new CountDownLatch(1);
         AtomicReference<String> threadName = new AtomicReference<>();
@@ -110,7 +71,9 @@ public class EventBusTest {
         assertEquals("EventBus-Dispatcher", threadName.get(), "listener did not run on the dispatcher thread");
     }
 
-    private static void testInterfaceDispatch() {
+    @Test
+    @DisplayName("interface dispatch (GameEvent.class catches every event)")
+    void testInterfaceDispatch() {
         EventBus bus = newStartedBus();
         CountDownLatch latch = new CountDownLatch(1);
 
@@ -127,7 +90,9 @@ public class EventBusTest {
     private static final class LeafTestEvent extends BaseTestEvent {
     }
 
-    private static void testSuperclassDispatch() {
+    @Test
+    @DisplayName("superclass dispatch (abstract base catches its subtypes)")
+    void testSuperclassDispatch() {
         EventBus bus = newStartedBus();
         CountDownLatch latch = new CountDownLatch(1);
 
@@ -137,7 +102,9 @@ public class EventBusTest {
         await(latch, "a subscriber on the abstract base did not receive the leaf subtype");
     }
 
-    private static void testUnsubscribeStopsDelivery() {
+    @Test
+    @DisplayName("unsubscribe stops delivery")
+    void testUnsubscribeStopsDelivery() {
         EventBus bus = newStartedBus();
         AtomicBoolean delivered = new AtomicBoolean(false);
 
@@ -156,12 +123,12 @@ public class EventBusTest {
         bus.publish(new LeafTestEvent());
         await(fence, "fence event was not delivered");
 
-        if (delivered.get()) {
-            throw new AssertionError("unsubscribed listener was still invoked");
-        }
+        assertFalse(delivered.get(), "unsubscribed listener was still invoked");
     }
 
-    private static void testListenerFailureIsIsolated() {
+    @Test
+    @DisplayName("listener failure is isolated")
+    void testListenerFailureIsIsolated() {
         EventBus bus = newStartedBus();
         CountDownLatch secondRan = new CountDownLatch(1);
 
@@ -177,7 +144,9 @@ public class EventBusTest {
         await(secondRan, "second listener did not run after the first one threw");
     }
 
-    private static void testPublishFromAnotherThread() {
+    @Test
+    @DisplayName("publish from another thread is still delivered on the dispatcher thread")
+    void testPublishFromAnotherThread() {
         EventBus bus = newStartedBus();
         CountDownLatch latch = new CountDownLatch(1);
         AtomicReference<String> threadName = new AtomicReference<>();
@@ -210,12 +179,6 @@ public class EventBusTest {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new AssertionError("interrupted while waiting: " + failureMessage, e);
-        }
-    }
-
-    private static void assertEquals(Object expected, Object actual, String message) {
-        if (expected == null ? actual != null : !expected.equals(actual)) {
-            throw new AssertionError(message + " (expected <" + expected + ">, was <" + actual + ">)");
         }
     }
 }

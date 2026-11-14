@@ -18,94 +18,70 @@
 
 package ru.arifolth.anjrpg.menu;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 /**
- * Manual equivalence test for the cached {@link MenuUtils} key lookups, in the same style as
- * {@code EventBusTest}: no JUnit dependency exists in this project, so this is a plain class with a
- * {@code main()}; every check is a no-arg method that throws {@link AssertionError} on failure.
+ * JUnit test for the cached {@link MenuUtils} key lookups.
  *
- * <p>{@link Legacy} is a copy of the reflective code {@code MenuUtils} used to run on every call. Each check
+ * <p>{@link Legacy} is a copy of the reflective code {@code MenuUtils} used to run on every call. Each test
  * asserts that the cached version gives the same answer - or throws the same exception - for every constant
  * of the real {@code com.jme3.input.KeyInput}, including keys that share a value (both versions return the
  * first one declared).</p>
- *
- * <p>Run from an IDE (run {@code main}), or from the command line:
- * {@code mvn -pl GameClient test-compile exec:java
- * -Dexec.classpathScope=test -Dexec.mainClass=ru.arifolth.anjrpg.menu.MenuUtilsTest}</p>
  */
 public class MenuUtilsTest {
 
-    public static void main(String[] args) {
-        Runnable[] checks = {
-                MenuUtilsTest::testAllKeyboardKeysMatchTheReflectiveVersion,
-                MenuUtilsTest::testAllKeyboardKeysIsACopyEachTime,
-                MenuUtilsTest::testKeyByNameMatches,
-                MenuUtilsTest::testKeyNameByValueMatchesIncludingDuplicates,
-                MenuUtilsTest::testKeyNameBySuffixMatches,
-                MenuUtilsTest::testUnknownLookupsFailTheSameWay
-        };
-        String[] names = {
-                "getAllKeyboardKeys() equals the reflective version",
-                "getAllKeyboardKeys() returns an independent list each call",
-                "getKey(name) equals the reflective version for every constant",
-                "getKeyName(int) equals the reflective version for every value (first declared wins)",
-                "getKeyName(String suffix) equals the reflective version for every constant",
-                "unknown names and values fail with the same exception"
-        };
-
-        int passed = 0;
-        for (int i = 0; i < checks.length; i++) {
-            try {
-                checks[i].run();
-                System.out.println("PASS: " + names[i]);
-                passed++;
-            } catch (Throwable t) {
-                System.out.println("FAIL: " + names[i] + " -> " + t);
-            }
-        }
-
-        System.out.println(passed + "/" + checks.length + " checks passed");
-        if (passed != checks.length) {
-            System.exit(1);
-        }
-    }
-
-    private static void testAllKeyboardKeysMatchTheReflectiveVersion() {
+    @Test
+    @DisplayName("getAllKeyboardKeys() equals the reflective version")
+    void testAllKeyboardKeysMatchTheReflectiveVersion() {
         assertEquals(Legacy.getAllKeyboardKeys(), MenuUtils.getAllKeyboardKeys(), "key list");
     }
 
-    private static void testAllKeyboardKeysIsACopyEachTime() {
+    @Test
+    @DisplayName("getAllKeyboardKeys() returns an independent list each call")
+    void testAllKeyboardKeysIsACopyEachTime() {
         List<String> first = MenuUtils.getAllKeyboardKeys();
         int size = first.size();
         first.clear();
         assertEquals(size, MenuUtils.getAllKeyboardKeys().size(), "mutating a returned list must not affect the next one");
     }
 
-    private static void testKeyByNameMatches() {
+    @Test
+    @DisplayName("getKey(name) equals the reflective version for every constant")
+    void testKeyByNameMatches() {
         for (String name : Legacy.fieldNames()) {
             assertEquals(outcome(() -> Legacy.getKey(name)), outcome(() -> MenuUtils.getKey(name)), "getKey(" + name + ")");
         }
     }
 
-    private static void testKeyNameByValueMatchesIncludingDuplicates() {
+    @Test
+    @DisplayName("getKeyName(int) equals the reflective version for every value (first declared wins)")
+    void testKeyNameByValueMatchesIncludingDuplicates() {
         for (String name : Legacy.fieldNames()) {
             int value = (int) outcomeValue(() -> Legacy.getKey(name));
             assertEquals(outcome(() -> Legacy.getKeyName(value)), outcome(() -> MenuUtils.getKeyName(value)), "getKeyName(" + value + ") for " + name);
         }
     }
 
-    private static void testKeyNameBySuffixMatches() {
+    @Test
+    @DisplayName("getKeyName(String suffix) equals the reflective version for every constant")
+    void testKeyNameBySuffixMatches() {
         for (String name : Legacy.fieldNames()) {
             String suffix = name.substring(name.indexOf('_') + 1);
             assertEquals(outcome(() -> Legacy.getKeyName(suffix)), outcome(() -> MenuUtils.getKeyName(suffix)), "getKeyName(\"" + suffix + "\")");
         }
     }
 
-    private static void testUnknownLookupsFailTheSameWay() {
+    @Test
+    @DisplayName("unknown names and values fail the same way")
+    void testUnknownLookupsFailTheSameWay() {
         assertEquals(outcome(() -> Legacy.getKey("KEY_NOPE")), outcome(() -> MenuUtils.getKey("KEY_NOPE")), "unknown name");
         assertEquals(outcome(() -> Legacy.getKeyName(-12345)), outcome(() -> MenuUtils.getKeyName(-12345)), "unknown value");
         assertEquals(outcome(() -> Legacy.getKeyName("NOPE_NOPE")), outcome(() -> MenuUtils.getKeyName("NOPE_NOPE")), "unknown suffix");
@@ -131,12 +107,6 @@ public class MenuUtilsTest {
             return "value:" + lookup.run();
         } catch (Exception e) {
             return "threw:" + e.getClass().getName() + ":" + e.getMessage();
-        }
-    }
-
-    private static void assertEquals(Object expected, Object actual, String message) {
-        if (expected == null ? actual != null : !expected.equals(actual)) {
-            throw new AssertionError(message + " (expected <" + expected + ">, was <" + actual + ">)");
         }
     }
 

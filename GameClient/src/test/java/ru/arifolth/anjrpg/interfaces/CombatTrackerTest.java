@@ -18,6 +18,9 @@
 
 package ru.arifolth.anjrpg.interfaces;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 import com.jme3.math.Vector3f;
 import ru.arifolth.anjrpg.events.CombatDisengagedEvent;
 import ru.arifolth.anjrpg.events.CombatEngagedEvent;
@@ -31,54 +34,24 @@ import ru.arifolth.anjrpg.events.PlayerDiedEvent;
 import java.lang.reflect.Proxy;
 import java.util.function.BooleanSupplier;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 /**
- * Manual smoke test for the event-driven {@link CombatTracker}, in the same
- * style as {@code EventBusTest}: no JUnit dependency exists in this project,
- * so this is a plain class with a {@code main()}; every check is a no-arg
- * method that throws {@link AssertionError} on failure.
+ * JUnit test for the event-driven {@link CombatTracker}.
  *
  * <p>Runs against a real {@link EventBus} (started the same way
  * {@code EventBusTest} does). The only fakes are a {@link CharacterInterface}
  * proxy (identity is all the tracker uses) and a minimal
  * {@link GameStateManagerInterface} that applies proposals immediately through
  * the real {@code GameState#isNextAcceptable} rules.</p>
- *
- * <p>Run from an IDE (run {@code main}), or from the command line:
- * {@code mvn -pl GameClient test-compile exec:java
- * -Dexec.classpathScope=test -Dexec.mainClass=ru.arifolth.anjrpg.interfaces.CombatTrackerTest}</p>
  */
 public class CombatTrackerTest {
 
-    public static void main(String[] args) {
-        Runnable[] checks = {
-                CombatTrackerTest::testCombatEngageDisengageAndKill,
-                CombatTrackerTest::testCombatPlayerDeathAndSelfHealing
-        };
-        String[] names = {
-                "combat tracker: engage / disengage / kill drive BATTLE and CALM",
-                "combat tracker: player death clears it; state-change events self-heal it"
-        };
-
-        int passed = 0;
-        for (int i = 0; i < checks.length; i++) {
-            try {
-                checks[i].run();
-                System.out.println("PASS: " + names[i]);
-                passed++;
-            } catch (Throwable t) {
-                System.out.println("FAIL: " + names[i] + " -> " + t);
-            }
-        }
-
-        System.out.println(passed + "/" + checks.length + " checks passed");
-        if (passed != checks.length) {
-            System.exit(1);
-        }
-    }
-
-    // ------------------------------------------------------------- combat
-
-    private static void testCombatEngageDisengageAndKill() {
+    @Test
+    @DisplayName("combat tracker: engage / disengage / kill drive BATTLE and CALM")
+    void testCombatEngageDisengageAndKill() {
         EventBus bus = newStartedBus();
         FakeGameStateManager states = new FakeGameStateManager(GameState.CALM);
         CombatTracker tracker = new CombatTracker(states, bus);
@@ -97,10 +70,12 @@ public class CombatTrackerTest {
 
         bus.publish(new NpcKilledEvent(b, new Vector3f(1, 2, 3)));
         waitUntil(() -> GameState.CALM.equals(states.current), "killing the last engaged NPC did not end BATTLE");
-        assertTrue(!tracker.isInCombat(), "isInCombat should be false once nobody is engaged");
+        assertFalse(tracker.isInCombat(), "isInCombat should be false once nobody is engaged");
     }
 
-    private static void testCombatPlayerDeathAndSelfHealing() {
+    @Test
+    @DisplayName("combat tracker: player death clears it; state-change events self-heal it")
+    void testCombatPlayerDeathAndSelfHealing() {
         EventBus bus = newStartedBus();
         FakeGameStateManager states = new FakeGameStateManager(GameState.CALM);
         CombatTracker tracker = new CombatTracker(states, bus);
@@ -166,18 +141,6 @@ public class CombatTrackerTest {
             }
         }
         throw new AssertionError(failureMessage + " (timed out)");
-    }
-
-    private static void assertTrue(boolean condition, String message) {
-        if (!condition) {
-            throw new AssertionError(message);
-        }
-    }
-
-    private static void assertEquals(Object expected, Object actual, String message) {
-        if (expected == null ? actual != null : !expected.equals(actual)) {
-            throw new AssertionError(message + " (expected <" + expected + ">, was <" + actual + ">)");
-        }
     }
 
     /** Only identity matters to the code under test, so a bare proxy is enough. */
