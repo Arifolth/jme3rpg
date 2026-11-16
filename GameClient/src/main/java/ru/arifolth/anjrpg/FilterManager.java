@@ -29,10 +29,12 @@ import com.jme3.renderer.Renderer;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Node;
 import com.jme3.shadow.PssmShadowRenderer;
+import com.jme3.system.AppSettings;
 import com.jme3.water.WaterFilter;
 import ru.arifolth.anjrpg.filters.FSRCASFilter;
 import ru.arifolth.anjrpg.filters.FilmGrainFilter;
 import ru.arifolth.anjrpg.interfaces.*;
+import ru.arifolth.anjrpg.menu.SettingsUtils;
 import ru.arifolth.terrain.grass.GpuGrassMaterial;
 
 public class FilterManager implements FilterManagerInterface {
@@ -51,6 +53,7 @@ public class FilterManager implements FilterManagerInterface {
     private TileTextureCapturer tileTextureCapturer;
     private SimpleApplication application;
     private FilmGrainFilter filmGrainFilter;
+    private FSRCASFilter fsrCASFilter;
 
     public FilterManager(SimpleApplication application, AssetManager assetManager, Node rootNode, ViewPort viewPort, SkyInterface sky, Renderer renderer, TerrainManagerInterface terrainManager) {
         this.application = application;
@@ -116,9 +119,12 @@ public class FilterManager implements FilterManagerInterface {
     }
 
     private void setupFSRCASFilter() {
-        FSRCASFilter fsrFilter = new FSRCASFilter();
-        fsrFilter.setSharpness(0.0f); // Range 0.0 (sharp) to 1.0 (soft)
-        fpp.addFilter(fsrFilter);
+        fsrCASFilter = new FSRCASFilter();
+        fsrCASFilter.setSharpness(0.0f); // 0.0 = soft (no sharpening), 1.0 = sharp
+        // The Advanced Video panel may have switched this off in the main menu,
+        // before the world (and this manager) was loaded - honor it here.
+        fsrCASFilter.setEnabled(advancedVideoEnabled(Constants.ADVANCED_VIDEO_FSR_CAS));
+        fpp.addFilter(fsrCASFilter);
     }
 
     @Override
@@ -141,7 +147,18 @@ public class FilterManager implements FilterManagerInterface {
     private void setupFilmGrainFilter() {
         filmGrainFilter = new FilmGrainFilter(application);
         filmGrainFilter.setGrainRate(30f);
+        // Honor a toggle made from the main menu before the world was loaded
+        filmGrainFilter.setEnabled(advancedVideoEnabled(Constants.ADVANCED_VIDEO_FILM_GRAIN));
         fpp.addFilter(filmGrainFilter);
+    }
+
+    /**
+     * Reads an Advanced Video toggle from the settings; an absent key means
+     * the default (on). See Constants.ADVANCED_VIDEO_*.
+     */
+    private boolean advancedVideoEnabled(String settingsKey) {
+        AppSettings settings = ((ANJRpgInterface) application).getSettings();
+        return SettingsUtils.readToggle(settings, settingsKey);
     }
 
     private void setupGammaCorrectionFilter() {
@@ -152,6 +169,25 @@ public class FilterManager implements FilterManagerInterface {
     @Override
     public GammaCorrectionFilter getGammaCorrectionFilter() {
         return gammaCorrectionFilter;
+    }
+
+    /**
+     * Film grain composites over the final image because it was added last
+     * (after Water, see initialize()). Callers toggle it with setEnabled();
+     * the chain position is preserved.
+     */
+    @Override
+    public FilmGrainFilter getFilmGrainFilter() {
+        return filmGrainFilter;
+    }
+
+    /**
+     * FSR CAS runs before GammaCorrection. Callers toggle it with
+     * setEnabled(); the chain position is preserved.
+     */
+    @Override
+    public FSRCASFilter getFsrCASFilter() {
+        return fsrCASFilter;
     }
 
     private void setupToneMapFilter() {

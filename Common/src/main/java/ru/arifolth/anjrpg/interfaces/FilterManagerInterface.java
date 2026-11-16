@@ -18,12 +18,34 @@
 
 package ru.arifolth.anjrpg.interfaces;
 
+import com.jme3.post.Filter;
 import com.jme3.post.filters.GammaCorrectionFilter;
 
 public interface FilterManagerInterface {
     void initialize();
 
     GammaCorrectionFilter getGammaCorrectionFilter();
+
+    /**
+     * The film grain filter. It is deliberately added LAST to the
+     * FilterPostProcessor chain (after Water) so the grain composites over
+     * the final image. Runtime toggling must go through
+     * {@link Filter#setEnabled(boolean)}, which skips the pass without
+     * changing the filter's index - never remove/add, which would move it
+     * to the end of the chain and break the order.
+     *
+     * <p>Declared as the engine base type because the concrete filter lives
+     * in GameClient while this interface is in Common, which the Menu
+     * module (the toggling UI) compiles against.</p>
+     */
+    Filter getFilmGrainFilter();
+
+    /**
+     * The FSR CAS sharpening filter. It is added before
+     * GammaCorrectionFilter and must stay there. Runtime toggling must go
+     * through {@link Filter#setEnabled(boolean)} only.
+     */
+    Filter getFsrCASFilter();
 
     void addFog();
 

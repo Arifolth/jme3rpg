@@ -80,6 +80,16 @@ public class SettingsUtils {
         }
     }
 
+    /**
+     * Reads a Boolean toggle whose default is ON (e.g. the Advanced Video
+     * filter switches). AppSettings.getBoolean returns false for a missing
+     * key, so the explicit containsKey check is what makes an absent key
+     * yield true.
+     */
+    public static boolean readToggle(AppSettings settings, String key) {
+        return settings.containsKey(key) ? settings.getBoolean(key) : true;
+    }
+
     public static ViewDistanceSettings getViewDistanceSettings(SimpleApplication app) {
         AppSettings settings = app.getContext().getSettings();
         return getViewDistanceSettings(settings);

@@ -92,6 +92,8 @@ public interface GameLogicCoreInterface {
 
     InputManager getInputManager();
 
+    FilterManagerInterface getFilterManager();
+
     Node getEnemies();
 
     void attachGameOverIndicator();

@@ -240,6 +240,11 @@ public class GameLogicCore implements GameLogicCoreInterface {
     }
 
     @Override
+    public FilterManagerInterface getFilterManager() {
+        return ((RolePlayingGameInterface) app).getFilterManager();
+    }
+
+    @Override
     public int getKillCount() {
         return killTracker.getKillCount();
     }

@@ -49,6 +49,7 @@ public class SystemPanel implements MenuPanel {
         subPanels.register("Audio", () -> new AudioPanel(app, this));
         subPanels.register("Controls", () -> new ControlsPanel(app, this));
         subPanels.register("Gameplay", () -> new GameplayPanel(app, this));
+        subPanels.register("Advanced Video", () -> new AdvancedVideoPanel(app, this));
 
         // Main container uses BorderLayout to split into options list and detail area
         container = GameUI.createPanelContainer();
@@ -74,6 +75,9 @@ public class SystemPanel implements MenuPanel {
 
         ActionButton gameplay = optionsListPanel.addChild(new ActionButton(new CallMethodAction("Gameplay", this, "gameplay")));
         gameplay.setInsets(new Insets3f(10, 10, 10, 10));
+
+        ActionButton advVideo = optionsListPanel.addChild(new ActionButton(new CallMethodAction("Advanced Video", this, "advancedVideo")));
+        advVideo.setInsets(new Insets3f(10, 10, 10, 10));
 
         container.addChild(optionsListPanel, BorderLayout.Position.West);
 
@@ -111,6 +115,11 @@ public class SystemPanel implements MenuPanel {
     public void gameplay() {
         playMenuSound();
         showSubPanel("Gameplay");
+    }
+
+    public void advancedVideo() {
+        playMenuSound();
+        showSubPanel("Advanced Video");
     }
 
     public void resumeGame() {

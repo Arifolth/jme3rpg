@@ -77,6 +77,12 @@ public class OptionsMenuState extends CompositeAppState {
         getStateManager().attach(new GamePlayMenuState(this));
     }
 
+    private void advancedVideo() {
+        gameLogicCore.getSoundManager().getSoundNode(SoundTypeEnum.MENU).play();
+
+        getStateManager().attach(new AdvancedVideoMenuState(this));
+    }
+
     @Override
     protected void onEnable() {
         optionsWindow = new Container(new BorderLayout());
@@ -102,6 +108,9 @@ public class OptionsMenuState extends CompositeAppState {
 
         ActionButton gameplay = menuContainer.addChild(new ActionButton(new CallMethodAction("Gameplay", this, "gameplay")));
         gameplay.setInsets(new Insets3f(10, 10, 10, 10));
+
+        ActionButton advVideo = menuContainer.addChild(new ActionButton(new CallMethodAction("Advanced Video", this, "advancedVideo")));
+        advVideo.setInsets(new Insets3f(10, 10, 10, 10));
 
         ActionButton back = menuContainer.addChild(new ActionButton(new CallMethodAction("Back", this, "onDisable")));
         back.setInsets(new Insets3f(10, 10, 10, 10));

@@ -42,6 +42,20 @@ public class Constants {
     public static final float SOUND_PITCH = 0.5f;
     public static final SSAOFilter SSAO_FILTER_BASIC = new SSAOFilter(1f, 1.5f, 5.8f, 0.9f);
     public static final String DEBUG = "Debug";
+    // Advanced Video panel toggles (in-game System -> Advanced Video and main
+    // menu Options -> Advanced Video). Flat, dot-free setting keys, following
+    // the convention of every other persisted setting (see applyViewDistance()
+    // in VideoPanel, or "VSync"/"Fullscreen"): AppSettings.save(String)
+    // stores each key as ONE entry with a type prefix (e.g. "B_FilmGrainEnabled")
+    // inside a single preferences node, and a dotted name reads like a nested
+    // path in that store (HKEY_CURRENT_USER\Software\JavaSoft\Prefs\... on
+    // Windows). An ABSENT key means the default (on): read them through
+    // SettingsUtils.readToggle, never getBoolean directly, which returns
+    // false for a missing key. FilterManager applies the values when it
+    // creates the filters, so toggles made in the main menu (before the
+    // world is loaded) hold after Start Game.
+    public static final String ADVANCED_VIDEO_FILM_GRAIN = "FilmGrainEnabled";
+    public static final String ADVANCED_VIDEO_FSR_CAS = "FsrCASEnabled";
     public static final String ROOT_LOGGER = "";
     public static final Level LOGGING_LEVEL = Level.INFO;
     public static final int MIN_FRAME_RATE = 30;

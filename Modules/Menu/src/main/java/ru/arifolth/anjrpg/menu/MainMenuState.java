@@ -136,7 +136,20 @@ public class MainMenuState extends BaseAppState {
     @Override
     protected void onEnable() {
         gameLogicCore.getFreeFollowCamera().setEnabled(false);
-        GuiGlobals.getInstance().requestCursorEnabled(this);
+
+        // NOTE: onEnable() is not only called by the state manager. Backing
+        // out of OptionsMenuState/ExitMenuState (or one of their sub-screens
+        // like Video/Audio/Advanced Video) invokes it DIRECTLY, while this
+        // state was never disabled, to rebuild the main menu window.
+        // GuiGlobals cursor requests are reference-counted per owner: an
+        // unguarded second requestCursorEnabled(this) leaked one request, so
+        // the release in onDisable() never dropped the count to zero,
+        // MouseState stayed enabled and the mouse cursor remained visible
+        // after Start Game, during gameplay. Requesting only while we hold
+        // no request keeps the repeated calls idempotent.
+        if (!GuiGlobals.getInstance().hasRequestedCursorEnabled(this)) {
+            GuiGlobals.getInstance().requestCursorEnabled(this);
+        }
 
         int height = application.getSettings().getHeight();
 
@@ -200,7 +213,13 @@ public class MainMenuState extends BaseAppState {
     @Override
     protected void onDisable() {
         gameLogicCore.getFreeFollowCamera().setEnabled(true);
-        GuiGlobals.getInstance().releaseCursorEnabled(this);
+
+        // Mirror of the guard in onEnable(): release only a request we
+        // actually hold, so enable/disable stay idempotent even when
+        // onDisable() itself is ever invoked out of band.
+        if (GuiGlobals.getInstance().hasRequestedCursorEnabled(this)) {
+            GuiGlobals.getInstance().releaseCursorEnabled(this);
+        }
 
         gui.detachChild(pressAnyKeyState.getBackgroundPicture());
 
