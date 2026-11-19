@@ -56,6 +56,14 @@ public class Constants {
     // world is loaded) hold after Start Game.
     public static final String ADVANCED_VIDEO_FILM_GRAIN = "FilmGrainEnabled";
     public static final String ADVANCED_VIDEO_FSR_CAS = "FsrCASEnabled";
+    // FSR 1 upscaling (Advanced Video -> "FSR Upscaling" + "Upscaling
+    // Preset"). Boolean toggle with default OFF (unlike the two keys above,
+    // whose absent key means ON - upscaling changes the whole render path,
+    // so existing players keep native rendering until they opt in). The
+    // preset is stored as a ResolutionPreset name (default Quality) and is
+    // RELATIVE to the current display resolution - see ResolutionPreset.
+    public static final String ADVANCED_VIDEO_UPSCALING = "UpscalingEnabled";
+    public static final String ADVANCED_VIDEO_UPSCALING_PRESET = "UpscalingPreset";
     public static final String ROOT_LOGGER = "";
     public static final Level LOGGING_LEVEL = Level.INFO;
     public static final int MIN_FRAME_RATE = 30;

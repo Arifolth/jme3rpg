@@ -19,6 +19,8 @@
 package ru.arifolth.anjrpg.menu;
 
 import com.jme3.app.Application;
+import com.jme3.math.ColorRGBA;
+import com.jme3.renderer.Camera;
 import com.jme3.system.AppSettings;
 import com.simsilica.lemur.*;
 import com.simsilica.lemur.component.BorderLayout;
@@ -26,6 +28,7 @@ import com.simsilica.lemur.component.SpringGridLayout;
 import ru.arifolth.anjrpg.interfaces.ANJRpgInterface;
 import ru.arifolth.anjrpg.interfaces.Constants;
 import ru.arifolth.anjrpg.interfaces.FilterManagerInterface;
+import ru.arifolth.anjrpg.interfaces.ResolutionPreset;
 import ru.arifolth.anjrpg.interfaces.SoundTypeEnum;
 
 import static com.simsilica.lemur.component.BorderLayout.Position.East;
@@ -41,18 +44,32 @@ import static com.simsilica.lemur.component.BorderLayout.Position.West;
  * FilterPostProcessor skip the pass on the next rendered frame without
  * touching the filter's index in the chain. The filters are never
  * removed/re-added: Film Grain must stay last (added after Water in
- * FilterManager.initialize()) and FSR CAS must stay before GammaCorrection,
- * and removeFilter/addFilter would move them to the end of the chain.</p>
+ * FilterManager.initialize()) and FSR CAS must stay immediately after the
+ * FSR EASU upscaler, and removeFilter/addFilter would move them to the end
+ * of the chain.</p>
+ *
+ * <p>The FSR Upscaling section adds, above the two existing checkboxes:</p>
+ * <ul>
+ *   <li>"FSR Upscaling" - master toggle for the low-resolution render path
+ *       + EASU upscaler. Default off; the whole chain renders natively
+ *       while off.</li>
+ *   <li>"Upscaling Preset" - quality preset dropdown, RELATIVE to the
+ *       current display resolution (Ultra Quality ~0.77x, Quality ~0.67x,
+ *       Balanced ~0.59x, Performance ~0.50x - see ResolutionPreset). The
+ *       internal resolution is recomputed whenever the display resolution
+ *       changes, so no absolute-resolution list is offered (a fixed list
+ *       breaks on lower/equal display resolutions).</li>
+ *   <li>"Internal Resolution" - read-only label with the effective
+ *       internal -&gt; display resolution, e.g. "Quality - 2560x1440 -&gt;
+ *       3840x2160". Updates live when the checkbox or the preset
+ *       changes.</li>
+ * </ul>
  *
  * <p>From the main menu the world (and with it the FilterManager) is not
  * loaded yet, so Apply only persists the keys there - FilterManager reads
  * them back when it creates the filters, and the toggles hold across the
- * Start Game that follows.</p>
- *
- * <p>The checkboxes carry their own text and are added directly to the
- * join panel, exactly like VideoPanel's Fullscreen/VSync rows: every row
- * starts at the same left edge in one SpringGridLayout column, so the
- * check indicators line up.</p>
+ * Start Game that follows. The computed-resolution label still works there
+ * because it is derived from the preset and the live display size alone.</p>
  *
  * <p>Future filters follow the same pattern: one Checkbox field, one
  * {@code joinPanel.addChild(...)}, one {@code Constants.ADVANCED_VIDEO_*}
@@ -66,6 +83,13 @@ public class AdvancedVideoPanel implements MenuPanel {
 
     private final Checkbox filmGrainCheckbox = new Checkbox("Film Grain");
     private final Checkbox fsrCASCheckbox    = new Checkbox("FSR CAS Sharpening");
+    private final Checkbox fsrUpscalingCheckbox = new Checkbox("FSR Upscaling");
+    private final UpscalingPresetDropDown upscalingPresetDropDown = new UpscalingPresetDropDown();
+    private final Label upscalingResolutionLabel = new Label("");
+
+    /** Inactive label tint: greyed out while upscaling is off (spec 11.2, rule 4). */
+    private static final ColorRGBA LABEL_ACTIVE_COLOR = new ColorRGBA(1f, 1f, 1f, 1f);
+    private static final ColorRGBA LABEL_INACTIVE_COLOR = new ColorRGBA(0.55f, 0.55f, 0.55f, 1f);
 
     public AdvancedVideoPanel(Application app, SystemPanel parentPanel) {
         this.application = app;
@@ -88,8 +112,22 @@ public class AdvancedVideoPanel implements MenuPanel {
         joinPanel.setBackground(null);
         joinPanel.setInsets(new Insets3f(10, 10, 10, 10));
 
-        joinPanel.addChild(filmGrainCheckbox);
+        // --- FSR Upscaling section (spec section 11.1) ---
+        joinPanel.addChild(fsrUpscalingCheckbox);
+
+        Container props = joinPanel.addChild(new Container(new BorderLayout()));
+        props.setBackground(null);
+        props.addChild(new Label("Upscaling Preset:"), West);
+        props.addChild(upscalingPresetDropDown, East);
+
+        props = joinPanel.addChild(new Container(new BorderLayout()));
+        props.setBackground(null);
+        props.addChild(new Label("Internal Resolution:"), West);
+        props.addChild(upscalingResolutionLabel, East);
+
+        // --- Existing toggles ---
         joinPanel.addChild(fsrCASCheckbox);
+        joinPanel.addChild(filmGrainCheckbox);
 
         Container applyRow = joinPanel.addChild(new Container(new BorderLayout()));
         applyRow.setBackground(null);
@@ -105,6 +143,64 @@ public class AdvancedVideoPanel implements MenuPanel {
         AppSettings settings = ((ANJRpgInterface) application).getSettings();
         filmGrainCheckbox.setChecked(SettingsUtils.readToggle(settings, Constants.ADVANCED_VIDEO_FILM_GRAIN));
         fsrCASCheckbox.setChecked(SettingsUtils.readToggle(settings, Constants.ADVANCED_VIDEO_FSR_CAS));
+        // Default OFF (unlike the two toggles above): absent key = native path.
+        fsrUpscalingCheckbox.setChecked(SettingsUtils.readToggle(settings, Constants.ADVANCED_VIDEO_UPSCALING, false));
+        upscalingPresetDropDown.initialize(settings);
+
+        // Live label updates: checkbox flips and preset picks both refresh
+        // the computed-resolution label immediately (spec 11.2, rule 4/7).
+        fsrUpscalingCheckbox.addClickCommands(button -> updateUpscalingUiState());
+        upscalingPresetDropDown.setOnSelectionChange(this::updateUpscalingUiState);
+        updateUpscalingUiState();
+    }
+
+    /**
+     * Refreshes the read-only "Internal Resolution" label from the current
+     * checkbox/dropdown state and the LIVE display resolution. The label is
+     * the notification channel required by spec 11.2, rule 3 (fallbacks are
+     * reported through it) - e.g. "Quality - 2560x1440 -> 3840x2160", or a
+     * note that the preset is unavailable at the current display size.
+     */
+    private void updateUpscalingUiState() {
+        int[] display = currentDisplayResolution();
+        if (!fsrUpscalingCheckbox.isChecked()) {
+            upscalingResolutionLabel.setText("Off - renders at " + display[0] + "x" + display[1]);
+            upscalingResolutionLabel.setColor(LABEL_INACTIVE_COLOR);
+            return;
+        }
+        ResolutionPreset preset = upscalingPresetDropDown.getSelectedPreset();
+        upscalingResolutionLabel.setText(preset.describe(display[0], display[1]));
+        upscalingResolutionLabel.setColor(LABEL_ACTIVE_COLOR);
+    }
+
+    /**
+     * The live display (framebuffer) resolution - the target EASU upscales
+     * to, whatever it currently is (4K, 2K, ultrawide, windowed, ...). The
+     * presets are RATIOS of this size, so no resolution is ever hardcoded:
+     * the context settings track window resizes, the application-level
+     * settings hold the resolution picked in Video settings, and the camera
+     * is the last resort (the actual canvas size). Never a fixed size: the
+     * upscaling chain derives its target silently from whatever the current
+     * screen resolution is.
+     */
+    private int[] currentDisplayResolution() {
+        if (application.getContext() != null && application.getContext().getSettings() != null) {
+            AppSettings contextSettings = application.getContext().getSettings();
+            if (contextSettings.getWidth() > 0 && contextSettings.getHeight() > 0) {
+                return new int[]{contextSettings.getWidth(), contextSettings.getHeight()};
+            }
+        }
+        AppSettings settings = ((ANJRpgInterface) application).getSettings();
+        if (settings != null && settings.getWidth() > 0 && settings.getHeight() > 0) {
+            return new int[]{settings.getWidth(), settings.getHeight()};
+        }
+        Camera camera = application.getCamera();
+        if (camera != null && camera.getWidth() > 0 && camera.getHeight() > 0) {
+            return new int[]{camera.getWidth(), camera.getHeight()};
+        }
+        // Truly nothing available (not expected in practice): fall back to
+        // the smallest preset-friendly size rather than a fixed 4K.
+        return new int[]{1280, 720};
     }
 
     private void apply() {
@@ -120,11 +216,18 @@ public class AdvancedVideoPanel implements MenuPanel {
         if (fm != null) {
             fm.getFilmGrainFilter().setEnabled(filmGrainCheckbox.isChecked());
             fm.getFsrCASFilter().setEnabled(fsrCASCheckbox.isChecked());
+            // Preset first, then the master switch: setUpscalingEnabled
+            // re-applies the currently selected preset, so this order ends
+            // with exactly one effective reconfiguration.
+            fm.applyResolutionPreset(upscalingPresetDropDown.getSelectedPreset());
+            fm.setUpscalingEnabled(fsrUpscalingCheckbox.isChecked());
         }
 
         AppSettings settings = ((ANJRpgInterface) application).getSettings();
         settings.putBoolean(Constants.ADVANCED_VIDEO_FILM_GRAIN, filmGrainCheckbox.isChecked());
         settings.putBoolean(Constants.ADVANCED_VIDEO_FSR_CAS, fsrCASCheckbox.isChecked());
+        settings.putBoolean(Constants.ADVANCED_VIDEO_UPSCALING, fsrUpscalingCheckbox.isChecked());
+        SettingsUtils.writeUpscalingPreset(settings, upscalingPresetDropDown.getSelectedPreset());
         SettingsUtils.saveSettings(settings);
     }
 

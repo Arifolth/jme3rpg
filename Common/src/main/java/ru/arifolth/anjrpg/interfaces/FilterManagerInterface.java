@@ -41,11 +41,52 @@ public interface FilterManagerInterface {
     Filter getFilmGrainFilter();
 
     /**
-     * The FSR CAS sharpening filter. It is added before
-     * GammaCorrectionFilter and must stay there. Runtime toggling must go
-     * through {@link Filter#setEnabled(boolean)} only.
+     * The FSR EASU upscaling filter (FSR 1 spatial upscaler, internal ->
+     * display resolution). It is added after the Water filter and
+     * IMMEDIATELY before the FSR CAS filter - no filter may run between
+     * EASU and RCAS (FSR 1 pipeline requirement). Use
+     * {@link #setUpscalingEnabled(boolean)} to toggle it (never remove/add,
+     * which would break the chain order).
+     *
+     * <p>Declared as the engine base type, like getFilmGrainFilter().</p>
+     */
+    Filter getFsrEASUFilter();
+
+    /**
+     * The FSR CAS sharpening filter (RCAS stage of the FSR 1 pipeline). It
+     * is added IMMEDIATELY after {@link #getFsrEASUFilter()} and must stay
+     * there. Runtime toggling must go through
+     * {@link Filter#setEnabled(boolean)} only.
      */
     Filter getFsrCASFilter();
+
+    /**
+     * Enables/disables the FSR 1 upscaling path (Advanced Video Settings
+     * menu). When enabled, the scene renders at the internal resolution
+     * derived from the current preset and the EASU filter upscales it to
+     * the display resolution; when disabled, the scene renders natively.
+     * Applies immediately at runtime (safe to call while the world is
+     * loaded); before the world loads, persist the
+     * Constants.ADVANCED_VIDEO_UPSCALING key instead - FilterManager applies
+     * it when the filters are created.
+     */
+    void setUpscalingEnabled(boolean enabled);
+
+    /**
+     * Selects the FSR 1 quality preset (relative to the CURRENT display
+     * resolution - see {@link ResolutionPreset}). Validates the preset
+     * against the display resolution and falls back to the smallest valid
+     * preset (or disables upscaling) when it is not valid. Applies
+     * immediately when upscaling is enabled; when disabled, the preset is
+     * stored without effect until upscaling is turned on.
+     */
+    void applyResolutionPreset(ResolutionPreset preset);
+
+    /** Whether the FSR upscaling path is currently active. */
+    boolean isUpscalingEnabled();
+
+    /** The currently selected FSR upscaling preset (persisted value). */
+    ResolutionPreset getUpscalingPreset();
 
     void addFog();
 

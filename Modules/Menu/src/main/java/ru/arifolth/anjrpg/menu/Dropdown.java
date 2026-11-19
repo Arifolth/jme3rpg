@@ -93,7 +93,19 @@ public abstract class Dropdown extends Panel {
     @Override
     public void updateLogicalState(float tpf) {
         super.updateLogicalState(tpf);
-        if (selectionRef.update()) {
+        // A selection-model change is only a USER pick while the popup list
+        // is open (the click lands on a visible list entry): close the popup
+        // then. Selections set programmatically while the popup is closed -
+        // the initial value, or the lazy default installed by
+        // getDefaultSelection() from getSelectedValue() - must NEVER open
+        // the popup: with the old unconditional toggle, the first poll after
+        // such a change popped the list open on panel entry (the "preset
+        // dropdown is always open when switching to the panel" bug, most
+        // visible on UpscalingPresetDropDown whose panel reads the selection
+        // during construction, but latent in every other dropdown whose
+        // getSelectedValue() runs before the user ever opened the list).
+        boolean selectionChanged = selectionRef.update();
+        if (selectionChanged && popupShown) {
             resetOpen();
         }
     }

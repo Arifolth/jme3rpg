@@ -23,6 +23,7 @@ import com.jme3.system.AppSettings;
 import com.jme3.system.JmeSystem;
 import com.jme3.system.JmeVersion;
 import ru.arifolth.anjrpg.interfaces.Constants;
+import ru.arifolth.anjrpg.interfaces.ResolutionPreset;
 import ru.arifolth.anjrpg.interfaces.ViewDistanceSettings;
 
 import java.awt.*;
@@ -88,6 +89,29 @@ public class SettingsUtils {
      */
     public static boolean readToggle(AppSettings settings, String key) {
         return settings.containsKey(key) ? settings.getBoolean(key) : true;
+    }
+
+    /**
+     * Same as {@link #readToggle(AppSettings, String)} with an explicit
+     * default for toggles that are OFF out of the box (e.g. FSR upscaling:
+     * an absent key must leave the native render path untouched).
+     */
+    public static boolean readToggle(AppSettings settings, String key, boolean defaultValue) {
+        return settings.containsKey(key) ? settings.getBoolean(key) : defaultValue;
+    }
+
+    /**
+     * Reads the persisted FSR upscaling preset (default Quality), tolerant
+     * of unknown legacy values.
+     */
+    public static ResolutionPreset readUpscalingPreset(AppSettings settings) {
+        return ResolutionPreset.fromName((String) settings.get(Constants.ADVANCED_VIDEO_UPSCALING_PRESET),
+                ResolutionPreset.QUALITY);
+    }
+
+    /** Persists the FSR upscaling preset by its stable enum name. */
+    public static void writeUpscalingPreset(AppSettings settings, ResolutionPreset preset) {
+        settings.put(Constants.ADVANCED_VIDEO_UPSCALING_PRESET, preset.name());
     }
 
     public static ViewDistanceSettings getViewDistanceSettings(SimpleApplication app) {

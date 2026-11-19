@@ -28,13 +28,48 @@ import com.jme3.texture.Texture;
 import com.jme3.texture.Texture2D;
 
 /*
-* Inspired by https://www.shadertoy.com/view/ftsXzM
+* FSR 1 RCAS (Reality Contrast Adaptive Sharpening) stage, ported with
+* fsr_cas.frag from AMD's MIT-licensed FSR 1 reference (ffx_fsr1.h,
+* FsrRcasF, 32-bit float path) - the same source as the EASU port in
+* FSREASUFilter. Runs IMMEDIATELY after the EASU upscaler in the filter
+* chain (FSR 1 pipeline requirement) and sharpens the upscaled image at
+* the display resolution.
 * */
 public class FSRCASFilter extends Filter {
-    private float sharpness = 0.8f; // Range 0.0 (soft) to 1.0  (sharp)
+    /**
+     * Sharpness strength: 0.0 = exact pass-through (RCAS off), 1.0 = the
+     * FSR 1 reference maximum (the FSR_RCAS_LIMIT-clamped negative lobe).
+     * Scales the reference lobe linearly; see fsr_cas.frag's port notes
+     * for how this maps onto AMD's FsrRcasCon constant.
+     */
+    private float sharpness = 0.8f;
+
+    /**
+     * Display resolution RCAS operates at. When FSR upscaling is active the
+     * FPP pass size (w/h of initFilter) is the INTERNAL resolution, while
+     * RCAS runs on the upscaled image - so FilterManager injects the display
+     * size here. 0 = fall back to the viewport camera (native rendering).
+     */
+    private int displayWidth, displayHeight;
+
+    private final DisplayRenderPass displayRenderPass = new DisplayRenderPass("FSR CAS display pass");
 
     public FSRCASFilter() {
         super("FSR CAS Filter");
+    }
+
+    /**
+     * The display resolution (the size of the image RCAS sharpens). Must be
+     * called by the FilterManager when FSR upscaling is enabled, because at
+     * add-time the viewport camera may already be resized to the internal
+     * resolution by the FPP.
+     */
+    public void setDisplayResolution(int width, int height) {
+        this.displayWidth = width;
+        this.displayHeight = height;
+        if (material != null) {
+            material.setVector2("Resolution", new Vector2f(Math.max(width, 1), Math.max(height, 1)));
+        }
     }
 
     @Override
@@ -53,12 +88,27 @@ public class FSRCASFilter extends Filter {
         material.setTexture("Texture", tex);
         material.setInt("NumSamples", tex.getImage().getMultiSamples());
 
-        int width = vp.getCamera().getWidth();
-        int height = vp.getCamera().getHeight();
+        // RCAS runs on the UPSCALED image, so its sampling step (Resolution)
+        // is the display resolution - not the FPP pass size, which is the
+        // internal resolution when upscaling is active. Fall back to the
+        // viewport camera (correct at native resolution).
+        int width = displayWidth > 0 ? displayWidth : vp.getCamera().getWidth();
+        int height = displayHeight > 0 ? displayHeight : vp.getCamera().getHeight();
 
         material.setVector2("Resolution", new Vector2f(width, height));
 
         material.setFloat("Sharpness", sharpness);
+
+        // When RCAS runs after the FSREASUFilter (FSR 1 pipeline: EASU then
+        // RCAS immediately after), its input and output are display-res
+        // while the FPP sizes its default pass at the internal resolution.
+        // Swap in the display-resolution pass in that case.
+        if (displayRenderPass.isActive(w, h, width, height, processor.getDefaultPassTextureFormat())) {
+            getRenderFrameBuffer().dispose();
+            getRenderedTexture().getImage().dispose();
+            setRenderFrameBuffer(displayRenderPass.getFrameBuffer());
+            setRenderedTexture(displayRenderPass.getTexture());
+        }
     }
 
     @Override
@@ -76,5 +126,12 @@ public class FSRCASFilter extends Filter {
 
     public float getSharpness() {
         return sharpness;
+    }
+
+    @Override
+    protected void cleanUpFilter(com.jme3.renderer.Renderer r) {
+        // The base Filter.cleanup has already disposed the pair installed in
+        // the default pass (the display-res pair when upscaling was active).
+        displayRenderPass.release();
     }
 }

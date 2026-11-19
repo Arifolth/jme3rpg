@@ -104,9 +104,31 @@ public class FilmGrainFilter extends Filter {
     private float grainRate = DEFAULT_GRAIN_RATE;
     private float grainSize = DEFAULT_GRAIN_SIZE;
 
+    /**
+     * Display resolution the grain composites at. Normally this filter is
+     * the LAST filter in the chain and renders straight to the screen (the
+     * engine sizes that final pass at the display resolution), but when the
+     * runtime fog filter is active the grain becomes a mid-chain filter and
+     * needs its own display-res pass while FSR upscaling is enabled.
+     * 0 = fall back to the viewport camera (native rendering).
+     */
+    private int displayWidth, displayHeight;
+
+    private final DisplayRenderPass displayRenderPass = new DisplayRenderPass("FilmGrain display pass");
+
     public FilmGrainFilter(SimpleApplication application) {
         super("FilmGrainFilter");
         this.application = application;
+    }
+
+    /**
+     * The display resolution (grain is a full-resolution effect: it must
+     * composite over the upscaled image, not the low-res one). Called by the
+     * FilterManager when FSR upscaling is enabled.
+     */
+    public void setDisplayResolution(int width, int height) {
+        this.displayWidth = width;
+        this.displayHeight = height;
     }
 
     @Override
@@ -119,6 +141,26 @@ public class FilmGrainFilter extends Filter {
         material.setFloat("Confetti", confetti);
         material.setFloat("GrainRate", grainRate);
         material.setFloat("GrainSize", grainSize);
+
+        // When FSR upscaling is active and the grain is NOT the last enabled
+        // filter (fog added at runtime appends after it), the default pass
+        // would be sized at the internal resolution and downsample the
+        // upscaled image. Swap in a display-resolution pass instead.
+        int outW = displayWidth > 0 ? displayWidth : vp.getCamera().getWidth();
+        int outH = displayHeight > 0 ? displayHeight : vp.getCamera().getHeight();
+        if (displayRenderPass.isActive(w, h, outW, outH, processor.getDefaultPassTextureFormat())) {
+            getRenderFrameBuffer().dispose();
+            getRenderedTexture().getImage().dispose();
+            setRenderFrameBuffer(displayRenderPass.getFrameBuffer());
+            setRenderedTexture(displayRenderPass.getTexture());
+        }
+    }
+
+    @Override
+    protected void cleanUpFilter(com.jme3.renderer.Renderer r) {
+        // The base Filter.cleanup has already disposed the pair installed in
+        // the default pass (the display-res pair when upscaling was active).
+        displayRenderPass.release();
     }
 
     @Override
