@@ -65,6 +65,7 @@ public class TestGltfLoading extends SimpleApplication {
     private final static String indentString = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
     private boolean playAnim = true;
     private Node handAttach;
+    private Node leftArmAttach;
 
     public static void main(String[] args) {
         TestGltfLoading app = new TestGltfLoading();
@@ -77,7 +78,6 @@ public class TestGltfLoading extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
-
         ArmatureDebugAppState armatureDebugappState = new ArmatureDebugAppState();
         getStateManager().attach(armatureDebugappState);
 
@@ -97,10 +97,45 @@ public class TestGltfLoading extends SimpleApplication {
         autoRotate.attachChild(probeNode);
 
         Spatial knight = loadModel("assets/Models/Characters/stechhelmkn/Meshy_AI_stechhelm_knight_remesh_20261123_animated_mixamo_All_animation_20.glb", new Vector3f(0, -1.2f, 0), null);
+        Spatial shield  = loadModel("assets/Models/Characters/stechhelmkn/Meshy_AI_jousting_targe_lowpoly_game_asset_20261126_texture.glb", new Vector3f(0, 0, 0), new Vector3f(0.6f, 0.6f, 0.6f) );
         Spatial sword  = loadModel("assets/Models/Characters/stechhelmkn/Meshy_AI_Boden_Knight_Sword_Upward_Low_Poly_20261125_texture.glb", new Vector3f(0, 0, 0), null);
 
         for(Spatial spatial: assets)
             probeNode.attachChild(spatial);
+
+        // --- SHIELD ATTACHMENT FIX START ---
+
+        assets.remove(shield);
+
+        SkinningControl knightSkin = findControl(knight, SkinningControl.class);
+
+        if (knightSkin != null) {
+            Node leftArmAttach = knightSkin.getAttachmentsNode("mixamorig:LeftForeArm");
+
+            if (leftArmAttach != null) {
+                Node shieldOffset = new Node("ShieldOffset");
+
+                // 1. Translation: Slide it DOWN the arm and closer to the body
+                // X: Less negative brings it closer to the torso.
+                // Y: Negative slides it down towards the hand (Mixamo bones point down).
+                // Z: Pushes it slightly forward so it doesn't clip the elbow.
+                shield.setLocalTranslation(-0.05f, -0.15f, 0.05f);
+                shield.setLocalRotation(Quaternion.IDENTITY);
+
+                // 2. Rotation: Keep this exactly as it is! It works perfectly.
+                shieldOffset.setLocalRotation(new Quaternion().fromAngles(
+                        -FastMath.PI,    // X: Keeps it upright
+                        0,         // Y: Faces it outward
+                        0     // Z: Tilts it
+                ));
+
+                shieldOffset.attachChild(shield);
+                leftArmAttach.attachChild(shieldOffset);
+
+                System.out.println("Shield attached to Left Forearm successfully.");
+            }
+        }
+        // --- SHIELD ATTACHMENT FIX END ---
 
         // --- SWORD ATTACHMENT FIX START ---
 
@@ -208,6 +243,8 @@ public class TestGltfLoading extends SimpleApplication {
 
             String rightHandJoint = "mixamorig:RightHand";
             handAttach = ctrl.getAttachmentsNode(rightHandJoint);
+
+            leftArmAttach = ctrl.getAttachmentsNode("mixamorig:LeftForeArm");
         }
         return model;
     }
